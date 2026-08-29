@@ -88,3 +88,18 @@ Result: Adopted living documents, an Obsidian task handoff, gated component deve
 Interpretation: Planning documentation is part of experimental validity, not administrative polish.
 
 Artifacts: `PROJECT_SPEC.md`, `PROJECT_PLAN.md`, `THEORY.md`, `DECISIONS.md`, `EXPERIMENT_LOG.md`, `INTERVIEW_DEFENSE.md`.
+
+### PLAN-002 - Deadline and environment inventory
+
+Date/time: 2026-08-30
+Status: completed
+
+Question: What calendar and machine constraints determine the feasible critical path?
+
+Result: The hard deadline is Friday 4 September at 15:00 Europe/Copenhagen. The machine is Apple M4 with 16 GB memory, Xcode 26.6, Apple Clang 21, `uv` 0.12.2, Python 3.12.13, CMake 4.2.1, and about 105 GiB free disk. Epic Games Launcher is present, but no `UnrealEditor.app` or Game Animation Sample was detected. Default Python 3.14.6 does not contain PyTorch.
+
+Interpretation: The seven logical stages must be compressed into five build days plus interview morning. Unreal installation/sample acquisition is the immediate critical-path dependency. Python work will use a project-local 3.12 environment and proceed only on independent theory/contracts while installation is resolved.
+
+Reviewer finding: Without an explicit evidence ladder, schedule pressure could lead to presenting a synthetic causal demonstration as engine evidence. The plan now distinguishes five evidence levels and requires the package to state the highest achieved level.
+
+Artifacts: `PROJECT_PLAN.md`, decisions D-008 and D-009.

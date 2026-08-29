@@ -1,8 +1,45 @@
 # MotionWorld End-to-End Project Plan
 
 Status: active execution plan  
-Build window: seven calendar days  
+Build window: Saturday 29 August through Friday 4 September 2026 at 15:00 Europe/Copenhagen
+Code freeze: Thursday 3 September at 22:00; Friday morning is rehearsal and recovery only
 Operating principle: implementation speed never substitutes for personal ownership of design, mathematics, experiments, or conclusions.
+
+## 0. Deadline reality and priority ladder
+
+The PDF describes seven implementation days. The actual calendar provides five build days after project foundation plus Friday morning. The technical stages below retain their Day 0-7 names so they remain traceable to specification v1.1, but their dated execution is compressed:
+
+| Calendar date | Logical stages | Non-negotiable result |
+|---|---|---|
+| Sat 29 Aug | Day 0 | Research contract, memory, living documents, branch/commit protocol. |
+| Sun 30 Aug | Day 1 | Unreal installed/sample available; compiled control/reset/logger feasibility or a documented fallback decision. |
+| Mon 31 Aug | Day 2 | Tested coordinates and nominal dynamics; episode-safe data path; first real prediction-error plot. |
+| Tue 1 Sep | Day 3 | Nominal/no-history/history recursive prediction comparison. |
+| Wed 2 Sep | Day 4 | Deterministic offline CEM and, if gates pass, live nominal/residual control. |
+| Thu 3 Sep | Days 5-6 | Frozen paired evaluation, latency, failure case, recording, README, and package. Stop coding at 22:00. |
+| Fri 4 Sep, morning | Day 7 | Three clean rehearsals, hostile examination, fallback verification. Interview at 15:00. |
+
+### Evidence ladder
+
+We pursue the strongest level that passes its gate without misrepresenting a lower level as a stronger result:
+
+1. **Theory proof** - hand calculations and unit tests validate coordinates, nominal updates, residual composition, multi-step rollout, cost, and CEM.
+2. **Synthetic causal proof** - a labeled deterministic 2D test double demonstrates nominal error -> residual correction -> different plan -> improved synthetic outcome. This proves the software/reasoning chain, not Unreal performance.
+3. **Unreal feasibility proof** - programmatic desired velocity, authoritative post-movement state, deterministic reset, gate, and complete episode log work in the real engine.
+4. **Unreal prediction proof** - the learned residual reduces held-out recursive Unreal state error over a faithful nominal baseline.
+5. **Unreal control proof** - corrected prediction changes an otherwise identical CEM decision and improves paired same-seed Unreal execution. This is the full positive claim.
+
+If level 5 is not reached, the interview package explicitly states the highest completed level and the missing evidence. We never present synthetic data as Unreal evidence or prediction improvement as control improvement.
+
+### Immediate environment gate
+
+The 30 August inventory found an Apple M4/16 GB Mac, Xcode 26.6, Apple Clang 21, `uv`, Python 3.12, CMake 4.2, and about 105 GiB free disk. Epic Games Launcher is installed, but no `UnrealEditor.app` or Game Animation Sample was detected. Default Python 3.14 has no PyTorch and must not be used for the ML environment.
+
+- By Sunday 10:00: start/verify a version-matched Unreal 5.7 or 5.8 installation and Game Animation Sample acquisition; confirm required disk footprint before downloading.
+- While installation runs: create a Python 3.12 `uv` environment and begin only the theory test double, coordinate tests, schemas, and protocol types.
+- By Sunday 13:00: open and compile the sample or record the exact installation blocker.
+- By Sunday 18:00: demonstrate external desired velocity and authoritative state capture.
+- By Sunday 22:00: demonstrate deterministic reset and one logged episode. If the sample blocks integration, switch to Manny plus Mover. If the engine itself remains unavailable, freeze all Unreal claims and maximize evidence levels 1-2 while preserving an explicit integration plan.
 
 ## 1. How we will work
 
@@ -98,7 +135,7 @@ This is a test double and teaching tool, not final evidence. It lets us find ten
 
 The same state/action/rollout interfaces connect to Game Animation Sample/Mover. Only Unreal results support the interview claim. Track A must never be presented as if it were engine evidence.
 
-## 4. Day 0 - project foundation (current milestone)
+## 4. Day 0 - project foundation (Saturday 29 August; completed)
 
 ### Objectives
 
@@ -122,7 +159,7 @@ Candidate can explain the causal claim, why prediction and control are separate,
 
 Do not write model or Unreal integration code until the repository contract and environment constraints are visible.
 
-## 5. Day 1 - Unreal feasibility
+## 5. Day 1 - Unreal feasibility (Sunday 30 August)
 
 Branch: `feature/unreal-feasibility`
 
@@ -186,7 +223,7 @@ Proceed only when external desired velocity, post-movement state, deterministic 
 - `Expose authoritative Mover state and safe desired velocity control`
 - `Add deterministic arena reset and episode logger`
 
-## 6. Day 2 - nominal dynamics, data foundation, and theory POC
+## 6. Day 2 - nominal dynamics, data foundation, and theory POC (Monday 31 August)
 
 Branches: `feature/nominal-dynamics`, then `feature/data-pipeline`
 
@@ -252,7 +289,7 @@ Do not train a residual unless nominal error is reproducible, systematic, and la
 - `Add deterministic toy dynamics backend`
 - `Validate episode-safe dataset manifests`
 
-## 7. Day 3 - residual model
+## 7. Day 3 - residual model (Tuesday 1 September)
 
 Branch: `feature/residual-model`
 
@@ -311,7 +348,7 @@ Do not connect residual predictions to planning until held-out recursive predict
 - `Train no-history and history residual baselines`
 - `Report stratified full-horizon prediction errors`
 
-## 8. Day 4 - CEM and control integration
+## 8. Day 4 - CEM and control integration (Wednesday 2 September)
 
 Branches: `feature/cem-planner`, then `feature/unreal-control-integration`
 
@@ -372,7 +409,7 @@ Proceed only when nominal and residual controllers consume the exact same candid
 - `Implement tested analytic planning costs`
 - `Integrate fair nominal and residual MPC controllers`
 
-## 9. Day 5 - frozen experiments
+## 9. Day 5 - frozen experiments (Thursday 3 September, morning/afternoon)
 
 Branch: `experiment/final-evaluation`
 
@@ -435,7 +472,7 @@ The result is accepted whether positive or negative if the protocol is fair and 
 - `Add paired controller evaluation and bootstrap reporting`
 - `Record model exploitation and OOD diagnostics`
 
-## 10. Day 6 - runtime, demo, and package
+## 10. Day 6 - runtime, demo, and package (Thursday 3 September, afternoon/evening)
 
 Branch: `release/interview-demo`
 
@@ -511,9 +548,11 @@ No ONNX, ensemble, crossing obstacle, or AnimGen work unless the central result,
 - `Benchmark final planner latency and deadlines`
 - `Package reproducible MotionWorld interview demo`
 
-## 11. Day 7 - defense and rehearsal
+## 11. Day 7 - defense and rehearsal (Friday 4 September, morning)
 
 Branch: continue `release/interview-demo`; stop feature development.
+
+No feature code may be added Friday morning. Only a demonstrated launch-blocking defect may be repaired, followed by a complete rehearsal rerun.
 
 ### 11.1 Narrative
 

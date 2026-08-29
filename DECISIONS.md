@@ -103,7 +103,7 @@ Status: accepted
 
 Decision: Use one short-lived branch per coherent milestone, merge only after its gate passes, and create small tested commits within the branch.
 
-Why: Isolates risk without creating unnecessary concurrent integration work in a seven-day solo build.
+Why: Isolates risk without creating unnecessary concurrent integration work in a deadline-compressed solo build.
 
 Alternatives considered: all work directly on `main`; one long-lived feature branch; a branch for every tiny file.
 
@@ -156,3 +156,43 @@ How it could fail: Obstacle/contact context is genuinely required to predict exe
 How I tested it: Near-contact error strata and a documented contact-context ablation if needed.
 
 Related config/commit/experiment: pending.
+
+## D-008 - Deadline-compressed evidence ladder
+
+Status: accepted
+
+Decision: Preserve the specification's scientific gates but execute them on a dated five-build-day schedule, with an explicit evidence ladder from theory proof through full Unreal control proof.
+
+Why: The interview is Friday 4 September at 15:00, leaving fewer implementation days than the PDF's seven-day assumption.
+
+Alternatives considered: Pretend all seven stages are full calendar days; remove evaluation gates to save time; claim synthetic results as project results.
+
+Evidence: Calendar check and environment inventory on 30 August 2026.
+
+Main assumption: A small Python test double can de-risk interfaces while Unreal installs without diverting work from the real experiment.
+
+How it could fail: Time spent polishing the synthetic proof delays engine integration, or the Unreal download/toolchain consumes the critical path.
+
+How I tested it: Dated stop/go deadlines and a code freeze are recorded in `PROJECT_PLAN.md`; every package claim must state its achieved evidence level.
+
+Related config/commit/experiment: `PLAN-002`; `docs/project-foundation`.
+
+## D-009 - Python 3.12 ML environment
+
+Status: accepted
+
+Decision: Use a project-local `uv` environment based on `/opt/homebrew/bin/python3.12`; do not use the system/default Python 3.14 for training.
+
+Why: Python 3.12 is available and broadly supported by the requested ML stack, while the detected Python 3.14 environment has no PyTorch.
+
+Alternatives considered: Install packages globally into Python 3.14; use an unspecified Conda environment.
+
+Evidence: Environment inventory on 30 August 2026.
+
+Main assumption: Required PyTorch packages support the Apple Silicon/Python 3.12 combination.
+
+How it could fail: Package resolution or MPS-specific operators fail; CPU execution remains the deterministic fallback for this small model.
+
+How I tested it: Installation and import smoke tests are the first implementation task; versions will be frozen in the lockfile.
+
+Related config/commit/experiment: `PLAN-002`.
