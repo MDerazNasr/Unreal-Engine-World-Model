@@ -1,0 +1,1151 @@
+# MotionWorld Master Execution Checklist
+
+Hard deadline: Friday 4 September 2026 at 15:00 Europe/Copenhagen
+
+Code freeze: Thursday 3 September at 22:00
+
+Obsidian task: `M7UXD`
+
+This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and when; this file records whether every atomic obligation is actually complete.
+
+## Status rules
+
+- `[ ]` means incomplete. Never check an item because work merely started.
+- `[x]` means the stated evidence exists and was reviewed.
+- Every artifact must identify its config, seed, Git commit, and reproduction command.
+- Every positive scientific claim must point to a real experiment entry.
+- Synthetic results must be labeled synthetic and never substituted for Unreal evidence.
+- A phase gate is passed only when all required boxes in its gate subsection are checked.
+- P1/P2 boxes remain intentionally unchecked until every P0 gate that protects them passes.
+
+## Daily dispatch and hard checkpoints
+
+### Saturday 29 August - foundation
+
+- [x] Complete specification/interviewer research.
+- [x] Establish durable task memory and living documents.
+- [x] Establish evidence ladder, branching policy, commit policy, and integrity rules.
+- [x] Commit foundation documentation.
+
+### Sunday 30 August - environment and Unreal feasibility
+
+- [ ] By 10:00, verify Unreal 5.7/5.8 and Game Animation Sample installation/acquisition.
+- [ ] While installation runs, bootstrap only independent Python environment/contracts/theory tests.
+- [ ] By 13:00, open the sample and compile the smallest project-specific module.
+- [ ] By 18:00, apply programmatic desired velocity and capture authoritative post-movement state.
+- [ ] By 22:00, demonstrate deterministic reset, timed gate, and one complete episode log.
+- [ ] Close/merge `feature/unreal-feasibility` only if the Section 4 feasibility gate and required Section 5 safety checks pass.
+- [ ] If the sample blocks progress, record and execute Manny plus Mover fallback.
+- [ ] If the engine remains unavailable, freeze Unreal claims and proceed only with clearly labeled evidence levels 1-2.
+
+### Monday 31 August - nominal model and data
+
+- [ ] Complete Section 3 coordinate and hand-oracle checks.
+- [ ] Complete Section 6 faithful nominal model and substep tests.
+- [ ] Complete enough Section 7 collection/validation to measure real residual structure.
+- [ ] Produce first nominal-versus-Unreal recursive error plot.
+- [ ] Decide by end of day whether meaningful decision-relevant residual structure exists.
+- [ ] Merge nominal/data branches only after their respective gates pass.
+
+### Tuesday 1 September - residual model
+
+- [ ] Complete residual target/composition and zero-residual invariant.
+- [ ] Complete no-history and four-history model training.
+- [ ] Complete recursive held-out comparison at 0.5/1.0/1.5 s.
+- [ ] Decide by end of day whether learned prediction is strong enough for planning integration.
+- [ ] Preserve negative outcome rather than weakening nominal baseline or tuning final test cases.
+- [ ] Close/merge `feature/residual-model` only after Section 8.6 gate review.
+
+### Wednesday 2 September - CEM and live control
+
+- [ ] Complete deterministic offline CEM and cost tests before Unreal integration.
+- [ ] Demonstrate identical candidate actions and planner settings for nominal/residual MPC.
+- [ ] Demonstrate live nominal MPC.
+- [ ] Demonstrate live residual MPC if prediction gate passed.
+- [ ] Demonstrate pause-mode counterfactual futures.
+- [ ] Complete service failure and reset-isolation tests.
+- [ ] Close/merge planner/integration branches only after Sections 9.6 and 10.4 pass.
+
+### Thursday 3 September - frozen evidence, demo, and package
+
+- [ ] Freeze all final configs/checkpoints/seeds/metrics before final test inspection.
+- [ ] Run paired timed-gate, push, and held-out-setting evaluations.
+- [ ] Produce statistics, exploitation diagnostic, and runtime report.
+- [ ] Produce main table, prediction graph, causal trace, and failure case.
+- [ ] Finish live HUD/trajectory view and record fallback video.
+- [ ] Complete repository/artifact packaging and clean reproduction check.
+- [ ] Stop feature coding at 22:00 even if stretch goals remain.
+
+### Friday 4 September - defense and interview
+
+- [ ] Make no feature changes.
+- [ ] Run three fresh-launch rehearsals.
+- [ ] Verify offline fallback package.
+- [ ] Complete blank-page theory derivations.
+- [ ] Complete Daniel-style and Viktoriia-style hostile examination.
+- [ ] Repair only a proven launch-blocking defect, then rerun all rehearsals.
+- [ ] Stop preparation early enough to enter the 15:00 interview rested and organized.
+
+## 0. Project governance and ownership
+
+### 0.1 Durable memory
+
+- [x] Create one Obsidian task note for the entire project.
+- [x] Record stable task ID `M7UXD`.
+- [x] Record base branch `main` and current work branch.
+- [x] Read the task note before broad exploration in each new session.
+- [ ] Update memory whenever a material design decision changes.
+- [ ] Update memory whenever an exploration path is rejected.
+- [ ] Update memory whenever validation changes confidence.
+- [ ] End every work block with a resume-ready handoff.
+- [ ] Keep the task note readable in under two minutes.
+
+### 0.2 Living documents
+
+- [x] Create `PROJECT_SPEC.md` as the exact system contract.
+- [x] Create `PROJECT_PLAN.md` as the dated execution plan.
+- [x] Create `THEORY.md` for equations, hand calculations, and candidate explanations.
+- [x] Create `DECISIONS.md` using the required decision template.
+- [x] Create `EXPERIMENT_LOG.md` with immutable experiment provenance fields.
+- [x] Create `INTERVIEW_DEFENSE.md` for adversarial questions and evidence-backed answers.
+- [x] Create `CHECKLIST.md` as the canonical atomic execution tracker.
+- [ ] Update `PROJECT_SPEC.md` before intentionally changing implemented behavior.
+- [ ] Record every consequential choice in `DECISIONS.md`.
+- [ ] Record every result that influences a conclusion in `EXPERIMENT_LOG.md`.
+- [ ] Add every weak oral answer to `INTERVIEW_DEFENSE.md` until resolved.
+
+### 0.3 AI ownership contract
+
+- [x] Adopt Mentor -> Builder -> Reviewer -> Examiner workflow.
+- [ ] Candidate states each component's purpose before implementation.
+- [ ] Candidate writes or validates the governing equation.
+- [ ] Candidate completes at least one hand calculation for each mathematical module.
+- [ ] Builder implements only the bounded component currently under review.
+- [ ] Reviewer actively searches for leakage, unfairness, unit errors, sign errors, and unsupported claims.
+- [ ] Examiner requires a roughly one-minute explanation without looking at code.
+- [ ] Candidate explicitly approves each material design decision.
+- [ ] Never treat AI output as final authority on Unreal APIs.
+- [ ] Never treat AI output as final authority on mathematical or experimental claims.
+
+### 0.4 Git discipline
+
+- [x] Create `docs/project-foundation` from `main`.
+- [x] Commit research and execution contract as `f855d33`.
+- [x] Commit deadline-adjusted plan as `ee134f9`.
+- [ ] Review and merge `docs/project-foundation` into `main`.
+- [ ] Create `feature/unreal-feasibility` from updated `main`.
+- [ ] Create later milestone branches only after the prior gate merges.
+- [ ] Make small commits after coherent tested slices.
+- [ ] Run focused tests before every commit.
+- [ ] Run `git diff --check` before every branch close.
+- [ ] Confirm living documents match actual behavior before branch close.
+- [ ] Record commit hashes in Obsidian and relevant experiment entries.
+- [ ] Never commit licensed Game Animation Sample content.
+- [ ] Never commit raw private data, credentials, caches, build products, or oversized checkpoints.
+
+## 1. Immediate environment and installation gate
+
+### 1.1 Verified machine inventory
+
+- [x] Record Apple M4 architecture.
+- [x] Record 16 GB system memory.
+- [x] Record Xcode 26.6 and Apple Clang 21.
+- [x] Record `uv` 0.12.2 and Python 3.12.13 availability.
+- [x] Record CMake 4.2.1 availability.
+- [x] Record approximately 105 GiB free disk at inventory time.
+- [x] Confirm default Python 3.14 does not contain PyTorch.
+- [x] Confirm Epic Games Launcher is installed.
+- [x] Confirm no `UnrealEditor.app` was detectable at inventory time.
+
+### 1.2 Unreal installation - user/system prerequisite
+
+- [ ] Open Epic Games Launcher.
+- [ ] Check free-space requirement before selecting engine components.
+- [ ] Install or locate Unreal Engine 5.7 or 5.8.
+- [ ] Record exact Unreal version and build identifier.
+- [ ] Acquire the matching Game Animation Sample.
+- [ ] Record the sample version/source.
+- [ ] Launch the unmodified sample once.
+- [ ] Confirm the sample runs on Apple Silicon.
+- [ ] Record launch time and any warnings relevant to Mover or animation.
+- [ ] Confirm project files can be generated for Xcode.
+- [ ] Compile an unmodified or minimally modified project target.
+- [ ] Capture the exact engine and sample paths locally without committing licensed content.
+
+### 1.3 Python environment
+
+- [ ] Create project metadata (`pyproject.toml`) with supported Python range.
+- [ ] Create `.python-version` targeting Python 3.12.
+- [ ] Create project-local `uv` virtual environment.
+- [ ] Add PyTorch, NumPy, SciPy, scikit-learn, plotting, configuration, and test dependencies.
+- [ ] Lock exact dependency versions.
+- [ ] Add `.venv`, caches, checkpoints, datasets, and generated results to `.gitignore` as appropriate.
+- [ ] Import all required packages in one smoke test.
+- [ ] Record PyTorch version.
+- [ ] Record CPU and MPS availability.
+- [ ] Run a deterministic tensor operation twice and compare results.
+- [ ] Decide CPU-versus-MPS policy for tests and training.
+- [ ] Record environment creation and verification commands in README.
+
+### 1.4 Environment gate acceptance
+
+- [ ] Unreal editor and matching Game Animation Sample open successfully.
+- [ ] Minimal C++ target compiles successfully.
+- [ ] Python 3.12 environment installs reproducibly from committed metadata.
+- [ ] At least one Python test runs successfully.
+- [ ] Environment inventory is entered as `FEAS-000` or equivalent.
+- [ ] Reviewer confirms no undocumented machine dependency blocks reproduction.
+
+## 2. Repository and interface skeleton
+
+### 2.1 Repository layout
+
+- [ ] Create `configs/` for data, model, planner, evaluation, and scenario configs.
+- [ ] Create `motionworld/data/`.
+- [ ] Create `motionworld/models/`.
+- [ ] Create `motionworld/planning/`.
+- [ ] Create `motionworld/evaluation/`.
+- [ ] Create `motionworld/protocol/` or an equivalent explicit protocol area.
+- [ ] Create `tests/unit/`.
+- [ ] Create `tests/integration/`.
+- [ ] Create `scripts/` only for stable reproduction entry points.
+- [ ] Create ignored/local `artifacts/`, `results/`, and dataset locations with tracked README/placeholders where useful.
+- [ ] Create project-specific Unreal module layout without copying the sample.
+
+### 2.2 Shared typed contracts
+
+- [ ] Define authoritative character state fields and shapes.
+- [ ] Define nominal internal state fields and shapes.
+- [ ] Define local desired-velocity action fields and bounds.
+- [ ] Define target state.
+- [ ] Define obstacle state, type, radius/extent, position, and velocity.
+- [ ] Define observation history item.
+- [ ] Define episode metadata.
+- [ ] Define planner output and telemetry.
+- [ ] Define model feature-schema version.
+- [ ] Define units explicitly for every field.
+- [ ] Define coordinate frame explicitly for every vector.
+- [ ] Add finite-value and shape validation.
+- [ ] Add serialization round-trip tests.
+
+### 2.3 Skeleton gate
+
+- [ ] Python imports succeed without circular dependencies.
+- [ ] Empty/default typed objects cannot silently represent valid runtime data.
+- [ ] Tests reject incorrect dimensions, units/version tags, and non-finite values.
+- [ ] Candidate can draw the Unreal/Python system boundary from memory.
+- [ ] Commit the tested repository and type skeleton.
+
+## 3. Theory proof of concept
+
+### 3.1 Coordinate transformations
+
+- [ ] Explain world/global coordinates versus character-local coordinates.
+- [ ] Write the 2D yaw rotation matrix in `THEORY.md`.
+- [ ] Derive why global-to-local uses the transpose/inverse rotation.
+- [ ] Manually calculate local forward at 0 degrees.
+- [ ] Manually calculate local forward at 90 degrees under Unreal X-forward/Y-right conventions.
+- [ ] Implement local-to-global vector conversion.
+- [ ] Implement global-to-local vector conversion.
+- [ ] Implement point conversion separately from vector conversion if translation is involved.
+- [ ] Test 0, 90, 180, and -90 degrees.
+- [ ] Test random round trips.
+- [ ] Test radians/degrees misuse is caught or impossible at the interface.
+- [ ] Reviewer verifies signs against an Unreal observation.
+- [ ] Examiner asks candidate to derive one conversion on a blank page.
+
+### 3.2 Minimal bounded velocity oracle
+
+- [ ] Explain desired velocity, acceleration bound, timestep, and integration.
+- [ ] Reproduce the scalar hand calculation currently in `THEORY.md`.
+- [ ] Implement the deliberately simple bounded-acceleration oracle.
+- [ ] Test zero current/zero desired velocity.
+- [ ] Test acceleration below the clamp.
+- [ ] Test acceleration at the clamp.
+- [ ] Test deceleration to zero without overshoot.
+- [ ] Test direction reversal.
+- [ ] Test trapezoidal position integration by hand.
+- [ ] Clearly label this module as a teaching oracle, not the final nominal model.
+
+### 3.3 Deterministic 2D backend
+
+- [ ] Define ground-truth toy state and hidden state.
+- [ ] Define deterministic reset from a seed.
+- [ ] Define legal action range.
+- [ ] Implement a transparent hidden lag/spring mismatch.
+- [ ] Implement a timed gate analytically.
+- [ ] Implement optional deterministic push intervention.
+- [ ] Log complete toy episodes in the same conceptual schema as Unreal.
+- [ ] Prove identical seed/actions produce identical trajectories.
+- [ ] Plot nominal versus toy ground truth before learning.
+- [ ] Mark every artifact `SYNTHETIC / NOT UNREAL EVIDENCE`.
+
+### 3.4 Theory proof gate
+
+- [ ] Coordinate tests pass.
+- [ ] Hand-oracle dynamics tests pass.
+- [ ] Toy backend determinism test passes.
+- [ ] Candidate explains why the toy backend exists and what it cannot prove.
+- [ ] Reviewer confirms no toy result is phrased as engine evidence.
+- [ ] Commit the theory proof as a coherent tested slice.
+
+## 4. Unreal feasibility
+
+### 4.1 Version-matched API/source audit
+
+- [ ] Locate the exact Game Animation Sample character class/Blueprint.
+- [ ] Locate the exact Mover component and Smooth Walking mode used by the sample.
+- [ ] Locate the desired-velocity or movement-input control surface.
+- [ ] Locate where movement parameters live.
+- [ ] Locate post-movement tick/update hooks.
+- [ ] Locate authoritative velocity and angular-velocity access.
+- [ ] Locate collision/contact events.
+- [ ] Locate animation-root and toe transform access for diagnostics.
+- [ ] Verify every selected API in version-matched official docs or engine source.
+- [ ] Record source file/class/member names and engine version in `DECISIONS.md`.
+- [ ] Compile immediately after the smallest C++ change.
+
+### 4.2 Unreal project-specific components
+
+- [ ] Add `AMotionWorldArenaManager` or documented equivalent.
+- [ ] Add `UMotionWorldAgentComponent` or documented equivalent.
+- [ ] Add `AMotionWorldMovingObstacle` or documented equivalent.
+- [ ] Add `UMotionWorldDebugComponent` or documented equivalent.
+- [ ] Keep responsibilities separated rather than creating one monolithic actor.
+- [ ] Ensure module/build dependencies are the minimum required.
+- [ ] Ensure project source does not hard-code one developer machine path.
+
+### 4.3 Programmatic character control
+
+- [ ] Apply zero desired velocity.
+- [ ] Apply forward desired velocity.
+- [ ] Apply lateral desired velocity.
+- [ ] Apply diagonal desired velocity.
+- [ ] Apply stop command from motion.
+- [ ] Apply reverse command from forward motion.
+- [ ] Clamp magnitude to active maximum speed.
+- [ ] Verify action is character-local at the interface.
+- [ ] Verify facing-follows-motion behavior for P0.
+- [ ] Verify action hold duration is 100 ms at the planner interface.
+- [ ] Confirm externally commanded movement still drives acceptable sample animation.
+
+### 4.4 Authoritative state and tick order
+
+- [ ] Select actor/capsule/Mover state as the sole planning ground truth.
+- [ ] Sample global XY position after movement.
+- [ ] Sample velocity and convert to declared frame.
+- [ ] Sample facing in a valid representation.
+- [ ] Sample angular velocity with declared units.
+- [ ] Record engine timestamp and step index.
+- [ ] Prove sampling happens after movement rather than before it.
+- [ ] Log animation-root transform with a distinct field name.
+- [ ] Log toe transforms only as diagnostics.
+- [ ] Plot actor and animation-root trajectories separately.
+- [ ] Confirm no code substitutes animation root for actor state.
+
+### 4.5 Deterministic scenario lifecycle
+
+- [ ] Define scenario seed ownership.
+- [ ] Reset actor transform and velocity.
+- [ ] Reset Mover/controller hidden state as far as the API permits.
+- [ ] Reset target.
+- [ ] Reset gate phase/schedule.
+- [ ] Reset collision counters.
+- [ ] Reset episode and sequence identifiers.
+- [ ] Reset observation history.
+- [ ] Reset planner warm start.
+- [ ] Run two same-seed resets and compare initial observations.
+- [ ] Run two same-seed gate schedules and compare trajectories/timestamps.
+- [ ] Prove no data from the prior episode appears after reset.
+
+### 4.6 Timed gate and events
+
+- [ ] Create a gate with an explicit deterministic schedule.
+- [ ] Expose gate position, velocity, size/radius, motion type, and phase.
+- [ ] Log gate schedule metadata.
+- [ ] Detect character/gate collision consistently.
+- [ ] Detect successful crossing.
+- [ ] Detect timeout.
+- [ ] Record termination reason.
+- [ ] Validate the scenario at slow/manual speed before automated collection.
+
+### 4.7 Feasibility evidence and gate
+
+- [ ] Record a short video of programmatic movement.
+- [ ] Record a deterministic reset comparison.
+- [ ] Save one complete episode.
+- [ ] Validate every required episode field.
+- [ ] Save actor-versus-animation-root trace.
+- [ ] Enter `FEAS-001` with version, commit, seed, commands, and artifacts.
+- [ ] Reviewer checks tick phase, frames, units, stale state, and reset leakage.
+- [ ] Candidate answers: “Which transform is authoritative, at what tick point, and why?”
+- [ ] Candidate answers: “How do you know hidden controller state was reset?”
+- [ ] Gate passes: external control, authoritative state, reset, events, and logging are all reliable.
+- [ ] If not passed by cutoff, record fallback to Manny plus Mover or freeze Unreal claim level.
+
+## 5. Unreal-Python protocol and safety
+
+### 5.1 Observation packet
+
+- [ ] Define protocol version.
+- [ ] Include episode ID.
+- [ ] Include monotonically increasing sequence number.
+- [ ] Include engine timestamp.
+- [ ] Include controller mode.
+- [ ] Include explicit state-source label.
+- [ ] Include character state and declared units.
+- [ ] Include contact state only if its semantics are reliable.
+- [ ] Include target state.
+- [ ] Include bounded nearest-obstacle list and validity information.
+- [ ] Include previous applied action.
+- [ ] Include movement parameters as metadata.
+- [ ] Reject missing, wrong-type, non-finite, or unsupported-version fields.
+
+### 5.2 Action packet
+
+- [ ] Echo protocol version, episode ID, and observation sequence.
+- [ ] Include desired velocity with units.
+- [ ] Include planner latency measured consistently.
+- [ ] Include selected controller/model identifier.
+- [ ] Optionally include prediction telemetry without making it control-critical.
+- [ ] Reject wrong episode.
+- [ ] Reject stale sequence.
+- [ ] Reject malformed or non-finite action.
+- [ ] Clamp velocity again inside Unreal.
+
+### 5.3 Timeout behavior
+
+- [ ] Define one-response deadline.
+- [ ] Hold the last safe action after one missed response.
+- [ ] Stop after three consecutive misses.
+- [ ] Clear missed-response state after valid recovery.
+- [ ] Test Python service absent at startup.
+- [ ] Test service disappears during movement.
+- [ ] Test delayed stale response arrives after reset.
+- [ ] Test malformed response during movement.
+- [ ] Confirm no failure mode produces runaway motion.
+
+### 5.4 Protocol gate
+
+- [ ] Serialization tests pass on Python side.
+- [ ] Parsing/validation tests pass on Unreal side.
+- [ ] Unreal observation reaches Python and a valid action returns.
+- [ ] Wrong-episode and stale packets are demonstrably rejected.
+- [ ] Safe stop is demonstrated.
+- [ ] Commit protocol and safety as an independently tested slice.
+
+## 6. Faithful nominal movement model
+
+### 6.1 Understand and map the model
+
+- [ ] Explain why a cheap predictor is required for hundreds of CEM futures.
+- [ ] Identify known Smooth Walking visible and internal state.
+- [ ] Map every nominal parameter to an engine/sample setting or documented approximation.
+- [ ] Explain acceleration versus deceleration selection.
+- [ ] Explain directional acceleration during turns.
+- [ ] Explain turn response.
+- [ ] Explain velocity spring smoothing and its intermediate state.
+- [ ] Explain facing/rotation spring dynamics.
+- [ ] Explain why a push may require synchronization of visible and internal spring state.
+- [ ] Explain why the movement model is substepped.
+
+### 6.2 Implement state and synchronization
+
+- [ ] Define authoritative planning state `s`.
+- [ ] Define nominal internal state `z`.
+- [ ] Define initialization at episode reset.
+- [ ] Define synchronization after each real Unreal observation.
+- [ ] Decide what happens when internal Mover state is not exposed.
+- [ ] Record whether missing state is estimated, reconstructed, or accepted as nominal mismatch.
+- [ ] Prevent residual history from being used to conceal an intentionally omitted known equation.
+
+### 6.3 Implement nominal transition
+
+- [ ] Implement acceleration/deceleration branch.
+- [ ] Implement directional acceleration.
+- [ ] Implement turn response.
+- [ ] Implement intermediate target velocity.
+- [ ] Implement velocity spring update.
+- [ ] Implement facing/rotation update.
+- [ ] Integrate position using declared convention.
+- [ ] Normalize or wrap orientation consistently.
+- [ ] Compose six verified substeps for one 100 ms macro step.
+- [ ] Support batched candidate/horizon dimensions without changing scalar semantics.
+
+### 6.4 Nominal unit tests
+
+- [ ] Zero state plus zero action remains stationary.
+- [ ] Forward acceleration matches hand/reference calculation.
+- [ ] Deceleration approaches stop without unstable overshoot.
+- [ ] Reverse command uses the intended branch.
+- [ ] Ninety-degree desired direction turns with correct sign.
+- [ ] Speed limit is respected.
+- [ ] Facing remains valid.
+- [ ] Scalar and batch-one outputs match.
+- [ ] Six substeps match six repeated scalar calls.
+- [ ] One 100 ms step is compared against six substeps and the difference is documented.
+- [ ] Push/state resynchronization test passes under chosen policy.
+- [ ] CPU and selected accelerator results are within tolerance.
+
+### 6.5 Nominal empirical validation
+
+- [ ] Align action at time `t` with correct next state at `t+1`.
+- [ ] Compare nominal and Unreal one-step transitions.
+- [ ] Compare recursive errors at 0.5, 1.0, and 1.5 s.
+- [ ] Stratify free motion, acceleration, stopping, reversing, turning, contact, and post-push.
+- [ ] Plot position, velocity, facing, and angular-velocity error separately.
+- [ ] Inspect systematic bias rather than only aggregate mean.
+- [ ] Enter `NOM-001` hand/reference validation.
+- [ ] Enter `NOM-002` real Unreal mismatch study.
+
+### 6.6 Nominal gate
+
+- [ ] Reviewer confirms the nominal is not deliberately weak.
+- [ ] Reviewer confirms no future state/action is used.
+- [ ] Candidate derives one transition and explains substepping.
+- [ ] Candidate explains every known, hidden, and estimated state variable.
+- [ ] Meaningful decision-relevant residual structure exists, or a negative result is recorded.
+- [ ] Commit nominal model, tests, plots, and decision record.
+
+## 7. Dataset collection and validation
+
+### 7.1 Episode schema
+
+- [ ] Include episode, scenario, seed, timestamp, and step index.
+- [ ] Include authoritative character state.
+- [ ] Include next authoritative state.
+- [ ] Include applied action, not merely requested pre-clamp action.
+- [ ] Include target state.
+- [ ] Include obstacle states.
+- [ ] Include collision flag/count.
+- [ ] Include external impulse.
+- [ ] Include controller parameters.
+- [ ] Include termination reason.
+- [ ] Include state-source and schema-version labels.
+- [ ] Include animation-root/toe diagnostics in distinct optional fields.
+
+### 7.2 Collection policy
+
+- [ ] Implement goal-directed action generator.
+- [ ] Implement random piecewise-constant velocities.
+- [ ] Implement near-contact/boundary-following collection.
+- [ ] Implement stops, reversals, and rapid turns.
+- [ ] Implement controlled external perturbations.
+- [ ] Record realized action-mixture proportions.
+- [ ] Ensure actions cover planner-relevant magnitudes and directions.
+- [ ] Ensure free-space data does not dominate all other strata.
+- [ ] Stop collection based on validation saturation rather than an arbitrary large count.
+
+### 7.3 Dataset validation
+
+- [ ] Reject duplicate episode/step keys.
+- [ ] Reject non-monotonic timestamps or step indices.
+- [ ] Reject sequence gaps unless explicitly recorded.
+- [ ] Reject non-finite states/actions.
+- [ ] Validate units and plausible ranges.
+- [ ] Validate action/next-state temporal alignment.
+- [ ] Validate reset boundaries.
+- [ ] Validate no window crosses episode termination.
+- [ ] Produce coverage histograms for speed, direction, turns, stops, contact, impulses, and parameters.
+
+### 7.4 Split discipline
+
+- [ ] Define immutable train/validation/test manifests.
+- [ ] Split complete episodes, never individual transitions.
+- [ ] Separate scenario seeds.
+- [ ] Separate obstacle layouts.
+- [ ] Define represented/held-out movement regimes.
+- [ ] Freeze final test seeds before model selection.
+- [ ] Fit normalization only on training data.
+- [ ] Store normalization with schema and checkpoint.
+- [ ] Add automated overlap/leakage test.
+- [ ] Hash manifests.
+
+### 7.5 Dataset gate
+
+- [ ] Coverage report is inspected manually.
+- [ ] Leakage/overlap tests pass.
+- [ ] Reviewer checks temporal alignment and normalization leakage.
+- [ ] Candidate explains why adjacent-transition splitting is invalid.
+- [ ] Dataset regeneration command is documented.
+- [ ] Commit schema, validators, manifests, and coverage report without raw licensed/private data.
+
+## 8. Residual model
+
+### 8.1 Residual contract
+
+- [ ] Define `delta_target = difference(Unreal_next, nominal_next)`.
+- [ ] Define units/scales for each residual component.
+- [ ] Choose scalar yaw increment or valid normalized facing correction.
+- [ ] Define `compose(nominal, residual)`.
+- [ ] Prove zero residual numerically equals nominal output.
+- [ ] Exclude goal/target features from character dynamics for P0.
+- [ ] Exclude simple obstacle geometry unless a documented contact-context ablation justifies it.
+- [ ] Define what four history observations contain.
+- [ ] Define how imagined history advances recursively.
+- [ ] Remove, derive, or predict contact/timing features that cannot advance consistently.
+
+### 8.2 Window construction
+
+- [ ] Create current/no-history examples.
+- [ ] Create four-observation-history examples.
+- [ ] Create 1.2-1.5 second target horizons.
+- [ ] Prevent windows from crossing episodes.
+- [ ] Prevent features from including future actions or states.
+- [ ] Mask or reject incomplete horizons consistently.
+- [ ] Test feature order against a frozen schema.
+- [ ] Test normalization/denormalization round trip.
+
+### 8.3 Model implementation
+
+- [ ] Implement no-history MLP.
+- [ ] Implement history MLP.
+- [ ] Use initial hidden widths 256, 256, 128 with SiLU.
+- [ ] Confirm total parameter count is below approximately 500K.
+- [ ] Add LayerNorm only if instability evidence justifies it.
+- [ ] Initialize final residual output conservatively where appropriate.
+- [ ] Add residual clipping only from training-set statistics.
+- [ ] Test batch, horizon, device, dtype, and gradient behavior.
+- [ ] Test deterministic initialization/training smoke run under fixed seed.
+
+### 8.4 Recursive training
+
+- [ ] Implement recursive rollout using the same interface as planning.
+- [ ] Implement per-component state error.
+- [ ] Implement Huber loss.
+- [ ] Implement discounted multi-step loss.
+- [ ] Implement residual-magnitude regularizer.
+- [ ] Log one-step and recursive validation separately.
+- [ ] Never use teacher forcing for the reported recursive evaluation.
+- [ ] Save training config, seed, normalization, schema, commit, and checkpoint hash.
+- [ ] Save learning curves and failure diagnostics.
+
+### 8.5 Residual evaluation
+
+- [ ] Evaluate nominal baseline.
+- [ ] Evaluate residual without history.
+- [ ] Evaluate residual with four-step history.
+- [ ] Report 0.5, 1.0, and 1.5 s errors.
+- [ ] Report position, velocity, facing, and angular-velocity separately.
+- [ ] Report free-space, near-contact, post-push, and held-out-setting strata.
+- [ ] Plot recursive error growth.
+- [ ] Plot residual magnitude and outliers.
+- [ ] Inspect whether gains come only from one easy regime.
+- [ ] Inspect whether history gains persist after controlling for model size.
+- [ ] Enter `RES-001` and `RES-002` with raw artifacts.
+
+### 8.6 Residual gate
+
+- [ ] Reviewer checks episode leakage, future leakage, teacher forcing, checkpoint selection, and facing validity.
+- [ ] Candidate explains residual versus full-model learning.
+- [ ] Candidate explains MLP versus GRU/Transformer choice.
+- [ ] Candidate explains why history cannot predict a future random push.
+- [ ] Candidate explains recursive compounding error and multi-step loss.
+- [ ] Held-out recursive prediction improves in a decision-relevant stratum, or negative result is preserved.
+- [ ] Commit model, training, evaluation, and documentation updates.
+
+## 9. Cross-Entropy Method planner
+
+### 9.1 Understand CEM and MPC
+
+- [ ] Candidate explains candidate action sequences.
+- [ ] Candidate explains action knots and horizon expansion.
+- [ ] Candidate derives elite mean and variance updates.
+- [ ] Candidate explains distribution momentum.
+- [ ] Candidate explains warm start.
+- [ ] Candidate explains why only the first 100 ms is executed.
+- [ ] Candidate explains CEM versus gradient planning.
+
+### 9.2 CEM implementation
+
+- [ ] Define exact tensor shapes for candidates, knots, steps, and action dimensions.
+- [ ] Sample from fixed-seed Gaussian distribution.
+- [ ] Expand knots to model steps.
+- [ ] Clamp/project actions into legal velocity space.
+- [ ] Batch rollout all candidates.
+- [ ] Select lowest-cost elites.
+- [ ] Update mean and variance.
+- [ ] Apply variance floor.
+- [ ] Apply configured momentum.
+- [ ] Repeat configured iterations.
+- [ ] Return first action and diagnostic best trajectory.
+- [ ] Shift previous solution for warm start.
+- [ ] Handle NaN/Inf with safe fallback.
+
+### 9.3 CEM tests
+
+- [ ] Fixed seed produces identical candidates and output.
+- [ ] Hand-computed elite mean/variance test passes.
+- [ ] Known quadratic toy optimum is recovered.
+- [ ] Bounds are always respected.
+- [ ] Zero/small variance remains stable.
+- [ ] Warm-start shift is correct.
+- [ ] Lowest rather than highest cost is selected.
+- [ ] Batch and scalar cost ordering agree.
+- [ ] Visualize mean/candidate convergence by iteration.
+- [ ] Enter `CEM-001`.
+
+### 9.4 Planning cost
+
+- [ ] Implement terminal goal-distance term independently.
+- [ ] Implement analytic collision indicator independently.
+- [ ] Implement analytic clearance penalty independently.
+- [ ] Implement action first-difference term independently.
+- [ ] Implement action second-difference term independently.
+- [ ] Propagate scripted obstacle motion analytically.
+- [ ] Include capsule/obstacle geometry and safety margin explicitly.
+- [ ] Test each term's sign and units.
+- [ ] Test zero-cost or known-cost hand cases.
+- [ ] Plot each component for representative trajectories.
+- [ ] Record initial weights as hypotheses, not truths.
+- [ ] Never tune cost weights on final test seeds.
+
+### 9.5 Fair nominal/residual MPC
+
+- [ ] Reactive controller exists only as visual context.
+- [ ] Nominal and residual MPC use identical initial state.
+- [ ] Use identical candidate action tensor/random noise.
+- [ ] Use identical horizon, knots, candidates, elites, and iterations.
+- [ ] Use identical cost implementation and weights.
+- [ ] Use identical obstacle information and propagation.
+- [ ] Use identical action constraints and compute policy.
+- [ ] Only character transition model differs.
+- [ ] Assert fairness-critical config equality in code/tests.
+
+### 9.6 Planner gate
+
+- [ ] Deterministic CEM tests pass.
+- [ ] Cost component tests pass.
+- [ ] Nominal and residual controllers consume the same candidate tensor.
+- [ ] Both remain stable in obstacle-free control.
+- [ ] Reviewer searches for exploitation through bounds, costs, and model error.
+- [ ] Candidate performs blank-page CEM explanation.
+- [ ] Commit CEM, costs, fairness assertions, plots, and docs.
+
+## 10. Live Unreal MPC integration
+
+### 10.1 Runtime loop
+
+- [ ] Receive one authoritative observation at 10 Hz.
+- [ ] Validate episode/sequence/version.
+- [ ] Synchronize nominal internal state.
+- [ ] Update real observation history.
+- [ ] Construct candidate actions.
+- [ ] Roll nominal or residual futures.
+- [ ] Compute analytic costs.
+- [ ] Select first desired-velocity action.
+- [ ] Return action before deadline.
+- [ ] Apply/clamp action in Unreal.
+- [ ] Repeat after the next observation.
+
+### 10.2 Reset and controller switching
+
+- [ ] Switch reactive/nominal/residual modes live.
+- [ ] Clear history on reset.
+- [ ] Clear CEM warm start on reset.
+- [ ] Clear nominal hidden state on reset.
+- [ ] Clear network/service episode state on reset.
+- [ ] Ensure controller switch does not reuse incompatible stale state.
+- [ ] Verify same-seed left/right agents start identically.
+
+### 10.3 Counterfactual pause mode
+
+- [ ] Pause from one authoritative state.
+- [ ] Generate forward candidate future.
+- [ ] Generate left candidate future.
+- [ ] Generate right candidate future.
+- [ ] Generate stop candidate future.
+- [ ] Display nominal and corrected trajectories together.
+- [ ] Optionally execute one selected intervention.
+- [ ] Compare its actual Unreal trajectory.
+- [ ] Label prediction horizon and seed.
+
+### 10.4 Live integration gate
+
+- [ ] Nominal MPC controls the live character.
+- [ ] Residual MPC controls the live character.
+- [ ] Both share the fairness-critical planner inputs.
+- [ ] Reset produces no state leakage.
+- [ ] Service loss produces safe stop.
+- [ ] Paused futures are repeatable from the same state.
+- [ ] Reviewer checks deadline, stale HUD, state mismatch, and reset behavior.
+- [ ] Commit live integration and safety tests.
+
+## 11. Scenario implementation
+
+### 11.1 Timed gate
+
+- [ ] Predefine gate geometry and schedule without looking at test outcomes.
+- [ ] Ensure acceleration/timing error can affect feasibility naturally.
+- [ ] Avoid an obviously artificial scenario designed only for residual victory.
+- [ ] Define success, collision, timeout, clearance, and time-to-goal metrics.
+- [ ] Validate same schedule for all controllers.
+- [ ] Save exact scenario config and seeds.
+
+### 11.2 External push recovery
+
+- [ ] Predefine impulse direction, magnitude, and time/condition.
+- [ ] Apply identical impulse schedule to compared controllers.
+- [ ] Begin evaluation immediately after the impulse.
+- [ ] Do not claim the model predicts the push before it occurs.
+- [ ] Define trajectory-error recovery threshold.
+- [ ] Define recovery time metric.
+- [ ] Compare nominal, no-history residual, and history residual prediction.
+- [ ] Compare resulting replanning/control recovery.
+
+### 11.3 Held-out movement setting
+
+- [ ] Select acceleration, smoothing, turn response, or related parameter before final testing.
+- [ ] Define training-support range.
+- [ ] Define in-range held-out values.
+- [ ] Define outside-range OOD values.
+- [ ] Clarify whether the parameter is visible to nominal/model/planner.
+- [ ] Distinguish parameter-conditioned generalization from robustness to unobserved mismatch.
+- [ ] Preserve degradation and failure results.
+
+### 11.4 Optional crossing obstacle - P1
+
+- [ ] Begin only after timed gate, push, and held-out scenario gates pass.
+- [ ] Use known scripted motion and analytic propagation.
+- [ ] Do not add a learned collision head for simple known geometry.
+- [ ] Drop immediately if it threatens evaluation or packaging.
+
+## 12. Experiment freeze and causal evaluation
+
+### 12.1 Freeze manifest
+
+- [ ] Freeze dataset split manifests.
+- [ ] Freeze model checkpoint and normalization.
+- [ ] Freeze feature-schema version.
+- [ ] Freeze planner config and cost weights.
+- [ ] Freeze scenario definitions.
+- [ ] Freeze test seeds.
+- [ ] Freeze metric definitions.
+- [ ] Record Git commit and hardware/software.
+- [ ] Hash every frozen artifact.
+- [ ] Do not revise after viewing final test outcomes without creating a new labeled experiment family.
+
+### 12.2 Paired controller runs
+
+- [ ] Run reactive controller on fixed seeds.
+- [ ] Run nominal MPC on the same seeds.
+- [ ] Run residual MPC on the same seeds.
+- [ ] Confirm identical valid-pair counts.
+- [ ] Retain failed/invalid episodes with explicit reason.
+- [ ] Avoid survivorship filtering.
+- [ ] Save per-episode raw metrics.
+
+### 12.3 Prediction metrics
+
+- [ ] Position error at 0.5, 1.0, and 1.5 s.
+- [ ] Velocity error at 0.5, 1.0, and 1.5 s.
+- [ ] Facing error at 0.5, 1.0, and 1.5 s.
+- [ ] Angular-velocity error at 0.5, 1.0, and 1.5 s.
+- [ ] Report nominal/no-history/history.
+- [ ] Report every required data stratum.
+
+### 12.4 Task metrics
+
+- [ ] Success rate.
+- [ ] Collision rate/count.
+- [ ] Time to goal.
+- [ ] Minimum clearance.
+- [ ] Push-recovery time.
+- [ ] Selected-action disagreement between nominal and residual MPC.
+- [ ] Identify whether disagreement occurs for the predicted reason.
+
+### 12.5 Runtime metrics
+
+- [ ] Warm up final runtime path.
+- [ ] Measure end-to-end planning latency, not model-only latency.
+- [ ] Report median.
+- [ ] Report p95.
+- [ ] Report missed 100 ms deadlines.
+- [ ] Report exact candidates, elites, iterations, knots, horizon, batch shape, device, and threading.
+- [ ] Preserve cold-start latency separately rather than hiding it.
+
+### 12.6 Paired statistics
+
+- [ ] Choose paired estimand before computing final interval.
+- [ ] Bootstrap paired episode differences.
+- [ ] Use deterministic bootstrap seed.
+- [ ] Report confidence interval.
+- [ ] Report episode count, median, and IQR.
+- [ ] Avoid uncorrected storytelling across many metrics.
+- [ ] State statistical uncertainty separately from practical effect size.
+
+### 12.7 Planner exploitation
+
+- [ ] Record predicted return for every selected plan.
+- [ ] Record realized return after execution.
+- [ ] Compute selected-plan prediction gap.
+- [ ] Compute gap for random in-distribution trajectories.
+- [ ] Compare optimism of selected versus random plans.
+- [ ] Inspect extreme selected plans visually.
+- [ ] Record whether action bounds or OOD states are being exploited.
+- [ ] Enter `EXPLOIT-001`.
+
+### 12.8 Causal claim audit
+
+- [ ] Show a specific nominal prediction error.
+- [ ] Show residual correction for that same error.
+- [ ] Show nominal and residual planners select different actions.
+- [ ] Show changed action improves same-seed Unreal execution.
+- [ ] Rule out different costs, candidates, seeds, budgets, or obstacle information.
+- [ ] State alternative explanations.
+- [ ] If any link is absent, do not make the full positive claim.
+
+### 12.9 Final evaluation gate
+
+- [ ] Complete `CTRL-001`, `CTRL-002`, `OOD-001`, `EXPLOIT-001`, and `RUNTIME-001` as applicable.
+- [ ] Reviewer audits seed selection, tuning history, pair construction, and missing episodes.
+- [ ] Candidate states the weakest defensible claim.
+- [ ] Candidate explains whether better prediction produced better control.
+- [ ] Negative results and failure boundaries are retained.
+- [ ] Commit frozen manifests, evaluation code, tables, and plots.
+
+## 13. Debug visualization and demo UX
+
+### 13.1 Trajectory rendering
+
+- [ ] Faint gray candidate trajectories.
+- [ ] Bright green selected trajectory.
+- [ ] Blue nominal character prediction.
+- [ ] Orange residual-corrected prediction.
+- [ ] Yellow actual authoritative execution.
+- [ ] Cyan obstacle velocity vectors.
+- [ ] Purple goal marker.
+- [ ] Clear time horizon/timestep interpretation.
+- [ ] Selected path visually dominates candidates.
+- [ ] Nominal, corrected, and actual paths are visible together.
+
+### 13.2 HUD
+
+- [ ] Active controller.
+- [ ] Scenario and seed.
+- [ ] Active movement mismatch setting.
+- [ ] Prediction error at declared horizon.
+- [ ] Selected desired velocity.
+- [ ] Planning latency.
+- [ ] Missed-deadline count.
+- [ ] Collision count.
+- [ ] Success/termination state.
+- [ ] Ensure metrics update from the current episode/sequence only.
+
+### 13.3 Live controls
+
+- [ ] Select target.
+- [ ] Switch reactive/nominal/residual controllers.
+- [ ] Reset scenario.
+- [ ] Load next scenario.
+- [ ] Apply external impulse.
+- [ ] Adjust selected mismatch.
+- [ ] Pause and inspect futures.
+- [ ] Toggle trajectories.
+- [ ] Toggle metrics overlay.
+- [ ] Print controls in runbook and optionally on screen.
+
+### 13.4 Animation-quality diagnostics
+
+- [ ] Requested planner path versus authoritative actor path.
+- [ ] Authoritative actor path versus animation-root path.
+- [ ] Facing relative to requested and executed motion.
+- [ ] Animation-root acceleration/jerk if reliable.
+- [ ] Toe/foot sliding only if contact data is reliable.
+- [ ] Avoid modifying animation/IK merely to improve these metrics during P0.
+- [ ] State clearly that MotionWorld does not generate poses.
+
+### 13.5 Demo gate
+
+- [ ] Same-seed nominal-left/residual-right comparison works.
+- [ ] Reset works three times consecutively.
+- [ ] Primary causal episode is reproducible.
+- [ ] Honest failure episode is reproducible.
+- [ ] HUD shows no stale or contradictory values.
+- [ ] Service-failure recovery works during rehearsal.
+- [ ] Record 60-90 second primary fallback video.
+- [ ] Keep an unedited evidence recording where appropriate.
+
+## 14. Packaging and reproducibility
+
+### 14.1 Repository package
+
+- [ ] README begins with claim, evidence level achieved, and limitations.
+- [ ] Document exact prerequisites.
+- [ ] Document Unreal Engine and Game Animation Sample acquisition.
+- [ ] Document project-specific source integration.
+- [ ] Document Python environment creation.
+- [ ] Document test commands.
+- [ ] Document data-generation command and schema.
+- [ ] Document training command.
+- [ ] Document evaluation command.
+- [ ] Document demo launch order.
+- [ ] Include frozen configs and seed manifests.
+- [ ] Include normalization/schema/checkpoint hashes.
+- [ ] Include result tables and plots.
+- [ ] Include license and provenance notes.
+- [ ] Exclude licensed sample assets and generated engine directories.
+- [ ] Exclude raw/private data.
+
+### 14.2 Artifact package
+
+- [ ] Architecture diagram.
+- [ ] Main paired result table.
+- [ ] Recursive prediction-error graph.
+- [ ] One causal trace.
+- [ ] One OOD/failure graph.
+- [ ] Runtime/latency summary.
+- [ ] 60-90 second demo video.
+- [ ] Prerecorded fallback video stored locally.
+- [ ] Live-demo runbook.
+- [ ] Exact reproduction commands.
+- [ ] Artifact manifest with sizes and hashes.
+
+### 14.3 Reproduction check
+
+- [ ] Test from a clean worktree or clean clone.
+- [ ] Recreate Python environment from lockfile.
+- [ ] Run unit tests.
+- [ ] Run deterministic synthetic smoke experiment.
+- [ ] Validate configs and manifests load.
+- [ ] Validate package contains no absolute developer-only paths.
+- [ ] Validate all referenced local artifacts exist.
+- [ ] Validate fallback video plays offline.
+- [ ] Record deviations that require local Unreal sample installation.
+
+### 14.4 Release gate
+
+- [ ] Working tree is clean.
+- [ ] Tests pass.
+- [ ] `git diff --check` passes.
+- [ ] No secrets or oversized accidental files are tracked.
+- [ ] Documentation and actual commands agree.
+- [ ] Obsidian contains final resume-ready handoff.
+- [ ] Create release candidate commit/tag only after checklist review.
+
+## 15. Interview mastery and defense
+
+### 15.1 Thirty-second explanation
+
+- [ ] Define MotionWorld in one sentence.
+- [ ] Explain why the nominal model is cheap and faithful.
+- [ ] Explain what the residual learns.
+- [ ] Explain how CEM/MPC uses predictions.
+- [ ] State the causal acceptance rule.
+- [ ] Complete within 30-40 seconds without jargon overload.
+
+### 15.2 Ninety-second demo narrative
+
+- [ ] State problem and hypothesis.
+- [ ] Identify blue/orange/yellow trajectories.
+- [ ] Show same-seed fairness.
+- [ ] Show the prediction correction.
+- [ ] Show the action difference.
+- [ ] Show the actual outcome.
+- [ ] State latency and one limitation.
+
+### 15.3 Five-minute technical narrative
+
+- [ ] Research question and scope.
+- [ ] Unreal/Python architecture.
+- [ ] Authoritative versus animation state.
+- [ ] Faithful nominal dynamics.
+- [ ] Residual/history architecture and loss.
+- [ ] CEM and cost.
+- [ ] Dataset split and leakage controls.
+- [ ] Prediction and control results.
+- [ ] Runtime, failure boundary, and weakest claim.
+
+### 15.4 Daniel-style examination
+
+- [ ] Why desired velocity?
+- [ ] How does Smooth Walking model acceleration, turns, and smoothing?
+- [ ] Why is the nominal baseline fair?
+- [ ] What internal state does the spring carry?
+- [ ] What happens to that state after a push?
+- [ ] Why substep?
+- [ ] Which transform is authoritative?
+- [ ] Why can actor and animation root diverge?
+- [ ] How do you measure animation friendliness?
+- [ ] Why not generate poses or use AnimGen?
+- [ ] What is the C++/runtime ownership boundary?
+
+### 15.5 Viktoriia-style examination
+
+- [ ] Why is this a world model?
+- [ ] How do you prove action adherence rather than correlation?
+- [ ] What information is privileged and how is it used?
+- [ ] How do you prevent episode and normalization leakage?
+- [ ] Why residual instead of full transition?
+- [ ] Why MLP instead of GRU/Transformer?
+- [ ] Why does history help?
+- [ ] Can it predict an unpredictable push?
+- [ ] Does lower prediction error imply better control?
+- [ ] How do you detect planner exploitation?
+- [ ] What happens OOD?
+- [ ] What is the weakest evidence-supported claim?
+
+### 15.6 Blank-page derivations
+
+- [ ] Coordinate rotation and inverse.
+- [ ] Nominal velocity/position update.
+- [ ] Residual target and composition.
+- [ ] Recursive rollout.
+- [ ] Huber loss.
+- [ ] Weighted multi-step loss.
+- [ ] CEM elite mean/variance/momentum.
+- [ ] MPC cost terms and units.
+- [ ] Episode-safe split logic.
+- [ ] Paired bootstrap concept.
+- [ ] Median versus p95 latency.
+
+### 15.7 Coding/debug rehearsal
+
+- [ ] Implement/test one coordinate conversion without scaffolding.
+- [ ] Diagnose one timestep bug.
+- [ ] Diagnose one episode-window leakage bug.
+- [ ] Implement a small residual MLP forward pass.
+- [ ] Implement one CEM elite update.
+- [ ] Parse/reject one stale packet in Python or C++.
+- [ ] Explain complexity and edge cases while coding.
+
+### 15.8 Final rehearsal
+
+- [ ] Run live demo from fresh launch three times.
+- [ ] Time the 90-second demonstration.
+- [ ] Time the five-minute explanation.
+- [ ] Practice fallback when Unreal fails to launch.
+- [ ] Practice fallback when Python service fails.
+- [ ] Verify offline video, diagram, table, and graph.
+- [ ] Stop feature development Friday morning.
+- [ ] Fix only demonstrated launch-blocking defects.
+- [ ] After any fix, rerun the complete rehearsal.
+
+## 16. Explicitly deferred work
+
+- [ ] ONNX export only after full P0 evidence/package gate.
+- [ ] Native Unreal inference only after ONNX and central result.
+- [ ] Residual ensemble only after deterministic single-model evidence.
+- [ ] Crossing obstacle only after three required scenarios.
+- [ ] Reliable foot-sliding metric only with trustworthy contacts.
+- [ ] AnimGen integration only after interview package is complete.
+- [ ] Language/style controls are out of scope.
+- [ ] Visual/video world model is out of scope.
+- [ ] Multiple learned agents are out of scope.
+- [ ] Oracle cloned-Unreal planning is out of scope.
+
+Unchecked items in this section are not omissions; they are guarded stretch goals. They should normally remain unchecked for the interview build.
+
+## 17. End-of-work-block checklist
+
+- [ ] Built: record exact files/modules changed.
+- [ ] Learned/derived: record candidate-owned concept or equation.
+- [ ] Tests/evidence: record commands and artifacts.
+- [ ] Reviewer findings: record unresolved scientific/engineering risks.
+- [ ] Examiner weakness: record the weakest oral answer.
+- [ ] Decisions: update `DECISIONS.md` if material.
+- [ ] Experiments: update `EXPERIMENT_LOG.md` if results affected a conclusion.
+- [ ] Defense: update `INTERVIEW_DEFENSE.md` if a question was weak.
+- [ ] Commit: create a small tested commit when the slice is coherent.
+- [ ] Memory: update Obsidian task `M7UXD` with current gate and next smallest action.
+- [ ] Report: tell the user what changed, evidence, risks, commit, and next action.

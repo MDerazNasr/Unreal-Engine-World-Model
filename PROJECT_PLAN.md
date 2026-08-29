@@ -83,6 +83,7 @@ No component advances merely because it compiles or produces a plausible animati
 - `DECISIONS.md` receives every material decision before or immediately after implementation.
 - `EXPERIMENT_LOG.md` receives every run that may influence a conclusion.
 - `INTERVIEW_DEFENSE.md` receives questions, weak answers, and evidence-backed revisions.
+- `CHECKLIST.md` is the canonical atomic tracker; boxes are checked only when the stated evidence exists and is reviewed.
 
 ### Branches
 
@@ -145,7 +146,7 @@ The same state/action/rollout interfaces connect to Game Animation Sample/Mover.
 
 ### Deliverables
 
-- Six living project documents.
+- Seven living project documents, including the canonical master checklist.
 - Initial decision records.
 - Initial experiment registry.
 - Clean `docs/project-foundation` commit.

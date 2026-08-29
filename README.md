@@ -10,6 +10,7 @@ The project is being built as a reproducible applied-ML research demonstration. 
 
 - [PROJECT_SPEC.md](PROJECT_SPEC.md) - exact system contract and acceptance criteria
 - [PROJECT_PLAN.md](PROJECT_PLAN.md) - deadline-adjusted execution plan, gates, branches, and deliverables
+- [CHECKLIST.md](CHECKLIST.md) - canonical atomic build, evidence, packaging, and interview-readiness checklist
 - [THEORY.md](THEORY.md) - equations, hand calculations, assumptions, and teaching notes
 - [DECISIONS.md](DECISIONS.md) - design decisions and rejected alternatives
 - [EXPERIMENT_LOG.md](EXPERIMENT_LOG.md) - hypotheses, configurations, results, and interpretations
