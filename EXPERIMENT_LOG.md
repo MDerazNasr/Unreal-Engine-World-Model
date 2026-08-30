@@ -116,7 +116,7 @@ Hypothesis: A Python 3.12 `uv` project can install the standard ML/test stack on
 
 Controls/fairness constraints: Project-local environment; committed Python constraint and lockfile; CPU is the deterministic reference; MPS availability is reported separately.
 
-Git commit: pending environment commit on `feature/unreal-feasibility`.
+Git commit: `fbe0ade` on `feature/unreal-feasibility`.
 
 Hardware/software: Apple M4, 16 GB RAM, macOS 26.5.2 arm64, Python 3.12.13, `uv` 0.12.2, PyTorch 2.13.0, NumPy 2.5.2, SciPy 1.18.1, scikit-learn 1.9.0, Matplotlib 3.11.1, PyYAML 6.0.3.
 
