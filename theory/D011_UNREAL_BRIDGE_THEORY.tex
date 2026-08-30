@@ -1,0 +1,324 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=0.82in]{geometry}
+\usepackage{amsmath,amssymb,booktabs,array,enumitem,fancyhdr,hyperref,xcolor}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+
+\definecolor{mwblue}{HTML}{174A7E}
+\definecolor{mwgreen}{HTML}{176B4D}
+\definecolor{mwred}{HTML}{9C2F2F}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=mwblue,
+  urlcolor=mwblue,
+  pdftitle={MotionWorld D-011 Unreal Bridge Theory},
+  pdfauthor={MotionWorld project}
+}
+\setlist{nosep,leftmargin=1.5em}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.55em}
+\setlength{\headheight}{14pt}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{MotionWorld}
+\rhead{D-011 Unreal Bridge Theory}
+\cfoot{\thepage}
+
+\newcommand{\must}{\textcolor{mwred}{\textbf{MUST KNOW}}}
+\newcommand{\understand}{\textcolor{mwgreen}{\textbf{UNDERSTAND}}}
+\newcommand{\reference}{\textcolor{mwblue}{\textbf{REFERENCE}}}
+
+\title{\vspace{-2em}\textbf{MotionWorld D-011}\\
+\large Why an Isolated Unreal Bridge Component Is the Correct Experimental Boundary}
+\author{Candidate study handout}
+\date{30 August 2026 -- Unreal Engine 5.8.2}
+
+\begin{document}
+\maketitle
+\pagestyle{fancy}
+
+\begin{center}
+\fbox{\parbox{0.92\linewidth}{
+\textbf{Decision in one sentence.} Keep Epic's Game Animation Sample intact and add a small,
+source-controlled plugin component that supplies bounded desired-velocity commands to Mover and
+records finalized gameplay state after each simulation step.
+}}
+\end{center}
+
+\section{Reading order and ownership standard}
+
+Read Sections \ref{sec:problem}--\ref{sec:tests} before approving D-011. Sections
+\ref{sec:memory} and \ref{sec:exam} are required before the first interview rehearsal.
+
+\begin{tabular}{>{\bfseries}p{0.20\linewidth}p{0.70\linewidth}}
+\toprule
+Level & What you must be able to do without looking \\
+\midrule
+\must & Explain the boundary, action, authoritative state, tick order, residual equation,
+passthrough behavior, safety fields, and producer-ordering risk. \\
+\understand & Explain why the rejected alternatives are weaker and how each acceptance test
+could fail. \\
+\reference & Remember exact Unreal type/member spelling only well enough to locate it; do not
+memorize every API declaration. \\
+\bottomrule
+\end{tabular}
+
+\section{The problem D-011 solves}\label{sec:problem}
+
+The Game Animation Sample already provides a high-quality pawn, Mover/Smooth Walking dynamics,
+collision, and Motion Matching. MotionWorld needs only two new capabilities:
+
+\begin{enumerate}
+  \item issue a programmatic planning action; and
+  \item observe the physical result at a well-defined simulation boundary.
+\end{enumerate}
+
+Replacing the pawn would discard working animation integration. Editing the large Blueprint would
+create an opaque binary change that is hard to review and reproduce. The downloaded sample also
+contains a precompiled project module without visible project source. Composition is therefore the
+smallest reliable intervention: a plugin packages our code, and one actor component adds the bridge
+behavior to the existing pawn.
+
+\subsection*{Plugin versus component}
+
+A \textbf{plugin} is a deployable source package: descriptor, C++ module, tests, and assets owned by
+MotionWorld. An \textbf{actor component} is the runtime object attached to the sample pawn. The
+plugin is the container; the component is the behavior.
+
+\section{Action semantics: request is not outcome}\label{sec:action}
+
+Let the planner action be desired planar world velocity
+
+\begin{equation}
+  \mathbf{a}_t = \mathbf{v}^{\mathrm{des}}_t =
+  \begin{bmatrix}v^{\mathrm{des}}_{x,t} & v^{\mathrm{des}}_{y,t}\end{bmatrix}^{\!T}
+  \quad [\mathrm{cm/s}].
+\end{equation}
+
+Unreal receives a bounded three-dimensional command with zero vertical component:
+
+\begin{equation}
+  \bar{\mathbf{a}}_t =
+  \begin{cases}
+  \mathbf{0}, & \mathbf{a}_t \text{ is non-finite},\\[2mm]
+  \mathbf{a}_t, & \lVert\mathbf{a}_t\rVert_2 \leq v_{\max},\\[2mm]
+  v_{\max}\dfrac{\mathbf{a}_t}{\lVert\mathbf{a}_t\rVert_2}, & \text{otherwise},
+  \end{cases}
+  \qquad
+  \mathbf{u}_t = \begin{bmatrix}\bar a_{x,t}&\bar a_{y,t}&0\end{bmatrix}^{T}.
+\end{equation}
+
+Radial clamping preserves direction. Independently clipping each axis can make a diagonal command
+faster than an axial command and can change its intended angle.
+
+The bridge writes \texttt{EMoveInputType::Velocity} and $\mathbf{u}_t$ into
+\texttt{FCharacterDefaultInputs}. This does \emph{not} set the executed velocity directly. Smooth
+Walking, collision, turning, the time step, and hidden spring state determine the result:
+
+\begin{equation}
+  (\mathbf{s}_{t+1},\mathbf{z}_{t+1}) =
+  F_{\mathrm{UE}}(\mathbf{s}_t,\mathbf{z}_t,\mathbf{u}_t,\boldsymbol{\xi}_t).
+\end{equation}
+
+Here $\mathbf{z}_t$ is controller memory such as intermediate velocity and spring acceleration;
+$\boldsymbol{\xi}_t$ contains external effects such as collision or a push. The important interview
+sentence is: \emph{the action is the request; the next state is Unreal's executed response}.
+
+\section{Input arbitration and passthrough}\label{sec:arbitration}
+
+The existing Blueprint pawn already produces human input. UE 5.8.2 gathers the pawn input producer
+and compatible producer components at \texttt{BeginPlay}, then calls them before simulation. The
+proposed bridge obeys
+
+\begin{equation}
+  \mathbf{u}^{\mathrm{final}}_t =
+  \begin{cases}
+    \mathbf{u}^{\mathrm{human}}_t, & m_t=0,\\
+    \operatorname{clamp}_{v_{\max}}(\mathbf{a}^{\mathrm{planner}}_t), & m_t=1,
+  \end{cases}
+\end{equation}
+
+where $m_t$ is the automated-control flag. When $m_t=0$, the bridge writes nothing. This
+\textbf{passthrough invariant} proves that installing the plugin does not silently change the
+baseline.
+
+The installed implementation currently adds the pawn producer before gathered components. We
+expect the bridge to write later and win only in automated mode. This is a tested assumption, not a
+contract we hide. We inspect \texttt{GetLastInputCmd()} on every command test. If ordering is not
+stable, the fallback is an explicit composite input producer with deterministic arbitration.
+
+\section{Tick order and authoritative observation}\label{sec:state}
+
+The intended causal order for simulation step $t$ is
+
+\begin{equation}
+  \mathbf{o}_t \longrightarrow \mathbf{u}_t
+  \xrightarrow{\mathrm{ProduceInput}} F_{\mathrm{UE}}
+  \xrightarrow{\mathrm{OnPostFinalize}} \mathbf{o}_{t+1}.
+\end{equation}
+
+\texttt{OnPostMovement} is too early for logging because its state is explicitly mutable.
+\texttt{OnPostFinalize} runs after finalization on the game thread. The observation extracted from
+\texttt{FMoverDefaultSyncState} is
+
+\begin{equation}
+  \mathbf{o}_t =
+  \left[
+  p_{x,t},p_{y,t},v_{x,t},v_{y,t},\cos\psi_t,\sin\psi_t,\omega_t
+  \right]^T,
+\end{equation}
+
+with position in cm, velocity in cm/s, yaw encoded without a discontinuity, and angular velocity in
+degrees/s unless deliberately converted. The Mover updated component/sync state is authoritative
+because it drives gameplay collision. The primary visual component is recorded separately for
+animation QA; it is not substituted for gameplay state.
+
+\subsection*{Why encode facing as sine and cosine?}
+
+Raw yaw jumps from $+180^\circ$ to $-180^\circ$ although the physical orientation barely changes.
+The continuous pair $(\cos\psi,\sin\psi)$ avoids this artificial regression discontinuity. Recover
+yaw with
+
+\begin{equation}
+  \psi = \operatorname{atan2}(\sin\psi,\cos\psi).
+\end{equation}
+
+\section{Connection to the world model}\label{sec:model}
+
+The bridge creates aligned transition tuples
+
+\begin{equation}
+  \mathcal{D}=\{(\mathbf{o}_t,\mathbf{u}_t,\mathbf{o}_{t+1})\}_{t=0}^{T-1}.
+\end{equation}
+
+A nominal model predicts known movement structure:
+
+\begin{equation}
+  \tilde{\mathbf{s}}_{t+1}=
+  f_{\mathrm{nom}}(\mathbf{s}_t,\mathbf{z}_t,\mathbf{u}_t).
+\end{equation}
+
+The learning target is the systematic mismatch between Unreal and that fair baseline:
+
+\begin{equation}
+  \mathbf{r}^{*}_t =
+  \operatorname{difference}\!\left(\mathbf{s}^{\mathrm{UE}}_{t+1},
+  \tilde{\mathbf{s}}_{t+1}\right),
+  \qquad
+  \hat{\mathbf{s}}_{t+1}=
+  \operatorname{compose}\!\left(\tilde{\mathbf{s}}_{t+1},r_\theta(\mathbf{h}_t,\mathbf{u}_t)\right).
+\end{equation}
+
+The bridge is therefore scientifically important, not plumbing. If command $t$ is accidentally
+paired with state $t$ rather than $t+1$, the model learns a timing artifact. If visual-root position
+is mixed with collision position, the target is internally inconsistent. If the command that Unreal
+actually consumed is not logged, the dataset can contain mislabeled actions.
+
+\section{Protocol safety and episode isolation}\label{sec:safety}
+
+Every command carries $(q,e,k)$: protocol version, episode identifier, and sequence number. Accept
+command $c$ only if
+
+\begin{equation}
+  \operatorname{accept}(c)=
+  [q_c=q_{\mathrm{supported}}]\land[e_c=e_{\mathrm{current}}]
+  \land[k_c>k_{\mathrm{last}}]\land[\mathbf{a}_c\in\mathbb{R}^2].
+\end{equation}
+
+The Unreal side clamps again even if Python already clamps. This is defense in depth: delayed
+packets, stale planner state, and service restarts must not control a new episode. On timeout the
+safe command is zero desired velocity; Smooth Walking then decelerates rather than teleporting.
+
+Reset must restore more than position:
+
+\begin{align}
+  \mathcal{R}=\{&\text{transform, linear/angular velocity, Mover spring state,}\nonumber\\
+                 &\text{command, IDs, gate phase, history, planner warm start}\}.
+\end{align}
+
+Otherwise episode $i$ can influence episode $i+1$, creating hidden state leakage and invalid paired
+comparisons.
+
+\section{Alternatives and tradeoffs}\label{sec:alternatives}
+
+\begin{tabular}{p{0.25\linewidth}p{0.67\linewidth}}
+\toprule
+Alternative & Why D-011 is preferable \\
+\midrule
+Edit sample Blueprint & Binary diff is hard to review; graph is large; licensed asset becomes part
+of our implementation seam. \\
+Replace sample pawn & Risks breaking Motion Matching, camera, collision, and movement-mode setup. \\
+Edit sample module & Download contains its precompiled binary but no visible project source. \\
+Use ordinary actor Tick & Ordering relative to Mover can be ambiguous; can log pre-move state or
+duplicate a simulation step. \\
+Call MoverExamples helper & Sample pawn derives from \texttt{APawn}, not
+\texttt{AMoverExamplesCharacter}; the helper is not its API. \\
+Use OnPostMovement & State remains mutable; logged observation may not equal finalized gameplay
+state. \\
+\bottomrule
+\end{tabular}
+
+\section{Acceptance tests}\label{sec:tests}
+
+D-011 is accepted only after evidence for each invariant:
+
+\begin{enumerate}
+  \item \textbf{Isolation:} empty plugin compiles without modifying Epic assets.
+  \item \textbf{Passthrough:} plugin disabled preserves human locomotion.
+  \item \textbf{Command identity:} fixed command equals \texttt{GetLastInputCmd()} after clamping.
+  \item \textbf{Dynamics:} zero, forward, lateral, diagonal, stop, and reverse produce plausible
+  Smooth Walking responses rather than teleportation.
+  \item \textbf{Temporal alignment:} sequence and simulation time are monotonic; action $t$ is paired
+  with finalized state $t+1$.
+  \item \textbf{Frame/unit contract:} every field declares world/local frame and unit.
+  \item \textbf{State separation:} gameplay and visual transforms have different field names.
+  \item \textbf{Reset isolation:} repeated same-seed episodes match within declared tolerance.
+\end{enumerate}
+
+\section{Memory warning: what it could mean}\label{sec:memory}
+
+On Apple Silicon, CPU and GPU share unified physical memory, but Unreal can still report distinct
+budgets. The exact warning text is required before changing settings.
+
+\begin{tabular}{p{0.25\linewidth}p{0.32\linewidth}p{0.34\linewidth}}
+\toprule
+Warning family & Meaning & Evidence needed \\
+\midrule
+macOS memory pressure & Total resident/allocated memory approaches system capacity. & Activity
+Monitor memory pressure, swap, process resident size. \\
+Metal/video-memory budget & Render resources exceed an RHI-reported GPU budget. & Exact on-screen
+warning and Unreal log lines around it. \\
+Texture streaming pool & Resident textures exceed the configured streaming pool. & Exact
+``texture pool over budget'' message and \texttt{stat streaming}. \\
+Build/derived-data estimate & Shader or texture build reports temporary workspace, not necessarily
+live exhaustion. & Wording, timestamp, and whether it disappears after initial processing. \\
+\bottomrule
+\end{tabular}
+
+Current evidence shows successful 60 Hz Play-in-Editor and no explicit OOM, video-memory exhaustion,
+or texture-pool-over-budget line in the project log. Therefore the warning is unresolved, not
+ignored. It matters because memory pressure can cause frame-time spikes and invalidate planner p95
+latency even when movement remains functionally correct.
+
+\section{Interview defense and teach-back}\label{sec:exam}
+
+You must answer these without reading:
+
+\begin{enumerate}
+  \item Why is a plugin different from an actor component?
+  \item Why is desired velocity an action rather than the next velocity?
+  \item Why is \texttt{OnPostFinalize} preferable to actor Tick or \texttt{OnPostMovement}?
+  \item What makes Mover state authoritative, and why is the visual root separate?
+  \item What producer-ordering assumption could invalidate D-011, and how do we test it?
+  \item Why does passthrough mode matter to baseline fairness?
+  \item How could an off-by-one action/state pairing corrupt residual learning?
+  \item Why must reset include hidden controller state and episode identity?
+  \item If D-011 fails, what is the smallest fallback?
+\end{enumerate}
+
+\textbf{One-minute answer structure:} existing system $\rightarrow$ smallest intervention
+$\rightarrow$ exact command boundary $\rightarrow$ exact observation boundary $\rightarrow$
+safety/fairness invariant $\rightarrow$ runtime test that could falsify the design.
+
+\end{document}

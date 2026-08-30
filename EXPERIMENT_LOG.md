@@ -179,6 +179,6 @@ Preliminary interpretation: Installation compatibility and baseline locomotion a
 
 Reviewer findings: The sample pawn is not `AMoverExamplesCharacter`; it is an `APawn` Blueprint with its own large input graph. Calling the MoverExamples `RequestMoveByVelocity` helper would therefore be an incorrect integration assumption. An isolated input-producer component is the smallest source-controlled seam, but its ordering assumption must be tested explicitly. Do not diagnose or tune around the memory warning until its exact text or screenshot identifies whether it is a macOS, Metal/RHI, texture-streaming, or editor warning.
 
-Decision/next action: Candidate reviews proposed D-011 and supplies the exact memory-warning text or screenshot. After approval, stop PIE, scaffold and compile the empty plugin, then test the command echo before adding logging or reset logic.
+Decision/next action: Candidate reads Sections 2-9 of the compiled D-011 theory handout, supplies the exact memory-warning text or screenshot, completes the Section 11 teach-back, and approves or rejects D-011. After approval, stop PIE, scaffold and compile the empty plugin, then test the command echo before adding logging or reset logic.
 
-Artifacts: `DECISIONS.md` D-011 and the Sunday runbook API audit.
+Artifacts: `DECISIONS.md` D-011, the Sunday runbook API audit, `theory/D011_UNREAL_BRIDGE_THEORY.tex`, and `output/pdf/D011_UNREAL_BRIDGE_THEORY.pdf`.

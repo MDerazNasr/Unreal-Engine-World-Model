@@ -35,4 +35,11 @@ uv run ruff check .
 Unit-test oracles run on CPU by default for deterministic comparison. MPS availability is reported
 separately and may be used for measured training experiments once numerical behavior is validated.
 
+## Candidate study material
+
+- [D-011 Unreal bridge theory](output/pdf/D011_UNREAL_BRIDGE_THEORY.pdf) - compiled five-page
+  handout covering the integration boundary, equations, assumptions, failure modes, memory-warning
+  classification, acceptance tests, and required interview teach-back.
+- [D-011 LaTeX source](theory/D011_UNREAL_BRIDGE_THEORY.tex)
+
 No positive result is assumed. A reproducible negative result with a clear diagnosis is a valid research outcome.
