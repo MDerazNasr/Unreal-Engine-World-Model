@@ -320,7 +320,7 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 ### 4.3 Programmatic character control
 
 - [x] Implement and strictly compile a bounded world-space command probe; do not confuse it with the final character-local action interface.
-- [ ] Execute the command-sanitizer automation tests in an Editor process.
+- [x] Execute the command-sanitizer automation tests in an actual-sample Editor process: 1 passed, 0 failed/warnings.
 - [ ] Prove `GetLastInputCmd()` echoes the velocity type and bounded vector.
 - [ ] Apply zero desired velocity.
 - [ ] Apply forward desired velocity.

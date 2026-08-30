@@ -201,14 +201,16 @@ Command-echo compile gate (2026-08-31):
 
 - Added an opt-in `UMotionWorldBridgeComponent` implementing `IMoverInputProducerInterface`; automation defaults off.
 - Added a pure command sanitizer that rejects NaN/infinity, projects to XY, and clamps magnitude without changing planar direction. The raw Unreal probe uses world-space cm/s; it does not yet implement the specification's character-local model boundary.
-- Added compiled Unreal automation cases for zero, exact maximum, oversized diagonal, reverse, vertical projection, and NaN rejection. These cases have not yet been executed in an Editor test process.
+- Added Unreal automation cases for zero, exact maximum, oversized diagonal, reverse, vertical projection, and NaN rejection.
 - The first strict compile exposed an invalid Unreal numeric-limits spelling and a runtime-selected `UE_LOG` severity; both were corrected narrowly. The final strict universal Mac Editor Development, Game Development, and Game Shipping package build succeeded in 43 seconds.
 - Reviewer added an explicit game-thread guard because the current component fields are not a thread-safe mailbox. UE 5.8's standalone backend and global input-production switch both default to game-thread execution.
 - Packaged editor library is a 365 KiB universal Mach-O (`arm64+x86_64`); SHA-256 is `ec46da5c14825bd0e0585ca8902c84ee0407551ef7b28437ee61d6bfe8abe111`.
-- Actual-sample deployment, automation-test execution, component attachment, and a `GetLastInputCmd()` match remain pending. No programmatic movement claim is made yet.
+- Copied the committed source into the closed local sample and verified tracked files match. The actual universal `GameAnimationSampleEditor` target compiled successfully in 32.20 seconds across 14 actions; deployed library SHA-256 is `9df746690ab4d6436c97f3ab01a7263454a58570d4f656d9f3c633497c38c9d8`.
+- Ran `MotionWorld.Command.SanitizeWorldVelocity` through a headless, NullRHI actual-sample Editor process. The report records 1 succeeded, 0 failed, 0 warnings, and 0.0149 seconds test duration.
+- Component attachment and a live `GetLastInputCmd()` match remain pending. No programmatic movement claim is made yet.
 
 Reviewer findings: The sample pawn is not `AMoverExamplesCharacter`; it is an `APawn` Blueprint with its own large input graph. Calling the MoverExamples `RequestMoveByVelocity` helper would therefore be an incorrect integration assumption. An isolated input-producer component is the smallest source-controlled seam, but its ordering assumption must be tested explicitly. Do not diagnose or tune around the memory warning until its exact text or screenshot identifies whether it is a macOS, Metal/RHI, texture-streaming, or editor warning.
 
-Decision/next action: After the editor is safely closed, deploy and compile the command-echo source in the actual sample, execute the sanitizer automation test, attach the component with automation off, then run one bounded fixed-command echo. Do not add state logging or reset until that echo passes. Treat the low-memory warning as an operational risk; its originating UI remains unconfirmed without a screenshot.
+Decision/next action: Reopen the editor, attach the bridge to the sample pawn with automation off, confirm pass-through once more, then run one bounded fixed-command echo. Do not add state logging or reset until that echo passes. Treat the low-memory warning as an operational risk; its originating UI remains unconfirmed without a screenshot.
 
 Artifacts: `DECISIONS.md` D-011/D-012, `THEORY.md` sections 11-12, `unreal/Plugins/MotionWorld`, the Sunday runbook API audit, `theory/D011_UNREAL_BRIDGE_THEORY.tex`, and `output/pdf/D011_UNREAL_BRIDGE_THEORY.pdf`.

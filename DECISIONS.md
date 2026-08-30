@@ -239,7 +239,7 @@ Related config/commit/experiment: `FEAS-001`; `unreal/Plugins/MotionWorld`; `d22
 
 ## D-012 - Bounded world-space command echo before local-frame control
 
-Status: implementation compiles; automation test execution and live-sample echo are pending
+Status: implementation and sanitizer automation test pass in the actual sample; live-sample command echo is pending
 
 Decision: First prove the raw Mover seam with an opt-in planar world-space velocity command. Reject non-finite input, remove vertical input, clamp planar magnitude to 600 cm/s by default, preserve existing world-space facing intent, and compare the post-finalization `GetLastInputCmd()` packet with the quantized submitted command. Keep automation disabled by default and keep the final model-facing character-local action adapter as a separate next slice.
 
@@ -253,6 +253,6 @@ Main assumption: The current standalone sample leaves component gathering enable
 
 How it could fail: Another producer runs after the bridge, component gathering is disabled, input production is moved off-thread, or the sample interprets the retained command differently than expected. Echo mismatch must stop the experiment rather than be hidden.
 
-How I tested it: Boundary cases for zero, exact maximum, oversized diagonal input, reverse input, vertical projection, and NaN rejection compile into the Unreal automation suite. Runtime execution of that suite and a fixed-command echo in the actual sample remain required.
+How I tested it: Boundary cases for zero, exact maximum, oversized diagonal input, reverse input, vertical projection, and NaN rejection compile into the Unreal automation suite. The actual sample target compiled for universal Mac, and a headless actual-sample Editor run executed the suite: 1 test succeeded, 0 failed, 0 warnings, in 0.0149 seconds. A fixed-command echo in Play In Editor remains required.
 
 Related config/commit/experiment: `FEAS-001`; `unreal/Plugins/MotionWorld`.
