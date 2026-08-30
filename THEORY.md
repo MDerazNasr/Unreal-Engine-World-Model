@@ -199,7 +199,99 @@ Lower average state error does not guarantee better task performance. Errors may
 
 Because both controllers run the same seeds, resample paired episode differences rather than independently resampling controller results. The interval estimates uncertainty in the mean or median paired effect without discarding the pairing.
 
-## 11. Required personal exercises
+## 11. Unreal bridge design: D-011
+
+### The integration problem
+
+The Game Animation Sample already owns four valuable systems:
+
+1. a playable `APawn` Blueprint;
+2. Mover/Smooth Walking gameplay motion;
+3. collision through Mover's updated component;
+4. Motion Matching and visual animation.
+
+MotionWorld needs to control and observe that system without replacing it. The smallest boundary is therefore a source-controlled actor component attached to the existing pawn.
+
+```text
+human input or planner command
+            |
+            v
+UMotionWorldBridgeComponent (automated mode only)
+            |
+            v
+FCharacterDefaultInputs: desired world velocity, cm/s
+            |
+            v
+Mover -> Smooth Walking -> collision
+            |
+            v
+OnPostFinalize(FMoverDefaultSyncState)
+            |
+            v
+episode sample: executed position, velocity, facing, time
+
+visual mesh / Motion Matching is observed separately for QA
+```
+
+### Plugin versus component
+
+A **plugin** is the source-controlled package: descriptor, module, C++ code, and tests. It keeps MotionWorld code separate from Epic's licensed sample assets and can be copied into the sample's `Plugins/` directory.
+
+An **actor component** is the runtime object from that plugin. It is attached to the existing sample pawn and adds behavior without changing the pawn's inheritance hierarchy. This is composition: the pawn keeps being the sample pawn, while the bridge contributes one narrow responsibility.
+
+### Input production
+
+Mover does not read keyboard keys directly. Before a simulation step, one or more **input producers** fill an `FMoverInputCmdContext`. The decision-relevant block is `FCharacterDefaultInputs`.
+
+For automated control:
+
+`inputs.SetMoveInput(EMoveInputType::Velocity, clamp(a_world))`
+
+The action `a_world = (v_x, v_y, 0)` is a requested velocity in Unreal centimeters per second. It is not the executed velocity and does not teleport the pawn. Smooth Walking acceleration, smoothing, turning, collision, and hidden spring state determine the next executed state.
+
+When automated mode is disabled, the bridge writes nothing, so ordinary sample input remains intact. This **passthrough mode** is essential for a usable demo and for proving that merely installing the plugin does not change the baseline.
+
+The installed UE 5.8.2 implementation adds the pawn producer before gathered producer components. D-011 proposes using the bridge component as the later automated override. This ordering is an assumption, not a guarantee to hide: the first runtime test must inspect `GetLastInputCmd()` and reject the design if the command does not win reliably.
+
+### Finalized authoritative state
+
+`OnPostMovement` is too early for logging because its output state is explicitly still mutable. `OnPostFinalize` runs after finalization on the game thread. The bridge reads `FMoverDefaultSyncState` there:
+
+- world location in cm;
+- world linear velocity in cm/s;
+- world orientation;
+- angular velocity in degrees/s;
+- movement/timestep metadata where available.
+
+This Mover state represents gameplay motion. `GetPrimaryVisualComponent()` represents the rendered mesh, which may be offset by animation. Mixing the two would teach the model an inconsistent target: collision follows gameplay state, while visual feet and root can move for presentation.
+
+### Why the alternatives are weaker
+
+- Editing the sample Blueprint creates a hard-to-review binary asset change inside a large input graph.
+- Replacing the pawn risks breaking the carefully configured animation stack.
+- Editing the precompiled sample module is impossible without its project source and would couple us to Epic internals.
+- Sampling ordinary actor tick can occur before or after movement depending on tick ordering and can duplicate or miss simulation steps.
+- Calling `AMoverExamplesCharacter::RequestMoveByVelocity` is invalid because the sample pawn derives directly from `APawn`, not that example class.
+
+### Safety and episode identity
+
+The bridge eventually accepts only bounded planar commands and labels every command/observation with protocol version, episode ID, and sequence number. It rejects stale or wrong-episode commands and clamps again inside Unreal. Python-side validation is not enough because delayed packets, bugs, or a restarted service must not send an unsafe action to the current episode.
+
+### Acceptance tests
+
+D-011 is accepted only if all of these pass:
+
+1. Empty plugin compiles without modifying licensed assets.
+2. Plugin disabled: human movement matches the unmodified baseline.
+3. Fixed command: `GetLastInputCmd()` echoes velocity type and clamped vector.
+4. Zero command: the character decelerates through Smooth Walking rather than teleporting or freezing.
+5. Finalized samples are monotonic, one per intended simulation step, and use declared units/frames.
+6. Visual-root and gameplay-state traces remain separately labeled.
+7. Repeated reset clears command, episode identity, velocity, and relevant Mover hidden state.
+
+Failure of producer ordering does not justify silently relying on it. The fallback is an explicit composite input producer that owns the ordering of sample and automated commands.
+
+## 12. Required personal exercises
 
 Before each component is accepted, explain without looking:
 
