@@ -31,7 +31,7 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 
 - [x] Verify Unreal 5.8 and Game Animation Sample installation/acquisition (completed later than the original 10:00 target).
 - [x] While installation runs, bootstrap only independent Python environment/contracts/theory tests.
-- [ ] By 13:00, open the sample and compile the smallest project-specific module.
+- [x] Open the sample and compile the smallest project-specific module (completed later than the original 13:00 target).
 - [ ] By 18:00, apply programmatic desired velocity and capture authoritative post-movement state.
 - [ ] By 22:00, demonstrate deterministic reset, timed gate, and one complete episode log.
 - [ ] Close/merge `feature/unreal-feasibility` only if the Section 4 feasibility gate and required Section 5 safety checks pass.
@@ -169,7 +169,7 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [x] Confirm the sample editor opens on Apple Silicon.
 - [ ] Record launch time and any warnings relevant to Mover or animation.
 - [ ] Confirm project files can be generated for Xcode.
-- [ ] Compile an unmodified or minimally modified project target.
+- [x] Compile the behavior-free MotionWorld plugin against UE 5.8.2.
 - [x] Capture the exact engine and sample paths locally without committing licensed content.
 
 ### 1.3 Python environment
@@ -190,7 +190,7 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 ### 1.4 Environment gate acceptance
 
 - [x] Unreal editor and matching Game Animation Sample open successfully.
-- [ ] Minimal C++ target compiles successfully.
+- [x] Minimal C++ plugin target compiles successfully.
 - [x] Python 3.12 environment installs reproducibly from committed metadata.
 - [x] At least one Python test runs successfully.
 - [x] Environment inventory is entered as `FEAS-000` or equivalent.
@@ -210,7 +210,7 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [ ] Create `tests/integration/`.
 - [x] Create `scripts/` only for stable reproduction entry points.
 - [ ] Create ignored/local `artifacts/`, `results/`, and dataset locations with tracked README/placeholders where useful.
-- [ ] Create project-specific Unreal module layout without copying the sample.
+- [x] Create project-specific Unreal plugin/module layout without copying the sample.
 
 ### 2.2 Shared typed contracts
 
@@ -293,17 +293,17 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 
 ### 4.1 Version-matched API/source audit
 
-- [ ] Locate the exact Game Animation Sample character class/Blueprint.
-- [ ] Locate the exact Mover component and Smooth Walking mode used by the sample.
-- [ ] Locate the desired-velocity or movement-input control surface.
+- [x] Locate the exact Game Animation Sample character class/Blueprint.
+- [x] Locate the exact Mover component and Smooth Walking mode used by the sample.
+- [x] Locate the desired-velocity or movement-input control surface.
 - [ ] Locate where movement parameters live.
-- [ ] Locate post-movement tick/update hooks.
-- [ ] Locate authoritative velocity and angular-velocity access.
+- [x] Locate post-movement tick/update hooks.
+- [x] Locate authoritative velocity and angular-velocity access.
 - [ ] Locate collision/contact events.
-- [ ] Locate animation-root and toe transform access for diagnostics.
-- [ ] Verify every selected API in version-matched official docs or engine source.
-- [ ] Record source file/class/member names and engine version in `DECISIONS.md`.
-- [ ] Compile immediately after the smallest C++ change.
+- [ ] Locate animation-root and toe transform access for diagnostics; primary visual root is known, toe access remains open.
+- [x] Verify every selected API in version-matched official docs or engine source.
+- [x] Record source file/class/member names and engine version in `DECISIONS.md`.
+- [x] Compile immediately after the smallest C++ change.
 
 ### 4.2 Unreal project-specific components
 
@@ -312,8 +312,8 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [ ] Add `AMotionWorldMovingObstacle` or documented equivalent.
 - [ ] Add `UMotionWorldDebugComponent` or documented equivalent.
 - [ ] Keep responsibilities separated rather than creating one monolithic actor.
-- [ ] Ensure module/build dependencies are the minimum required.
-- [ ] Ensure project source does not hard-code one developer machine path.
+- [x] Ensure the behavior-free module uses only `Core`, `CoreUObject`, `Engine`, and `Mover` dependencies.
+- [x] Ensure project source does not hard-code one developer machine path.
 
 ### 4.3 Programmatic character control
 

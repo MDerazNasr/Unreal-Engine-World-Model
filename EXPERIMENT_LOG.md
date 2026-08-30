@@ -142,7 +142,7 @@ Artifacts and reproduction command: `pyproject.toml`, `uv.lock`, `.python-versio
 
 Date/time: 2026-08-30
 Owner: Mohamed Deraz Nasr with Codex Mentor/Reviewer API audit
-Status: in progress; acquisition, static API audit, and unmodified locomotion complete; programmatic control not yet tested
+Status: in progress; acquisition, static API audit, unmodified locomotion, and empty-plugin build complete; programmatic control not yet tested
 
 Question: Can the UE 5.8 Game Animation Sample accept programmatic desired velocity, expose finalized authoritative movement state, reset episode state, and produce a valid deterministic episode log?
 
@@ -177,8 +177,18 @@ Runtime baseline evidence:
 
 Preliminary interpretation: Installation compatibility and baseline locomotion are verified, and UE 5.8.2 exposes all essential command and observation primitives. The memory warning is an open operational risk, not currently evidence of an engine failure. Runtime feasibility remains unproven until plugin compilation, command echo, executed movement, reset, and episode logging pass.
 
+Empty-plugin build gate:
+
+- Candidate approved D-011 after the design explanation.
+- Added a behavior-free runtime module under `unreal/Plugins/MotionWorld` with only `Core`, `CoreUObject`, `Engine`, and `Mover` dependencies.
+- First strict `BuildPlugin` attempt under `/tmp` compiled source but failed at link because UE's build accelerator retained `/tmp` while Clang resolved temporary object paths under `/private/tmp`.
+- Retrying with the canonical `/private/tmp` package path succeeded for universal Mac Editor Development, Game Development, and Game Shipping targets.
+- The packaged editor library is a universal Mach-O containing `arm64` and `x86_64`; disposable package size is 956 KiB; SHA-256 is `2b4cb48f0b86e683f0576f80a45f952ae9100074601c6e85f5cfc3b0e0ececc1`.
+- Strict-includes mode disabled unity builds and precompiled-header shortcuts, so the tiny module had to be self-contained.
+- UE emitted one unrelated warning for a missing `MetalShaderConverter/include/metal_irconverter_ext` engine directory during game builds; both builds still succeeded. This warning is recorded and not attributed to MotionWorld.
+
 Reviewer findings: The sample pawn is not `AMoverExamplesCharacter`; it is an `APawn` Blueprint with its own large input graph. Calling the MoverExamples `RequestMoveByVelocity` helper would therefore be an incorrect integration assumption. An isolated input-producer component is the smallest source-controlled seam, but its ordering assumption must be tested explicitly. Do not diagnose or tune around the memory warning until its exact text or screenshot identifies whether it is a macOS, Metal/RHI, texture-streaming, or editor warning.
 
-Decision/next action: Candidate reads Sections 2-9 of the compiled D-011 theory handout, supplies the exact memory-warning text or screenshot, completes the Section 11 teach-back, and approves or rejects D-011. After approval, stop PIE, scaffold and compile the empty plugin, then test the command echo before adding logging or reset logic.
+Decision/next action: Commit the compiled empty-plugin slice. Then copy only tracked plugin source into the local sample, verify plugin-disabled human-control parity, and implement the smallest command-echo component before adding logging or reset logic. The candidate still needs to supply the exact memory-warning text or screenshot.
 
-Artifacts: `DECISIONS.md` D-011, the Sunday runbook API audit, `theory/D011_UNREAL_BRIDGE_THEORY.tex`, and `output/pdf/D011_UNREAL_BRIDGE_THEORY.pdf`.
+Artifacts: `DECISIONS.md` D-011, `unreal/Plugins/MotionWorld`, the Sunday runbook API audit, `theory/D011_UNREAL_BRIDGE_THEORY.tex`, and `output/pdf/D011_UNREAL_BRIDGE_THEORY.pdf`.

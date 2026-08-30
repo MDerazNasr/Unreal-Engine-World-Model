@@ -219,7 +219,7 @@ Related config/commit/experiment: `FEAS-000`; `scripts/verify_environment.py`.
 
 ## D-011 - Isolated Unreal bridge component
 
-Status: proposed; requires candidate approval before implementation
+Status: accepted by the candidate; runtime ordering remains an explicit test gate
 
 Decision: Track MotionWorld as an isolated project plugin rather than editing Epic's downloaded sample module or licensed assets. Attach a `UMotionWorldBridgeComponent` to the sample Mover pawn. When automated control is enabled, the component participates in Mover input production and overwrites `FCharacterDefaultInputs` with a clamped world-space velocity command. It samples the finalized `FMoverDefaultSyncState` through `OnPostFinalize`.
 
@@ -233,6 +233,6 @@ Main assumption: `bGatherInputFromAllInputProducerComponents` remains enabled an
 
 How it could fail: Producer ordering changes, a sample setting disables component gathering, or the Blueprint rewrites the same command after the component. In that case, explicitly set a composite input producer rather than relying on ordering.
 
-How I tested it: Before accepting this decision, compile the empty plugin and inspect `GetLastInputCmd()` under fixed commands. The first runtime proof must show the commanded `EMoveInputType::Velocity` and vector exactly match the clamped command.
+How I tested it: The behavior-free plugin compiled and packaged for universal Mac Editor Development, Game Development, and Game Shipping targets with strict includes. The next runtime proof must inspect `GetLastInputCmd()` and show that the commanded `EMoveInputType::Velocity` and vector exactly match the clamped command.
 
-Related config/commit/experiment: `FEAS-001`; pending candidate approval and implementation commit.
+Related config/commit/experiment: `FEAS-001`; `unreal/Plugins/MotionWorld`; implementation commit pending.

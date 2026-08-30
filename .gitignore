@@ -14,10 +14,10 @@ artifacts/models/
 results/raw/
 data/raw/
 data/processed/
-unreal/Saved/
-unreal/Intermediate/
-unreal/Binaries/
-unreal/DerivedDataCache/
+unreal/**/Saved/
+unreal/**/Intermediate/
+unreal/**/Binaries/
+unreal/**/DerivedDataCache/
 .idea/
 .vscode/
 *.sln
