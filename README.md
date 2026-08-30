@@ -16,4 +16,8 @@ The project is being built as a reproducible applied-ML research demonstration. 
 - [EXPERIMENT_LOG.md](EXPERIMENT_LOG.md) - hypotheses, configurations, results, and interpretations
 - [INTERVIEW_DEFENSE.md](INTERVIEW_DEFENSE.md) - difficult questions and evidence-backed answers
 
+## Active runbook
+
+- [Sunday 30 August - Unreal feasibility](runbooks/2026-08-30-sunday.md)
+
 No positive result is assumed. A reproducible negative result with a clear diagnosis is a valid research outcome.
