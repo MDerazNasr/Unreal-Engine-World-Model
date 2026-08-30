@@ -235,4 +235,4 @@ How it could fail: Producer ordering changes, a sample setting disables componen
 
 How I tested it: The behavior-free plugin compiled and packaged for universal Mac Editor Development, Game Development, and Game Shipping targets with strict includes. The next runtime proof must inspect `GetLastInputCmd()` and show that the commanded `EMoveInputType::Velocity` and vector exactly match the clamped command.
 
-Related config/commit/experiment: `FEAS-001`; `unreal/Plugins/MotionWorld`; implementation commit pending.
+Related config/commit/experiment: `FEAS-001`; `unreal/Plugins/MotionWorld`; `d2218fe`.

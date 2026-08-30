@@ -180,6 +180,7 @@ Preliminary interpretation: Installation compatibility and baseline locomotion a
 Empty-plugin build gate:
 
 - Candidate approved D-011 after the design explanation.
+- Implementation/evidence commit: `d2218fe` (`Add compiled MotionWorld Unreal plugin`).
 - Added a behavior-free runtime module under `unreal/Plugins/MotionWorld` with only `Core`, `CoreUObject`, `Engine`, and `Mover` dependencies.
 - First strict `BuildPlugin` attempt under `/tmp` compiled source but failed at link because UE's build accelerator retained `/tmp` while Clang resolved temporary object paths under `/private/tmp`.
 - Retrying with the canonical `/private/tmp` package path succeeded for universal Mac Editor Development, Game Development, and Game Shipping targets.
@@ -189,6 +190,6 @@ Empty-plugin build gate:
 
 Reviewer findings: The sample pawn is not `AMoverExamplesCharacter`; it is an `APawn` Blueprint with its own large input graph. Calling the MoverExamples `RequestMoveByVelocity` helper would therefore be an incorrect integration assumption. An isolated input-producer component is the smallest source-controlled seam, but its ordering assumption must be tested explicitly. Do not diagnose or tune around the memory warning until its exact text or screenshot identifies whether it is a macOS, Metal/RHI, texture-streaming, or editor warning.
 
-Decision/next action: Commit the compiled empty-plugin slice. Then copy only tracked plugin source into the local sample, verify plugin-disabled human-control parity, and implement the smallest command-echo component before adding logging or reset logic. The candidate still needs to supply the exact memory-warning text or screenshot.
+Decision/next action: Copy only tracked plugin source into the local sample, verify plugin-disabled human-control parity, and implement the smallest command-echo component before adding logging or reset logic. The candidate still needs to supply the exact memory-warning text or screenshot.
 
 Artifacts: `DECISIONS.md` D-011, `unreal/Plugins/MotionWorld`, the Sunday runbook API audit, `theory/D011_UNREAL_BRIDGE_THEORY.tex`, and `output/pdf/D011_UNREAL_BRIDGE_THEORY.pdf`.
