@@ -29,7 +29,7 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 
 ### Sunday 30 August - environment and Unreal feasibility
 
-- [ ] By 10:00, verify Unreal 5.7/5.8 and Game Animation Sample installation/acquisition.
+- [x] Verify Unreal 5.8 and Game Animation Sample installation/acquisition (completed later than the original 10:00 target).
 - [x] While installation runs, bootstrap only independent Python environment/contracts/theory tests.
 - [ ] By 13:00, open the sample and compile the smallest project-specific module.
 - [ ] By 18:00, apply programmatic desired velocity and capture authoritative post-movement state.
@@ -159,18 +159,18 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 
 ### 1.2 Unreal installation - user/system prerequisite
 
-- [ ] Open Epic Games Launcher.
+- [x] Open Epic Games Launcher.
 - [ ] Check free-space requirement before selecting engine components.
-- [ ] Install or locate Unreal Engine 5.7 or 5.8.
-- [ ] Record exact Unreal version and build identifier.
-- [ ] Acquire the matching Game Animation Sample.
-- [ ] Record the sample version/source.
-- [ ] Launch the unmodified sample once.
-- [ ] Confirm the sample runs on Apple Silicon.
+- [x] Install or locate Unreal Engine 5.7 or 5.8.
+- [x] Record exact Unreal version and build identifier.
+- [x] Acquire the matching Game Animation Sample.
+- [x] Record the sample version/source.
+- [x] Launch the unmodified sample once.
+- [x] Confirm the sample editor opens on Apple Silicon.
 - [ ] Record launch time and any warnings relevant to Mover or animation.
 - [ ] Confirm project files can be generated for Xcode.
 - [ ] Compile an unmodified or minimally modified project target.
-- [ ] Capture the exact engine and sample paths locally without committing licensed content.
+- [x] Capture the exact engine and sample paths locally without committing licensed content.
 
 ### 1.3 Python environment
 
@@ -189,7 +189,7 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 
 ### 1.4 Environment gate acceptance
 
-- [ ] Unreal editor and matching Game Animation Sample open successfully.
+- [x] Unreal editor and matching Game Animation Sample open successfully.
 - [ ] Minimal C++ target compiles successfully.
 - [x] Python 3.12 environment installs reproducibly from committed metadata.
 - [x] At least one Python test runs successfully.

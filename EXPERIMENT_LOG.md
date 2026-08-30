@@ -137,3 +137,40 @@ Reviewer findings: `uv run` inside the restricted sandbox cannot access the defa
 Decision/next action: Accept D-010. Commit the environment/skeleton slice, then define typed protocol contracts while Unreal 5.8 installs.
 
 Artifacts and reproduction command: `pyproject.toml`, `uv.lock`, `.python-version`, `scripts/verify_environment.py`, `tests/unit/test_environment.py`; commands are documented in `README.md`.
+
+### FEAS-001 - Unreal desired-velocity and state feasibility
+
+Date/time: 2026-08-30
+Owner: Mohamed Deraz Nasr with Codex Mentor/Reviewer API audit
+Status: in progress; acquisition and static API audit complete, runtime control not yet tested
+
+Question: Can the UE 5.8 Game Animation Sample accept programmatic desired velocity, expose finalized authoritative movement state, reset episode state, and produce a valid deterministic episode log?
+
+Hypothesis: A small project plugin component can supply `EMoveInputType::Velocity` through Mover's existing input-production path and sample finalized `FMoverDefaultSyncState` without modifying Epic sample assets.
+
+Controls/fairness constraints: Keep the downloaded sample unmodified until a minimal plugin compiles; distinguish static API evidence from runtime evidence; treat the Mover updated component/sync state as authoritative and the primary visual component as diagnostic; do not mark locomotion, reset, or logging complete without runtime proof.
+
+Verified environment:
+
+- UE 5.8.2, changelist 56702186, compatible changelist 55116800, promoted `++UE5+Release-5.8` build.
+- `GameAnimationSample.uproject` has `EngineAssociation` 5.8 and enables Mover, ChaosMover, NetworkPrediction, MoverExamples, PoseSearch, MotionWarping, and Locomotor.
+- The project contains a universal Mac `GameAnimationSample` editor binary but no visible project `Source/` directory.
+- Exact local engine and sample paths are stored only in private task memory.
+
+Static API/asset audit:
+
+- Playable asset: `/Game/Blueprints/SandboxCharacter_Mover`; native parent `APawn`; implements `IMoverInputProducerInterface`; owns `CharacterMoverComponent`.
+- Walking asset: `/Game/Blueprints/MovementModes/BP_MovementMode_Walking`; native parent `USmoothWalkingMode`.
+- Command type: `FCharacterDefaultInputs` in module `Mover`; `SetMoveInput(EMoveInputType::Velocity, DesiredVelocity)` uses units per second and is world-space unless movement-base-relative input is enabled.
+- Extension point: `UMoverComponent::BeginPlay` gathers owner components implementing `IMoverInputProducerInterface`; `ProduceInput` invokes gathered producers.
+- Final sampling point: `UMoverComponent::OnPostFinalize`, guaranteed on the game thread after state finalization.
+- Authoritative state: `FMoverDefaultSyncState::{GetLocation_WorldSpace, GetVelocity_WorldSpace, GetOrientation_WorldSpace}` plus angular velocity in the same state; `GetPrimaryVisualComponent()` is the animation/visual diagnostic boundary.
+- Installed source evidence: `Mover/Public/MoverComponent.h`, `Mover/Private/MoverComponent.cpp`, `Mover/Public/MoverDataModelTypes.h`, and `Mover/Public/DefaultMovementSet/Modes/SmoothWalkingMode.h`.
+
+Preliminary interpretation: Installation compatibility is verified and UE 5.8.2 exposes all essential command and observation primitives. Runtime feasibility remains unproven until baseline Play, plugin compilation, command echo, executed movement, reset, and episode logging pass.
+
+Reviewer findings: The sample pawn is not `AMoverExamplesCharacter`; it is an `APawn` Blueprint with its own large input graph. Calling the MoverExamples `RequestMoveByVelocity` helper would therefore be an incorrect integration assumption. An isolated input-producer component is the smallest source-controlled seam, but its ordering assumption must be tested explicitly.
+
+Decision/next action: Candidate reviews proposed D-011. In parallel, verify baseline locomotion in Play mode. After approval, scaffold and compile the empty plugin before adding control logic.
+
+Artifacts: `DECISIONS.md` D-011 and the Sunday runbook API audit.

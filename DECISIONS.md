@@ -216,3 +216,23 @@ How it could fail: CPU training is too slow for the deadline, or MPS numerical d
 How I tested it: Environment verifier reports CPU/MPS capabilities; later model work will add explicit parity tolerances and runtime measurements.
 
 Related config/commit/experiment: `FEAS-000`; `scripts/verify_environment.py`.
+
+## D-011 - Isolated Unreal bridge component
+
+Status: proposed; requires candidate approval before implementation
+
+Decision: Track MotionWorld as an isolated project plugin rather than editing Epic's downloaded sample module or licensed assets. Attach a `UMotionWorldBridgeComponent` to the sample Mover pawn. When automated control is enabled, the component participates in Mover input production and overwrites `FCharacterDefaultInputs` with a clamped world-space velocity command. It samples the finalized `FMoverDefaultSyncState` through `OnPostFinalize`.
+
+Why: The sample contains licensed Blueprint/assets and a precompiled `GameAnimationSample` module without a visible `Source/` directory. UE 5.8.2 explicitly supports actor components implementing `IMoverInputProducerInterface`, and the Mover component gathers them at `BeginPlay`. `OnPostFinalize` provides finalized state on the game thread and keeps gameplay/collision state separate from the visual mesh.
+
+Alternatives considered: Modify the sample Blueprint's large `ProduceInput` graph directly; replace the pawn; edit the opaque sample module; sample ordinary actor tick; use `OnPostMovement`, whose state is still mutable.
+
+Evidence: Installed UE 5.8.2 source in `MoverComponent.h/.cpp` and `MoverDataModelTypes.h`; sample asset inspection identifies `/Game/Blueprints/SandboxCharacter_Mover`, `CharacterMoverComponent`, and a walking Blueprint derived from `USmoothWalkingMode`.
+
+Main assumption: `bGatherInputFromAllInputProducerComponents` remains enabled and the bridge component is gathered after the pawn producer, as implemented by UE 5.8.2. The experiment is initially standalone/local rather than networked.
+
+How it could fail: Producer ordering changes, a sample setting disables component gathering, or the Blueprint rewrites the same command after the component. In that case, explicitly set a composite input producer rather than relying on ordering.
+
+How I tested it: Before accepting this decision, compile the empty plugin and inspect `GetLastInputCmd()` under fixed commands. The first runtime proof must show the commanded `EMoveInputType::Velocity` and vector exactly match the clamped command.
+
+Related config/commit/experiment: `FEAS-001`; pending candidate approval and implementation commit.
