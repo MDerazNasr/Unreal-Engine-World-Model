@@ -1,0 +1,14 @@
+tmp/
+.DS_Store
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+artifacts/checkpoints/
+results/raw/
+unreal/Saved/
+unreal/Intermediate/
+unreal/Binaries/
+unreal/DerivedDataCache/
