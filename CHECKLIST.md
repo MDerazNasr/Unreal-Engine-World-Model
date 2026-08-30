@@ -316,6 +316,8 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [ ] Keep responsibilities separated rather than creating one monolithic actor.
 - [x] Ensure the behavior-free module uses only `Core`, `CoreUObject`, `Engine`, and `Mover` dependencies.
 - [x] Ensure project source does not hard-code one developer machine path.
+- [x] Attach the bridge locally to the playable sample pawn with automation disabled.
+- [x] Confirm the attached bridge initializes and preserves human-control behavior.
 
 ### 4.3 Programmatic character control
 

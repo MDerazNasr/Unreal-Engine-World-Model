@@ -207,7 +207,14 @@ Command-echo compile gate (2026-08-31):
 - Packaged editor library is a 365 KiB universal Mach-O (`arm64+x86_64`); SHA-256 is `ec46da5c14825bd0e0585ca8902c84ee0407551ef7b28437ee61d6bfe8abe111`.
 - Copied the committed source into the closed local sample and verified tracked files match. The actual universal `GameAnimationSampleEditor` target compiled successfully in 32.20 seconds across 14 actions; deployed library SHA-256 is `9df746690ab4d6436c97f3ab01a7263454a58570d4f656d9f3c633497c38c9d8`.
 - Ran `MotionWorld.Command.SanitizeWorldVelocity` through a headless, NullRHI actual-sample Editor process. The report records 1 succeeded, 0 failed, 0 warnings, and 0.0149 seconds test duration.
-- Component attachment and a live `GetLastInputCmd()` match remain pending. No programmatic movement claim is made yet.
+- At this build/test checkpoint, component attachment and a live `GetLastInputCmd()` match remained pending. No programmatic movement claim was made.
+
+Attached-component pass-through gate (2026-08-31):
+
+- Candidate added `Motion World Bridge` to the local `SandboxCharacter_Mover` Blueprint, left automation disabled, compiled/saved it, and confirmed ordinary movement still works. This local binary asset change is not committed.
+- Three PIE starts log `MotionWorld bridge ready on 'SandboxCharacter_Mover_C_0'; automation=disabled, max_planar_speed=600.00 cm/s.` This proves the component exists on the playable pawn and reaches `BeginPlay`.
+- No command-echo log is present, which is the correct default-off behavior. The next gate must enable one bounded fixed command and capture `match=true`.
+- The low-memory warning reappeared. At inspection macOS reported 19% free memory and zero throttled pages; Unreal's resident RSS was approximately 563 MiB, but unified/GPU allocations can contribute to system pressure. The Unreal log still contains no OOM, video-memory-exhaustion, or texture-pool-over-budget error. Do not claim a specific warning source without its screenshot.
 
 Reviewer findings: The sample pawn is not `AMoverExamplesCharacter`; it is an `APawn` Blueprint with its own large input graph. Calling the MoverExamples `RequestMoveByVelocity` helper would therefore be an incorrect integration assumption. An isolated input-producer component is the smallest source-controlled seam, but its ordering assumption must be tested explicitly. Do not diagnose or tune around the memory warning until its exact text or screenshot identifies whether it is a macOS, Metal/RHI, texture-streaming, or editor warning.
 
