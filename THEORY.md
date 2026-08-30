@@ -291,7 +291,50 @@ D-011 is accepted only if all of these pass:
 
 Failure of producer ordering does not justify silently relying on it. The fallback is an explicit composite input producer that owns the ordering of sample and automated commands.
 
-## 12. Required personal exercises
+## 12. Bounded command-echo probe
+
+The first control slice uses a world-space Mover velocity only to test the engine seam. It is not yet
+the final model-facing action, which remains character-local according to the project specification.
+The later frame adapter will rotate local velocity into world velocity using the character's facing.
+
+For a requested Unreal velocity `u = (u_x, u_y, u_z)` and maximum planar speed `v_max`, define:
+
+`q = (u_x, u_y, 0)`
+
+`u_safe = (0, 0, 0)` if any input or `v_max` is non-finite.
+
+Otherwise:
+
+`u_safe = q * min(1, max(0, v_max) / ||q||_2)`
+
+with the zero-vector case handled without division. This gives four safety properties:
+
+- `Z` is removed because the P0 action cannot command jumping or flying;
+- magnitude never exceeds `v_max`;
+- clamping preserves planar direction;
+- NaN or infinity fails closed to zero rather than contaminating simulation state.
+
+Manual example: `(900, 1200, 50)` cm/s has planar magnitude `1500` cm/s. With
+`v_max = 600` cm/s, the scale is `600 / 1500 = 0.4`, so the safe command is
+`(360, 480, 0)` cm/s.
+
+`SetMoveInput` quantizes each component to `0.01` cm/s. The bridge therefore saves the value after
+that setter, not the unquantized request. After Mover finalizes the frame, it reads
+`GetLastInputCmd()` and checks both:
+
+1. the retained type is `Velocity`;
+2. the retained world vector matches the submitted vector within `0.011` cm/s.
+
+This is an **echo test**, not a movement-quality test. A matching echo proves Mover retained the
+command after all input producers ran. It does not yet prove the pawn moved correctly, that local
+and world frames are correct, or that state logging is synchronized.
+
+The sample's standalone backend defaults to game-thread input production. The bridge explicitly
+refuses off-thread production because its command/evidence fields are ordinary component state, not
+an asynchronous mailbox. Supporting asynchronous or networked input later requires a separately
+designed thread-safe command handoff.
+
+## 13. Required personal exercises
 
 Before each component is accepted, explain without looking:
 

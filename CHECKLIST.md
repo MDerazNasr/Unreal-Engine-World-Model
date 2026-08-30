@@ -171,7 +171,7 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [ ] Confirm project files can be generated for Xcode.
 - [x] Compile the behavior-free MotionWorld plugin against UE 5.8.2.
 - [x] Compile and load the behavior-free plugin in the actual Game Animation Sample.
-- [ ] Confirm manual Play-In-Editor movement parity with the plugin enabled.
+- [x] Confirm manual Play-In-Editor movement parity with the plugin enabled.
 - [x] Capture the exact engine and sample paths locally without committing licensed content.
 
 ### 1.3 Python environment
@@ -319,6 +319,9 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 
 ### 4.3 Programmatic character control
 
+- [x] Implement and strictly compile a bounded world-space command probe; do not confuse it with the final character-local action interface.
+- [ ] Execute the command-sanitizer automation tests in an Editor process.
+- [ ] Prove `GetLastInputCmd()` echoes the velocity type and bounded vector.
 - [ ] Apply zero desired velocity.
 - [ ] Apply forward desired velocity.
 - [ ] Apply lateral desired velocity.

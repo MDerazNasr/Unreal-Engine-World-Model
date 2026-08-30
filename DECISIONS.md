@@ -219,7 +219,7 @@ Related config/commit/experiment: `FEAS-000`; `scripts/verify_environment.py`.
 
 ## D-011 - Isolated Unreal bridge component
 
-Status: accepted by the candidate; behavior-free live integration passes, runtime ordering remains an explicit test gate
+Status: accepted by the candidate; behavior-free live integration and human-control parity pass, runtime ordering remains an explicit test gate
 
 Decision: Track MotionWorld as an isolated project plugin rather than editing Epic's downloaded sample module or licensed assets. Attach a `UMotionWorldBridgeComponent` to the sample Mover pawn. When automated control is enabled, the component participates in Mover input production and overwrites `FCharacterDefaultInputs` with a clamped world-space velocity command. It samples the finalized `FMoverDefaultSyncState` through `OnPostFinalize`.
 
@@ -233,6 +233,26 @@ Main assumption: `bGatherInputFromAllInputProducerComponents` remains enabled an
 
 How it could fail: Producer ordering changes, a sample setting disables component gathering, or the Blueprint rewrites the same command after the component. In that case, explicitly set a composite input producer rather than relying on ordering.
 
-How I tested it: The behavior-free plugin compiled and packaged for universal Mac Editor Development, Game Development, and Game Shipping targets with strict includes. It also compiled inside the actual sample's universal Development Editor target, loaded during startup, and reached a 0-error/0-warning Map Check. Human-control parity still needs candidate confirmation. The later command-path proof must inspect `GetLastInputCmd()` and show that the commanded `EMoveInputType::Velocity` and vector exactly match the clamped command.
+How I tested it: The behavior-free plugin compiled and packaged for universal Mac Editor Development, Game Development, and Game Shipping targets with strict includes. It also compiled inside the actual sample's universal Development Editor target, loaded during startup, and reached a 0-error/0-warning Map Check. The candidate confirmed manual movement and turning remained unchanged with the plugin enabled. The later command-path proof must inspect `GetLastInputCmd()` and show that the commanded `EMoveInputType::Velocity` and vector exactly match the clamped command.
 
 Related config/commit/experiment: `FEAS-001`; `unreal/Plugins/MotionWorld`; `d2218fe`.
+
+## D-012 - Bounded world-space command echo before local-frame control
+
+Status: implementation compiles; automation test execution and live-sample echo are pending
+
+Decision: First prove the raw Mover seam with an opt-in planar world-space velocity command. Reject non-finite input, remove vertical input, clamp planar magnitude to 600 cm/s by default, preserve existing world-space facing intent, and compare the post-finalization `GetLastInputCmd()` packet with the quantized submitted command. Keep automation disabled by default and keep the final model-facing character-local action adapter as a separate next slice.
+
+Why: This isolates input-production and producer-ordering risk from coordinate-conversion risk. Echoing the retained packet proves more than observing that our callback ran, while default-off behavior preserves the sample baseline.
+
+Alternatives considered: Add networking, logging, reset, and coordinate conversion simultaneously; infer command success only from visible movement; expose unbounded Blueprint velocity; overwrite input even when automation is disabled.
+
+Evidence: UE 5.8.2 source shows the pawn producer is added before gathered component producers, `SetMoveInput` quantizes to 0.01 cm/s, `GetLastInputCmd()` exposes the most recently used packet, and standalone asynchronous input production defaults off. The strict universal Mac Editor/Development/Shipping build passes after Reviewer-requested game-thread enforcement.
+
+Main assumption: The current standalone sample leaves component gathering enabled and runs input production on the game thread. World-space velocity is only the engine probe; the planner contract remains character-local.
+
+How it could fail: Another producer runs after the bridge, component gathering is disabled, input production is moved off-thread, or the sample interprets the retained command differently than expected. Echo mismatch must stop the experiment rather than be hidden.
+
+How I tested it: Boundary cases for zero, exact maximum, oversized diagonal input, reverse input, vertical projection, and NaN rejection compile into the Unreal automation suite. Runtime execution of that suite and a fixed-command echo in the actual sample remain required.
+
+Related config/commit/experiment: `FEAS-001`; `unreal/Plugins/MotionWorld`.

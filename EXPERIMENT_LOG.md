@@ -171,7 +171,7 @@ Runtime baseline evidence:
 
 - The candidate entered Play In Editor and manually verified that the unmodified character moves and turns.
 - The log identifies `SandboxCharacter_Mover_C_0`, reports a 60 Hz PIE world, no Blueprint recompilation, and latest PIE startup in 0.498 s.
-- The candidate reported a memory warning. Its exact UI text is not yet captured. The engine log contains no out-of-memory, video-memory-exhaustion, or texture-pool-over-budget error.
+- The candidate described the UI warning as running low on memory; exact source/UI wording is still not captured. The engine log contains no out-of-memory, video-memory-exhaustion, or texture-pool-over-budget error.
 - First-load work included a 6000×6000 texture build with a 2404 MB working-memory estimate and extensive animation compression/shader compilation. Unreal initially reported an 8601 MB texture budget and later a 1000 MB streaming-pool size.
 - At diagnosis time Unreal Editor resident memory was approximately 0.9 GB; macOS reported 22% system memory free and no throttled pages. These observations do not identify the earlier warning's exact source.
 
@@ -195,9 +195,20 @@ Live sample integration gate (2026-08-31):
 - The deployed MotionWorld editor library is a universal Mach-O; SHA-256 is `22925a5d59592e1d0af2f2bbd0f6c0fa2bca8922ae5b327e6919a4e5162f118d`.
 - Reopened the sample. Its startup log records both plugin mounting and `InternalLoadLibrary: 'MotionWorld'`, followed by engine initialization and Map Check with 0 errors and 0 warnings.
 - The plugin still contains no control, observation, reset, or logging behavior. Candidate confirmation that ordinary Play-In-Editor movement remains unchanged is the final pass-through check for this gate.
+- The candidate subsequently confirmed ordinary movement and turning remained unchanged with the plugin enabled. The pass-through gate therefore passes.
+
+Command-echo compile gate (2026-08-31):
+
+- Added an opt-in `UMotionWorldBridgeComponent` implementing `IMoverInputProducerInterface`; automation defaults off.
+- Added a pure command sanitizer that rejects NaN/infinity, projects to XY, and clamps magnitude without changing planar direction. The raw Unreal probe uses world-space cm/s; it does not yet implement the specification's character-local model boundary.
+- Added compiled Unreal automation cases for zero, exact maximum, oversized diagonal, reverse, vertical projection, and NaN rejection. These cases have not yet been executed in an Editor test process.
+- The first strict compile exposed an invalid Unreal numeric-limits spelling and a runtime-selected `UE_LOG` severity; both were corrected narrowly. The final strict universal Mac Editor Development, Game Development, and Game Shipping package build succeeded in 43 seconds.
+- Reviewer added an explicit game-thread guard because the current component fields are not a thread-safe mailbox. UE 5.8's standalone backend and global input-production switch both default to game-thread execution.
+- Packaged editor library is a 365 KiB universal Mach-O (`arm64+x86_64`); SHA-256 is `ec46da5c14825bd0e0585ca8902c84ee0407551ef7b28437ee61d6bfe8abe111`.
+- Actual-sample deployment, automation-test execution, component attachment, and a `GetLastInputCmd()` match remain pending. No programmatic movement claim is made yet.
 
 Reviewer findings: The sample pawn is not `AMoverExamplesCharacter`; it is an `APawn` Blueprint with its own large input graph. Calling the MoverExamples `RequestMoveByVelocity` helper would therefore be an incorrect integration assumption. An isolated input-producer component is the smallest source-controlled seam, but its ordering assumption must be tested explicitly. Do not diagnose or tune around the memory warning until its exact text or screenshot identifies whether it is a macOS, Metal/RHI, texture-streaming, or editor warning.
 
-Decision/next action: Verify human-control parity with the enabled behavior-free plugin, then implement the smallest command-echo component before adding logging or reset logic. The candidate still needs to supply the exact memory-warning text or screenshot.
+Decision/next action: After the editor is safely closed, deploy and compile the command-echo source in the actual sample, execute the sanitizer automation test, attach the component with automation off, then run one bounded fixed-command echo. Do not add state logging or reset until that echo passes. Treat the low-memory warning as an operational risk; its originating UI remains unconfirmed without a screenshot.
 
-Artifacts: `DECISIONS.md` D-011, `unreal/Plugins/MotionWorld`, the Sunday runbook API audit, `theory/D011_UNREAL_BRIDGE_THEORY.tex`, and `output/pdf/D011_UNREAL_BRIDGE_THEORY.pdf`.
+Artifacts: `DECISIONS.md` D-011/D-012, `THEORY.md` sections 11-12, `unreal/Plugins/MotionWorld`, the Sunday runbook API audit, `theory/D011_UNREAL_BRIDGE_THEORY.tex`, and `output/pdf/D011_UNREAL_BRIDGE_THEORY.pdf`.

@@ -3,9 +3,11 @@
 This directory is the source-controlled Unreal Engine side of MotionWorld. It deliberately contains
 no Epic Game Animation Sample assets.
 
-The initial module is behavior-free. Its only purpose is to prove that the plugin descriptor,
-runtime module, UE 5.8 toolchain, and dependency on the experimental `Mover` plugin compile before
-control or logging logic is introduced.
+The first module gate was behavior-free and proved that the plugin descriptor, runtime module,
+UE 5.8 toolchain, and dependency on the experimental `Mover` plugin compile. The next bounded slice
+adds `UMotionWorldBridgeComponent`: an opt-in world-space planar velocity command with validation,
+speed clamping, and a post-finalization echo check. Automation is disabled by default, so adding the
+component alone preserves human control.
 
 Build the isolated plugin package on macOS with:
 
@@ -17,9 +19,9 @@ Build the isolated plugin package on macOS with:
   -StrictIncludes
 ```
 
-The package location is disposable and must not be committed. The next gate copies only the tracked
-plugin source into the local sample and verifies that disabling the plugin preserves normal human
-control.
+The package location is disposable and must not be committed. The plugin source is copied into the
+local sample without committing Epic assets. Runtime acceptance requires an echoed Mover velocity
+packet before state recording or reset logic is added.
 
 Use `/private/tmp` rather than its `/tmp` alias on macOS. UE 5.8's local build accelerator can retain
 the spelling used by AutomationTool while Clang resolves the same path to `/private/tmp`, causing a
