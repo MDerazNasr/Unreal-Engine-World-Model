@@ -103,3 +103,37 @@ Interpretation: The seven logical stages must be compressed into five build days
 Reviewer finding: Without an explicit evidence ladder, schedule pressure could lead to presenting a synthetic causal demonstration as engine evidence. The plan now distinguishes five evidence levels and requires the package to state the highest achieved level.
 
 Artifacts: `PROJECT_PLAN.md`, decisions D-008 and D-009.
+
+### FEAS-000 - Python environment bootstrap
+
+Date/time: 2026-08-30
+Owner: Mohamed Deraz Nasr with Codex Builder/Reviewer passes
+Status: completed
+
+Question: Can the Python numerical/test environment be recreated on the interview machine with a fixed Python and dependency lock?
+
+Hypothesis: A Python 3.12 `uv` project can install the standard ML/test stack on Apple Silicon, import every required package, run deterministic CPU smoke calculations, expose MPS capability, and pass tests/lint.
+
+Controls/fairness constraints: Project-local environment; committed Python constraint and lockfile; CPU is the deterministic reference; MPS availability is reported separately.
+
+Git commit: pending environment commit on `feature/unreal-feasibility`.
+
+Hardware/software: Apple M4, 16 GB RAM, macOS 26.5.2 arm64, Python 3.12.13, `uv` 0.12.2, PyTorch 2.13.0, NumPy 2.5.2, SciPy 1.18.1, scikit-learn 1.9.0, Matplotlib 3.11.1, PyYAML 6.0.3.
+
+Procedure:
+
+1. Resolve/install from `pyproject.toml` using Python 3.12 and write `uv.lock`.
+2. Re-run `uv sync --frozen --python 3.12` so dependency resolution cannot change.
+3. Run `scripts/verify_environment.py`.
+4. Run `pytest -q` and `ruff check .` through `.venv/bin`.
+5. Re-run the verifier outside the sandbox to distinguish real MPS capability from sandbox visibility.
+
+Results: Dependency lock created; frozen synchronization checked all 35 packages without changing resolution; required packages imported; three tests passed (latest run: 5.72 s); lint and `git diff --check` passed; CPU seeded tensor calculation repeated exactly; MPS is built and available outside the sandbox.
+
+Interpretation: The Python environment gate is ready for deterministic CPU development with optional measured MPS training. The sandbox can report MPS unavailable even when the host supports it, so hardware claims must use the validated host result.
+
+Reviewer findings: `uv run` inside the restricted sandbox cannot access the default user cache, but direct `.venv/bin` execution succeeds. This is an execution-environment restriction, not a project dependency failure; normal README commands remain valid in a user terminal.
+
+Decision/next action: Accept D-010. Commit the environment/skeleton slice, then define typed protocol contracts while Unreal 5.8 installs.
+
+Artifacts and reproduction command: `pyproject.toml`, `uv.lock`, `.python-version`, `scripts/verify_environment.py`, `tests/unit/test_environment.py`; commands are documented in `README.md`.

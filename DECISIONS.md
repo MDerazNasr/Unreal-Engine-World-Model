@@ -196,3 +196,23 @@ How it could fail: Package resolution or MPS-specific operators fail; CPU execut
 How I tested it: Installation and import smoke tests are the first implementation task; versions will be frozen in the lockfile.
 
 Related config/commit/experiment: `PLAN-002`.
+
+## D-010 - CPU reference and measured MPS acceleration
+
+Status: accepted
+
+Decision: Use CPU float64/float32 computations as deterministic unit-test oracles. Permit Apple MPS for measured training experiments only after the relevant implementation passes CPU tests and CPU/MPS numerical parity is checked.
+
+Why: Exact repeatability and transparent tolerances matter more than training speed for unit tests. The M4 GPU is available and can accelerate later training, but accelerator kernels and numerical order may differ.
+
+Alternatives considered: Make MPS the default for every test; disable MPS entirely.
+
+Evidence: PyTorch 2.13.0 reports MPS built and available outside the sandbox. The fixed-seed CPU smoke operation repeated exactly, and three environment tests passed.
+
+Main assumption: The planned sub-500K-parameter model and dataset can train acceptably on CPU if an MPS operation is unsupported.
+
+How it could fail: CPU training is too slow for the deadline, or MPS numerical differences change model behavior materially.
+
+How I tested it: Environment verifier reports CPU/MPS capabilities; later model work will add explicit parity tolerances and runtime measurements.
+
+Related config/commit/experiment: `FEAS-000`; `scripts/verify_environment.py`.

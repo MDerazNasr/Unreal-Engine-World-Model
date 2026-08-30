@@ -30,7 +30,7 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 ### Sunday 30 August - environment and Unreal feasibility
 
 - [ ] By 10:00, verify Unreal 5.7/5.8 and Game Animation Sample installation/acquisition.
-- [ ] While installation runs, bootstrap only independent Python environment/contracts/theory tests.
+- [x] While installation runs, bootstrap only independent Python environment/contracts/theory tests.
 - [ ] By 13:00, open the sample and compile the smallest project-specific module.
 - [ ] By 18:00, apply programmatic desired velocity and capture authoritative post-movement state.
 - [ ] By 22:00, demonstrate deterministic reset, timed gate, and one complete episode log.
@@ -132,8 +132,8 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [x] Create `docs/project-foundation` from `main`.
 - [x] Commit research and execution contract as `f855d33`.
 - [x] Commit deadline-adjusted plan as `ee134f9`.
-- [ ] Review and merge `docs/project-foundation` into `main`.
-- [ ] Create `feature/unreal-feasibility` from updated `main`.
+- [x] Review and merge `docs/project-foundation` into `main`.
+- [x] Create `feature/unreal-feasibility` from updated `main`.
 - [ ] Create later milestone branches only after the prior gate merges.
 - [ ] Make small commits after coherent tested slices.
 - [ ] Run focused tests before every commit.
@@ -174,41 +174,41 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 
 ### 1.3 Python environment
 
-- [ ] Create project metadata (`pyproject.toml`) with supported Python range.
-- [ ] Create `.python-version` targeting Python 3.12.
-- [ ] Create project-local `uv` virtual environment.
-- [ ] Add PyTorch, NumPy, SciPy, scikit-learn, plotting, configuration, and test dependencies.
-- [ ] Lock exact dependency versions.
-- [ ] Add `.venv`, caches, checkpoints, datasets, and generated results to `.gitignore` as appropriate.
-- [ ] Import all required packages in one smoke test.
-- [ ] Record PyTorch version.
-- [ ] Record CPU and MPS availability.
-- [ ] Run a deterministic tensor operation twice and compare results.
-- [ ] Decide CPU-versus-MPS policy for tests and training.
-- [ ] Record environment creation and verification commands in README.
+- [x] Create project metadata (`pyproject.toml`) with supported Python range.
+- [x] Create `.python-version` targeting Python 3.12.
+- [x] Create project-local `uv` virtual environment.
+- [x] Add PyTorch, NumPy, SciPy, scikit-learn, plotting, configuration, and test dependencies.
+- [x] Lock exact dependency versions.
+- [x] Add `.venv`, caches, checkpoints, datasets, and generated results to `.gitignore` as appropriate.
+- [x] Import all required packages in one smoke test.
+- [x] Record PyTorch version.
+- [x] Record CPU and MPS availability.
+- [x] Run a deterministic tensor operation twice and compare results.
+- [x] Decide CPU-versus-MPS policy for tests and training.
+- [x] Record environment creation and verification commands in README.
 
 ### 1.4 Environment gate acceptance
 
 - [ ] Unreal editor and matching Game Animation Sample open successfully.
 - [ ] Minimal C++ target compiles successfully.
-- [ ] Python 3.12 environment installs reproducibly from committed metadata.
-- [ ] At least one Python test runs successfully.
-- [ ] Environment inventory is entered as `FEAS-000` or equivalent.
-- [ ] Reviewer confirms no undocumented machine dependency blocks reproduction.
+- [x] Python 3.12 environment installs reproducibly from committed metadata.
+- [x] At least one Python test runs successfully.
+- [x] Environment inventory is entered as `FEAS-000` or equivalent.
+- [x] Reviewer confirms no undocumented machine dependency blocks reproduction.
 
 ## 2. Repository and interface skeleton
 
 ### 2.1 Repository layout
 
 - [ ] Create `configs/` for data, model, planner, evaluation, and scenario configs.
-- [ ] Create `motionworld/data/`.
+- [x] Create `motionworld/data/`.
 - [ ] Create `motionworld/models/`.
 - [ ] Create `motionworld/planning/`.
 - [ ] Create `motionworld/evaluation/`.
-- [ ] Create `motionworld/protocol/` or an equivalent explicit protocol area.
-- [ ] Create `tests/unit/`.
+- [x] Create `motionworld/protocol/` or an equivalent explicit protocol area.
+- [x] Create `tests/unit/`.
 - [ ] Create `tests/integration/`.
-- [ ] Create `scripts/` only for stable reproduction entry points.
+- [x] Create `scripts/` only for stable reproduction entry points.
 - [ ] Create ignored/local `artifacts/`, `results/`, and dataset locations with tracked README/placeholders where useful.
 - [ ] Create project-specific Unreal module layout without copying the sample.
 
@@ -230,7 +230,7 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 
 ### 2.3 Skeleton gate
 
-- [ ] Python imports succeed without circular dependencies.
+- [x] Python imports succeed without circular dependencies.
 - [ ] Empty/default typed objects cannot silently represent valid runtime data.
 - [ ] Tests reject incorrect dimensions, units/version tags, and non-finite values.
 - [ ] Candidate can draw the Unreal/Python system boundary from memory.

@@ -20,4 +20,19 @@ The project is being built as a reproducible applied-ML research demonstration. 
 
 - [Sunday 30 August - Unreal feasibility](runbooks/2026-08-30-sunday.md)
 
+## Python environment
+
+MotionWorld uses the project-local Python 3.12 environment resolved by `uv`. Install `uv`, then
+recreate the exact locked environment with:
+
+```bash
+uv sync --frozen --python 3.12
+uv run python scripts/verify_environment.py
+uv run pytest
+uv run ruff check .
+```
+
+Unit-test oracles run on CPU by default for deterministic comparison. MPS availability is reported
+separately and may be used for measured training experiments once numerical behavior is validated.
+
 No positive result is assumed. A reproducible negative result with a clear diagnosis is a valid research outcome.
