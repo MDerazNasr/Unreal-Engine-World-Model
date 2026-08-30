@@ -142,7 +142,7 @@ Artifacts and reproduction command: `pyproject.toml`, `uv.lock`, `.python-versio
 
 Date/time: 2026-08-30
 Owner: Mohamed Deraz Nasr with Codex Mentor/Reviewer API audit
-Status: in progress; acquisition, static API audit, unmodified locomotion, and empty-plugin build complete; programmatic control not yet tested
+Status: in progress; acquisition, static API audit, unmodified locomotion, isolated plugin build, and live sample module-load gate complete; programmatic control not yet tested
 
 Question: Can the UE 5.8 Game Animation Sample accept programmatic desired velocity, expose finalized authoritative movement state, reset episode state, and produce a valid deterministic episode log?
 
@@ -188,8 +188,16 @@ Empty-plugin build gate:
 - Strict-includes mode disabled unity builds and precompiled-header shortcuts, so the tiny module had to be self-contained.
 - UE emitted one unrelated warning for a missing `MetalShaderConverter/include/metal_irconverter_ext` engine directory during game builds; both builds still succeeded. This warning is recorded and not attributed to MotionWorld.
 
+Live sample integration gate (2026-08-31):
+
+- Copied only the tracked, behavior-free MotionWorld plugin into the local Game Animation Sample and explicitly enabled it in the local project descriptor. A recoverable pre-edit descriptor backup was retained outside the repository.
+- Built the actual `GameAnimationSampleEditor` target in Development configuration for universal Mac (`arm64+x86_64`) with hot reload and UBA disabled. The build completed successfully in 36.35 seconds across 19 actions.
+- The deployed MotionWorld editor library is a universal Mach-O; SHA-256 is `22925a5d59592e1d0af2f2bbd0f6c0fa2bca8922ae5b327e6919a4e5162f118d`.
+- Reopened the sample. Its startup log records both plugin mounting and `InternalLoadLibrary: 'MotionWorld'`, followed by engine initialization and Map Check with 0 errors and 0 warnings.
+- The plugin still contains no control, observation, reset, or logging behavior. Candidate confirmation that ordinary Play-In-Editor movement remains unchanged is the final pass-through check for this gate.
+
 Reviewer findings: The sample pawn is not `AMoverExamplesCharacter`; it is an `APawn` Blueprint with its own large input graph. Calling the MoverExamples `RequestMoveByVelocity` helper would therefore be an incorrect integration assumption. An isolated input-producer component is the smallest source-controlled seam, but its ordering assumption must be tested explicitly. Do not diagnose or tune around the memory warning until its exact text or screenshot identifies whether it is a macOS, Metal/RHI, texture-streaming, or editor warning.
 
-Decision/next action: Copy only tracked plugin source into the local sample, verify plugin-disabled human-control parity, and implement the smallest command-echo component before adding logging or reset logic. The candidate still needs to supply the exact memory-warning text or screenshot.
+Decision/next action: Verify human-control parity with the enabled behavior-free plugin, then implement the smallest command-echo component before adding logging or reset logic. The candidate still needs to supply the exact memory-warning text or screenshot.
 
 Artifacts: `DECISIONS.md` D-011, `unreal/Plugins/MotionWorld`, the Sunday runbook API audit, `theory/D011_UNREAL_BRIDGE_THEORY.tex`, and `output/pdf/D011_UNREAL_BRIDGE_THEORY.pdf`.
