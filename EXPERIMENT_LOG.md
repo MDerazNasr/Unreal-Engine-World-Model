@@ -142,7 +142,7 @@ Artifacts and reproduction command: `pyproject.toml`, `uv.lock`, `.python-versio
 
 Date/time: 2026-08-30
 Owner: Mohamed Deraz Nasr with Codex Mentor/Reviewer API audit
-Status: in progress; acquisition and static API audit complete, runtime control not yet tested
+Status: in progress; acquisition, static API audit, and unmodified locomotion complete; programmatic control not yet tested
 
 Question: Can the UE 5.8 Game Animation Sample accept programmatic desired velocity, expose finalized authoritative movement state, reset episode state, and produce a valid deterministic episode log?
 
@@ -167,10 +167,18 @@ Static API/asset audit:
 - Authoritative state: `FMoverDefaultSyncState::{GetLocation_WorldSpace, GetVelocity_WorldSpace, GetOrientation_WorldSpace}` plus angular velocity in the same state; `GetPrimaryVisualComponent()` is the animation/visual diagnostic boundary.
 - Installed source evidence: `Mover/Public/MoverComponent.h`, `Mover/Private/MoverComponent.cpp`, `Mover/Public/MoverDataModelTypes.h`, and `Mover/Public/DefaultMovementSet/Modes/SmoothWalkingMode.h`.
 
-Preliminary interpretation: Installation compatibility is verified and UE 5.8.2 exposes all essential command and observation primitives. Runtime feasibility remains unproven until baseline Play, plugin compilation, command echo, executed movement, reset, and episode logging pass.
+Runtime baseline evidence:
 
-Reviewer findings: The sample pawn is not `AMoverExamplesCharacter`; it is an `APawn` Blueprint with its own large input graph. Calling the MoverExamples `RequestMoveByVelocity` helper would therefore be an incorrect integration assumption. An isolated input-producer component is the smallest source-controlled seam, but its ordering assumption must be tested explicitly.
+- The candidate entered Play In Editor and manually verified that the unmodified character moves and turns.
+- The log identifies `SandboxCharacter_Mover_C_0`, reports a 60 Hz PIE world, no Blueprint recompilation, and latest PIE startup in 0.498 s.
+- The candidate reported a memory warning. Its exact UI text is not yet captured. The engine log contains no out-of-memory, video-memory-exhaustion, or texture-pool-over-budget error.
+- First-load work included a 6000×6000 texture build with a 2404 MB working-memory estimate and extensive animation compression/shader compilation. Unreal initially reported an 8601 MB texture budget and later a 1000 MB streaming-pool size.
+- At diagnosis time Unreal Editor resident memory was approximately 0.9 GB; macOS reported 22% system memory free and no throttled pages. These observations do not identify the earlier warning's exact source.
 
-Decision/next action: Candidate reviews proposed D-011. In parallel, verify baseline locomotion in Play mode. After approval, scaffold and compile the empty plugin before adding control logic.
+Preliminary interpretation: Installation compatibility and baseline locomotion are verified, and UE 5.8.2 exposes all essential command and observation primitives. The memory warning is an open operational risk, not currently evidence of an engine failure. Runtime feasibility remains unproven until plugin compilation, command echo, executed movement, reset, and episode logging pass.
+
+Reviewer findings: The sample pawn is not `AMoverExamplesCharacter`; it is an `APawn` Blueprint with its own large input graph. Calling the MoverExamples `RequestMoveByVelocity` helper would therefore be an incorrect integration assumption. An isolated input-producer component is the smallest source-controlled seam, but its ordering assumption must be tested explicitly. Do not diagnose or tune around the memory warning until its exact text or screenshot identifies whether it is a macOS, Metal/RHI, texture-streaming, or editor warning.
+
+Decision/next action: Candidate reviews proposed D-011 and supplies the exact memory-warning text or screenshot. After approval, stop PIE, scaffold and compile the empty plugin, then test the command echo before adding logging or reset logic.
 
 Artifacts: `DECISIONS.md` D-011 and the Sunday runbook API audit.

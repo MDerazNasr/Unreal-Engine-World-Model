@@ -69,6 +69,12 @@ I compare predicted and realized return for CEM-selected trajectories with the g
 
 ## 4. Architecture challenges
 
+### Why use an isolated Unreal bridge plugin instead of editing the sample Blueprint?
+
+The Game Animation Sample pawn is a large licensed Blueprint derived from `APawn`, and its project module is distributed precompiled without visible source. Editing the Blueprint would produce a fragile binary diff and entangle MotionWorld with sample input and animation logic. UE 5.8.2 already provides a compositional seam: Mover gathers actor components implementing `IMoverInputProducerInterface`, and `OnPostFinalize` exposes finalized authoritative state. A small source-controlled bridge can therefore override input only in automated mode, leave human control untouched otherwise, and record gameplay state without replacing the pawn or animation stack. The main risk is producer ordering, so the first runtime test checks `GetLastInputCmd()` rather than assuming the command won.
+
+Evidence required: plugin compile, human-control passthrough test, fixed velocity command echo, and finalized-state trace.
+
 ### Why residual learning rather than a full transition model?
 
 Known movement structure is inexpensive and testable. Residual learning gives zero a meaningful baseline, focuses capacity on systematic mismatch, and provides a clean scientific comparison. It can fail if residuals are mostly noise or the nominal model is already sufficient.
