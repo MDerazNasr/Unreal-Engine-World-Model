@@ -235,6 +235,9 @@ Character-local adapter compile gate (2026-08-31):
 - Character-local (`+X` forward, `+Y` right) is the default command frame. Direct world mode remains explicit for diagnostics and backward comparison.
 - Added compiled cardinal-angle, local-right, vertical-projection, and arbitrary-angle round-trip automation checks.
 - Reviewer required echo success to include finite-input and resolved-frame predicates, preventing a fail-closed zero packet from appearing valid merely because zero echoed correctly.
-- Strict universal Mac Editor Development, Game Development, and Game Shipping package builds pass. Actual-sample build, test execution, and visible rotated-command evidence remain pending.
+- Strict universal Mac Editor Development, Game Development, and Game Shipping package builds pass.
+- Deployed committed source into the closed sample and verified tracked-file parity. The actual universal `GameAnimationSampleEditor` target built successfully in 18.02 seconds; deployed editor library SHA-256 is `fa5faa8a2b83a63cf75b86c22d9bb43be86589300f0ad4ab60617f4de88c9b0a`.
+- Headless actual-sample execution ran the entire MotionWorld namespace: 2 succeeded, 0 failed, 0 warnings, total 0.0322 seconds. Both the sanitizer and coordinate round-trip/cardinal tests pass together.
+- Visible rotated-command evidence remains pending; D-013 is not yet accepted.
 
 Artifacts: `DECISIONS.md` D-011/D-012, `THEORY.md` sections 11-12, `unreal/Plugins/MotionWorld`, the Sunday runbook API audit, `theory/D011_UNREAL_BRIDGE_THEORY.tex`, and `output/pdf/D011_UNREAL_BRIDGE_THEORY.pdf`.

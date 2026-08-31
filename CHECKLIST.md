@@ -323,7 +323,7 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 
 - [x] Implement and strictly compile a bounded world-space command probe; do not confuse it with the final character-local action interface.
 - [x] Implement and strictly compile character-local/world planar conversion from authoritative Mover yaw.
-- [ ] Execute coordinate-frame automation tests in the actual sample.
+- [x] Execute coordinate-frame automation tests in the actual sample: 2 passed, 0 failed/warnings.
 - [ ] Prove local forward rotates correctly under at least two character yaws.
 - [x] Execute the command-sanitizer automation tests in an actual-sample Editor process: 1 passed, 0 failed/warnings.
 - [x] Prove `GetLastInputCmd()` echoes the velocity type and bounded vector.

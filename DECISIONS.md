@@ -259,7 +259,7 @@ Related config/commit/experiment: `FEAS-001`; `unreal/Plugins/MotionWorld`.
 
 ## D-013 - Character-local planner action resolved from authoritative Mover yaw
 
-Status: implementation compiles strictly; actual-sample test execution and live rotated-command proof are pending
+Status: strict builds and actual-sample automation pass; live rotated-command proof is pending
 
 Decision: Make character-local velocity the default planner-facing command frame (`+X` forward, `+Y` right). Resolve it to Mover world space using yaw from the current `FMoverDefaultSyncState`. Retain explicit world mode only for engine diagnostics, and provide the inverse world-to-local function for later authoritative velocity observations.
 
@@ -273,6 +273,6 @@ Main assumption: The Mover default sync-state orientation at input production is
 
 How it could fail: Axis signs are wrong, degrees are treated as radians, orientation comes from the wrong subsystem, sync state is unavailable, or a rotated packet echoes but visible motion is inconsistent. Missing/invalid state fails closed and is forbidden from reporting `match=true`.
 
-How I tested it: Strict compilation passes. Next execute both MotionWorld automation tests in the actual sample, then compare local forward commands under visibly different starting yaws and inspect the logged resolved world vectors.
+How I tested it: Strict universal Editor/Development/Shipping compilation passes. The actual universal sample target builds in 18.02 seconds. A headless actual-sample run executes both MotionWorld tests: 2 succeeded, 0 failed/warnings, total 0.0322 seconds. Next compare local forward commands under visibly different starting yaws and inspect the logged resolved world vectors.
 
 Related config/commit/experiment: `FEAS-001`; `unreal/Plugins/MotionWorld`.
