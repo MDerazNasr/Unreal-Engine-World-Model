@@ -3,6 +3,7 @@
 #include "GameFramework/Actor.h"
 #include "MoverComponent.h"
 #include "MoverDataModelTypes.h"
+#include "MotionWorldCoordinateFrames.h"
 #include "MotionWorldVelocityCommand.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogMotionWorldBridge, Log, All);
@@ -77,6 +78,36 @@ bool UMotionWorldBridgeComponent::SetDesiredVelocityWorldCmPerSec(
 	}
 
 	DesiredVelocityWorldCmPerSec = RequestedVelocity;
+	VelocityCommandFrame = EMotionWorldVelocityCommandFrame::World;
+	++CommandRevision;
+	return true;
+}
+
+void UMotionWorldBridgeComponent::SetVelocityCommandFrame(
+	const EMotionWorldVelocityCommandFrame NewFrame)
+{
+	if (VelocityCommandFrame != NewFrame)
+	{
+		VelocityCommandFrame = NewFrame;
+		++CommandRevision;
+	}
+}
+
+bool UMotionWorldBridgeComponent::SetDesiredVelocityLocalCmPerSec(
+	const FVector& RequestedVelocity)
+{
+	if (RequestedVelocity.ContainsNaN())
+	{
+		UE_LOG(
+			LogMotionWorldBridge,
+			Warning,
+			TEXT("Rejected non-finite MotionWorld local velocity command on '%s'."),
+			*GetNameSafe(GetOwner()));
+		return false;
+	}
+
+	DesiredVelocityLocalCmPerSec = RequestedVelocity;
+	VelocityCommandFrame = EMotionWorldVelocityCommandFrame::CharacterLocal;
 	++CommandRevision;
 	return true;
 }
@@ -97,9 +128,38 @@ void UMotionWorldBridgeComponent::ProduceInput_Implementation(
 		return;
 	}
 
+	FVector RequestedVelocityWorldCmPerSec = DesiredVelocityWorldCmPerSec;
+	LastRequestedVelocityInCommandFrameCmPerSec = DesiredVelocityWorldCmPerSec;
+	LastResolvedFacingYawDegrees = 0.0;
+	bLastCommandFrameResolved = true;
+
+	if (VelocityCommandFrame == EMotionWorldVelocityCommandFrame::CharacterLocal)
+	{
+		LastRequestedVelocityInCommandFrameCmPerSec = DesiredVelocityLocalCmPerSec;
+		const FMoverDefaultSyncState* CurrentState = MoverComponent
+			? MoverComponent->GetSyncState().SyncStateCollection
+				.FindDataByType<FMoverDefaultSyncState>()
+			: nullptr;
+
+		if (CurrentState)
+		{
+			LastResolvedFacingYawDegrees =
+				CurrentState->GetOrientation_WorldSpace().Yaw;
+			RequestedVelocityWorldCmPerSec =
+				MotionWorld::CharacterLocalToWorldPlanarVelocity(
+					DesiredVelocityLocalCmPerSec,
+					LastResolvedFacingYawDegrees);
+		}
+		else
+		{
+			RequestedVelocityWorldCmPerSec = FVector::ZeroVector;
+			bLastCommandFrameResolved = false;
+		}
+	}
+
 	const MotionWorld::FSanitizedVelocityCommand Sanitized =
 		MotionWorld::SanitizeWorldVelocityCommand(
-			DesiredVelocityWorldCmPerSec,
+			RequestedVelocityWorldCmPerSec,
 			MaxPlanarSpeedCmPerSec);
 
 	FCharacterDefaultInputs& Inputs =
@@ -115,7 +175,8 @@ void UMotionWorldBridgeComponent::ProduceInput_Implementation(
 
 	// Read back the value stored by SetMoveInput because Mover quantizes it to 0.01 cm/s.
 	LastSubmittedVelocityWorldCmPerSec = Inputs.GetMoveInput();
-	bLastSubmittedInputWasFinite = Sanitized.bInputWasFinite;
+	bLastSubmittedInputWasFinite =
+		Sanitized.bInputWasFinite && bLastCommandFrameResolved;
 
 	(void)SimTimeMs;
 }
@@ -136,7 +197,9 @@ void UMotionWorldBridgeComponent::HandlePostFinalize(
 	const FCharacterDefaultInputs* EchoedInputs =
 		EchoedCommand.InputCollection.FindDataByType<FCharacterDefaultInputs>();
 
-	bLastCommandEchoMatched = EchoedInputs
+	bLastCommandEchoMatched = bLastCommandFrameResolved
+		&& bLastSubmittedInputWasFinite
+		&& EchoedInputs
 		&& EchoedInputs->GetMoveInputType() == EMoveInputType::Velocity
 		&& EchoedInputs->GetMoveInput_WorldSpace().Equals(
 			LastSubmittedVelocityWorldCmPerSec,
@@ -151,12 +214,17 @@ void UMotionWorldBridgeComponent::HandlePostFinalize(
 		UE_LOG(
 			LogMotionWorldBridge,
 			Display,
-			TEXT("MotionWorld command echo: revision=%llu finite=%s requested=(%.2f, %.2f, %.2f) submitted=(%.2f, %.2f, %.2f) echoed=(%.2f, %.2f, %.2f) match=%s"),
+			TEXT("MotionWorld command echo: revision=%llu frame=%s resolved=%s facing_yaw_deg=%.2f finite=%s requested_frame=(%.2f, %.2f, %.2f) submitted_world=(%.2f, %.2f, %.2f) echoed_world=(%.2f, %.2f, %.2f) match=%s"),
 			CommandRevision,
+			VelocityCommandFrame == EMotionWorldVelocityCommandFrame::CharacterLocal
+				? TEXT("character_local")
+				: TEXT("world"),
+			bLastCommandFrameResolved ? TEXT("true") : TEXT("false"),
+			LastResolvedFacingYawDegrees,
 			bLastSubmittedInputWasFinite ? TEXT("true") : TEXT("false"),
-			DesiredVelocityWorldCmPerSec.X,
-			DesiredVelocityWorldCmPerSec.Y,
-			DesiredVelocityWorldCmPerSec.Z,
+			LastRequestedVelocityInCommandFrameCmPerSec.X,
+			LastRequestedVelocityInCommandFrameCmPerSec.Y,
+			LastRequestedVelocityInCommandFrameCmPerSec.Z,
 			LastSubmittedVelocityWorldCmPerSec.X,
 			LastSubmittedVelocityWorldCmPerSec.Y,
 			LastSubmittedVelocityWorldCmPerSec.Z,

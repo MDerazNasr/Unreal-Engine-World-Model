@@ -5,9 +5,13 @@ no Epic Game Animation Sample assets.
 
 The first module gate was behavior-free and proved that the plugin descriptor, runtime module,
 UE 5.8 toolchain, and dependency on the experimental `Mover` plugin compile. The next bounded slice
-adds `UMotionWorldBridgeComponent`: an opt-in world-space planar velocity command with validation,
-speed clamping, and a post-finalization echo check. Automation is disabled by default, so adding the
-component alone preserves human control.
+adds `UMotionWorldBridgeComponent`: an opt-in planar velocity command with validation, speed
+clamping, coordinate conversion, and a post-finalization echo check. Automation is disabled by
+default, so adding the component alone preserves human control.
+
+The bridge now defaults to a character-local action (`+X` forward, `+Y` right) and resolves it from
+the current authoritative Mover yaw into the world-space packet consumed by Unreal. Direct
+world-space commands remain available only as an explicit diagnostic mode.
 
 Build the isolated plugin package on macOS with:
 

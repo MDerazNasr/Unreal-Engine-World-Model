@@ -229,4 +229,12 @@ Reviewer findings: The sample pawn is not `AMoverExamplesCharacter`; it is an `A
 
 Decision/next action: Implement and hand-test the character-local-to-world frame adapter, then add the smallest finalized authoritative-state sample. Keep input and state responsibilities separately testable. Treat the low-memory warning as an operational risk; its originating UI remains unconfirmed without a screenshot.
 
+Character-local adapter compile gate (2026-08-31):
+
+- Added pure local-to-world and world-to-local planar velocity rotations using Unreal yaw in degrees; the bridge obtains yaw from `FMoverDefaultSyncState`.
+- Character-local (`+X` forward, `+Y` right) is the default command frame. Direct world mode remains explicit for diagnostics and backward comparison.
+- Added compiled cardinal-angle, local-right, vertical-projection, and arbitrary-angle round-trip automation checks.
+- Reviewer required echo success to include finite-input and resolved-frame predicates, preventing a fail-closed zero packet from appearing valid merely because zero echoed correctly.
+- Strict universal Mac Editor Development, Game Development, and Game Shipping package builds pass. Actual-sample build, test execution, and visible rotated-command evidence remain pending.
+
 Artifacts: `DECISIONS.md` D-011/D-012, `THEORY.md` sections 11-12, `unreal/Plugins/MotionWorld`, the Sunday runbook API audit, `theory/D011_UNREAL_BRIDGE_THEORY.tex`, and `output/pdf/D011_UNREAL_BRIDGE_THEORY.pdf`.

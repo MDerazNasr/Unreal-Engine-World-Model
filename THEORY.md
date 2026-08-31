@@ -334,7 +334,43 @@ refuses off-thread production because its command/evidence fields are ordinary c
 an asynchronous mailbox. Supporting asynchronous or networked input later requires a separately
 designed thread-safe command handoff.
 
-## 13. Required personal exercises
+## 13. Character-local and world coordinate frames
+
+The planner action is character-local: `+X` means forward and `+Y` means right regardless of where
+the character faces in the map. Unreal Mover ultimately consumes a world-space vector. For yaw
+`theta`, measured in degrees by Unreal but converted to radians for trigonometry:
+
+`v_world_x = cos(theta) * v_local_x - sin(theta) * v_local_y`
+
+`v_world_y = sin(theta) * v_local_x + cos(theta) * v_local_y`
+
+The inverse used to express observed world velocity in the model frame is the transpose rotation:
+
+`v_local_x = cos(theta) * v_world_x + sin(theta) * v_world_y`
+
+`v_local_y = -sin(theta) * v_world_x + cos(theta) * v_world_y`
+
+The adapter uses the yaw from `FMoverDefaultSyncState`, not camera yaw, controller yaw, or animated
+mesh orientation. That makes action and later observation conversion share the same authoritative
+gameplay frame.
+
+Hand checks for local forward `(200, 0)` cm/s:
+
+- yaw `0` degrees -> world `(200, 0)`;
+- yaw `90` degrees -> world `(0, 200)`;
+- yaw `180` degrees -> world `(-200, 0)`;
+- yaw `-90` degrees -> world `(0, -200)`.
+
+At yaw `90` degrees, local right `(0, 200)` becomes world `(-200, 0)`. A round-trip test at a
+non-cardinal angle checks that `world_to_local(local_to_world(v))` recovers `v` within floating-point
+tolerance. Cardinal tests catch axis/sign mistakes; the round trip catches inconsistencies between
+the forward and inverse formulas.
+
+The frame conversion runs before speed sanitization. Rotation preserves planar magnitude in exact
+mathematics, but sanitizing afterward ensures the actual world packet is finite, planar, and bounded.
+An unavailable authoritative Mover state fails closed to zero and cannot produce `match=true`.
+
+## 14. Required personal exercises
 
 Before each component is accepted, explain without looking:
 

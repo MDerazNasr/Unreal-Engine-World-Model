@@ -256,3 +256,23 @@ How it could fail: Another producer runs after the bridge, component gathering i
 How I tested it: Boundary cases for zero, exact maximum, oversized diagonal input, reverse input, vertical projection, and NaN rejection compile into the Unreal automation suite. The actual sample target compiled for universal Mac, and a headless actual-sample Editor run executed the suite: 1 test succeeded, 0 failed, 0 warnings, in 0.0149 seconds. The candidate attached the component locally with automation disabled; three PIE starts logged readiness on `SandboxCharacter_Mover_C_0`, and manual movement remained unchanged. PIE then retained both zero and `(200, 0, 0)` cm/s velocity packets with `match=true`; the character moved steadily, collision stopped executed motion, jump remained available, and the final session logged automation disabled.
 
 Related config/commit/experiment: `FEAS-001`; `unreal/Plugins/MotionWorld`.
+
+## D-013 - Character-local planner action resolved from authoritative Mover yaw
+
+Status: implementation compiles strictly; actual-sample test execution and live rotated-command proof are pending
+
+Decision: Make character-local velocity the default planner-facing command frame (`+X` forward, `+Y` right). Resolve it to Mover world space using yaw from the current `FMoverDefaultSyncState`. Retain explicit world mode only for engine diagnostics, and provide the inverse world-to-local function for later authoritative velocity observations.
+
+Why: A local action has stable semantics as the character turns and matches the project specification. Using the same authoritative Mover orientation for both directions prevents camera, controller, animation, and gameplay frames from being mixed.
+
+Alternatives considered: Keep world-space actions throughout the ML system; use camera yaw; use the rendered mesh transform; rotate through full pitch/roll for a planar ground controller; combine conversion with state logging before testing it independently.
+
+Evidence: The Unreal planar yaw equations are implemented as a pure module. Compiled automation cases cover yaw 0, 90, 180, and -90 degrees, local right at 90 degrees, vertical removal, and a non-cardinal local/world round trip. Strict universal Mac Editor/Development/Shipping builds pass.
+
+Main assumption: The Mover default sync-state orientation at input production is the gameplay-facing frame intended by the planner. P0 movement is planar.
+
+How it could fail: Axis signs are wrong, degrees are treated as radians, orientation comes from the wrong subsystem, sync state is unavailable, or a rotated packet echoes but visible motion is inconsistent. Missing/invalid state fails closed and is forbidden from reporting `match=true`.
+
+How I tested it: Strict compilation passes. Next execute both MotionWorld automation tests in the actual sample, then compare local forward commands under visibly different starting yaws and inspect the logged resolved world vectors.
+
+Related config/commit/experiment: `FEAS-001`; `unreal/Plugins/MotionWorld`.
