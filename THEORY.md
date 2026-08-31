@@ -370,7 +370,48 @@ The frame conversion runs before speed sanitization. Rotation preserves planar m
 mathematics, but sanitizing afterward ensures the actual world packet is finite, planar, and bounded.
 An unavailable authoritative Mover state fails closed to zero and cannot produce `match=true`.
 
-## 14. Required personal exercises
+## 14. Finalized authoritative state sample
+
+The command answers, "What velocity did we ask for?" The authoritative state answers, "What did
+Unreal actually do after acceleration, turning, gravity, and collision?" MotionWorld samples the
+`FMoverDefaultSyncState` passed directly to `OnPostFinalize`, rather than the rendered mesh or an
+ordinary actor tick. UE 5.8 documents this callback as immutable and game-thread-only.
+
+Protocol version 1 records:
+
+- global gameplay position in centimeters;
+- full world velocity in centimeters per second;
+- planar velocity rotated into character-local forward/right axes;
+- normalized diagnostic yaw in degrees and the model-facing pair `(cos(yaw), sin(yaw))`;
+- full world angular velocity in degrees per second;
+- movement mode, finalized simulation time, step duration, and resimulation status;
+- a monotonically increasing callback sequence.
+
+For world velocity `(v_x, v_y)`, the local velocity uses the inverse rotation from Section 13. As a
+manual example, a character facing `90` degrees with world velocity `(0, 200)` cm/s has local
+velocity `(200, 0)` cm/s: it is moving forward, not sideways, in its own frame.
+
+Facing is stored as both yaw and `(cos(yaw), sin(yaw))`. Yaw `179` degrees and yaw `-179` degrees
+are physically close but numerically differ by `358` degrees. Their sine/cosine vectors are close,
+so a neural network does not see a false discontinuity at the wrap boundary. Degrees remain in the
+Unreal-facing diagnostic contract; later preprocessing converts learned angular quantities to the
+specification's internal radians.
+
+The finalized state belongs to the end of Mover's step, so:
+
+`sample_time_seconds = (BaseSimTimeMs + StepMs) / 1000`
+
+The callback sequence and Mover time are deliberately separate. The sequence says in which order
+the bridge received callbacks. Mover time/frame identifies simulation chronology and can repeat or
+rewind during smoothing or resimulation. Episode logging must later detect and handle those cases;
+it must not assume every callback is a unique causal transition.
+
+A packet is valid only when the Mover state exists, sequence and time metadata are valid, the step
+is positive, and every numeric state value is finite. Invalid packets retain diagnostic identity but
+fail closed to zero state values, so a NaN cannot contaminate a dataset or model. One first sample
+and then every configurable Nth sample is logged for runtime evidence without writing at 60 Hz.
+
+## 15. Required personal exercises
 
 Before each component is accepted, explain without looking:
 

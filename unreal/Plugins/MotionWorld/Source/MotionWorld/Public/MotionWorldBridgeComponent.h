@@ -2,6 +2,7 @@
 
 #include "Components/ActorComponent.h"
 #include "MoverSimulationTypes.h"
+#include "MotionWorldStateSample.h"
 #include "MotionWorldBridgeComponent.generated.h"
 
 class UMoverComponent;
@@ -73,6 +74,10 @@ public:
 	UFUNCTION(BlueprintPure, Category = "MotionWorld|Command")
 	bool DidLastCommandEchoMatch() const { return bLastCommandEchoMatched; }
 
+	/** Latest immutable gameplay-state snapshot captured after Mover finalization. */
+	UFUNCTION(BlueprintPure, Category = "MotionWorld|State")
+	FMotionWorldStateSample GetLastAuthoritativeState() const { return LastAuthoritativeState; }
+
 protected:
 	/** False by default so merely adding the component preserves human control. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Command")
@@ -101,6 +106,13 @@ protected:
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "MotionWorld|Evidence")
 	bool bLastCommandEchoMatched = false;
 
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "MotionWorld|State")
+	FMotionWorldStateSample LastAuthoritativeState;
+
+	/** Log every N valid finalized samples after the first; zero disables periodic logs. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|State", meta = (ClampMin = "0"))
+	int32 StateDiagnosticLogIntervalSamples = 60;
+
 private:
 	UFUNCTION()
 	void HandlePostFinalize(
@@ -115,6 +127,9 @@ private:
 	double LastResolvedFacingYawDegrees = 0.0;
 	uint64 CommandRevision = 0;
 	uint64 LastLoggedRevision = MAX_uint64;
+	int64 NextStateSampleSequence = 0;
 	bool bLastSubmittedInputWasFinite = true;
 	bool bLastCommandFrameResolved = true;
+	bool bHasAuthoritativeStateSample = false;
+	bool bPreviousAuthoritativeStateWasValid = false;
 };

@@ -3,7 +3,9 @@
 #include "GameFramework/Actor.h"
 #include "MoverComponent.h"
 #include "MoverDataModelTypes.h"
+#include "MoverTypes.h"
 #include "MotionWorldCoordinateFrames.h"
+#include "MotionWorldStateSample.h"
 #include "MotionWorldVelocityCommand.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogMotionWorldBridge, Log, All);
@@ -35,10 +37,11 @@ void UMotionWorldBridgeComponent::BeginPlay()
 	UE_LOG(
 		LogMotionWorldBridge,
 		Display,
-		TEXT("MotionWorld bridge ready on '%s'; automation=%s, max_planar_speed=%.2f cm/s."),
+		TEXT("MotionWorld bridge ready on '%s'; automation=%s, max_planar_speed=%.2f cm/s, state_log_interval=%d samples."),
 		*GetNameSafe(GetOwner()),
 		bAutomationEnabled ? TEXT("enabled") : TEXT("disabled"),
-		MaxPlanarSpeedCmPerSec);
+		MaxPlanarSpeedCmPerSec,
+		StateDiagnosticLogIntervalSamples);
 }
 
 void UMotionWorldBridgeComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -185,8 +188,84 @@ void UMotionWorldBridgeComponent::HandlePostFinalize(
 	const FMoverSyncState& SyncState,
 	const FMoverAuxStateContext& AuxState)
 {
-	(void)SyncState;
 	(void)AuxState;
+
+	MotionWorld::FAuthoritativeStateInputs StateInputs;
+	StateInputs.SampleSequence = NextStateSampleSequence++;
+	StateInputs.MovementMode = SyncState.MovementMode;
+
+	if (MoverComponent)
+	{
+		const FMoverTimeStep& TimeStep = MoverComponent->GetLastTimeStep();
+		StateInputs.MoverStepServerFrame = TimeStep.ServerFrame;
+		StateInputs.SimulationTimeSeconds =
+			(TimeStep.BaseSimTimeMs + static_cast<double>(TimeStep.StepMs)) * 0.001;
+		StateInputs.StepSeconds = static_cast<double>(TimeStep.StepMs) * 0.001;
+		StateInputs.bIsResimulation = TimeStep.bIsResimulating;
+	}
+
+	const FMoverDefaultSyncState* FinalizedState =
+		SyncState.SyncStateCollection.FindDataByType<FMoverDefaultSyncState>();
+	if (FinalizedState)
+	{
+		StateInputs.bHasAuthoritativeSource = true;
+		StateInputs.PositionWorldCm = FinalizedState->GetLocation_WorldSpace();
+		StateInputs.VelocityWorldCmPerSec = FinalizedState->GetVelocity_WorldSpace();
+		StateInputs.OrientationWorldDegrees = FinalizedState->GetOrientation_WorldSpace();
+		StateInputs.AngularVelocityWorldDegPerSec =
+			FinalizedState->GetAngularVelocityDegrees_WorldSpace();
+	}
+
+	LastAuthoritativeState = MotionWorld::BuildAuthoritativeStateSample(StateInputs);
+	const bool bValidityChanged = !bHasAuthoritativeStateSample
+		|| LastAuthoritativeState.bIsValid != bPreviousAuthoritativeStateWasValid;
+	const bool bPeriodicStateLog = StateDiagnosticLogIntervalSamples > 0
+		&& LastAuthoritativeState.SampleSequence % StateDiagnosticLogIntervalSamples == 0;
+
+	if (LastAuthoritativeState.bIsValid
+		&& (bValidityChanged || bPeriodicStateLog))
+	{
+		UE_LOG(
+			LogMotionWorldBridge,
+			Display,
+			TEXT("MotionWorld state sample: protocol=%d sequence=%lld valid=true mover_step_frame=%d sim_time_s=%.6f step_s=%.6f resim=%s mode=%s position_world_cm=(%.2f, %.2f, %.2f) velocity_world_cm_per_sec=(%.2f, %.2f, %.2f) velocity_local_planar_cm_per_sec=(%.2f, %.2f, %.2f) facing_yaw_deg=%.2f facing_unit_world=(%.6f, %.6f) angular_velocity_world_deg_per_sec=(%.2f, %.2f, %.2f)"),
+			LastAuthoritativeState.ProtocolVersion,
+			LastAuthoritativeState.SampleSequence,
+			LastAuthoritativeState.MoverStepServerFrame,
+			LastAuthoritativeState.SimulationTimeSeconds,
+			LastAuthoritativeState.StepSeconds,
+			LastAuthoritativeState.bIsResimulation ? TEXT("true") : TEXT("false"),
+			*LastAuthoritativeState.MovementMode.ToString(),
+			LastAuthoritativeState.PositionWorldCm.X,
+			LastAuthoritativeState.PositionWorldCm.Y,
+			LastAuthoritativeState.PositionWorldCm.Z,
+			LastAuthoritativeState.VelocityWorldCmPerSec.X,
+			LastAuthoritativeState.VelocityWorldCmPerSec.Y,
+			LastAuthoritativeState.VelocityWorldCmPerSec.Z,
+			LastAuthoritativeState.VelocityLocalPlanarCmPerSec.X,
+			LastAuthoritativeState.VelocityLocalPlanarCmPerSec.Y,
+			LastAuthoritativeState.VelocityLocalPlanarCmPerSec.Z,
+			LastAuthoritativeState.FacingYawDegrees,
+			LastAuthoritativeState.FacingUnitWorld.X,
+			LastAuthoritativeState.FacingUnitWorld.Y,
+			LastAuthoritativeState.AngularVelocityWorldDegPerSec.X,
+			LastAuthoritativeState.AngularVelocityWorldDegPerSec.Y,
+			LastAuthoritativeState.AngularVelocityWorldDegPerSec.Z);
+	}
+	else if (!LastAuthoritativeState.bIsValid && bValidityChanged)
+	{
+		UE_LOG(
+			LogMotionWorldBridge,
+			Error,
+			TEXT("MotionWorld authoritative state became invalid at sequence %lld; source=%s sim_time_s=%.6f step_s=%.6f."),
+			LastAuthoritativeState.SampleSequence,
+			StateInputs.bHasAuthoritativeSource ? TEXT("present") : TEXT("missing"),
+			LastAuthoritativeState.SimulationTimeSeconds,
+			LastAuthoritativeState.StepSeconds);
+	}
+
+	bHasAuthoritativeStateSample = true;
+	bPreviousAuthoritativeStateWasValid = LastAuthoritativeState.bIsValid;
 
 	if (!bAutomationEnabled || !MoverComponent)
 	{

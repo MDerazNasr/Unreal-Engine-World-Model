@@ -13,6 +13,11 @@ The bridge now defaults to a character-local action (`+X` forward, `+Y` right) a
 the current authoritative Mover yaw into the world-space packet consumed by Unreal. Direct
 world-space commands remain available only as an explicit diagnostic mode.
 
+After every Mover finalization, the bridge also retains a versioned authoritative gameplay-state
+snapshot with explicit frames and units. The first valid state and then every configurable Nth
+sample are logged for diagnostics. This is intentionally an in-memory proof before episode file I/O,
+networking, or reset behavior is added.
+
 Build the isolated plugin package on macOS with:
 
 ```bash
@@ -24,8 +29,8 @@ Build the isolated plugin package on macOS with:
 ```
 
 The package location is disposable and must not be committed. The plugin source is copied into the
-local sample without committing Epic assets. Runtime acceptance requires an echoed Mover velocity
-packet before state recording or reset logic is added.
+local sample without committing Epic assets. Runtime acceptance for each slice requires executing
+its automation test and inspecting the corresponding command or state evidence in the real sample.
 
 Use `/private/tmp` rather than its `/tmp` alias on macOS. UE 5.8's local build accelerator can retain
 the spelling used by AutomationTool while Clang resolves the same path to `/private/tmp`, causing a

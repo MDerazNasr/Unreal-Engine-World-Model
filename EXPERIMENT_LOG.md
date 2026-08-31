@@ -243,4 +243,15 @@ Character-local adapter compile gate (2026-08-31):
 - The forward trial was candidate-observed but is not separately present in the current runtime log. Its exact yaw-0 mapping is covered by the executed cardinal-angle automation test; it is not labeled as separately log-captured.
 - The combined compiled, headless, logged, and visual evidence is sufficient for D-013 to pass.
 
-Artifacts: `DECISIONS.md` D-011/D-012/D-013, `THEORY.md` sections 11-13, `unreal/Plugins/MotionWorld`, the Sunday runbook API audit, `theory/D011_UNREAL_BRIDGE_THEORY.tex`, and `output/pdf/D011_UNREAL_BRIDGE_THEORY.pdf`.
+Authoritative-state isolated compile gate (2026-08-31):
+
+- Added a version-1 reflected state packet and a pure builder, separately from episode persistence and reset.
+- The packet names all units and frames and carries finalized global position, full world velocity, local planar velocity, yaw plus sine/cosine, world angular velocity, movement mode, end-of-step time, step duration, Mover step frame, resimulation status, validity, and monotonic callback sequence.
+- The bridge samples the sync state passed directly into `OnPostFinalize`, including when automation is disabled. It retains the latest sample in memory and logs the first valid sample plus every configurable 60th sample by default.
+- Reviewer preserved callback sequence separately from Mover chronology because finalization can include resimulation. Episode logging must later reject or replace duplicate/rewound simulation times rather than assuming callbacks are unique transitions.
+- Invalid source, time, timestep, or non-finite state fails closed to `valid=false` and zero state values.
+- Compiled automation covers a hand-calculated yaw-90 observation, full-world versus planar-local velocity, yaw normalization and sine/cosine, sequence advancement, missing source, NaN rejection, and zero timestep.
+- Strict universal Mac Editor Development, Game Development, and Game Shipping package builds pass in 46 seconds. The editor library contains `arm64` and `x86_64`; SHA-256 is `7ddf3507039171bd6f8181eed2ed9bed432f995550e952bc7373efff84d230c8`.
+- The test is compiled but not yet executed, and the sampler has not yet run in the actual Game Animation Sample. D-014 remains pending those gates.
+
+Artifacts: `DECISIONS.md` D-011/D-012/D-013/D-014, `THEORY.md` sections 11-14, `unreal/Plugins/MotionWorld`, the Sunday runbook API audit, `theory/D011_UNREAL_BRIDGE_THEORY.tex`, and `output/pdf/D011_UNREAL_BRIDGE_THEORY.pdf`.

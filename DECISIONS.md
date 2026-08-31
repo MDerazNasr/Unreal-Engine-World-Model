@@ -276,3 +276,23 @@ How it could fail: Axis signs are wrong, degrees are treated as radians, orienta
 How I tested it: Strict universal Editor/Development/Shipping compilation passes. The actual universal sample target builds in 18.02 seconds. A headless actual-sample run executes both MotionWorld tests: 2 succeeded, 0 failed/warnings, total 0.0322 seconds. At one unchanged initial facing, the candidate observed steady local-forward and local-right automatic paths approximately 90 degrees apart, then restored automation disabled and the local request to zero. The retained runtime log independently captures the local-right trial at authoritative yaw 0 degrees: requested local `(0, 200, 0)` cm/s resolved and echoed as world `(0, 200, 0)` cm/s with `match=true`. The forward trial was visually observed but was not separately retained in the current log; its yaw-0 mapping is covered by the executed cardinal automation test.
 
 Related config/commit/experiment: `FEAS-001`; `unreal/Plugins/MotionWorld`.
+
+## D-014 - Versioned finalized authoritative-state snapshot
+
+Status: strict isolated universal builds pass; actual-sample execution and live state evidence are pending
+
+Decision: Capture a version-1 gameplay-state snapshot from the `FMoverDefaultSyncState` supplied directly to `OnPostFinalize`. Store explicit world position, world velocity, character-local planar velocity, yaw plus sine/cosine facing, world angular velocity, movement mode, end-of-step simulation time, step duration, Mover frame, resimulation flag, validity, and a monotonic callback sequence. Keep this in memory with throttled diagnostic logging; do not add episode file I/O or reset in the same slice.
+
+Why: A learned transition needs the executed post-collision outcome, not the requested action or animation-root transform. Explicit units, frames, timing, and validity prevent silent dataset corruption and make the boundary independently testable before persistence is added.
+
+Alternatives considered: Sample actor tick; read the rendered mesh; log only requested commands; add CSV/UDP/reset simultaneously; use yaw alone as the learned facing feature; assume every finalization callback is a unique forward simulation step.
+
+Evidence: UE 5.8.2 declares `OnPostFinalize` immutable and game-thread-only but notes that it may represent resimulation. `FMoverDefaultSyncState` exposes world-space getters for location, velocity, orientation, and angular velocity. `GetLastTimeStep()` exposes start time, step duration, server frame, and resimulation flags.
+
+Main assumption: The standalone Game Animation Sample's finalized Mover state is the correct gameplay/collision source of truth, and its normal forward run supplies a finite positive timestep.
+
+How it could fail: A missing default sync block, non-finite data, duplicate/rewound simulation time, an incorrect end-of-step timestamp, coordinate-frame leakage, or a logging rate that harms runtime. Invalid state fails closed; timestep/resimulation metadata remains explicit; later episode logging must deduplicate by simulation chronology rather than callback count alone.
+
+How I tested it: The pure builder tests a hand-calculated yaw-90 conversion, world/local separation, yaw normalization and sine/cosine, sequence advancement, missing source, non-finite input, and non-positive timestep. Strict universal Mac Editor Development, Game Development, and Game Shipping builds pass. Actual-sample automation and live PIE sampling remain required before acceptance.
+
+Related config/commit/experiment: `FEAS-001`; `unreal/Plugins/MotionWorld`.
