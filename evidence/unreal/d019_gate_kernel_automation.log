@@ -1,0 +1,30 @@
+D-019 TIMED-GATE KERNEL / ACTOR COMPILE AND AUTOMATION EVIDENCE
+Date: 2026-08-31
+Engine: Unreal Engine 5.8.2
+Project: GameAnimationSample
+
+Strict isolated BuildPlugin:
+- Universal Mac UnrealEditor Development: succeeded
+- Universal Mac UnrealGame Development: succeeded
+- Universal Mac UnrealGame Shipping: succeeded
+- Strict includes, no PCH, no shared PCH, unity disabled
+
+Actual Game Animation Sample build:
+- GameAnimationSampleEditor Mac Development arm64+x64: succeeded
+- Added/compiled MotionWorldTimedGate.cpp, MotionWorldTimedGateActor.cpp, generated reflection,
+  and MotionWorldTimedGateTests.cpp
+
+Focused actual-sample command:
+Automation RunTests MotionWorld.Gate
+
+Relevant log evidence:
+[2026.08.31-16.13.53:634][535]LogAutomationCommandLine: Display: Found 1 automation tests based on 'MotionWorld.Gate'
+[2026.08.31-16.13.53:634][535]LogAutomationCommandLine: Display: MotionWorld.Gate.DeterministicScheduleAndEvents
+[2026.08.31-16.13.53:644][535]LogAutomationController: Display: Test Started. Name={DeterministicScheduleAndEvents} Path={MotionWorld.Gate.DeterministicScheduleAndEvents}
+[2026.08.31-16.13.53:655][537]LogAutomationController: Display: Test Completed. Result={Success} Name={DeterministicScheduleAndEvents} Path={MotionWorld.Gate.DeterministicScheduleAndEvents}
+[2026.08.31-16.13.53:663][538]LogAutomationCommandLine: Display: **** TEST COMPLETE. EXIT CODE: 0 ****
+
+Scope:
+This proves the analytic schedule/event kernel and compilation of the runtime actor. It does not yet
+prove bridge spawn/reset alignment, physical collision callbacks, successful live crossing, timeout,
+or scenario fields in exported episodes.

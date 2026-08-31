@@ -477,8 +477,9 @@ Related config/commit/experiment: `FEAS-001`; `bbe2355`; `ae56d35`; `8dcc732`.
 
 ## D-019 - Absolute-time deterministic timed gate
 
-Status: pure schedule/event kernel compiles under strict universal targets; executed automation,
-runtime actor, scenario persistence, and live evidence pending
+Status: pure schedule/event kernel and runtime actor compile under strict universal targets; the
+focused actual-sample automation test passes; scenario integration/persistence and live evidence
+remain pending
 
 Decision: Define the P0 gate as a collidable box with sinusoidal sideways translation evaluated
 directly from immutable configuration and scenario-relative time. Keep the success plane fixed
@@ -493,10 +494,12 @@ Alternatives considered: accumulate transform deltas every Tick; animate an opaq
 timeline; move the success plane with the blocker; use random motion before seeded lifecycle is
 proved; treat overlap as both success and failure.
 
-Evidence: The pure kernel and compiled automation test cover start/quarter/full-period states,
+Evidence: The pure kernel and executed automation test cover start/quarter/full-period states,
 repeat queries, forward/backward crossing, collision priority, inclusive timeout, invalid period,
 unknown motion type, and a motion axis inconsistent with the success plane. Strict universal Mac
-Editor/Development/Shipping compilation passes.
+Editor/Development/Shipping compilation and the real sample universal Editor build pass. A separate
+actor owns the authoritative collision box and a collision-disabled visual mesh; it recomputes its
+transform from absolute time and resets collision evidence explicitly.
 
 Main assumption: A sideways sinusoidal blocker is a sufficiently small but meaningful timed-gate
 task for comparing identical-budget controllers.
@@ -505,8 +508,9 @@ How it could fail: Runtime Tick time may not share the scenario reset origin; co
 may not align with finalized character steps; actor scale could disagree with logged half-extents;
 or an open sample area may allow trivial detours around the blocker.
 
-How I tested it: Strict compilation is complete. The next gates are execution of the focused test,
-a visible/collidable actor, two same-seed reset traces, collision/success/timeout trials, and strict
-scenario-file validation.
+How I tested it: Strict compilation is complete, and the actual sample executed
+`MotionWorld.Gate.DeterministicScheduleAndEvents` successfully. The next gates are bridge-owned
+spawn/reset/event integration, two same-seed live traces, collision/success/timeout trials, and
+strict scenario-file validation.
 
 Related config/commit/experiment: `FEAS-001`; pending.

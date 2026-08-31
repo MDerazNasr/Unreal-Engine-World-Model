@@ -433,3 +433,19 @@ Artifacts: `DECISIONS.md` D-011/D-012/D-013/D-014, `THEORY.md` sections 11-14, `
   scenario episode because target, obstacle, event, termination, and scenario-seed fields do not
   exist yet.
 - Preserved audit: `evidence/unreal/d018_live_episode_1801.log`.
+
+### D-019 deterministic timed-gate kernel/actor — integration pending (2026-08-31)
+
+- Implemented a fail-closed sinusoidal schedule evaluated from immutable configuration and absolute
+  scenario time, plus explicit collision > forward crossing > timeout event priority.
+- Reviewer enforced that the motion axis lies in the fixed crossing plane and rejected unknown
+  motion enums, preventing editor configuration from silently changing the task definition.
+- Added a separate runtime actor with a blocking box as gameplay geometry and a collision-disabled
+  engine cube as visualization. The actor resets its clock/collision counters and never integrates
+  position incrementally.
+- Strict universal Mac Editor/Development/Shipping builds pass. The real sample universal Editor
+  target built successfully, then executed `MotionWorld.Gate.DeterministicScheduleAndEvents`:
+  one test found, one success, exit code zero.
+- Runtime spawn/reset/event alignment, episode schema v2, and live collision/success/timeout evidence
+  remain required; this checkpoint does not claim a working arena yet.
+- Preserved automation audit: `evidence/unreal/d019_gate_kernel_automation.log`.
