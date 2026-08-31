@@ -1,5 +1,6 @@
 #include "MotionWorldBridgeComponent.h"
 
+#include "DefaultMovementSet/InstantMovementEffects/BasicInstantMovementEffects.h"
 #include "GameFramework/Actor.h"
 #include "MoverComponent.h"
 #include "MoverDataModelTypes.h"
@@ -44,7 +45,15 @@ void UMotionWorldBridgeComponent::BeginPlay()
 		StateDiagnosticLogIntervalSamples,
 		MaxRecordedTransitions);
 
-	if (bStartEpisodeRecordingOnBeginPlay)
+	if (bStartEpisodeRecordingOnBeginPlay && bRequestResetAfterWarmupOnBeginPlay)
+	{
+		UE_LOG(
+			LogMotionWorldBridge,
+			Error,
+			TEXT("MotionWorld BeginPlay configuration on '%s' requested both immediate recording and warmup reset; immediate recording is suppressed to prevent a cross-reset episode."),
+			*GetNameSafe(GetOwner()));
+	}
+	else if (bStartEpisodeRecordingOnBeginPlay)
 	{
 		StartEpisodeRecording(BeginPlayEpisodeId);
 	}
@@ -52,6 +61,11 @@ void UMotionWorldBridgeComponent::BeginPlay()
 
 void UMotionWorldBridgeComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+	if (ResetStatus.bIsPending)
+	{
+		FailPendingReset(TEXT("component ended before verification"));
+	}
+
 	if (EpisodeRecorder.GetStats().bIsRecording)
 	{
 		StopEpisodeRecording();
@@ -69,6 +83,16 @@ void UMotionWorldBridgeComponent::EndPlay(const EEndPlayReason::Type EndPlayReas
 
 void UMotionWorldBridgeComponent::SetAutomationEnabled(const bool bEnabled)
 {
+	if (ResetStatus.bIsPending && !bEnabled)
+	{
+		UE_LOG(
+			LogMotionWorldBridge,
+			Warning,
+			TEXT("Ignored request to disable MotionWorld automation while reset episode %lld is pending."),
+			ResetStatus.RequestedEpisodeId);
+		return;
+	}
+
 	if (bAutomationEnabled != bEnabled)
 	{
 		bAutomationEnabled = bEnabled;
@@ -81,6 +105,16 @@ void UMotionWorldBridgeComponent::SetAutomationEnabled(const bool bEnabled)
 bool UMotionWorldBridgeComponent::SetDesiredVelocityWorldCmPerSec(
 	const FVector& RequestedVelocity)
 {
+	if (ResetStatus.bIsPending)
+	{
+		UE_LOG(
+			LogMotionWorldBridge,
+			Warning,
+			TEXT("Ignored world-velocity change while MotionWorld reset episode %lld is pending."),
+			ResetStatus.RequestedEpisodeId);
+		return false;
+	}
+
 	if (RequestedVelocity.ContainsNaN())
 	{
 		UE_LOG(
@@ -100,6 +134,16 @@ bool UMotionWorldBridgeComponent::SetDesiredVelocityWorldCmPerSec(
 void UMotionWorldBridgeComponent::SetVelocityCommandFrame(
 	const EMotionWorldVelocityCommandFrame NewFrame)
 {
+	if (ResetStatus.bIsPending)
+	{
+		UE_LOG(
+			LogMotionWorldBridge,
+			Warning,
+			TEXT("Ignored command-frame change while MotionWorld reset episode %lld is pending."),
+			ResetStatus.RequestedEpisodeId);
+		return;
+	}
+
 	if (VelocityCommandFrame != NewFrame)
 	{
 		VelocityCommandFrame = NewFrame;
@@ -110,6 +154,16 @@ void UMotionWorldBridgeComponent::SetVelocityCommandFrame(
 bool UMotionWorldBridgeComponent::SetDesiredVelocityLocalCmPerSec(
 	const FVector& RequestedVelocity)
 {
+	if (ResetStatus.bIsPending)
+	{
+		UE_LOG(
+			LogMotionWorldBridge,
+			Warning,
+			TEXT("Ignored local-velocity change while MotionWorld reset episode %lld is pending."),
+			ResetStatus.RequestedEpisodeId);
+		return false;
+	}
+
 	if (RequestedVelocity.ContainsNaN())
 	{
 		UE_LOG(
@@ -131,6 +185,16 @@ bool UMotionWorldBridgeComponent::StartEpisodeRecording(const int64 EpisodeId)
 	if (!ensureMsgf(IsInGameThread(), TEXT("MotionWorld episode recording is game-thread owned."))
 		|| !MoverComponent)
 	{
+		return false;
+	}
+	if (ResetStatus.bIsPending)
+	{
+		UE_LOG(
+			LogMotionWorldBridge,
+			Error,
+			TEXT("MotionWorld episode %lld cannot start while reset episode %lld is unverified."),
+			EpisodeId,
+			ResetStatus.RequestedEpisodeId);
 		return false;
 	}
 
@@ -184,6 +248,318 @@ void UMotionWorldBridgeComponent::StopEpisodeRecording()
 		BeforeStop.RejectedTransitionCount,
 		BeforeStop.RejectedSeedStateCount,
 		BeforeStop.CapacityDropCount);
+}
+
+bool UMotionWorldBridgeComponent::RequestDeterministicResetAndStartEpisode(
+	const int64 EpisodeId)
+{
+	if (!ensureMsgf(IsInGameThread(), TEXT("MotionWorld reset is game-thread owned."))
+		|| !MoverComponent)
+	{
+		return false;
+	}
+	if (EpisodeId < 0
+		|| !ResetAnchor.bIsValid
+		|| ResetAnchor.MovementMode.IsNone()
+		|| !MoverComponent->FindMovementModeByName(ResetAnchor.MovementMode)
+		|| !bAutomationEnabled
+		|| ResetStatus.bIsPending)
+	{
+		UE_LOG(
+			LogMotionWorldBridge,
+			Error,
+			TEXT("MotionWorld reset request rejected: episode=%lld anchor_valid=%s mode=%s mode_registered=%s automation=%s pending=%s."),
+			EpisodeId,
+			ResetAnchor.bIsValid ? TEXT("true") : TEXT("false"),
+			*ResetAnchor.MovementMode.ToString(),
+			MoverComponent->FindMovementModeByName(ResetAnchor.MovementMode)
+				? TEXT("true")
+				: TEXT("false"),
+			bAutomationEnabled ? TEXT("true") : TEXT("false"),
+			ResetStatus.bIsPending ? TEXT("true") : TEXT("false"));
+		return false;
+	}
+
+	if (EpisodeRecorder.GetStats().bIsRecording)
+	{
+		StopEpisodeRecording();
+	}
+
+	PreResetCommandFrame = VelocityCommandFrame;
+	PreResetDesiredVelocityLocalCmPerSec = DesiredVelocityLocalCmPerSec;
+	PreResetDesiredVelocityWorldCmPerSec = DesiredVelocityWorldCmPerSec;
+	bHasSavedPreResetCommand = true;
+
+	if (VelocityCommandFrame == EMotionWorldVelocityCommandFrame::CharacterLocal)
+	{
+		DesiredVelocityLocalCmPerSec = FVector::ZeroVector;
+	}
+	else
+	{
+		DesiredVelocityWorldCmPerSec = FVector::ZeroVector;
+	}
+	++CommandRevision;
+	bLastCommandEchoMatched = false;
+	LastEchoedVelocityWorldCmPerSec = FVector::ZeroVector;
+
+	ResetStatus.RequestedEpisodeId = EpisodeId;
+	++ResetStatus.RequestCount;
+	ResetStatus.bLastResetSucceeded = false;
+	ResetStatus.VerificationAttemptCount = 0;
+	ResetStatus.RequestStateSequence = LastAuthoritativeState.SampleSequence;
+	ResetStatus.RequestMoverStepServerFrame =
+		LastAuthoritativeState.MoverStepServerFrame;
+	ResetStatus.LastCheck = FMotionWorldResetCheck();
+
+	// Smooth Walking resets all spring/intermediate quantities when this marker is stale.
+	constexpr TCHAR SmoothWalkingGeneratedMoveEntry[] = TEXT("DidGenerateMove");
+	if (!MoverComponent->GetRollbackBlackboardExternal().TrySet<bool>(
+		SmoothWalkingGeneratedMoveEntry,
+		false))
+	{
+		++ResetStatus.FailureCount;
+		RestorePreResetCommand();
+		UE_LOG(
+			LogMotionWorldBridge,
+			Error,
+			TEXT("MotionWorld reset episode %lld rejected because Smooth Walking history could not be marked stale."),
+			EpisodeId);
+		return false;
+	}
+
+	TSharedPtr<FTeleportEffect> TeleportEffect = MakeShared<FTeleportEffect>();
+	TeleportEffect->TargetLocation = ResetAnchor.PositionWorldCm;
+	TeleportEffect->bUseActorRotation = false;
+	TeleportEffect->TargetRotation = ResetAnchor.OrientationWorldDegrees;
+	MoverComponent->QueueInstantMovementEffect(TeleportEffect);
+
+	TSharedPtr<FApplyVelocityEffect> VelocityEffect =
+		MakeShared<FApplyVelocityEffect>();
+	VelocityEffect->VelocityToApply = FVector::ZeroVector;
+	VelocityEffect->bAdditiveVelocity = false;
+	VelocityEffect->ForceMovementMode = ResetAnchor.MovementMode;
+	MoverComponent->QueueInstantMovementEffect(VelocityEffect);
+
+	ResetStatus.bIsPending = true;
+	const double DistanceFromAnchorCm = LastAuthoritativeState.bIsValid
+		? FVector::Distance(
+			LastAuthoritativeState.PositionWorldCm,
+			ResetAnchor.PositionWorldCm)
+		: -1.0;
+	UE_LOG(
+		LogMotionWorldBridge,
+		Display,
+		TEXT("MotionWorld reset queued: episode=%lld request_state_sequence=%lld request_mover_frame=%d before_position_world_cm=(%.2f, %.2f, %.2f) distance_from_anchor_cm=%.3f target_position_world_cm=(%.2f, %.2f, %.2f) target_yaw_deg=%.2f target_mode=%s; recorder stopped and reset frame forced to zero input."),
+		EpisodeId,
+		ResetStatus.RequestStateSequence,
+		ResetStatus.RequestMoverStepServerFrame,
+		LastAuthoritativeState.PositionWorldCm.X,
+		LastAuthoritativeState.PositionWorldCm.Y,
+		LastAuthoritativeState.PositionWorldCm.Z,
+		DistanceFromAnchorCm,
+		ResetAnchor.PositionWorldCm.X,
+		ResetAnchor.PositionWorldCm.Y,
+		ResetAnchor.PositionWorldCm.Z,
+		ResetAnchor.OrientationWorldDegrees.Yaw,
+		*ResetAnchor.MovementMode.ToString());
+	return true;
+}
+
+void UMotionWorldBridgeComponent::RestorePreResetCommand()
+{
+	if (!bHasSavedPreResetCommand)
+	{
+		return;
+	}
+
+	VelocityCommandFrame = PreResetCommandFrame;
+	DesiredVelocityLocalCmPerSec = PreResetDesiredVelocityLocalCmPerSec;
+	DesiredVelocityWorldCmPerSec = PreResetDesiredVelocityWorldCmPerSec;
+	bHasSavedPreResetCommand = false;
+	++CommandRevision;
+	bLastCommandEchoMatched = false;
+	LastEchoedVelocityWorldCmPerSec = FVector::ZeroVector;
+	bDeferCommandEchoUntilNextProduction = true;
+}
+
+void UMotionWorldBridgeComponent::FailPendingReset(const TCHAR* FailureContext)
+{
+	if (!ResetStatus.bIsPending)
+	{
+		return;
+	}
+
+	ResetStatus.bIsPending = false;
+	ResetStatus.bLastResetSucceeded = false;
+	++ResetStatus.FailureCount;
+	RestorePreResetCommand();
+	UE_LOG(
+		LogMotionWorldBridge,
+		Error,
+		TEXT("MotionWorld reset failed: episode=%lld attempts=%d result=%d context=%s position_error_cm=%.3f facing_error_deg=%.3f linear_speed_cm_per_sec=%.3f angular_speed_deg_per_sec=%.3f; recording remains stopped."),
+		ResetStatus.RequestedEpisodeId,
+		ResetStatus.VerificationAttemptCount,
+		static_cast<int32>(ResetStatus.LastCheck.Result),
+		FailureContext,
+		ResetStatus.LastCheck.PositionErrorCm,
+		ResetStatus.LastCheck.FacingErrorDegrees,
+		ResetStatus.LastCheck.LinearSpeedCmPerSec,
+		ResetStatus.LastCheck.AngularSpeedDegPerSec);
+}
+
+void UMotionWorldBridgeComponent::ProcessPendingResetVerification()
+{
+	if (!ResetStatus.bIsPending
+		|| LastAuthoritativeState.SampleSequence <= ResetStatus.RequestStateSequence)
+	{
+		return;
+	}
+
+	++ResetStatus.VerificationAttemptCount;
+	ResetStatus.LastCheck = MotionWorld::CheckFinalizedResetState(
+		ResetAnchor,
+		LastAuthoritativeState,
+		ResetTolerances);
+	if (ResetStatus.LastCheck.Passed())
+	{
+		const int64 EpisodeId = ResetStatus.RequestedEpisodeId;
+		ResetStatus.bIsPending = false;
+		ResetStatus.bLastResetSucceeded = true;
+		++ResetStatus.SuccessCount;
+		RestorePreResetCommand();
+
+		if (!StartEpisodeRecording(EpisodeId))
+		{
+			ResetStatus.bLastResetSucceeded = false;
+			--ResetStatus.SuccessCount;
+			++ResetStatus.FailureCount;
+			UE_LOG(
+				LogMotionWorldBridge,
+				Error,
+				TEXT("MotionWorld reset state passed but episode %lld could not start; recording remains stopped."),
+				EpisodeId);
+			return;
+		}
+
+		UE_LOG(
+			LogMotionWorldBridge,
+			Display,
+			TEXT("MotionWorld reset verified: episode=%lld attempts=%d state_sequence=%lld mover_frame=%d position_world_cm=(%.2f, %.2f, %.2f) yaw_deg=%.2f mode=%s position_error_cm=%.3f facing_error_deg=%.3f linear_speed_cm_per_sec=%.3f angular_speed_deg_per_sec=%.3f; new episode may seed this state."),
+			EpisodeId,
+			ResetStatus.VerificationAttemptCount,
+			LastAuthoritativeState.SampleSequence,
+			LastAuthoritativeState.MoverStepServerFrame,
+			LastAuthoritativeState.PositionWorldCm.X,
+			LastAuthoritativeState.PositionWorldCm.Y,
+			LastAuthoritativeState.PositionWorldCm.Z,
+			LastAuthoritativeState.FacingYawDegrees,
+			*LastAuthoritativeState.MovementMode.ToString(),
+			ResetStatus.LastCheck.PositionErrorCm,
+			ResetStatus.LastCheck.FacingErrorDegrees,
+			ResetStatus.LastCheck.LinearSpeedCmPerSec,
+			ResetStatus.LastCheck.AngularSpeedDegPerSec);
+		return;
+	}
+
+	if (ResetStatus.VerificationAttemptCount
+		>= FMath::Max(1, ResetMaxVerificationSamples))
+	{
+		FailPendingReset(TEXT("finalized state did not meet reset tolerances"));
+	}
+}
+
+void UMotionWorldBridgeComponent::CaptureResetAnchorIfEligible()
+{
+	if (!bCaptureResetAnchorFromFirstValidState
+		|| ResetAnchor.bIsValid
+		|| !LastAuthoritativeState.bIsValid
+		|| LastAuthoritativeState.bIsResimulation)
+	{
+		return;
+	}
+
+	ResetAnchor = MotionWorld::BuildResetTarget(LastAuthoritativeState);
+	ResetStatus.bHasAnchor = ResetAnchor.bIsValid;
+	if (ResetAnchor.bIsValid)
+	{
+		UE_LOG(
+			LogMotionWorldBridge,
+			Display,
+			TEXT("MotionWorld reset anchor captured: source_state_sequence=%lld position_world_cm=(%.2f, %.2f, %.2f) yaw_deg=%.2f mode=%s."),
+			ResetAnchor.SourceStateSequence,
+			ResetAnchor.PositionWorldCm.X,
+			ResetAnchor.PositionWorldCm.Y,
+			ResetAnchor.PositionWorldCm.Z,
+			ResetAnchor.OrientationWorldDegrees.Yaw,
+			*ResetAnchor.MovementMode.ToString());
+	}
+}
+
+void UMotionWorldBridgeComponent::RequestConfiguredWarmupResetIfDue()
+{
+	if (!bRequestResetAfterWarmupOnBeginPlay
+		|| bConfiguredResetSequenceAborted
+		|| ResetStatus.bIsPending
+		|| ConfiguredResetRequestsIssued
+			>= FMath::Clamp(ResetLiveTestRepeatCount, 1, 10))
+	{
+		return;
+	}
+
+	bool bResetIsDue = false;
+	if (ConfiguredResetRequestsIssued == 0)
+	{
+		bResetIsDue = ValidFinalizedStateCount
+			>= FMath::Max<int64>(2, ResetWarmupFinalizedSamples);
+	}
+	else
+	{
+		const FMotionWorldEpisodeRecorderStats RecorderStats =
+			EpisodeRecorder.GetStats();
+		const int64 ExpectedEpisodeId = BeginPlayResetEpisodeId
+			+ static_cast<int64>(ConfiguredResetRequestsIssued - 1);
+		if (RecorderStats.bIsRecording
+			&& RecorderStats.EpisodeId != ExpectedEpisodeId)
+		{
+			bConfiguredResetSequenceAborted = true;
+			UE_LOG(
+				LogMotionWorldBridge,
+				Error,
+				TEXT("MotionWorld configured reset sequence aborted: expected active episode %lld but found %lld."),
+				ExpectedEpisodeId,
+				RecorderStats.EpisodeId);
+			return;
+		}
+		bResetIsDue = RecorderStats.bIsRecording
+			&& RecorderStats.RecordedTransitionCount
+				>= FMath::Max<int64>(1, ResetLiveTestTransitionsPerEpisode);
+	}
+
+	if (!bResetIsDue
+		|| BeginPlayResetEpisodeId
+			> MAX_int64 - static_cast<int64>(ConfiguredResetRequestsIssued))
+	{
+		if (bResetIsDue)
+		{
+			bConfiguredResetSequenceAborted = true;
+			UE_LOG(
+				LogMotionWorldBridge,
+				Error,
+				TEXT("MotionWorld configured reset sequence aborted because its episode ID would overflow."));
+		}
+		return;
+	}
+
+	const int64 EpisodeId = BeginPlayResetEpisodeId
+		+ static_cast<int64>(ConfiguredResetRequestsIssued);
+	if (RequestDeterministicResetAndStartEpisode(EpisodeId))
+	{
+		++ConfiguredResetRequestsIssued;
+	}
+	else
+	{
+		bConfiguredResetSequenceAborted = true;
+	}
 }
 
 void UMotionWorldBridgeComponent::ProduceInput_Implementation(
@@ -244,13 +620,16 @@ void UMotionWorldBridgeComponent::ProduceInput_Implementation(
 	Inputs.bUsingMovementBase = false;
 	Inputs.MovementBase = nullptr;
 	Inputs.MovementBaseBoneName = NAME_None;
-	Inputs.OrientationIntent = ExistingOrientationIntentWorld;
+	Inputs.OrientationIntent = ResetStatus.bIsPending
+		? ResetAnchor.OrientationWorldDegrees.Vector()
+		: ExistingOrientationIntentWorld;
 	Inputs.SetMoveInput(EMoveInputType::Velocity, Sanitized.WorldVelocityCmPerSec);
 
 	// Read back the value stored by SetMoveInput because Mover quantizes it to 0.01 cm/s.
 	LastSubmittedVelocityWorldCmPerSec = Inputs.GetMoveInput();
 	bLastSubmittedInputWasFinite =
 		Sanitized.bInputWasFinite && bLastCommandFrameResolved;
+	bDeferCommandEchoUntilNextProduction = false;
 
 	(void)SimTimeMs;
 }
@@ -337,6 +716,13 @@ void UMotionWorldBridgeComponent::HandlePostFinalize(
 
 	bHasAuthoritativeStateSample = true;
 	bPreviousAuthoritativeStateWasValid = LastAuthoritativeState.bIsValid;
+	if (LastAuthoritativeState.bIsValid && !LastAuthoritativeState.bIsResimulation)
+	{
+		++ValidFinalizedStateCount;
+	}
+	CaptureResetAnchorIfEligible();
+	ProcessPendingResetVerification();
+	RequestConfiguredWarmupResetIfDue();
 
 	const FCharacterDefaultInputs* EchoedInputs = nullptr;
 	if (MoverComponent)
@@ -452,6 +838,10 @@ void UMotionWorldBridgeComponent::HandlePostFinalize(
 	}
 
 	if (!bAutomationEnabled || !MoverComponent)
+	{
+		return;
+	}
+	if (bDeferCommandEchoUntilNextProduction)
 	{
 		return;
 	}

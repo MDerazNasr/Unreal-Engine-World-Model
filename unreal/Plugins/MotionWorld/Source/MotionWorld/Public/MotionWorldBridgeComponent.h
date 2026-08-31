@@ -3,6 +3,7 @@
 #include "Components/ActorComponent.h"
 #include "MoverSimulationTypes.h"
 #include "MotionWorldEpisodeRecorder.h"
+#include "MotionWorldReset.h"
 #include "MotionWorldStateSample.h"
 #include "MotionWorldBridgeComponent.generated.h"
 
@@ -99,6 +100,16 @@ public:
 		return LastRecordedTransition;
 	}
 
+	/** Queues a Mover-owned character reset; the new episode starts only after verification. */
+	UFUNCTION(BlueprintCallable, Category = "MotionWorld|Reset")
+	bool RequestDeterministicResetAndStartEpisode(int64 EpisodeId);
+
+	UFUNCTION(BlueprintPure, Category = "MotionWorld|Reset")
+	FMotionWorldResetTarget GetResetAnchor() const { return ResetAnchor; }
+
+	UFUNCTION(BlueprintPure, Category = "MotionWorld|Reset")
+	FMotionWorldResetStatus GetResetStatus() const { return ResetStatus; }
+
 protected:
 	/** False by default so merely adding the component preserves human control. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Command")
@@ -156,11 +167,52 @@ protected:
 	EMotionWorldRecorderObservationResult LastRecorderObservationResult =
 		EMotionWorldRecorderObservationResult::IgnoredNotRecording;
 
+	/** Capture the first valid ordinary finalized state as the fixed character reset pose. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Reset")
+	bool bCaptureResetAnchorFromFirstValidState = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Reset")
+	FMotionWorldResetTolerances ResetTolerances;
+
+	/** Fail explicitly after this many newer finalized states do not match the reset target. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Reset", meta = (ClampMin = "1", ClampMax = "60"))
+	int32 ResetMaxVerificationSamples = 3;
+
+	/** Default-off proof: move away, then perform repeated verified resets in one PIE session. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Reset|Live Test")
+	bool bRequestResetAfterWarmupOnBeginPlay = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Reset|Live Test", meta = (ClampMin = "2", ClampMax = "10000"))
+	int32 ResetWarmupFinalizedSamples = 60;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Reset|Live Test", meta = (ClampMin = "0"))
+	int64 BeginPlayResetEpisodeId = 1701;
+
+	/** Number of same-session resets; episode IDs increment from BeginPlayResetEpisodeId. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Reset|Live Test", meta = (ClampMin = "1", ClampMax = "10"))
+	int32 ResetLiveTestRepeatCount = 2;
+
+	/** Accepted transitions before the next proof reset is requested. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Reset|Live Test", meta = (ClampMin = "1", ClampMax = "10000"))
+	int32 ResetLiveTestTransitionsPerEpisode = 60;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "MotionWorld|Reset")
+	FMotionWorldResetTarget ResetAnchor;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "MotionWorld|Reset")
+	FMotionWorldResetStatus ResetStatus;
+
 private:
 	UFUNCTION()
 	void HandlePostFinalize(
 		const FMoverSyncState& SyncState,
 		const FMoverAuxStateContext& AuxState);
+
+	void RestorePreResetCommand();
+	void FailPendingReset(const TCHAR* FailureContext);
+	void ProcessPendingResetVerification();
+	void CaptureResetAnchorIfEligible();
+	void RequestConfiguredWarmupResetIfDue();
 
 	UPROPERTY(Transient)
 	TObjectPtr<UMoverComponent> MoverComponent;
@@ -179,4 +231,13 @@ private:
 	EMotionWorldTransitionRejectionReason LastLoggedRecorderRejectionReason =
 		EMotionWorldTransitionRejectionReason::None;
 	bool bHasLoggedRecorderRejection = false;
+	EMotionWorldVelocityCommandFrame PreResetCommandFrame =
+		EMotionWorldVelocityCommandFrame::CharacterLocal;
+	FVector PreResetDesiredVelocityLocalCmPerSec = FVector::ZeroVector;
+	FVector PreResetDesiredVelocityWorldCmPerSec = FVector::ZeroVector;
+	int64 ValidFinalizedStateCount = 0;
+	bool bHasSavedPreResetCommand = false;
+	int32 ConfiguredResetRequestsIssued = 0;
+	bool bConfiguredResetSequenceAborted = false;
+	bool bDeferCommandEchoUntilNextProduction = false;
 };

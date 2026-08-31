@@ -85,6 +85,46 @@ struct MOTIONWORLD_API FMotionWorldResetCheck
 	bool Passed() const { return Result == EMotionWorldResetCheckResult::Passed; }
 };
 
+/** Observable lifecycle counters for reset requests and their finalized verification. */
+USTRUCT(BlueprintType)
+struct MOTIONWORLD_API FMotionWorldResetStatus
+{
+	GENERATED_BODY()
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Reset")
+	bool bHasAnchor = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Reset")
+	bool bIsPending = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Reset")
+	bool bLastResetSucceeded = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Reset")
+	int64 RequestedEpisodeId = -1;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Reset")
+	int64 RequestCount = 0;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Reset")
+	int64 SuccessCount = 0;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Reset")
+	int64 FailureCount = 0;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Reset")
+	int32 VerificationAttemptCount = 0;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Reset")
+	int64 RequestStateSequence = -1;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Reset")
+	int32 RequestMoverStepServerFrame = INDEX_NONE;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Reset")
+	FMotionWorldResetCheck LastCheck;
+};
+
 namespace MotionWorld
 {
 /** Converts one ordinary finalized state into the fixed upright reset target. */
