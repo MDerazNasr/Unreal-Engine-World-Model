@@ -227,7 +227,7 @@ Fixed-command echo gate (2026-08-31):
 
 Reviewer findings: The sample pawn is not `AMoverExamplesCharacter`; it is an `APawn` Blueprint with its own large input graph. Calling the MoverExamples `RequestMoveByVelocity` helper would therefore be an incorrect integration assumption. An isolated input-producer component is the smallest source-controlled seam, but its ordering assumption must be tested explicitly. Do not diagnose or tune around the memory warning until its exact text or screenshot identifies whether it is a macOS, Metal/RHI, texture-streaming, or editor warning.
 
-Decision/next action: Implement and hand-test the character-local-to-world frame adapter, then add the smallest finalized authoritative-state sample. Keep input and state responsibilities separately testable. Treat the low-memory warning as an operational risk; its originating UI remains unconfirmed without a screenshot.
+Decision/next action: Add the smallest finalized authoritative-state sample with explicit world/local frames, units, validity, and a monotonic sample sequence. Verify that in memory and through a throttled diagnostic log before adding episode file logging or reset behavior. Keep input and state responsibilities separately testable. Treat the low-memory warning as an operational risk; its originating UI remains unconfirmed without a screenshot.
 
 Character-local adapter compile gate (2026-08-31):
 
@@ -238,6 +238,9 @@ Character-local adapter compile gate (2026-08-31):
 - Strict universal Mac Editor Development, Game Development, and Game Shipping package builds pass.
 - Deployed committed source into the closed sample and verified tracked-file parity. The actual universal `GameAnimationSampleEditor` target built successfully in 18.02 seconds; deployed editor library SHA-256 is `fa5faa8a2b83a63cf75b86c22d9bb43be86589300f0ad4ab60617f4de88c9b0a`.
 - Headless actual-sample execution ran the entire MotionWorld namespace: 2 succeeded, 0 failed, 0 warnings, total 0.0322 seconds. Both the sanitizer and coordinate round-trip/cardinal tests pass together.
-- Visible rotated-command evidence remains pending; D-013 is not yet accepted.
+- At one unchanged initial facing, the candidate ran local forward `(200, 0, 0)` cm/s and local right `(0, 200, 0)` cm/s and observed steady automatic paths approximately 90 degrees apart. The candidate then restored automation disabled and the local request to zero.
+- The retained runtime log independently captures the right trial at authoritative yaw 0 degrees: requested local `(0, 200, 0)` cm/s resolved and echoed as world `(0, 200, 0)` cm/s with `match=true`.
+- The forward trial was candidate-observed but is not separately present in the current runtime log. Its exact yaw-0 mapping is covered by the executed cardinal-angle automation test; it is not labeled as separately log-captured.
+- The combined compiled, headless, logged, and visual evidence is sufficient for D-013 to pass.
 
-Artifacts: `DECISIONS.md` D-011/D-012, `THEORY.md` sections 11-12, `unreal/Plugins/MotionWorld`, the Sunday runbook API audit, `theory/D011_UNREAL_BRIDGE_THEORY.tex`, and `output/pdf/D011_UNREAL_BRIDGE_THEORY.pdf`.
+Artifacts: `DECISIONS.md` D-011/D-012/D-013, `THEORY.md` sections 11-13, `unreal/Plugins/MotionWorld`, the Sunday runbook API audit, `theory/D011_UNREAL_BRIDGE_THEORY.tex`, and `output/pdf/D011_UNREAL_BRIDGE_THEORY.pdf`.

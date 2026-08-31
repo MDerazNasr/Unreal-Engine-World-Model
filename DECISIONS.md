@@ -259,7 +259,7 @@ Related config/commit/experiment: `FEAS-001`; `unreal/Plugins/MotionWorld`.
 
 ## D-013 - Character-local planner action resolved from authoritative Mover yaw
 
-Status: strict builds and actual-sample automation pass; live rotated-command proof is pending
+Status: accepted; strict builds, actual-sample automation, and visible local-axis control pass
 
 Decision: Make character-local velocity the default planner-facing command frame (`+X` forward, `+Y` right). Resolve it to Mover world space using yaw from the current `FMoverDefaultSyncState`. Retain explicit world mode only for engine diagnostics, and provide the inverse world-to-local function for later authoritative velocity observations.
 
@@ -273,6 +273,6 @@ Main assumption: The Mover default sync-state orientation at input production is
 
 How it could fail: Axis signs are wrong, degrees are treated as radians, orientation comes from the wrong subsystem, sync state is unavailable, or a rotated packet echoes but visible motion is inconsistent. Missing/invalid state fails closed and is forbidden from reporting `match=true`.
 
-How I tested it: Strict universal Editor/Development/Shipping compilation passes. The actual universal sample target builds in 18.02 seconds. A headless actual-sample run executes both MotionWorld tests: 2 succeeded, 0 failed/warnings, total 0.0322 seconds. Next compare local forward commands under visibly different starting yaws and inspect the logged resolved world vectors.
+How I tested it: Strict universal Editor/Development/Shipping compilation passes. The actual universal sample target builds in 18.02 seconds. A headless actual-sample run executes both MotionWorld tests: 2 succeeded, 0 failed/warnings, total 0.0322 seconds. At one unchanged initial facing, the candidate observed steady local-forward and local-right automatic paths approximately 90 degrees apart, then restored automation disabled and the local request to zero. The retained runtime log independently captures the local-right trial at authoritative yaw 0 degrees: requested local `(0, 200, 0)` cm/s resolved and echoed as world `(0, 200, 0)` cm/s with `match=true`. The forward trial was visually observed but was not separately retained in the current log; its yaw-0 mapping is covered by the executed cardinal automation test.
 
 Related config/commit/experiment: `FEAS-001`; `unreal/Plugins/MotionWorld`.
