@@ -216,8 +216,17 @@ Attached-component pass-through gate (2026-08-31):
 - No command-echo log is present, which is the correct default-off behavior. The next gate must enable one bounded fixed command and capture `match=true`.
 - The low-memory warning reappeared. At inspection macOS reported 19% free memory and zero throttled pages; Unreal's resident RSS was approximately 563 MiB, but unified/GPU allocations can contribute to system pressure. The Unreal log still contains no OOM, video-memory-exhaustion, or texture-pool-over-budget error. Do not claim a specific warning source without its screenshot.
 
+Fixed-command echo gate (2026-08-31):
+
+- With automation enabled, PIE retained a zero velocity packet and multiple `(200, 0, 0)` cm/s world-space packets. Every captured echo reports velocity type implicitly through the match predicate and `requested == submitted == echoed`, with `match=true`.
+- Candidate observed steady automatic motion without keyboard input. The pawn stopped against scene collision while the desired command remained active; pressing Space jumped over the obstruction and the same velocity command continued.
+- Interpretation: the bridge intentionally replaces only `MoveInput`, preserving the sample's jump and facing fields. Collision demonstrates that requested velocity is an action, not the executed outcome; the transition model must predict the effect of dynamics and environment constraints.
+- The final PIE initialization reports `automation=disabled`, verifying restoration of the safe default. No `Mover did not retain` or other MotionWorld error appears.
+- One unrelated sample `LogStateTree` validation error appears in a later default-off session; it does not coincide with a MotionWorld failure and is not attributed to this component.
+- D-012 passes. This proves the raw world-space Mover command seam, not yet the specification's character-local action conversion or authoritative state stream.
+
 Reviewer findings: The sample pawn is not `AMoverExamplesCharacter`; it is an `APawn` Blueprint with its own large input graph. Calling the MoverExamples `RequestMoveByVelocity` helper would therefore be an incorrect integration assumption. An isolated input-producer component is the smallest source-controlled seam, but its ordering assumption must be tested explicitly. Do not diagnose or tune around the memory warning until its exact text or screenshot identifies whether it is a macOS, Metal/RHI, texture-streaming, or editor warning.
 
-Decision/next action: Reopen the editor, attach the bridge to the sample pawn with automation off, confirm pass-through once more, then run one bounded fixed-command echo. Do not add state logging or reset until that echo passes. Treat the low-memory warning as an operational risk; its originating UI remains unconfirmed without a screenshot.
+Decision/next action: Implement and hand-test the character-local-to-world frame adapter, then add the smallest finalized authoritative-state sample. Keep input and state responsibilities separately testable. Treat the low-memory warning as an operational risk; its originating UI remains unconfirmed without a screenshot.
 
 Artifacts: `DECISIONS.md` D-011/D-012, `THEORY.md` sections 11-12, `unreal/Plugins/MotionWorld`, the Sunday runbook API audit, `theory/D011_UNREAL_BRIDGE_THEORY.tex`, and `output/pdf/D011_UNREAL_BRIDGE_THEORY.pdf`.

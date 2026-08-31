@@ -323,7 +323,8 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 
 - [x] Implement and strictly compile a bounded world-space command probe; do not confuse it with the final character-local action interface.
 - [x] Execute the command-sanitizer automation tests in an actual-sample Editor process: 1 passed, 0 failed/warnings.
-- [ ] Prove `GetLastInputCmd()` echoes the velocity type and bounded vector.
+- [x] Prove `GetLastInputCmd()` echoes the velocity type and bounded vector.
+- [x] Restore the attached bridge to automation disabled after the fixed-command test.
 - [ ] Apply zero desired velocity.
 - [ ] Apply forward desired velocity.
 - [ ] Apply lateral desired velocity.
