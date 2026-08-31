@@ -260,3 +260,22 @@ Authoritative-state isolated compile gate (2026-08-31):
 - D-014 passes. Episode identity, per-step persistence, reset, and animation-root diagnostics remain deliberately unimplemented.
 
 Artifacts: `DECISIONS.md` D-011/D-012/D-013/D-014, `THEORY.md` sections 11-14, `unreal/Plugins/MotionWorld`, the Sunday runbook API audit, `theory/D011_UNREAL_BRIDGE_THEORY.tex`, and `output/pdf/D011_UNREAL_BRIDGE_THEORY.pdf`.
+
+### Causal-transition contract isolated compile gate (2026-08-31)
+
+- Added a version-1 reflected transition packet that names episode identity, transition sequence,
+  previous/next finalized states, applied world/local desired velocity, measured start/end/delta
+  time, automation provenance, validity, and rejection reason.
+- The local action is computed with the previous state's yaw. The valid oracle uses previous yaw
+  `90` degrees, next yaw `45` degrees, and world action `(0, 200, 0)` cm/s; the expected local action
+  is `(200, 0, 0)` cm/s. This makes an endpoint-frame leakage bug visible.
+- Reviewer requires sequence and available Mover frames to advance exactly once, time to increase,
+  derived delta to agree with the next state's reported step within 1 ms, both states to be valid
+  protocol-1 forward-simulation snapshots, and the action to be finite, planar desired velocity.
+- Invalid candidates fail closed with explicit reasons. Focused cases cover missing identity,
+  unsupported action semantics, NaN/infinity, vertical action, resimulation, gaps, frame metadata
+  changes, invalid negative frames, repeated time, timestep mismatch, schema mismatch, and invalid
+  state.
+- Strict universal Mac Editor Development, Game Development, and Game Shipping package compilation
+  succeeded. This proves type/API compatibility, not runtime capture. Actual-sample automation and
+  the later `GetLastInputCmd()` recorder integration remain separate gates.

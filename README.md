@@ -45,7 +45,9 @@ separately and may be used for measured training experiments once numerical beha
 ## Unreal plugin
 
 The source-controlled [MotionWorld plugin](unreal/Plugins/MotionWorld/README.md) is kept separate
-from the licensed Game Animation Sample. Its current behavior-free module has passed strict UE 5.8.2
-builds for universal Mac Editor Development, Game Development, and Game Shipping targets.
+from the licensed Game Animation Sample. Its opt-in command bridge, finalized-state sampler, and
+fail-closed causal-transition contract have passed strict UE 5.8.2 builds for universal Mac Editor
+Development, Game Development, and Game Shipping targets. Episode buffering and persistence are
+deliberately not claimed yet.
 
 No positive result is assumed. A reproducible negative result with a clear diagnosis is a valid research outcome.

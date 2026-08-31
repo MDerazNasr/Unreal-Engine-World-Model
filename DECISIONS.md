@@ -296,3 +296,41 @@ How it could fail: A missing default sync block, non-finite data, duplicate/rewo
 How I tested it: The pure builder tests a hand-calculated yaw-90 conversion, world/local separation, yaw normalization and sine/cosine, sequence advancement, missing source, non-finite input, and non-positive timestep. Strict universal Mac Editor Development, Game Development, and Game Shipping builds pass. The actual universal sample target built in 17.84 seconds, and all three MotionWorld tests completed with `Success`. A live default-off PIE run retained 13 throttled samples over sequences 0-720 and simulation times 0.071-39.317 seconds with zero invalid, resimulated, non-monotonic, or non-positive-step samples. The stream covers rest, translation, turning, near-zero motion, and a `Traversing` mode change with elevated world Z. At yaw approximately -45 degrees, world velocity `(266.25, -266.25)` cm/s resolves to local `(376.53, approximately 0)` cm/s as expected.
 
 Related config/commit/experiment: `FEAS-001`; `unreal/Plugins/MotionWorld`.
+
+## D-015 - Fail-closed causal transition contract
+
+Status: implementation accepted; strict isolated builds pass, actual-sample automation pending
+
+Decision: Represent one learning candidate as `(previous finalized state, applied desired-velocity
+action, measured step duration, next finalized state)` under explicit episode and transition IDs.
+Convert the action to character-local coordinates using the previous state's yaw. Reject invalid,
+resimulated, non-adjacent, unsupported-schema, non-increasing-time, timestep-mismatched,
+non-finite, or non-planar candidates rather than repairing them silently.
+
+Why: A dynamics model learns cause and effect. Pairing an action with the wrong state interval, or
+using the outcome's orientation to encode the input, creates label leakage and teaches a physically
+false transition. Explicit rejection reasons make dataset loss measurable instead of invisible.
+
+Alternatives considered: Log independent state and action streams and join them later by callback
+order; use the next state's yaw; accept gaps and resimulation; force every step to `1/60` seconds;
+mix direction-intent and desired-velocity packets; add file persistence in the same slice.
+
+Evidence: A pure reflected builder and focused Unreal automation test cover one hand-calculated
+valid transition plus missing IDs, unsupported input type, NaN/infinity, vertical action,
+resimulation, state/frame gaps, changing frame availability, invalid negative frames, repeated time,
+timestep disagreement, unknown schema, and invalid state. The valid test intentionally changes yaw
+from `90` to `45` degrees so using the wrong endpoint frame cannot pass accidentally.
+
+Main assumption: The following recorder can call this builder from `OnPostFinalize` with the cached
+prior state and the velocity payload from Mover's `GetLastInputCmd()` for the step that just ended.
+The observed runtime has variable step lengths, so measured `delta_t` remains part of every row.
+
+How it could fail: Callback/input chronology differs from the assumed Mover contract; a legitimate
+step omits or changes frame metadata; the 1 ms time-consistency tolerance is too strict; or future
+input types need distinct schemas. The recorder must count rejection reasons and live-test action
+alignment before any dataset is trusted.
+
+How I tested it: Strict universal Mac Editor Development, Game Development, and Game Shipping
+compilation passes. Actual-sample execution is the remaining acceptance gate for this slice.
+
+Related config/commit/experiment: `FEAS-001`; `unreal/Plugins/MotionWorld`.

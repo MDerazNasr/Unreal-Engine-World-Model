@@ -411,7 +411,47 @@ is positive, and every numeric state value is finite. Invalid packets retain dia
 fail closed to zero state values, so a NaN cannot contaminate a dataset or model. One first sample
 and then every configurable Nth sample is logged for runtime evidence without writing at 60 Hz.
 
-## 15. Required personal exercises
+## 15. Causal transition contract
+
+A state snapshot alone is a photograph. A learned dynamics model needs a cause-and-effect record:
+
+`s_t --(a_t, delta_t)--> s_(t+1)`
+
+Here `s_t` is the finalized state before a Mover step, `a_t` is the velocity command Mover actually
+consumed during that step, `delta_t` is the measured step duration, and `s_(t+1)` is the finalized
+outcome. This becomes one supervised-learning example: given the old state and action, predict the
+new state. The first state in an episode only seeds the pair; it cannot produce a transition because
+there is no earlier state in that episode.
+
+The action must be expressed in the **previous** state's character frame. The command acted from
+the character orientation at the start of the transition; using the next orientation would leak
+information from the answer into the input. For previous yaw `90` degrees, world velocity
+`(0, 200)` cm/s is local `(200, 0)` cm/s even if the character ends the step at yaw `45` degrees.
+
+For adjacent accepted states, MotionWorld requires:
+
+`state_sequence_(t+1) = state_sequence_t + 1`
+
+`delta_t = time_(t+1) - time_t > 0`
+
+`abs(delta_t - reported_step_(t+1)) <= 0.001 seconds`
+
+If Mover frame IDs are available, they must also differ by exactly one. Both states must use state
+protocol version 1, be numerically valid, and be ordinary forward simulation rather than
+resimulation. The current action schema admits only a finite planar desired velocity. Directional
+intent is not silently mixed into the same dataset because it has different semantics.
+
+The contract fails closed: a rejected candidate stays `valid=false`, carries an explicit rejection
+reason, and never exposes a usable action. This is preferable to "best effort" logging because one
+misaligned row teaches the model a false causal relationship. The builder is constant-time and
+constant-memory: it performs only validation, two timestamp operations, and one planar rotation.
+
+This slice defines and tests the pairing rules but does not yet read Mover's last input or buffer an
+episode. The next recorder slice will take the previous cached finalized state, read
+`GetLastInputCmd()` for the just-completed step, build this transition, and retain it under an
+explicit episode lifecycle.
+
+## 16. Required personal exercises
 
 Before each component is accepted, explain without looking:
 

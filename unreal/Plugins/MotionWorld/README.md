@@ -18,6 +18,12 @@ snapshot with explicit frames and units. The first valid state and then every co
 sample are logged for diagnostics. This is intentionally an in-memory proof before episode file I/O,
 networking, or reset behavior is added.
 
+The next bounded layer defines a fail-closed causal transition candidate:
+`previous state --(applied velocity, measured dt)--> next state`. It validates episode identity,
+adjacent simulation chronology, schema, numerical values, and action semantics, and resolves the
+world action in the previous state's character frame. It is currently a pure tested contract; the
+recorder that obtains Mover's last consumed input and buffers complete episodes is the next slice.
+
 Build the isolated plugin package on macOS with:
 
 ```bash
