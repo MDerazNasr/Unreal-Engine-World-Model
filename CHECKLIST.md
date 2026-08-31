@@ -32,11 +32,11 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [x] Verify Unreal 5.8 and Game Animation Sample installation/acquisition (completed later than the original 10:00 target).
 - [x] While installation runs, bootstrap only independent Python environment/contracts/theory tests.
 - [x] Open the sample and compile the smallest project-specific module (completed later than the original 13:00 target).
-- [ ] By 18:00, apply programmatic desired velocity and capture authoritative post-movement state.
-- [ ] By 22:00, demonstrate deterministic reset, timed gate, and one complete episode log.
+- [x] Apply programmatic desired velocity and capture authoritative post-movement state (completed after the original Sunday 18:00 target).
+- [ ] Finish the remaining Sunday gate: deterministic character reset and complete in-memory episode evidence pass; timed gate and persisted episode file remain.
 - [ ] Close/merge `feature/unreal-feasibility` only if the Section 4 feasibility gate and required Section 5 safety checks pass.
-- [ ] If the sample blocks progress, record and execute Manny plus Mover fallback.
-- [ ] If the engine remains unavailable, freeze Unreal claims and proceed only with clearly labeled evidence levels 1-2.
+- [x] Do not activate the Manny plus Mover fallback because the Game Animation Sample path is working.
+- [x] Do not freeze Unreal claims at evidence levels 1-2 because UE 5.8.2 runtime evidence is available.
 
 ### Monday 31 August - nominal model and data
 
@@ -329,9 +329,9 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [x] Prove `GetLastInputCmd()` echoes the velocity type and bounded vector.
 - [x] Capture a live character-local request resolving through authoritative yaw and echoing the expected world vector.
 - [x] Restore the attached bridge to automation disabled after the fixed-command test.
-- [ ] Apply zero desired velocity.
+- [x] Apply zero desired velocity and verify the retained packet echo.
 - [x] Apply forward desired velocity and retain a causally paired live episode under the consumed command.
-- [ ] Apply lateral desired velocity.
+- [x] Apply lateral desired velocity and verify the local-right path/echo.
 - [ ] Apply diagonal desired velocity.
 - [ ] Apply stop command from motion.
 - [ ] Apply reverse command from forward motion.
@@ -339,7 +339,7 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [x] Verify action is character-local at the interface.
 - [ ] Verify facing-follows-motion behavior for P0.
 - [ ] Verify action hold duration is 100 ms at the planner interface.
-- [ ] Confirm externally commanded movement still drives acceptable sample animation.
+- [x] Confirm externally commanded movement still drives acceptable sample animation for the feasibility claim.
 
 ### 4.4 Authoritative state and tick order
 
@@ -393,7 +393,7 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [ ] Candidate answers: “Which transform is authoritative, at what tick point, and why?”
 - [ ] Candidate answers: “How do you know hidden controller state was reset?”
 - [ ] Gate passes: external control, authoritative state, reset, events, and logging are all reliable.
-- [ ] If not passed by cutoff, record fallback to Manny plus Mover or freeze Unreal claim level.
+- [x] Retain the Game Animation Sample path; fallback was not required at this checkpoint.
 
 ## 5. Unreal-Python protocol and safety
 
