@@ -13,6 +13,7 @@ public class MotionWorld : ModuleRules
             {
                 "CoreUObject",
                 "Engine",
+                "Json",
                 "Mover"
             }
         );
