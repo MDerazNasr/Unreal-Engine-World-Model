@@ -46,7 +46,8 @@ Python loader validated every row, reconciled all counters, and found no partial
 The timed-gate foundation evaluates sinusoidal blocker position and velocity directly from absolute
 scenario time. Its focused actual-sample automation test and strict universal builds pass. A
 separate runtime actor owns blocking geometry and collision evidence; bridge integration, scenario
-file fields, and live event trials remain pending.
+schema-v2 fields, and independent Python revalidation pass. Live physical event trials remain
+pending.
 
 Build the isolated plugin package on macOS with:
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import copy
 import json
+import math
 from pathlib import Path
 
 import pytest
@@ -102,6 +103,55 @@ def _records() -> list[dict[str, object]]:
     ]
 
 
+def _gate_state(time_s: float) -> dict[str, object]:
+    phase = 2.0 * math.pi * time_s / 4.0
+    return {
+        "scenario_time_s": time_s,
+        "phase_rad": phase % (2.0 * math.pi),
+        "center_world_cm": [5.0, 100.0 * math.sin(phase), 88.0],
+        "velocity_world_cm_per_s": [0.0, 50.0 * math.pi * math.cos(phase), 0.0],
+    }
+
+
+def _scenario_records() -> list[dict[str, object]]:
+    records = _records()
+    records[0]["schema_version"] = 2
+    records[0]["scenario"] = {
+        "type": "timed_gate",
+        "scenario_seed": 1901,
+        "motion_type": "sinusoidal_translation",
+        "origin_world_cm": [5.0, 0.0, 88.0],
+        "motion_axis_world": [0.0, 1.0, 0.0],
+        "amplitude_cm": 100.0,
+        "period_s": 4.0,
+        "phase_offset_rad": 0.0,
+        "half_extents_cm": [20.0, 40.0, 90.0],
+        "crossing_plane_normal_world": [1.0, 0.0, 0.0],
+        "timeout_s": 8.0,
+        "scenario_start_simulation_time_s": 1.0,
+        "obstacle_state_source": "analytic_absolute_time_schedule",
+    }
+    for index, row in enumerate(records[1:-1]):
+        row["schema_version"] = 2
+        previous_time = float(row["previous_state"]["simulation_time_s"]) - 1.0
+        next_time = float(row["next_state"]["simulation_time_s"]) - 1.0
+        is_last = index == len(records[1:-1]) - 1
+        row["scenario"] = {
+            "previous_gate_state": _gate_state(previous_time),
+            "next_gate_state": _gate_state(next_time),
+            "collision_this_step": False,
+            "crossed_success_plane_this_step": is_last,
+            "termination_reason": "success" if is_last else "none",
+        }
+    records[-1]["schema_version"] = 2
+    records[-1]["scenario_summary"] = {
+        "termination_reason": "success",
+        "termination_scenario_time_s": 0.1,
+        "collision_count": 0,
+    }
+    return records
+
+
 def _write(path: Path, records: list[dict[str, object]]) -> Path:
     path.write_text("".join(f"{json.dumps(record)}\n" for record in records), encoding="utf-8")
     return path
@@ -114,6 +164,49 @@ def test_valid_complete_episode_loads(tmp_path: Path) -> None:
     assert len(episode.transitions) == 2
     assert episode.transitions[0]["previous_state"]["sample_sequence"] == 10
     assert episode.transitions[-1]["next_state"]["sample_sequence"] == 12
+
+
+def test_valid_v2_timed_gate_episode_recomputes_every_obstacle_state(tmp_path: Path) -> None:
+    episode = load_episode(_write(tmp_path / "scenario.jsonl", _scenario_records()))
+
+    assert episode.header["schema_version"] == 2
+    assert episode.header["scenario"]["scenario_seed"] == 1901
+    assert episode.transitions[-1]["scenario"]["termination_reason"] == "success"
+
+
+def test_v2_gate_state_that_disagrees_with_schedule_is_rejected(tmp_path: Path) -> None:
+    records = _scenario_records()
+    records[1]["scenario"]["next_gate_state"]["center_world_cm"][1] += 1.0
+
+    with pytest.raises(EpisodeValidationError, match="analytic schedule"):
+        load_episode(_write(tmp_path / "bad_gate.jsonl", records))
+
+
+def test_v2_footer_must_match_final_terminal_event(tmp_path: Path) -> None:
+    records = _scenario_records()
+    records[-1]["scenario_summary"]["termination_reason"] = "timeout"
+
+    with pytest.raises(EpisodeValidationError, match="final transition"):
+        load_episode(_write(tmp_path / "bad_terminal.jsonl", records))
+
+
+def test_v2_success_requires_a_real_forward_plane_crossing(tmp_path: Path) -> None:
+    records = _scenario_records()
+    records[1]["next_state"]["position_world_cm"][0] = 6.0
+    records[2]["previous_state"]["position_world_cm"][0] = 6.0
+
+    with pytest.raises(EpisodeValidationError, match="cross the fixed plane"):
+        load_episode(_write(tmp_path / "false_success.jsonl", records))
+
+
+def test_v2_timeout_cannot_precede_declared_deadline(tmp_path: Path) -> None:
+    records = _scenario_records()
+    records[2]["scenario"]["crossed_success_plane_this_step"] = False
+    records[2]["scenario"]["termination_reason"] = "timeout"
+    records[-1]["scenario_summary"]["termination_reason"] = "timeout"
+
+    with pytest.raises(EpisodeValidationError, match="before the declared deadline"):
+        load_episode(_write(tmp_path / "early_timeout.jsonl", records))
 
 
 def test_missing_footer_rejects_partial_file(tmp_path: Path) -> None:

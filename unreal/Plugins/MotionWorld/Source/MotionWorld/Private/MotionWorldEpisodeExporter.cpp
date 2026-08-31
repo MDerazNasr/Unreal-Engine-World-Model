@@ -399,6 +399,44 @@ bool IsTimedGateMetadataValid(
 			return false;
 		}
 	}
+	const FMotionWorldTransitionSample& FinalTransition = Transitions.Last();
+	const double FinalScenarioTime =
+		FinalTransition.NextState.SimulationTimeSeconds
+		- Metadata.ScenarioStartSimulationTimeSeconds;
+	if (!FMath::IsNearlyEqual(
+		Metadata.TerminationScenarioTimeSeconds,
+		FinalScenarioTime,
+		NumericTolerance)
+		|| (Metadata.TerminationReason
+			!= EMotionWorldScenarioTerminationReason::GateCollision
+			&& Metadata.CollisionCount != 0))
+	{
+		return false;
+	}
+	if (Metadata.TerminationReason
+		== EMotionWorldScenarioTerminationReason::Timeout
+		&& FinalScenarioTime + NumericTolerance < Metadata.Config.TimeoutSeconds)
+	{
+		return false;
+	}
+	if (Metadata.TerminationReason
+		== EMotionWorldScenarioTerminationReason::Success)
+	{
+		const FVector Normal =
+			Metadata.Config.CrossingPlaneNormalWorld.GetSafeNormal();
+		const double PreviousDistance = FVector::DotProduct(
+			FinalTransition.PreviousState.PositionWorldCm
+				- Metadata.Config.OriginWorldCm,
+			Normal);
+		const double NextDistance = FVector::DotProduct(
+			FinalTransition.NextState.PositionWorldCm
+				- Metadata.Config.OriginWorldCm,
+			Normal);
+		if (PreviousDistance > 0.0 || NextDistance <= 0.0)
+		{
+			return false;
+		}
+	}
 	return true;
 }
 } // namespace

@@ -1,0 +1,22 @@
+D-019 SCENARIO SCHEMA V2 EVIDENCE
+Date: 2026-08-31
+Engine: Unreal Engine 5.8.2
+
+Unreal:
+- Real GameAnimationSampleEditor universal Mac build: succeeded
+- MotionWorld.Episode.AtomicJsonLinesExporter: 1 found, 1 succeeded, exit code 0
+- Strict universal Mac UnrealEditor Development: succeeded
+- Strict universal Mac UnrealGame Development: succeeded
+- Strict universal Mac UnrealGame Shipping: succeeded
+
+Python:
+- Full unit suite: 16 passed
+- Ruff: all checks passed
+- Version 1 character-only files remain supported
+- Version 2 independently validates the header schedule, every analytic gate state, event flags,
+  forward success geometry, timeout deadline, terminal summary, collision counts, and prior causal
+  character/action contracts
+
+Scope:
+This is compile/automation evidence. One live version-2 file and physical collision/success/timeout
+trials remain required before D-019 acceptance.

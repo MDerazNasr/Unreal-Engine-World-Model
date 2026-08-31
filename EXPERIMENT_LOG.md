@@ -457,3 +457,13 @@ Artifacts: `DECISIONS.md` D-011/D-012/D-013/D-014, `THEORY.md` sections 11-14, `
   adding `Engine/World.h` fixed it without a design change. The rebuilt universal target passed.
 - Post-integration strict universal Editor/Development/Shipping builds pass. The actual sample then
   ran all eight MotionWorld tests successfully with exit code zero, preserving default-off behavior.
+- Schema v2 writes optional immutable timed-gate metadata, analytically reconstructed previous/next
+  obstacle states on every row, collision/crossing flags, terminal reason, terminal scenario time,
+  and collision count. Character-only v2 rows use explicit null scenario fields; Python continues
+  to accept the preserved v1 episode format.
+- Unreal's focused exporter test passes in the actual sample after Reviewer checks required terminal
+  time equality, forward-plane success, deadline-respecting timeout, and collision-count semantics.
+  Strict universal Editor/Development/Shipping builds also pass.
+- The independent Python loader recomputes every gate phase/position/velocity from the schedule and
+  rejects false success, early timeout, event/summary disagreement, non-orthogonal frames, unknown
+  fields, and all prior chronology/action errors. Full Python result: 16 passed; Ruff passed.

@@ -569,9 +569,13 @@ timestamps, state and Mover-frame adjacency, action-frame conversion, shared end
 the complete footer. A transition-sequence gap is allowed only as visible evidence that an earlier
 attempt was rejected; model windows must never cross that gap.
 
-This file is not yet the final scenario schema. Target, obstacle, collision, external impulse,
-termination, and scenario-seed fields must be added with the timed arena rather than fabricated
-from character motion alone.
+Schema version 2 adds an optional typed scenario block. A timed-gate header stores the immutable
+seed and schedule. Every transition stores previous/next analytic gate state plus collision,
+crossing, and termination labels. The footer reconciles terminal reason, terminal scenario time,
+and collision count. Python retains version-1 compatibility but recomputes every version-2 gate
+position, velocity, and phase from the header equation; it also proves a claimed success crossed
+the fixed plane forward and a claimed timeout did not precede the deadline. Target and external
+impulse fields remain future scenario extensions rather than fabricated values.
 
 ## 19. Deterministic timed gate
 

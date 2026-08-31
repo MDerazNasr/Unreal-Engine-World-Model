@@ -362,12 +362,12 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 
 ### 4.5 Deterministic scenario lifecycle
 
-- [ ] Define scenario seed ownership.
+- [x] Define scenario seed ownership.
 - [x] Reset actor transform and velocity.
 - [x] Reset Mover/controller hidden state as far as the API permits.
 - [ ] Reset target.
-- [ ] Reset gate phase/schedule.
-- [ ] Reset collision counters.
+- [x] Reset gate phase/schedule.
+- [x] Reset collision counters.
 - [x] Reset episode identity while keeping the global callback sequence monotonic.
 - [ ] Reset observation history.
 - [ ] Reset planner warm start.
@@ -377,13 +377,13 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 
 ### 4.6 Timed gate and events
 
-- [ ] Create a gate with an explicit deterministic schedule.
-- [ ] Expose gate position, velocity, size/radius, motion type, and phase.
-- [ ] Log gate schedule metadata.
+- [x] Create a gate with an explicit deterministic schedule.
+- [x] Expose gate position, velocity, size/radius, motion type, and phase.
+- [x] Log gate schedule metadata.
 - [ ] Detect character/gate collision consistently.
-- [ ] Detect successful crossing.
-- [ ] Detect timeout.
-- [ ] Record termination reason.
+- [x] Detect successful crossing in the pure event contract and reject false-success files.
+- [x] Detect timeout in the pure event contract and reject pre-deadline timeout files.
+- [x] Record termination reason in each terminal row and the reconciled footer summary.
 - [ ] Validate the scenario at slow/manual speed before automated collection.
 
 ### 4.7 Feasibility evidence and gate
@@ -528,16 +528,16 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 
 ### 7.1 Episode schema
 
-- [ ] Include episode, scenario, seed, timestamp, and step index.
+- [x] Include episode, scenario, seed, timestamp, and step index.
 - [x] Include authoritative character state.
 - [x] Include next authoritative state.
 - [x] Include applied action, not merely requested pre-clamp action.
 - [ ] Include target state.
-- [ ] Include obstacle states.
-- [ ] Include collision flag/count.
+- [x] Include analytically revalidated timed-gate obstacle states.
+- [x] Include collision flag/count.
 - [ ] Include external impulse.
 - [ ] Include controller parameters.
-- [ ] Include termination reason.
+- [x] Include termination reason.
 - [x] Include state-source and schema-version labels.
 - [ ] Include animation-root/toe diagnostics in distinct optional fields.
 

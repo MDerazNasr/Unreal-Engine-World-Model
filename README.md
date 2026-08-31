@@ -56,5 +56,8 @@ states and no transition crossing either reset boundary.
 An opt-in atomic JSON Lines exporter and strict Python validator pass isolated, actual-sample, and
 live-file gates. Episode 1801 exported 458 accepted transitions with zero rejection/capacity loss;
 the independent loader validated every row and the completeness footer.
+Schema version 2 remains backward-compatible with that version-1 evidence and adds optional timed-
+gate configuration, per-transition analytic obstacle state/event labels, and a reconciled terminal
+summary. Both Unreal and Python independently reject schedule, crossing, timeout, or count drift.
 
 No positive result is assumed. A reproducible negative result with a clear diagnosis is a valid research outcome.
