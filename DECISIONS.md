@@ -474,3 +474,39 @@ independent Python command accepts every row, no temporary file remains, and the
 hash is `154ab619...24a35bca`.
 
 Related config/commit/experiment: `FEAS-001`; `bbe2355`; `ae56d35`; `8dcc732`.
+
+## D-019 - Absolute-time deterministic timed gate
+
+Status: pure schedule/event kernel compiles under strict universal targets; executed automation,
+runtime actor, scenario persistence, and live evidence pending
+
+Decision: Define the P0 gate as a collidable box with sinusoidal sideways translation evaluated
+directly from immutable configuration and scenario-relative time. Keep the success plane fixed
+through the schedule origin. Resolve terminal events in the order collision, forward crossing,
+timeout, and reject unknown/non-finite/degenerate configurations.
+
+Why: Absolute-time evaluation gives the planner and Unreal the same analytic future without
+frame-rate integration drift. A fixed success plane makes task completion unambiguous. Explicit
+event priority prevents a coarse finalized step from being labelled both collision and success.
+
+Alternatives considered: accumulate transform deltas every Tick; animate an opaque Blueprint
+timeline; move the success plane with the blocker; use random motion before seeded lifecycle is
+proved; treat overlap as both success and failure.
+
+Evidence: The pure kernel and compiled automation test cover start/quarter/full-period states,
+repeat queries, forward/backward crossing, collision priority, inclusive timeout, invalid period,
+unknown motion type, and a motion axis inconsistent with the success plane. Strict universal Mac
+Editor/Development/Shipping compilation passes.
+
+Main assumption: A sideways sinusoidal blocker is a sufficiently small but meaningful timed-gate
+task for comparing identical-budget controllers.
+
+How it could fail: Runtime Tick time may not share the scenario reset origin; collision callbacks
+may not align with finalized character steps; actor scale could disagree with logged half-extents;
+or an open sample area may allow trivial detours around the blocker.
+
+How I tested it: Strict compilation is complete. The next gates are execution of the focused test,
+a visible/collidable actor, two same-seed reset traces, collision/success/timeout trials, and strict
+scenario-file validation.
+
+Related config/commit/experiment: `FEAS-001`; pending.

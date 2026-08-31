@@ -573,7 +573,46 @@ This file is not yet the final scenario schema. Target, obstacle, collision, ext
 termination, and scenario-seed fields must be added with the timed arena rather than fabricated
 from character motion alone.
 
-## 19. Required personal exercises
+## 19. Deterministic timed gate
+
+The timed gate is a moving collision box whose center is evaluated from absolute scenario time.
+It does not update its position by repeatedly adding `velocity * frame_time`, because small
+frame-time differences would then accumulate into different schedules. For origin `o`, normalized
+sideways motion axis `u`, amplitude `A`, period `T`, phase offset `phi_0`, and scenario time `t`:
+
+`omega = 2*pi/T`
+
+`phi(t) = wrap_[0,2pi)(phi_0 + omega*t)`
+
+`p_gate(t) = o + u*A*sin(phi_0 + omega*t)`
+
+`v_gate(t) = u*A*omega*cos(phi_0 + omega*t)`
+
+The derivative explains the velocity equation: the derivative of `sin(omega*t)` is
+`omega*cos(omega*t)`. The motion axis must lie within the success plane, so its dot product with
+the plane normal is zero. This makes the blocker move sideways across the route rather than moving
+the definition of success itself.
+
+Hand example: let `o=(100,200,50)` cm, `u=(0,1,0)`, `A=100` cm, `T=4` s, and `phi_0=0`.
+Then `omega=pi/2` rad/s. At `t=0`, the center is `(100,200,50)` and velocity is
+`(0,50*pi,0)` cm/s. At `t=1` s, the phase is `pi/2`, the center is `(100,300,50)`, and velocity is
+zero. At `t=4` s, center and velocity repeat their `t=0` values.
+
+The success plane is fixed through `o` with forward normal `n`. For consecutive authoritative
+character positions `x_prev` and `x_now`, a forward crossing occurs when:
+
+`dot(x_prev-o, n) <= 0` and `dot(x_now-o, n) > 0`.
+
+Terminal events have a declared priority: gate collision, then successful forward crossing, then
+timeout. Collision wins if collision and crossing appear in the same finalized step; otherwise a
+discrete step could claim the character passed through a blocker. Backward crossing is not success.
+
+The schedule is deterministic for a fixed configuration and scenario-relative time. `ScenarioSeed`
+identifies the episode configuration even though this first schedule uses no random samples. The
+runtime actor and episode schema must still prove that reset restarts time at zero, collision events
+join the correct finalized step, and the logged visible transform agrees with this analytic state.
+
+## 20. Required personal exercises
 
 Before each component is accepted, explain without looking:
 
