@@ -1,0 +1,56 @@
+[2026.08.31-15.34.11:799][543]LogAutomationCommandLine: Display: Found 7 automation tests based on 'MotionWorld'
+[2026.08.31-15.34.11:799][543]LogAutomationCommandLine: Display: 	MotionWorld.Command.SanitizeWorldVelocity
+[2026.08.31-15.34.11:799][543]LogAutomationCommandLine: Display: 	MotionWorld.Coordinates.PlanarVelocity
+[2026.08.31-15.34.11:799][543]LogAutomationCommandLine: Display: 	MotionWorld.Episode.AtomicJsonLinesExporter
+[2026.08.31-15.34.11:799][543]LogAutomationCommandLine: Display: 	MotionWorld.Episode.InMemoryRecorder
+[2026.08.31-15.34.11:799][543]LogAutomationCommandLine: Display: 	MotionWorld.Reset.FinalizedVerifier
+[2026.08.31-15.34.11:799][543]LogAutomationCommandLine: Display: 	MotionWorld.State.AuthoritativeSample
+[2026.08.31-15.34.11:799][543]LogAutomationCommandLine: Display: 	MotionWorld.Transition.CausalPairing
+[2026.08.31-15.34.11:799][543]LogAutomationController: Sending StopTests to 77FC23721E4FFBB95561139F9AD537FC
+[2026.08.31-15.34.11:802][543]LogAutomationController: Sending StartTestSession to 77FC23721E4FFBB95561139F9AD537FC
+[2026.08.31-15.34.11:802][543]LogAutomationController: Display: Clearing ../../../../../../mderaznasr/Documents/Unreal Projects/GameAnimationSample/Saved/Automation/Logs/ and ../../../../../../mderaznasr/Documents/Unreal Projects/GameAnimationSample/Saved/Automation/Tmp/
+[2026.08.31-15.34.11:802][543]AutomationTestingLog: -----Test Run 3----
+[2026.08.31-15.34.11:804][543]LogAutomationController: Sending RunTest SanitizeWorldVelocity to 77FC23721E4FFBB95561139F9AD537FC
+[2026.08.31-15.34.11:804][543]LogAutomationController: Display: Test Started. Name={SanitizeWorldVelocity} Path={MotionWorld.Command.SanitizeWorldVelocity}
+[2026.08.31-15.34.11:846][544]LogAutomationWorker: Received StopTests from 3D5A63394D4E4ED1DA3C509F4CFB7A2F
+[2026.08.31-15.34.11:846][544]LogAutomationWorker: Received StartTestSession from 3D5A63394D4E4ED1DA3C509F4CFB7A2F
+[2026.08.31-15.34.11:846][544]LogAutomationWorker: Received RunTests SanitizeWorldVelocity from 3D5A63394D4E4ED1DA3C509F4CFB7A2F
+[2026.08.31-15.34.11:870][546]LogAutomationController: Display: Test Completed. Result={Success} Name={SanitizeWorldVelocity} Path={MotionWorld.Command.SanitizeWorldVelocity}
+[2026.08.31-15.34.11:870][546]LogAutomationController: BeginEvents: MotionWorld.Command.SanitizeWorldVelocity
+[2026.08.31-15.34.11:870][546]LogAutomationController: EndEvents: MotionWorld.Command.SanitizeWorldVelocity
+[2026.08.31-15.34.11:871][546]LogAutomationController: Sending RunTest PlanarVelocity to 77FC23721E4FFBB95561139F9AD537FC
+[2026.08.31-15.34.11:871][547]LogAutomationController: Display: Test Started. Name={PlanarVelocity} Path={MotionWorld.Coordinates.PlanarVelocity}
+[2026.08.31-15.34.11:879][547]LogAutomationWorker: Received RunTests PlanarVelocity from 3D5A63394D4E4ED1DA3C509F4CFB7A2F
+[2026.08.31-15.34.11:896][549]LogAutomationController: Display: Test Completed. Result={Success} Name={PlanarVelocity} Path={MotionWorld.Coordinates.PlanarVelocity}
+[2026.08.31-15.34.11:896][549]LogAutomationController: BeginEvents: MotionWorld.Coordinates.PlanarVelocity
+[2026.08.31-15.34.11:896][549]LogAutomationController: EndEvents: MotionWorld.Coordinates.PlanarVelocity
+[2026.08.31-15.34.11:897][550]LogAutomationController: Sending RunTest AtomicJsonLinesExporter to 77FC23721E4FFBB95561139F9AD537FC
+[2026.08.31-15.34.11:897][550]LogAutomationController: Display: Test Started. Name={AtomicJsonLinesExporter} Path={MotionWorld.Episode.AtomicJsonLinesExporter}
+[2026.08.31-15.34.11:905][550]LogAutomationWorker: Received RunTests AtomicJsonLinesExporter from 3D5A63394D4E4ED1DA3C509F4CFB7A2F
+[2026.08.31-15.34.11:921][552]LogAutomationController: Display: Test Completed. Result={Success} Name={AtomicJsonLinesExporter} Path={MotionWorld.Episode.AtomicJsonLinesExporter}
+[2026.08.31-15.34.11:921][552]LogAutomationController: BeginEvents: MotionWorld.Episode.AtomicJsonLinesExporter
+[2026.08.31-15.34.11:921][552]LogAutomationController: EndEvents: MotionWorld.Episode.AtomicJsonLinesExporter
+[2026.08.31-15.34.11:922][552]LogAutomationController: Sending RunTest InMemoryRecorder to 77FC23721E4FFBB95561139F9AD537FC
+[2026.08.31-15.34.11:922][552]LogAutomationController: Display: Test Started. Name={InMemoryRecorder} Path={MotionWorld.Episode.InMemoryRecorder}
+[2026.08.31-15.34.11:929][553]LogAutomationWorker: Received RunTests InMemoryRecorder from 3D5A63394D4E4ED1DA3C509F4CFB7A2F
+[2026.08.31-15.34.11:938][554]LogAutomationController: Display: Test Completed. Result={Success} Name={InMemoryRecorder} Path={MotionWorld.Episode.InMemoryRecorder}
+[2026.08.31-15.34.11:938][554]LogAutomationController: BeginEvents: MotionWorld.Episode.InMemoryRecorder
+[2026.08.31-15.34.11:938][554]LogAutomationController: EndEvents: MotionWorld.Episode.InMemoryRecorder
+[2026.08.31-15.34.11:938][555]LogAutomationController: Sending RunTest FinalizedVerifier to 77FC23721E4FFBB95561139F9AD537FC
+[2026.08.31-15.34.11:939][555]LogAutomationController: Display: Test Started. Name={FinalizedVerifier} Path={MotionWorld.Reset.FinalizedVerifier}
+[2026.08.31-15.34.11:946][555]LogAutomationWorker: Received RunTests FinalizedVerifier from 3D5A63394D4E4ED1DA3C509F4CFB7A2F
+[2026.08.31-15.34.11:956][556]LogAutomationController: Display: Test Completed. Result={Success} Name={FinalizedVerifier} Path={MotionWorld.Reset.FinalizedVerifier}
+[2026.08.31-15.34.11:956][556]LogAutomationController: BeginEvents: MotionWorld.Reset.FinalizedVerifier
+[2026.08.31-15.34.11:956][556]LogAutomationController: EndEvents: MotionWorld.Reset.FinalizedVerifier
+[2026.08.31-15.34.11:957][556]LogAutomationController: Sending RunTest AuthoritativeSample to 77FC23721E4FFBB95561139F9AD537FC
+[2026.08.31-15.34.11:957][557]LogAutomationController: Display: Test Started. Name={AuthoritativeSample} Path={MotionWorld.State.AuthoritativeSample}
+[2026.08.31-15.34.11:962][557]LogAutomationWorker: Received RunTests AuthoritativeSample from 3D5A63394D4E4ED1DA3C509F4CFB7A2F
+[2026.08.31-15.34.11:978][559]LogAutomationController: Display: Test Completed. Result={Success} Name={AuthoritativeSample} Path={MotionWorld.State.AuthoritativeSample}
+[2026.08.31-15.34.11:978][559]LogAutomationController: BeginEvents: MotionWorld.State.AuthoritativeSample
+[2026.08.31-15.34.11:978][559]LogAutomationController: EndEvents: MotionWorld.State.AuthoritativeSample
+[2026.08.31-15.34.11:979][559]LogAutomationController: Sending RunTest CausalPairing to 77FC23721E4FFBB95561139F9AD537FC
+[2026.08.31-15.34.11:980][559]LogAutomationController: Display: Test Started. Name={CausalPairing} Path={MotionWorld.Transition.CausalPairing}
+[2026.08.31-15.34.11:987][560]LogAutomationWorker: Received RunTests CausalPairing from 3D5A63394D4E4ED1DA3C509F4CFB7A2F
+[2026.08.31-15.34.12:003][562]LogAutomationController: Display: Test Completed. Result={Success} Name={CausalPairing} Path={MotionWorld.Transition.CausalPairing}
+[2026.08.31-15.34.12:003][562]LogAutomationController: BeginEvents: MotionWorld.Transition.CausalPairing
+[2026.08.31-15.34.12:003][562]LogAutomationController: EndEvents: MotionWorld.Transition.CausalPairing

@@ -433,3 +433,42 @@ the second reset; episode 1702 then seeded only from the verified post-reset sta
 either reset boundary.
 
 Related config/commit/experiment: `FEAS-001`; `unreal/Plugins/MotionWorld`.
+
+## D-018 - Atomic versioned episode export
+
+Status: implementation accepted; strict builds and actual-sample automation pass, live file gate pending
+
+Decision: Export one completed in-memory episode as UTF-8 JSON Lines under
+`Saved/MotionWorld/Episodes`. Write a typed header, one object per already-accepted transition, and
+a completeness footer to a unique temporary file; close and rename it without replacement. Keep
+export opt-in and synchronous at episode stop. Independently validate the file in Python before it
+can enter a dataset.
+
+Why: A single JSON array duplicates the whole bounded episode in serialization memory, while CSV
+flattens nested state/action structure and makes schema evolution ambiguous. JSON Lines has bounded
+per-row serialization memory, remains human-inspectable, and supports strict record typing. A
+temporary file plus no-replace publication prevents partial or older evidence from looking valid.
+
+Alternatives considered: CSV; one monolithic JSON object; writing each row directly to the final
+destination during play; overwriting `episode_<id>`; asynchronous export that copies the full
+buffer; accepting any dictionary shape in Python.
+
+Evidence: The C++ test publishes a two-row UTF-8 file and parses its header, transition, and footer.
+It also proves no overwrite and rejects empty data, inconsistent counters, and mixed episode IDs
+without publishing a destination. The Python loader passes valid and explicit-rejection-gap cases
+and rejects missing footer, non-finite values, local/world action mismatch, mixed identity, broken
+endpoint chains, and unknown fields. Strict universal Mac Editor/Development/Shipping and the real
+sample Editor target build; all seven actual-sample MotionWorld tests pass.
+
+Main assumption: Episode-stop export latency is acceptable because it is outside the per-frame
+control path and episodes remain bounded. The live gate must measure it rather than assume it.
+
+How it could fail: Disk permission or capacity failure; process termination before rename; schema
+drift; file collision; invalid recorder counters; a corrupt transition; or a downstream parser that
+silently accepts NaN, missing fields, reset leakage, or coordinate mismatch.
+
+How I tested it: Strict C++ compilation and automation plus 11 Python tests and Ruff pass. The
+remaining acceptance gate is one real exported Game Animation Sample episode that the independent
+Python command validates with reconciled counters and no partial `.tmp` file.
+
+Related config/commit/experiment: `FEAS-001`; `bbe2355`; `ae56d35`; `8dcc732`.

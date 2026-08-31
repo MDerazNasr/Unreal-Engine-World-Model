@@ -541,7 +541,39 @@ animation graph's visual history, a planner warm start, or random-number generat
 to the later arena-level reset. Claiming more would make the experiment look deterministic without
 actually controlling all of its initial conditions.
 
-## 18. Required personal exercises
+## 18. Durable episode files
+
+The in-memory recorder proves causal ordering, but its rows disappear when the process ends. A
+model-training pipeline needs a durable boundary: Unreal writes accepted evidence, and an
+independent Python reader refuses anything incomplete or internally inconsistent.
+
+D-018 uses JSON Lines rather than one giant JSON array. Each line is one complete JSON object:
+
+1. the header declares schema version, episode identity, engine/project provenance, coordinate
+   frames, units, and recorder counters;
+2. each transition stores `(previous finalized state, applied action, next finalized state)`;
+3. the footer repeats episode identity and row counts and marks the file complete.
+
+JSON Lines keeps temporary serialization memory `O(1)` per row instead of constructing a second
+episode-sized JSON tree. Runtime remains `O(N)` because each of `N` accepted transitions is written
+once. The in-memory recorder is still bounded to prevent unbounded growth.
+
+The destination is published atomically. Unreal writes a unique temporary file in the destination
+directory, closes it after the footer, then renames it without replacement. A crash before rename
+leaves no file that the dataset loader will mistake for a complete episode. A pre-existing filename
+is never silently overwritten.
+
+The exporter revalidates every accepted transition before writing. Python then independently
+checks exact schema keys, finite numerics, protocol versions, units/frames, episode identity,
+timestamps, state and Mover-frame adjacency, action-frame conversion, shared endpoints, counts, and
+the complete footer. A transition-sequence gap is allowed only as visible evidence that an earlier
+attempt was rejected; model windows must never cross that gap.
+
+This file is not yet the final scenario schema. Target, obstacle, collision, external impulse,
+termination, and scenario-seed fields must be added with the timed arena rather than fabricated
+from character motion alone.
+
+## 19. Required personal exercises
 
 Before each component is accepted, explain without looking:
 

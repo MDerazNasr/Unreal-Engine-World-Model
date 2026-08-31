@@ -35,7 +35,12 @@ after a newer finalized state passes position, yaw, velocity, angular-velocity, 
 Its default-off live proof performs two resets in one PIE session so their seed states and episode
 boundaries can be compared. Strict builds, actual-sample automation, and live repeatability pass:
 both resets produced identical zero-speed finalized seeds, and 1,249 total accepted transitions
-were recorded without rejection or a cross-reset row. File persistence is not yet claimed.
+were recorded without rejection or a cross-reset row.
+
+Completed episodes can be exported on opt-in stop as versioned UTF-8 JSON Lines beneath
+`Saved/MotionWorld/Episodes`. The exporter revalidates every row, writes a header and completeness
+footer through a sibling temporary file, and never replaces an existing destination. Strict and
+actual-sample automation pass; one live file plus independent Python validation remains pending.
 
 Build the isolated plugin package on macOS with:
 

@@ -529,16 +529,16 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 ### 7.1 Episode schema
 
 - [ ] Include episode, scenario, seed, timestamp, and step index.
-- [ ] Include authoritative character state.
-- [ ] Include next authoritative state.
-- [ ] Include applied action, not merely requested pre-clamp action.
+- [x] Include authoritative character state.
+- [x] Include next authoritative state.
+- [x] Include applied action, not merely requested pre-clamp action.
 - [ ] Include target state.
 - [ ] Include obstacle states.
 - [ ] Include collision flag/count.
 - [ ] Include external impulse.
 - [ ] Include controller parameters.
 - [ ] Include termination reason.
-- [ ] Include state-source and schema-version labels.
+- [x] Include state-source and schema-version labels.
 - [ ] Include animation-root/toe diagnostics in distinct optional fields.
 
 ### 7.2 Collection policy

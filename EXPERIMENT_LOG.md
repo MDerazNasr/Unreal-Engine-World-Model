@@ -389,3 +389,29 @@ Artifacts: `DECISIONS.md` D-011/D-012/D-013/D-014, `THEORY.md` sections 11-14, `
   reset of a timed gate, target, external actors, animation-graph history, random generators,
   learned observation history, or planner warm starts.
 - Preserved evidence: `evidence/unreal/d017_live_reset_1701_1702.log`.
+
+### D-018 atomic episode export compile/automation gate (2026-08-31)
+
+- Added a schema-version-1 UTF-8 JSON Lines exporter with header, accepted transition records, and
+  completeness footer. It streams one row at a time to a unique sibling temporary file and
+  publishes with a no-replace move only after the complete file closes.
+- The first focused execution rejected Unreal's project-relative automation path. This exposed a
+  real portability defect because `ProjectSavedDir()` can also be relative. The exporter now
+  canonicalizes internally; the unchanged test then reached all validation branches.
+- A second focused execution found that an empty episode was classified as inconsistent stats
+  before reaching its more precise `no_transitions` result. Validation order was corrected and the
+  focused test passed.
+- Runtime integration is opt-in. On normal stop or capacity stop it writes beneath
+  `Saved/MotionWorld/Episodes` and reports result, row count, duration, and canonical path. Export
+  is outside the per-frame callback path except at the terminal stop.
+- The strict Python loader checks exact keys/types, finite numerics, protocol/schema versions,
+  declared units/frames, chronology, local/world conversion, episode identity, shared endpoints,
+  header/footer counts, and completeness. Eleven Python tests and Ruff pass.
+- Strict universal Mac Editor Development, Game Development, and Game Shipping builds pass. The
+  closed real sample source matches the repository, its universal Editor build passes, and all
+  seven actual-sample MotionWorld tests complete with `Success`. Deployed dylib SHA-256 is
+  `6de38f0d3f4f51aee3d0f6a545aa90a1ddf1df68b99e5c5b53b1338328941224`.
+- Scope boundary: no real episode file has yet been produced. Target, obstacle, collision,
+  termination, scenario seed, and animation diagnostics remain outside schema v1 until their
+  authoritative sources exist.
+- Preserved automation evidence: `evidence/unreal/d018_actual_automation.log`.
