@@ -370,3 +370,22 @@ Artifacts: `DECISIONS.md` D-011/D-012/D-013/D-014, `THEORY.md` sections 11-14, `
 - Result: invalid as reset evidence; D-017 remains open. Reconfigure the component on the
   `SandboxCharacter_Mover` Blueprint class, compile and save it, then rerun and require two verified
   MotionWorld reset messages plus clean episode 1701/1702 boundaries.
+
+### D-017 live attempt 2 — accepted (2026-08-31)
+
+- The candidate observed repeated returns to the anchor, followed by normal restored forward
+  control. The later stop against an obstacle is expected because collision blocks executed motion
+  while the open-loop controller continues requesting local-forward velocity.
+- Reset 1701 was requested 483.813 cm from the anchor and reset 1702 was requested 509.037 cm from
+  it. Each passed on the first newer finalized state at `(-795.49, 0.00, 88.27) cm`, yaw `0 deg`,
+  mode `Walking`, with `0.000` position/yaw/linear-speed/angular-speed error.
+- Episode 1701 seeded at state sequence 60, recorded transitions `60→61` through `119→120`, then
+  stopped with `recorded=60`, `rejected=0`, `rejected_seeds=0`, and `capacity_drops=0` before the
+  second reset was queued at state 121.
+- Episode 1702 seeded from verified reset state 122; its first row was `122→123`. It ended with
+  `recorded=1189`, `rejected=0`, `rejected_seeds=0`, and `capacity_drops=0`. Thus no accepted row
+  bridges the old trajectory, teleport frame, or two episode identities.
+- Interpretation: D-017's character-level deterministic reset gate passes. This does not yet claim
+  reset of a timed gate, target, external actors, animation-graph history, random generators,
+  learned observation history, or planner warm starts.
+- Preserved evidence: `evidence/unreal/d017_live_reset_1701_1702.log`.

@@ -126,6 +126,10 @@ zero residual speeds within tolerance, and separate episode summaries. This char
 does not include animation-graph history, external actors, the timed gate, RNG, or planner state;
 the arena reset must handle those separately.
 
+Observed result: the two resets began 483.813 cm and 509.037 cm away, passed on the first finalized
+check at the identical pose/mode with zero measured residual speeds, and separated episodes 1701
+and 1702 without an accepted cross-reset transition.
+
 ### Why not NavMesh?
 
 NavMesh provides global/static routing. MotionWorld addresses short-horizon local control under timing, perturbation, and model mismatch. They are complementary layers.

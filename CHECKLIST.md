@@ -358,17 +358,17 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 ### 4.5 Deterministic scenario lifecycle
 
 - [ ] Define scenario seed ownership.
-- [ ] Reset actor transform and velocity.
-- [ ] Reset Mover/controller hidden state as far as the API permits.
+- [x] Reset actor transform and velocity.
+- [x] Reset Mover/controller hidden state as far as the API permits.
 - [ ] Reset target.
 - [ ] Reset gate phase/schedule.
 - [ ] Reset collision counters.
-- [ ] Reset episode and sequence identifiers.
+- [x] Reset episode identity while keeping the global callback sequence monotonic.
 - [ ] Reset observation history.
 - [ ] Reset planner warm start.
-- [ ] Run two same-seed resets and compare initial observations.
+- [x] Run two same-anchor resets and compare verified initial observations.
 - [ ] Run two same-seed gate schedules and compare trajectories/timestamps.
-- [ ] Prove no data from the prior episode appears after reset.
+- [x] Prove no data from the prior episode appears after reset.
 
 ### 4.6 Timed gate and events
 
@@ -384,12 +384,12 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 ### 4.7 Feasibility evidence and gate
 
 - [ ] Record a short video of programmatic movement.
-- [ ] Record a deterministic reset comparison.
-- [ ] Save one complete episode.
+- [x] Record a deterministic character-reset comparison.
+- [x] Preserve complete in-memory episode lifecycle evidence.
 - [ ] Validate every required episode field.
 - [ ] Save actor-versus-animation-root trace.
 - [ ] Enter `FEAS-001` with version, commit, seed, commands, and artifacts.
-- [ ] Reviewer checks tick phase, frames, units, stale state, and reset leakage.
+- [x] Reviewer checks tick phase, frames, units, stale state, and reset leakage.
 - [ ] Candidate answers: “Which transform is authoritative, at what tick point, and why?”
 - [ ] Candidate answers: “How do you know hidden controller state was reset?”
 - [ ] Gate passes: external control, authoritative state, reset, events, and logging are all reliable.

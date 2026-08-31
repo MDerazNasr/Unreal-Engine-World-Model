@@ -33,8 +33,9 @@ The reset slice captures a fixed authoritative anchor, stops the old recorder, q
 teleport and zero-velocity effects, stales Smooth Walking history, and starts a new episode only
 after a newer finalized state passes position, yaw, velocity, angular-velocity, and mode checks.
 Its default-off live proof performs two resets in one PIE session so their seed states and episode
-boundaries can be compared. Strict builds and actual-sample automation pass; live repeatability and
-file persistence are not yet claimed.
+boundaries can be compared. Strict builds, actual-sample automation, and live repeatability pass:
+both resets produced identical zero-speed finalized seeds, and 1,249 total accepted transitions
+were recorded without rejection or a cross-reset row. File persistence is not yet claimed.
 
 Build the isolated plugin package on macOS with:
 

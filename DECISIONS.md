@@ -387,7 +387,7 @@ Related config/commit/experiment: `FEAS-001`; `unreal/Plugins/MotionWorld`.
 
 ## D-017 - Verified Mover-owned character reset
 
-Status: implementation accepted; strict and actual-sample automation pass, live repeatability gate pending
+Status: accepted; strict builds, actual-sample automation, and live same-session repeatability pass
 
 Decision: Capture a valid finalized gameplay anchor, then reset through Mover's queued teleport and
 non-additive zero-velocity effects. Stop the old episode before queuing, force a zero command during
@@ -424,7 +424,12 @@ How I tested it: The pure verifier executes exact, wrapped-yaw, inclusive-bounda
 invalid tolerance, invalid/resimulated state, position, facing, linear/angular velocity, and mode
 cases. Strict non-unity universal Mac Editor Development, Game Development, and Game Shipping builds
 pass. The committed source matches the actual closed sample; its universal Editor target builds,
-and all six actual-sample MotionWorld tests complete with `Success`. The remaining gate is two
-same-session live resets with matching finalized seed states and no cross-episode transition.
+and all six actual-sample MotionWorld tests complete with `Success`. In one live PIE session, reset
+1701 moved 483.813 cm and reset 1702 moved 509.037 cm. Both were accepted on their first newer
+finalized sample at the same pose and mode with zero measured position, yaw, linear-speed, and
+angular-speed error. Episode 1701 recorded 60 consecutive transitions with zero rejection before
+the second reset; episode 1702 then seeded only from the verified post-reset state and recorded
+1,189 consecutive transitions with zero rejection before PIE ended. No training transition spans
+either reset boundary.
 
 Related config/commit/experiment: `FEAS-001`; `unreal/Plugins/MotionWorld`.

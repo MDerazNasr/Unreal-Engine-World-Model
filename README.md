@@ -51,7 +51,8 @@ UE 5.8.2 builds for universal Mac Editor Development, Game Development, and Game
 The recorder's live chronology gate captured 922 consecutive action-state transitions with no
 rejected pair or capacity loss.
 A Mover-owned deterministic character reset and fail-closed finalized-state verifier pass strict
-builds and actual-sample automation; live same-session repeatability remains pending.
+builds, actual-sample automation, and two live same-session resets with identical verified seed
+states and no transition crossing either reset boundary.
 File persistence is deliberately not claimed yet.
 
 No positive result is assumed. A reproducible negative result with a clear diagnosis is a valid research outcome.
