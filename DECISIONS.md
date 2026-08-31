@@ -299,7 +299,7 @@ Related config/commit/experiment: `FEAS-001`; `unreal/Plugins/MotionWorld`.
 
 ## D-015 - Fail-closed causal transition contract
 
-Status: implementation accepted; strict isolated builds pass, actual-sample automation pending
+Status: accepted; strict builds and actual-sample automation pass
 
 Decision: Represent one learning candidate as `(previous finalized state, applied desired-velocity
 action, measured step duration, next finalized state)` under explicit episode and transition IDs.
@@ -331,6 +331,9 @@ input types need distinct schemas. The recorder must count rejection reasons and
 alignment before any dataset is trusted.
 
 How I tested it: Strict universal Mac Editor Development, Game Development, and Game Shipping
-compilation passes. Actual-sample execution is the remaining acceptance gate for this slice.
+compilation passes. The deployed source matches the closed sample, whose universal Editor target
+built in 17.29 seconds. A headless actual-sample run found all four MotionWorld tests and completed
+the command, coordinate, state, and causal-pairing suites with `Success`; the queue ended after four
+tests with no D-015 failure.
 
 Related config/commit/experiment: `FEAS-001`; `unreal/Plugins/MotionWorld`.

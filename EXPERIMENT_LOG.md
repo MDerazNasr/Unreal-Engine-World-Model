@@ -279,3 +279,11 @@ Artifacts: `DECISIONS.md` D-011/D-012/D-013/D-014, `THEORY.md` sections 11-14, `
 - Strict universal Mac Editor Development, Game Development, and Game Shipping package compilation
   succeeded. This proves type/API compatibility, not runtime capture. Actual-sample automation and
   the later `GetLastInputCmd()` recorder integration remain separate gates.
+- Deployed only the committed plugin source into the closed Game Animation Sample and verified an
+  empty follow-up `rsync` dry run. The actual universal `GameAnimationSampleEditor` target built in
+  17.29 seconds. Its MotionWorld dylib contains `arm64` and `x86_64`; SHA-256 is
+  `c1e9ca142d5e2bd9686235bac0fa22307567b1a8c2c19b9b9f1d78cf3c179856`.
+- Headless NullRHI execution found exactly four MotionWorld tests. Sanitizer, coordinate, state, and
+  causal-pairing suites each completed with `Result={Success}`, and the queue ended with `4 tests
+  performed`. D-015 therefore passes as a pure contract. Live consumed-input pairing, episode
+  buffering, persistence, and reset are still unimplemented and receive no credit from this test.
