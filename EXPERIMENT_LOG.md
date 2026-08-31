@@ -305,3 +305,11 @@ Artifacts: `DECISIONS.md` D-011/D-012/D-013/D-014, `THEORY.md` sections 11-14, `
   command while automation is enabled.
 - Strict non-unity universal Mac Editor Development, Game Development, and Game Shipping builds
   pass. Actual-sample automation and a live episode are pending; no runtime pairing claim is made.
+- Deployed only committed source into the closed sample and verified source parity. The actual
+  universal Editor build passed in 96.55 seconds under high memory pressure. Its MotionWorld dylib
+  contains `arm64` and `x86_64`; SHA-256 is
+  `bc032b0a21f41b48df203fb98ba67075629c231f15e1f861d7664273208c7bad`.
+- Headless NullRHI execution found exactly five MotionWorld tests. Command sanitization, coordinate
+  conversion, episode recorder, authoritative state, and transition pairing all completed with
+  `Result={Success}`; the queue ended with `5 tests performed`. Live PIE chronology is still pending
+  and no file-persistence/reset claim is made.

@@ -340,7 +340,7 @@ Related config/commit/experiment: `FEAS-001`; `unreal/Plugins/MotionWorld`.
 
 ## D-016 - Bounded in-memory episode recorder
 
-Status: implementation accepted; strict isolated builds pass, actual-sample and live PIE gates pending
+Status: implementation accepted; strict and actual-sample automation pass, live PIE gate pending
 
 Decision: Add an opt-in, game-thread-owned recorder with explicit episode start/stop, first-state
 seeding, attempt-based transition sequence numbers, per-reason rejection counts, recovery seeding,
@@ -374,7 +374,9 @@ or normal callbacks violate the strict adjacency/timestep tolerance. The live ru
 every rejection count and the exact state/frame/time/action sequence before persistence is allowed.
 
 How I tested it: Repository tests, Ruff, and diff checks pass. Unreal Header Tool generated the new
-reflected API, and strict non-unity universal builds pass for all three targets. Actual-sample test
-execution and a live opt-in episode remain the acceptance gates.
+reflected API, and strict non-unity universal builds pass for all three targets. Deployed source
+matches the closed sample; its universal Editor target built successfully, and a headless run found
+five MotionWorld tests and completed every suite with `Success`. A live opt-in episode remains the
+final acceptance gate.
 
 Related config/commit/experiment: `FEAS-001`; `unreal/Plugins/MotionWorld`.
