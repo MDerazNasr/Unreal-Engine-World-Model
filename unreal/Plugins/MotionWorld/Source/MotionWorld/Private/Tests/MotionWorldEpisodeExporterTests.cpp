@@ -139,6 +139,59 @@ bool FMotionWorldEpisodeExporterTest::RunTest(const FString& Parameters)
 		NoOverwrite.Result,
 		MotionWorld::EEpisodeExportResult::DestinationExists);
 
+	MotionWorld::FEpisodeExportRequest ScenarioRequest = Request;
+	ScenarioRequest.OutputFilePath =
+		FPaths::Combine(TestDirectory, TEXT("episode_42_scenario.jsonl"));
+	ScenarioRequest.TimedGateScenario.bIsPresent = true;
+	ScenarioRequest.TimedGateScenario.Config.ScenarioSeed = 1901;
+	ScenarioRequest.TimedGateScenario.Config.OriginWorldCm =
+		FVector(5.0, 0.0, 88.0);
+	ScenarioRequest.TimedGateScenario.Config.MotionAxisWorld = FVector::RightVector;
+	ScenarioRequest.TimedGateScenario.Config.AmplitudeCm = 100.0;
+	ScenarioRequest.TimedGateScenario.Config.PeriodSeconds = 4.0;
+	ScenarioRequest.TimedGateScenario.Config.HalfExtentsCm =
+		FVector(20.0, 40.0, 90.0);
+	ScenarioRequest.TimedGateScenario.Config.CrossingPlaneNormalWorld =
+		FVector::ForwardVector;
+	ScenarioRequest.TimedGateScenario.Config.TimeoutSeconds = 8.0;
+	ScenarioRequest.TimedGateScenario.ScenarioStartSimulationTimeSeconds = 1.0;
+	ScenarioRequest.TimedGateScenario.TerminationReason =
+		EMotionWorldScenarioTerminationReason::Success;
+	ScenarioRequest.TimedGateScenario.TerminationScenarioTimeSeconds = 0.1;
+	const MotionWorld::FEpisodeExportOutcome ScenarioSuccess =
+		MotionWorld::ExportEpisodeJsonLines(ScenarioRequest);
+	TestTrue(TEXT("Timed-gate episode export succeeds"), ScenarioSuccess.Succeeded());
+	TArray<FString> ScenarioLines;
+	TestTrue(
+		TEXT("Timed-gate JSON Lines file loads"),
+		FFileHelper::LoadFileToStringArray(
+			ScenarioLines,
+			*ScenarioRequest.OutputFilePath));
+	if (ScenarioLines.Num() == 4)
+	{
+		TSharedPtr<FJsonObject> ScenarioHeader;
+		TSharedPtr<FJsonObject> FinalTransition;
+		TSharedPtr<FJsonObject> ScenarioFooter;
+		TestTrue(TEXT("Scenario header parses"), ParseJsonLine(ScenarioLines[0], ScenarioHeader));
+		TestTrue(TEXT("Scenario transition parses"), ParseJsonLine(ScenarioLines[2], FinalTransition));
+		TestTrue(TEXT("Scenario footer parses"), ParseJsonLine(ScenarioLines[3], ScenarioFooter));
+		if (ScenarioHeader && FinalTransition && ScenarioFooter)
+		{
+			TestEqual(
+				TEXT("Scenario seed is persisted"),
+				static_cast<int64>(ScenarioHeader->GetObjectField(TEXT("scenario"))->GetNumberField(TEXT("scenario_seed"))),
+				int64(1901));
+			TestEqual(
+				TEXT("Terminal row records success"),
+				FinalTransition->GetObjectField(TEXT("scenario"))->GetStringField(TEXT("termination_reason")),
+				FString(TEXT("success")));
+			TestEqual(
+				TEXT("Footer scenario summary records success"),
+				ScenarioFooter->GetObjectField(TEXT("scenario_summary"))->GetStringField(TEXT("termination_reason")),
+				FString(TEXT("success")));
+		}
+	}
+
 	MotionWorld::FEpisodeExportRequest EmptyRequest = Request;
 	EmptyRequest.OutputFilePath = FPaths::Combine(TestDirectory, TEXT("empty.jsonl"));
 	EmptyRequest.Stats.RecordedTransitionCount = 0;

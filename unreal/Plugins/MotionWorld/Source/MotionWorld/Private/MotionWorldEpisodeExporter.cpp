@@ -33,6 +33,22 @@ void WriteVector2D(FCondensedWriter& Writer, const TCHAR* Name, const FVector2D&
 	Writer.WriteArrayEnd();
 }
 
+void WriteGateState(
+	FCondensedWriter& Writer,
+	const TCHAR* Name,
+	const FMotionWorldTimedGateState& State)
+{
+	Writer.WriteObjectStart(Name);
+	Writer.WriteValue(TEXT("scenario_time_s"), State.ScenarioTimeSeconds);
+	Writer.WriteValue(TEXT("phase_rad"), State.PhaseRadians);
+	WriteVector(Writer, TEXT("center_world_cm"), State.CenterWorldCm);
+	WriteVector(
+		Writer,
+		TEXT("velocity_world_cm_per_s"),
+		State.VelocityWorldCmPerSec);
+	Writer.WriteObjectEnd();
+}
+
 void WriteState(
 	FCondensedWriter& Writer,
 	const TCHAR* Name,
@@ -81,6 +97,42 @@ FString SerializeHeader(const MotionWorld::FEpisodeExportRequest& Request)
 	Writer->WriteValue(TEXT("project_name"), Request.ProjectName);
 	Writer->WriteValue(TEXT("episode_id"), Request.Stats.EpisodeId);
 	Writer->WriteValue(TEXT("state_source"), TEXT("mover_finalized_sync_state"));
+	if (Request.TimedGateScenario.bIsPresent)
+	{
+		const FMotionWorldTimedGateConfig& Config =
+			Request.TimedGateScenario.Config;
+		Writer->WriteObjectStart(TEXT("scenario"));
+		Writer->WriteValue(TEXT("type"), TEXT("timed_gate"));
+		Writer->WriteValue(TEXT("scenario_seed"), Config.ScenarioSeed);
+		Writer->WriteValue(TEXT("motion_type"), TEXT("sinusoidal_translation"));
+		WriteVector(*Writer, TEXT("origin_world_cm"), Config.OriginWorldCm);
+		WriteVector(
+			*Writer,
+			TEXT("motion_axis_world"),
+			Config.MotionAxisWorld.GetSafeNormal());
+		Writer->WriteValue(TEXT("amplitude_cm"), Config.AmplitudeCm);
+		Writer->WriteValue(TEXT("period_s"), Config.PeriodSeconds);
+		Writer->WriteValue(
+			TEXT("phase_offset_rad"),
+			Config.PhaseOffsetRadians);
+		WriteVector(*Writer, TEXT("half_extents_cm"), Config.HalfExtentsCm);
+		WriteVector(
+			*Writer,
+			TEXT("crossing_plane_normal_world"),
+			Config.CrossingPlaneNormalWorld.GetSafeNormal());
+		Writer->WriteValue(TEXT("timeout_s"), Config.TimeoutSeconds);
+		Writer->WriteValue(
+			TEXT("scenario_start_simulation_time_s"),
+			Request.TimedGateScenario.ScenarioStartSimulationTimeSeconds);
+		Writer->WriteValue(
+			TEXT("obstacle_state_source"),
+			TEXT("analytic_absolute_time_schedule"));
+		Writer->WriteObjectEnd();
+	}
+	else
+	{
+		Writer->WriteNull(TEXT("scenario"));
+	}
 	Writer->WriteObjectStart(TEXT("conventions"));
 	Writer->WriteValue(TEXT("world_frame"), TEXT("unreal_world_x_forward_y_right_z_up"));
 	Writer->WriteValue(
@@ -113,7 +165,10 @@ FString SerializeHeader(const MotionWorld::FEpisodeExportRequest& Request)
 	return Line;
 }
 
-FString SerializeTransition(const FMotionWorldTransitionSample& Transition)
+FString SerializeTransition(
+	const MotionWorld::FEpisodeExportRequest& Request,
+	const FMotionWorldTransitionSample& Transition,
+	const bool bIsLastTransition)
 {
 	FString Line;
 	const TSharedRef<FCondensedWriter> Writer =
@@ -146,6 +201,47 @@ FString SerializeTransition(const FMotionWorldTransitionSample& Transition)
 		Transition.AppliedAction.VelocityLocalPlanarCmPerSec);
 	Writer->WriteObjectEnd();
 	WriteState(*Writer, TEXT("next_state"), Transition.NextState);
+	if (Request.TimedGateScenario.bIsPresent)
+	{
+		const double StartTime =
+			Request.TimedGateScenario.ScenarioStartSimulationTimeSeconds;
+		const double PreviousScenarioTime = FMath::Max(
+			0.0,
+			Transition.PreviousState.SimulationTimeSeconds - StartTime);
+		const double NextScenarioTime = FMath::Max(
+			0.0,
+			Transition.NextState.SimulationTimeSeconds - StartTime);
+		const FMotionWorldTimedGateState PreviousGateState =
+			MotionWorld::EvaluateTimedGateSchedule(
+				Request.TimedGateScenario.Config,
+				PreviousScenarioTime);
+		const FMotionWorldTimedGateState NextGateState =
+			MotionWorld::EvaluateTimedGateSchedule(
+				Request.TimedGateScenario.Config,
+				NextScenarioTime);
+		const EMotionWorldScenarioTerminationReason RowTermination =
+			bIsLastTransition
+				? Request.TimedGateScenario.TerminationReason
+				: EMotionWorldScenarioTerminationReason::None;
+		Writer->WriteObjectStart(TEXT("scenario"));
+		WriteGateState(*Writer, TEXT("previous_gate_state"), PreviousGateState);
+		WriteGateState(*Writer, TEXT("next_gate_state"), NextGateState);
+		Writer->WriteValue(
+			TEXT("collision_this_step"),
+			RowTermination
+				== EMotionWorldScenarioTerminationReason::GateCollision);
+		Writer->WriteValue(
+			TEXT("crossed_success_plane_this_step"),
+			RowTermination == EMotionWorldScenarioTerminationReason::Success);
+		Writer->WriteValue(
+			TEXT("termination_reason"),
+			MotionWorld::LexToString(RowTermination));
+		Writer->WriteObjectEnd();
+	}
+	else
+	{
+		Writer->WriteNull(TEXT("scenario"));
+	}
 	Writer->WriteObjectEnd();
 	Writer->Close();
 	return Line;
@@ -171,6 +267,25 @@ FString SerializeFooter(
 	Writer->WriteValue(TEXT("first_transition_sequence"), FirstTransitionSequence);
 	Writer->WriteValue(TEXT("last_transition_sequence"), LastTransitionSequence);
 	Writer->WriteValue(TEXT("complete"), true);
+	if (Request.TimedGateScenario.bIsPresent)
+	{
+		Writer->WriteObjectStart(TEXT("scenario_summary"));
+		Writer->WriteValue(
+			TEXT("termination_reason"),
+			MotionWorld::LexToString(
+				Request.TimedGateScenario.TerminationReason));
+		Writer->WriteValue(
+			TEXT("termination_scenario_time_s"),
+			Request.TimedGateScenario.TerminationScenarioTimeSeconds);
+		Writer->WriteValue(
+			TEXT("collision_count"),
+			Request.TimedGateScenario.CollisionCount);
+		Writer->WriteObjectEnd();
+	}
+	else
+	{
+		Writer->WriteNull(TEXT("scenario_summary"));
+	}
 	Writer->WriteObjectEnd();
 	Writer->Close();
 	return Line;
@@ -239,6 +354,52 @@ bool IsTransitionReproducible(const FMotionWorldTransitionSample& Transition)
 			Rebuilt.DeltaTimeSeconds,
 			Transition.DeltaTimeSeconds,
 			NumericTolerance);
+}
+
+bool IsTimedGateMetadataValid(
+	const MotionWorld::FTimedGateEpisodeMetadata& Metadata,
+	const TConstArrayView<FMotionWorldTransitionSample> Transitions)
+{
+	if (!Metadata.bIsPresent)
+	{
+		return true;
+	}
+	if (!MotionWorld::IsTimedGateConfigValid(Metadata.Config)
+		|| !FMath::IsFinite(Metadata.ScenarioStartSimulationTimeSeconds)
+		|| !FMath::IsFinite(Metadata.TerminationScenarioTimeSeconds)
+		|| Metadata.ScenarioStartSimulationTimeSeconds < 0.0
+		|| Metadata.TerminationScenarioTimeSeconds < 0.0
+		|| Metadata.CollisionCount < 0)
+	{
+		return false;
+	}
+	if (Metadata.TerminationReason
+			== EMotionWorldScenarioTerminationReason::InvalidConfiguration
+		|| (Metadata.TerminationReason
+				== EMotionWorldScenarioTerminationReason::GateCollision
+			&& Metadata.CollisionCount < 1))
+	{
+		return false;
+	}
+	for (const FMotionWorldTransitionSample& Transition : Transitions)
+	{
+		const double PreviousTime = Transition.PreviousState.SimulationTimeSeconds
+			- Metadata.ScenarioStartSimulationTimeSeconds;
+		const double NextTime = Transition.NextState.SimulationTimeSeconds
+			- Metadata.ScenarioStartSimulationTimeSeconds;
+		if (PreviousTime < -NumericTolerance
+			|| NextTime < -NumericTolerance
+			|| !MotionWorld::EvaluateTimedGateSchedule(
+				Metadata.Config,
+				FMath::Max(0.0, PreviousTime)).bIsValid
+			|| !MotionWorld::EvaluateTimedGateSchedule(
+				Metadata.Config,
+				FMath::Max(0.0, NextTime)).bIsValid)
+		{
+			return false;
+		}
+	}
+	return true;
 }
 } // namespace
 
@@ -322,6 +483,14 @@ FEpisodeExportOutcome ExportEpisodeJsonLines(
 		Outcome.Detail = TEXT("transition count exceeds the bounded exporter limit");
 		return Outcome;
 	}
+	if (!IsTimedGateMetadataValid(
+		Request.TimedGateScenario,
+		Request.Transitions))
+	{
+		Outcome.Result = EEpisodeExportResult::InvalidStats;
+		Outcome.Detail = TEXT("timed-gate scenario metadata is inconsistent");
+		return Outcome;
+	}
 
 	int64 PreviousTransitionSequence = -1;
 	const FMotionWorldTransitionSample* PreviousTransition = nullptr;
@@ -388,10 +557,19 @@ FEpisodeExportOutcome ExportEpisodeJsonLines(
 	}
 
 	bool bWriteSucceeded = WriteUtf8Line(*Archive, SerializeHeader(Request));
-	for (const FMotionWorldTransitionSample& Transition : Request.Transitions)
+	for (int32 TransitionIndex = 0;
+		TransitionIndex < Request.Transitions.Num();
+		++TransitionIndex)
 	{
+		const FMotionWorldTransitionSample& Transition =
+			Request.Transitions[TransitionIndex];
 		bWriteSucceeded = bWriteSucceeded
-			&& WriteUtf8Line(*Archive, SerializeTransition(Transition));
+			&& WriteUtf8Line(
+				*Archive,
+				SerializeTransition(
+					Request,
+					Transition,
+					TransitionIndex == Request.Transitions.Num() - 1));
 		if (!bWriteSucceeded)
 		{
 			break;

@@ -210,8 +210,27 @@ bool UMotionWorldBridgeComponent::StartEpisodeRecording(const int64 EpisodeId)
 			ResetStatus.RequestedEpisodeId);
 		return false;
 	}
+	if (bEnableTimedGateScenario
+		&& (!IsValid(ArenaManager)
+			|| !ArenaManager->GetArenaStatus().bIsActive
+			|| !LastAuthoritativeState.bIsValid))
+	{
+		UE_LOG(
+			LogMotionWorldBridge,
+			Error,
+			TEXT("MotionWorld timed-gate episode %lld cannot start before a valid active arena and finalized seed state exist."),
+			EpisodeId);
+		return false;
+	}
 
 	const bool bStarted = EpisodeRecorder.StartEpisode(EpisodeId, MaxRecordedTransitions);
+	bCurrentEpisodeHasTimedGateScenario = bStarted
+		&& bEnableTimedGateScenario
+		&& IsValid(ArenaManager);
+	CurrentEpisodeScenarioStartSimulationTimeSeconds =
+		bCurrentEpisodeHasTimedGateScenario
+			? LastAuthoritativeState.SimulationTimeSeconds
+			: 0.0;
 	LastRecordedTransition = FMotionWorldTransitionSample();
 	LastRecorderObservationResult =
 		EMotionWorldRecorderObservationResult::IgnoredNotRecording;
@@ -266,6 +285,8 @@ void UMotionWorldBridgeComponent::StopEpisodeRecording()
 	{
 		ExportCurrentEpisode(BeforeStop);
 	}
+	bCurrentEpisodeHasTimedGateScenario = false;
+	CurrentEpisodeScenarioStartSimulationTimeSeconds = 0.0;
 }
 
 void UMotionWorldBridgeComponent::ExportCurrentEpisode(
@@ -291,6 +312,25 @@ void UMotionWorldBridgeComponent::ExportCurrentEpisode(
 	Request.ProjectName = FApp::GetProjectName();
 	Request.Stats = CompletedStats;
 	Request.Transitions = EpisodeRecorder.GetTransitions();
+	if (bCurrentEpisodeHasTimedGateScenario && IsValid(ArenaManager))
+	{
+		const FMotionWorldArenaStatus ArenaStatus = ArenaManager->GetArenaStatus();
+		Request.TimedGateScenario.bIsPresent = true;
+		Request.TimedGateScenario.Config = ArenaManager->GetGateConfig();
+		Request.TimedGateScenario.ScenarioStartSimulationTimeSeconds =
+			CurrentEpisodeScenarioStartSimulationTimeSeconds;
+		Request.TimedGateScenario.TerminationReason =
+			ArenaStatus.TerminationReason;
+		Request.TimedGateScenario.CollisionCount = ArenaStatus.CollisionCount;
+		if (!Request.Transitions.IsEmpty())
+		{
+			Request.TimedGateScenario.TerminationScenarioTimeSeconds =
+				FMath::Max(
+					0.0,
+					Request.Transitions.Last().NextState.SimulationTimeSeconds
+						- CurrentEpisodeScenarioStartSimulationTimeSeconds);
+		}
+	}
 
 	const double ExportStartSeconds = FPlatformTime::Seconds();
 	const MotionWorld::FEpisodeExportOutcome Outcome =

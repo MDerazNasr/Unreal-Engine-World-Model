@@ -2,10 +2,22 @@
 
 #include "CoreMinimal.h"
 #include "MotionWorldEpisodeRecorder.h"
+#include "MotionWorldTimedGate.h"
 
 namespace MotionWorld
 {
-constexpr int32 EpisodeFileSchemaVersion = 1;
+constexpr int32 EpisodeFileSchemaVersion = 2;
+
+struct FTimedGateEpisodeMetadata
+{
+	bool bIsPresent = false;
+	FMotionWorldTimedGateConfig Config;
+	double ScenarioStartSimulationTimeSeconds = 0.0;
+	EMotionWorldScenarioTerminationReason TerminationReason =
+		EMotionWorldScenarioTerminationReason::None;
+	double TerminationScenarioTimeSeconds = 0.0;
+	int64 CollisionCount = 0;
+};
 
 enum class EEpisodeExportResult : uint8
 {
@@ -29,6 +41,7 @@ struct FEpisodeExportRequest
 	FString ProjectName;
 	FMotionWorldEpisodeRecorderStats Stats;
 	TConstArrayView<FMotionWorldTransitionSample> Transitions;
+	FTimedGateEpisodeMetadata TimedGateScenario;
 };
 
 struct FEpisodeExportOutcome

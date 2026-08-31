@@ -306,4 +306,6 @@ private:
 	bool bConfiguredResetSequenceAborted = false;
 	bool bDeferCommandEchoUntilNextProduction = false;
 	bool bArenaInitializationAttempted = false;
+	bool bCurrentEpisodeHasTimedGateScenario = false;
+	double CurrentEpisodeScenarioStartSimulationTimeSeconds = 0.0;
 };
