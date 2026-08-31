@@ -33,14 +33,19 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [x] While installation runs, bootstrap only independent Python environment/contracts/theory tests.
 - [x] Open the sample and compile the smallest project-specific module (completed later than the original 13:00 target).
 - [x] Apply programmatic desired velocity and capture authoritative post-movement state (completed after the original Sunday 18:00 target).
-- [ ] Finish the remaining Sunday gate: deterministic character reset and complete in-memory episode evidence pass; timed gate and persisted episode file remain.
+- [x] Demonstrate deterministic character reset and preserve complete in-memory episode lifecycle evidence.
+- [ ] Add the deterministic timed gate and its event/termination labels.
+- [ ] Persist one complete validated episode file for the Python pipeline.
 - [ ] Close/merge `feature/unreal-feasibility` only if the Section 4 feasibility gate and required Section 5 safety checks pass.
 - [x] Do not activate the Manny plus Mover fallback because the Game Animation Sample path is working.
 - [x] Do not freeze Unreal claims at evidence levels 1-2 because UE 5.8.2 runtime evidence is available.
 
 ### Monday 31 August - nominal model and data
 
-- [ ] Complete Section 3 coordinate and hand-oracle checks.
+- [x] Implement and execute the core coordinate conversion tests in the actual UE 5.8 sample.
+- [ ] Complete the candidate coordinate derivation and remaining robustness checks in Section 3.1.
+- [ ] Complete the Section 3.2 hand-oracle calculations and tests.
+- [ ] Complete the Section 3.3 deterministic theory backend.
 - [ ] Complete Section 6 faithful nominal model and substep tests.
 - [ ] Complete enough Section 7 collection/validation to measure real residual structure.
 - [ ] Produce first nominal-versus-Unreal recursive error plot.
@@ -243,17 +248,17 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 ### 3.1 Coordinate transformations
 
 - [ ] Explain world/global coordinates versus character-local coordinates.
-- [ ] Write the 2D yaw rotation matrix in `THEORY.md`.
-- [ ] Derive why global-to-local uses the transpose/inverse rotation.
-- [ ] Manually calculate local forward at 0 degrees.
-- [ ] Manually calculate local forward at 90 degrees under Unreal X-forward/Y-right conventions.
-- [ ] Implement local-to-global vector conversion.
-- [ ] Implement global-to-local vector conversion.
+- [x] Write the 2D yaw rotation matrix in `THEORY.md`.
+- [x] Derive why global-to-local uses the transpose/inverse rotation.
+- [x] Record local forward at 0 degrees in the theory/tests.
+- [x] Record local forward at 90 degrees under Unreal X-forward/Y-right conventions.
+- [x] Implement local-to-global vector conversion.
+- [x] Implement global-to-local vector conversion.
 - [ ] Implement point conversion separately from vector conversion if translation is involved.
-- [ ] Test 0, 90, 180, and -90 degrees.
+- [x] Test 0, 90, 180, and -90 degrees.
 - [ ] Test random round trips.
 - [ ] Test radians/degrees misuse is caught or impossible at the interface.
-- [ ] Reviewer verifies signs against an Unreal observation.
+- [x] Reviewer verifies signs against an Unreal observation.
 - [ ] Examiner asks candidate to derive one conversion on a blank page.
 
 ### 3.2 Minimal bounded velocity oracle
