@@ -40,6 +40,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "MotionWorld|Gate")
 	bool ConsumeTrackedAgentCollision();
 
+	/** Freezes the gate and disables collision after a terminal scenario event. */
+	UFUNCTION(BlueprintCallable, Category = "MotionWorld|Gate")
+	void DeactivateTimedGate();
+
 	UFUNCTION(BlueprintPure, Category = "MotionWorld|Gate")
 	FMotionWorldTimedGateConfig GetGateConfig() const { return GateConfig; }
 

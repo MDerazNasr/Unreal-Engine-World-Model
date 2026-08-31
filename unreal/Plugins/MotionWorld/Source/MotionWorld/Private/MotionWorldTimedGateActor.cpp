@@ -84,6 +84,7 @@ bool AMotionWorldTimedGateActor::ResetTimedGate(
 	ScenarioStartWorldTimeSeconds = NewScenarioStartWorldTimeSeconds;
 	TrackedAgentCollisionCount = 0;
 	bTrackedAgentCollisionPending = false;
+	CollisionBox->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	bScenarioActive = ApplyScheduleAtScenarioTime(0.0);
 	SetActorTickEnabled(bScenarioActive);
 	if (bScenarioActive)
@@ -195,4 +196,12 @@ bool AMotionWorldTimedGateActor::ConsumeTrackedAgentCollision()
 	const bool bHadCollision = bTrackedAgentCollisionPending;
 	bTrackedAgentCollisionPending = false;
 	return bHadCollision;
+}
+
+void AMotionWorldTimedGateActor::DeactivateTimedGate()
+{
+	bScenarioActive = false;
+	bTrackedAgentCollisionPending = false;
+	SetActorTickEnabled(false);
+	CollisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }

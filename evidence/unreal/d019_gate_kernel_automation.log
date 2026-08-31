@@ -28,3 +28,11 @@ Scope:
 This proves the analytic schedule/event kernel and compilation of the runtime actor. It does not yet
 prove bridge spawn/reset alignment, physical collision callbacks, successful live crossing, timeout,
 or scenario fields in exported episodes.
+
+Post-integration regression run:
+- Strict universal Mac Editor/Development/Shipping: succeeded
+- Real GameAnimationSampleEditor universal build: succeeded after adding the explicit Engine/World.h
+  include identified by the first compiler pass
+- Found 8 automation tests based on 'MotionWorld'
+- All 8 completed with Result={Success}
+- TEST COMPLETE. EXIT CODE: 0

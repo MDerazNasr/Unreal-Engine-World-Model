@@ -1,6 +1,7 @@
 #include "MotionWorldBridgeComponent.h"
 
 #include "DefaultMovementSet/InstantMovementEffects/BasicInstantMovementEffects.h"
+#include "Engine/World.h"
 #include "GameFramework/Actor.h"
 #include "Misc/App.h"
 #include "Misc/DateTime.h"
@@ -10,6 +11,7 @@
 #include "MoverComponent.h"
 #include "MoverDataModelTypes.h"
 #include "MoverTypes.h"
+#include "MotionWorldArenaManager.h"
 #include "MotionWorldCoordinateFrames.h"
 #include "MotionWorldEpisodeExporter.h"
 #include "MotionWorldStateSample.h"
@@ -82,6 +84,11 @@ void UMotionWorldBridgeComponent::EndPlay(const EEndPlayReason::Type EndPlayReas
 		MoverComponent->OnPostFinalize.RemoveDynamic(
 			this,
 			&UMotionWorldBridgeComponent::HandlePostFinalize);
+	}
+	if (IsValid(ArenaManager))
+	{
+		ArenaManager->Destroy();
+		ArenaManager = nullptr;
 	}
 
 	Super::EndPlay(EndPlayReason);
@@ -500,6 +507,26 @@ void UMotionWorldBridgeComponent::ProcessPendingResetVerification()
 		++ResetStatus.SuccessCount;
 		RestorePreResetCommand();
 
+		if (bEnableTimedGateScenario)
+		{
+			const UWorld* World = GetWorld();
+			if (!IsValid(ArenaManager)
+				|| !World
+				|| !ArenaManager->ResetArena(
+					static_cast<double>(World->GetTimeSeconds())))
+			{
+				ResetStatus.bLastResetSucceeded = false;
+				--ResetStatus.SuccessCount;
+				++ResetStatus.FailureCount;
+				UE_LOG(
+					LogMotionWorldBridge,
+					Error,
+					TEXT("MotionWorld character reset passed but timed arena reset failed for episode %lld; recording remains stopped."),
+					EpisodeId);
+				return;
+			}
+		}
+
 		if (!StartEpisodeRecording(EpisodeId))
 		{
 			ResetStatus.bLastResetSucceeded = false;
@@ -564,6 +591,97 @@ void UMotionWorldBridgeComponent::CaptureResetAnchorIfEligible()
 			ResetAnchor.PositionWorldCm.Z,
 			ResetAnchor.OrientationWorldDegrees.Yaw,
 			*ResetAnchor.MovementMode.ToString());
+		InitializeTimedArenaIfEligible();
+	}
+}
+
+void UMotionWorldBridgeComponent::InitializeTimedArenaIfEligible()
+{
+	if (!bEnableTimedGateScenario
+		|| bArenaInitializationAttempted
+		|| !ResetAnchor.bIsValid)
+	{
+		return;
+	}
+	bArenaInitializationAttempted = true;
+
+	UWorld* World = GetWorld();
+	AActor* Owner = GetOwner();
+	if (!World || !Owner)
+	{
+		UE_LOG(LogMotionWorldBridge, Error, TEXT("MotionWorld timed arena initialization requires a world and owner."));
+		return;
+	}
+
+	FVector ForwardWorld = ResetAnchor.OrientationWorldDegrees.Vector();
+	ForwardWorld.Z = 0.0;
+	ForwardWorld = ForwardWorld.GetSafeNormal();
+	const FVector RightWorld = FVector::CrossProduct(FVector::UpVector, ForwardWorld).GetSafeNormal();
+
+	FMotionWorldTimedGateConfig Config;
+	Config.ScenarioSeed = TimedGateScenarioSeed;
+	Config.OriginWorldCm = ResetAnchor.PositionWorldCm
+		+ ForwardWorld * TimedGateForwardDistanceCm;
+	Config.MotionAxisWorld = RightWorld;
+	Config.AmplitudeCm = TimedGateAmplitudeCm;
+	Config.PeriodSeconds = TimedGatePeriodSeconds;
+	Config.PhaseOffsetRadians = TimedGatePhaseOffsetRadians;
+	Config.HalfExtentsCm = TimedGateHalfExtentsCm;
+	Config.CrossingPlaneNormalWorld = ForwardWorld;
+	Config.TimeoutSeconds = TimedGateTimeoutSeconds;
+
+	FActorSpawnParameters SpawnParameters;
+	SpawnParameters.Owner = Owner;
+	SpawnParameters.SpawnCollisionHandlingOverride =
+		ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	ArenaManager = World->SpawnActor<AMotionWorldArenaManager>(
+		AMotionWorldArenaManager::StaticClass(),
+		Config.OriginWorldCm,
+		FRotator::ZeroRotator,
+		SpawnParameters);
+	if (!IsValid(ArenaManager)
+		|| !ArenaManager->InitializeArena(
+			Owner,
+			Config,
+			static_cast<double>(World->GetTimeSeconds())))
+	{
+		UE_LOG(LogMotionWorldBridge, Error, TEXT("MotionWorld timed arena initialization failed; scenario recording is unavailable."));
+		if (IsValid(ArenaManager))
+		{
+			ArenaManager->Destroy();
+			ArenaManager = nullptr;
+		}
+		return;
+	}
+
+	UE_LOG(
+		LogMotionWorldBridge,
+		Display,
+		TEXT("MotionWorld timed arena initialized: seed=%lld gate_origin_world_cm=(%.2f, %.2f, %.2f) forward_distance_cm=%.2f."),
+		Config.ScenarioSeed,
+		Config.OriginWorldCm.X,
+		Config.OriginWorldCm.Y,
+		Config.OriginWorldCm.Z,
+		TimedGateForwardDistanceCm);
+}
+
+void UMotionWorldBridgeComponent::ProcessTimedArenaObservation()
+{
+	if (!bEnableTimedGateScenario
+		|| !IsValid(ArenaManager)
+		|| !LastAuthoritativeState.bIsValid
+		|| LastAuthoritativeState.bIsResimulation)
+	{
+		return;
+	}
+
+	const FMotionWorldScenarioStepResult Result =
+		ArenaManager->ObserveFinalizedAgentPosition(
+			LastAuthoritativeState.PositionWorldCm);
+	if (Result.TerminationReason != EMotionWorldScenarioTerminationReason::None
+		&& EpisodeRecorder.GetStats().bIsRecording)
+	{
+		StopEpisodeRecording();
 	}
 }
 
@@ -912,6 +1030,8 @@ void UMotionWorldBridgeComponent::HandlePostFinalize(
 			}
 		}
 	}
+
+	ProcessTimedArenaObservation();
 
 	if (!bAutomationEnabled || !MoverComponent)
 	{

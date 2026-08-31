@@ -477,9 +477,8 @@ Related config/commit/experiment: `FEAS-001`; `bbe2355`; `ae56d35`; `8dcc732`.
 
 ## D-019 - Absolute-time deterministic timed gate
 
-Status: pure schedule/event kernel and runtime actor compile under strict universal targets; the
-focused actual-sample automation test passes; scenario integration/persistence and live evidence
-remain pending
+Status: pure kernel, runtime actor, and opt-in arena lifecycle compile under strict universal
+targets; all eight actual-sample automation tests pass; persistence and live evidence remain pending
 
 Decision: Define the P0 gate as a collidable box with sinusoidal sideways translation evaluated
 directly from immutable configuration and scenario-relative time. Keep the success plane fixed
@@ -508,9 +507,8 @@ How it could fail: Runtime Tick time may not share the scenario reset origin; co
 may not align with finalized character steps; actor scale could disagree with logged half-extents;
 or an open sample area may allow trivial detours around the blocker.
 
-How I tested it: Strict compilation is complete, and the actual sample executed
-`MotionWorld.Gate.DeterministicScheduleAndEvents` successfully. The next gates are bridge-owned
-spawn/reset/event integration, two same-seed live traces, collision/success/timeout trials, and
-strict scenario-file validation.
+How I tested it: Strict compilation is complete. The real sample universal Editor target builds,
+and all eight actual-sample MotionWorld tests pass after integration. The next gates are scenario
+schema validation and two same-seed live traces with collision/success/timeout trials.
 
 Related config/commit/experiment: `FEAS-001`; pending.

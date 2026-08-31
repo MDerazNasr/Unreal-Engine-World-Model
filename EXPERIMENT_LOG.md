@@ -449,3 +449,11 @@ Artifacts: `DECISIONS.md` D-011/D-012/D-013/D-014, `THEORY.md` sections 11-14, `
 - Runtime spawn/reset/event alignment, episode schema v2, and live collision/success/timeout evidence
   remain required; this checkpoint does not claim a working arena yet.
 - Preserved automation audit: `evidence/unreal/d019_gate_kernel_automation.log`.
+- Added opt-in bridge integration through a separate `AMotionWorldArenaManager`: it derives the
+  gate frame from the verified reset anchor, owns spawn/reset and terminal state, consumes collision
+  evidence at finalized character observations, and stops recording only after the terminal step is
+  offered to the recorder. The default remains disabled.
+- The first real-sample integration compile exposed one missing complete-type include for `UWorld`;
+  adding `Engine/World.h` fixed it without a design change. The rebuilt universal target passed.
+- Post-integration strict universal Editor/Development/Shipping builds pass. The actual sample then
+  ran all eight MotionWorld tests successfully with exit code zero, preserving default-off behavior.

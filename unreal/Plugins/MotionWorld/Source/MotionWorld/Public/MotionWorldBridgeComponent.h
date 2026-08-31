@@ -2,6 +2,7 @@
 
 #include "Components/ActorComponent.h"
 #include "MoverSimulationTypes.h"
+#include "MotionWorldArenaManager.h"
 #include "MotionWorldEpisodeRecorder.h"
 #include "MotionWorldReset.h"
 #include "MotionWorldStateSample.h"
@@ -109,6 +110,22 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "MotionWorld|Reset")
 	FMotionWorldResetStatus GetResetStatus() const { return ResetStatus; }
+
+	UFUNCTION(BlueprintPure, Category = "MotionWorld|Arena")
+	FMotionWorldArenaStatus GetArenaStatus() const
+	{
+		return ArenaManager
+			? ArenaManager->GetArenaStatus()
+			: FMotionWorldArenaStatus();
+	}
+
+	UFUNCTION(BlueprintPure, Category = "MotionWorld|Arena")
+	FMotionWorldTimedGateState GetTimedGateState() const
+	{
+		return ArenaManager
+			? ArenaManager->GetGateState()
+			: FMotionWorldTimedGateState();
+	}
 
 protected:
 	/** False by default so merely adding the component preserves human control. */
@@ -218,6 +235,31 @@ protected:
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "MotionWorld|Reset")
 	FMotionWorldResetStatus ResetStatus;
 
+	/** Default-off deterministic arena; initialized relative to the captured reset anchor. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Arena")
+	bool bEnableTimedGateScenario = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Arena", meta = (ClampMin = "0"))
+	int64 TimedGateScenarioSeed = 1901;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Arena", meta = (ClampMin = "100.0"))
+	double TimedGateForwardDistanceCm = 600.0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Arena", meta = (ClampMin = "0.0"))
+	double TimedGateAmplitudeCm = 200.0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Arena", meta = (ClampMin = "0.1"))
+	double TimedGatePeriodSeconds = 4.0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Arena")
+	double TimedGatePhaseOffsetRadians = 0.0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Arena")
+	FVector TimedGateHalfExtentsCm = FVector(30.0, 150.0, 90.0);
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Arena", meta = (ClampMin = "0.1"))
+	double TimedGateTimeoutSeconds = 8.0;
+
 private:
 	void ExportCurrentEpisode(const FMotionWorldEpisodeRecorderStats& CompletedStats);
 
@@ -231,9 +273,14 @@ private:
 	void ProcessPendingResetVerification();
 	void CaptureResetAnchorIfEligible();
 	void RequestConfiguredWarmupResetIfDue();
+	void InitializeTimedArenaIfEligible();
+	void ProcessTimedArenaObservation();
 
 	UPROPERTY(Transient)
 	TObjectPtr<UMoverComponent> MoverComponent;
+
+	UPROPERTY(Transient)
+	TObjectPtr<AMotionWorldArenaManager> ArenaManager;
 
 	FVector LastSubmittedVelocityWorldCmPerSec = FVector::ZeroVector;
 	FVector LastRequestedVelocityInCommandFrameCmPerSec = FVector::ZeroVector;
@@ -258,4 +305,5 @@ private:
 	int32 ConfiguredResetRequestsIssued = 0;
 	bool bConfiguredResetSequenceAborted = false;
 	bool bDeferCommandEchoUntilNextProduction = false;
+	bool bArenaInitializationAttempted = false;
 };
