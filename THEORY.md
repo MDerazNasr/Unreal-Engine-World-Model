@@ -494,7 +494,54 @@ adjacent accepted state/frame/time indices, matching applied actions, zero unexp
 and a correct stop summary. Ending PIE explicitly stops an active recorder and logs its counters
 before the component is destroyed, so evidence is not lost with the in-memory buffer.
 
-## 17. Required personal exercises
+## 17. Deterministic character reset
+
+A visible teleport is not a deterministic reset. Mover owns a simulation state that includes the
+authoritative transform, linear and angular velocity, movement mode, cached floor/base information,
+and Smooth Walking's internal spring variables. Moving only the Actor can leave those values from
+the previous episode alive, so the next Mover frame can overwrite the visible pose or accelerate
+from inherited momentum.
+
+D-017 resets through Mover's simulation seam. The bridge first captures one valid finalized state
+as the fixed reset anchor. When a reset is requested, it stops the old recorder, temporarily sends a
+zero desired-velocity command, marks Smooth Walking's `DidGenerateMove` history stale, and queues
+Mover's teleport followed by a non-additive zero-velocity effect for the same next simulation frame.
+The velocity effect explicitly retains the anchor's movement mode. In UE 5.8, a stale Smooth
+Walking marker causes its next move generation to initialize spring velocity and intermediate
+velocity from the now-zero authoritative velocity, and to zero spring acceleration and intermediate
+angular velocity.
+
+The reset lifecycle is:
+
+`old episode -> stop recorder -> queue reset -> finalized verification -> start new episode`
+
+The teleport/reset callback is never recorded as a training transition. The bridge waits for a new
+ordinary finalized state and checks position, yaw, linear velocity, angular velocity, and movement
+mode against explicit tolerances. Only a passing state starts the new episode and becomes its seed.
+The global callback sequence remains monotonic across resets for stale-data detection, while the
+new episode's transition sequence restarts at zero.
+
+For position anchor `p*`, yaw anchor `theta*`, and finalized reset state `s`, the main checks are:
+
+`||p(s) - p*||_2 <= epsilon_position`
+
+`abs(wrap_degrees(theta(s) - theta*)) <= epsilon_yaw`
+
+`||v(s)||_2 <= epsilon_velocity`
+
+`||omega(s)||_2 <= epsilon_angular_velocity`
+
+The yaw wrap matters: `179` and `-179` degrees are only two degrees apart, not 358. A bounded number
+of failed finalized checks turns the reset into an explicit failure; recording never starts on an
+unverified state.
+
+This slice resets the character gameplay state and the inspected Smooth Walking history. It does
+not yet reset a target, timed gate, external actors, arbitrary untagged layered moves/modifiers, the
+animation graph's visual history, a planner warm start, or random-number generators. Those belong
+to the later arena-level reset. Claiming more would make the experiment look deterministic without
+actually controlling all of its initial conditions.
+
+## 18. Required personal exercises
 
 Before each component is accepted, explain without looking:
 

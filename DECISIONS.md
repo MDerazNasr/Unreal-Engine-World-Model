@@ -384,3 +384,44 @@ five MotionWorld tests and completed every suite with `Success`. The live opt-in
 every adjacent observation into one accepted transition with no rejection or capacity loss.
 
 Related config/commit/experiment: `FEAS-001`; `unreal/Plugins/MotionWorld`.
+
+## D-017 - Verified Mover-owned character reset
+
+Status: design accepted; implementation pending editor close
+
+Decision: Capture a valid finalized gameplay anchor, then reset through Mover's queued teleport and
+non-additive zero-velocity effects. Stop the old episode before queuing, force a zero command during
+the reset frame, mark Smooth Walking's prior generated-move state stale, and start the new episode
+only after a bounded post-finalization verifier accepts position, yaw, velocities, and movement
+mode. Keep the global callback sequence monotonic while restarting episode-local transition IDs.
+
+Why: Actor transform alone is not the simulation state. Mover can otherwise retain authoritative
+velocity, cached floor/base information, and Smooth Walking spring history, or overwrite a direct
+scene transform on its next frame. Delaying recorder start prevents a teleport from becoming a
+false learned transition.
+
+Alternatives considered: Direct `SetActorTransform`; direct mutation of Mover's protected cached
+state; accept the first callback without verification; start recording before the teleport; reset
+the animation graph and whole arena in the same slice; treat a new PIE session as reset evidence.
+
+Evidence: UE 5.8's public API queues instant effects into the simulation. Its teleport effect writes
+the finalized transform and invalidates floor/base cache entries; its non-additive velocity effect
+writes linear velocity, zero angular velocity, and an explicit movement mode. Smooth Walking source
+shows that a stale `DidGenerateMove` entry reinitializes all five spring/intermediate quantities
+from current velocity/facing. `OnPostFinalize` supplies the authoritative state needed for a
+fail-closed acceptance check.
+
+Main assumption: The standalone sample uses the inspected non-async Mover path and its registered
+`Walking` mode is the same Smooth Walking implementation whose rollback marker was audited.
+
+How it could fail: Another queued effect, modifier, or layered move acts after reset; teleport is
+collision-adjusted; the reset anchor is unsafe; a backend changes effect ordering; the rollback
+marker cannot be written externally; or an external system mutates gameplay state before
+finalization. The verifier must reject these observable mismatches, and the implementation must not
+claim reset of unobservable animation or arena state.
+
+How I tested it: Pending. Required gates are pure verifier edge cases, strict universal builds,
+actual-sample automation, then two same-session resets with matching finalized seed states and no
+cross-episode transition.
+
+Related config/commit/experiment: `FEAS-001`; `unreal/Plugins/MotionWorld`.
