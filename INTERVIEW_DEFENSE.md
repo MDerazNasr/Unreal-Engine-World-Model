@@ -111,6 +111,21 @@ Overwriting silently changes the episode's start and breaks provenance. A hard b
 while a counted capacity drop and automatic stop make truncation explicit. The final persisted
 episodes will be intentionally shorter than the bound.
 
+### How do you know reset cleared hidden controller state?
+
+I do not infer reset from the visible Actor transform. The request runs through Mover: it teleports
+the authoritative state, applies non-additive zero linear velocity and zero angular velocity in the
+captured movement mode, and marks Smooth Walking's `DidGenerateMove` value stale. In the audited UE
+5.8 source, that stale marker reinitializes spring velocity, acceleration, intermediate velocity,
+intermediate facing, and intermediate angular velocity from the reset velocity and facing. I then
+accept only a newer non-resimulated finalized state whose position, yaw, velocities, and mode meet
+explicit tolerances. Recording starts after that check, so no teleport crosses an episode boundary.
+
+Evidence required: two same-session resets from nonzero displacement, matching finalized seeds,
+zero residual speeds within tolerance, and separate episode summaries. This character-level claim
+does not include animation-graph history, external actors, the timed gate, RNG, or planner state;
+the arena reset must handle those separately.
+
 ### Why not NavMesh?
 
 NavMesh provides global/static routing. MotionWorld addresses short-horizon local control under timing, perturbation, and model mismatch. They are complementary layers.

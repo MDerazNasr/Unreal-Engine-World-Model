@@ -1,0 +1,18 @@
+# MotionWorld D-017 actual-sample automation evidence
+# Captured: 2026-08-31
+# Source: GameAnimationSampleEditor/motionworld-d017-actual-tests-20260831.log
+# Actual deployed universal dylib SHA-256: 56843d72210e04030e03f8979b291b454b9f55dbeb1d9e0e4d74300a5b9ff8e6
+
+[2026.08.31-12.55.14:019][542]LogAutomationCommandLine: Display: Found 6 automation tests based on 'MotionWorld'
+[2026.08.31-12.55.14:024][542]LogAutomationController: Display: Test Started. Name={SanitizeWorldVelocity} Path={MotionWorld.Command.SanitizeWorldVelocity}
+[2026.08.31-12.55.14:042][545]LogAutomationController: Display: Test Completed. Result={Success} Name={SanitizeWorldVelocity} Path={MotionWorld.Command.SanitizeWorldVelocity}
+[2026.08.31-12.55.14:044][545]LogAutomationController: Display: Test Started. Name={PlanarVelocity} Path={MotionWorld.Coordinates.PlanarVelocity}
+[2026.08.31-12.55.14:067][548]LogAutomationController: Display: Test Completed. Result={Success} Name={PlanarVelocity} Path={MotionWorld.Coordinates.PlanarVelocity}
+[2026.08.31-12.55.14:068][548]LogAutomationController: Display: Test Started. Name={InMemoryRecorder} Path={MotionWorld.Episode.InMemoryRecorder}
+[2026.08.31-12.55.14:092][551]LogAutomationController: Display: Test Completed. Result={Success} Name={InMemoryRecorder} Path={MotionWorld.Episode.InMemoryRecorder}
+[2026.08.31-12.55.14:093][551]LogAutomationController: Display: Test Started. Name={FinalizedVerifier} Path={MotionWorld.Reset.FinalizedVerifier}
+[2026.08.31-12.55.14:117][554]LogAutomationController: Display: Test Completed. Result={Success} Name={FinalizedVerifier} Path={MotionWorld.Reset.FinalizedVerifier}
+[2026.08.31-12.55.14:118][554]LogAutomationController: Display: Test Started. Name={AuthoritativeSample} Path={MotionWorld.State.AuthoritativeSample}
+[2026.08.31-12.55.14:142][557]LogAutomationController: Display: Test Completed. Result={Success} Name={AuthoritativeSample} Path={MotionWorld.State.AuthoritativeSample}
+[2026.08.31-12.55.14:142][557]LogAutomationController: Display: Test Started. Name={CausalPairing} Path={MotionWorld.Transition.CausalPairing}
+[2026.08.31-12.55.14:167][560]LogAutomationController: Display: Test Completed. Result={Success} Name={CausalPairing} Path={MotionWorld.Transition.CausalPairing}

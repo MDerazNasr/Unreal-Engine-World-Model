@@ -325,3 +325,31 @@ Artifacts: `DECISIONS.md` D-011/D-012/D-013/D-014, `THEORY.md` sections 11-14, `
   persistence and deterministic reset are still unimplemented and receive no credit from this gate.
 - Preserved evidence: `evidence/unreal/d016_episode_1601.log`, including the source-log SHA-256 at
   capture time.
+
+### Verified Mover-owned character reset compile gate (2026-08-31)
+
+- Added a pure reset target/verifier. It fails closed on invalid targets/tolerances/states,
+  resimulation, position/yaw/linear-speed/angular-speed mismatch, and wrong movement mode. Its test
+  also proves shortest-angle yaw wrapping and inclusive tolerance boundaries.
+- Integrated an opt-in Mover reset lifecycle: stop the prior recorder, lock and zero the command,
+  mark Smooth Walking's generated-move history stale, queue teleport then non-additive zero velocity
+  in the anchor mode, and start a new episode only after a newer finalized state passes verification.
+- Reviewer added fixed reset-frame facing intent, bounded verification failure, command-restoration
+  deferral, rejection of episode start while reset is pending, and an explicit same-session proof
+  sequence. When opted in, it resets into episode 1701, records 60 accepted transitions, then resets
+  into 1702. Pre-reset anchor distance and post-reset residual errors are logged.
+- Strict universal Mac Editor Development, Game Development, and Game Shipping builds pass. The
+  packaged editor dylib contains `arm64` and `x86_64`; SHA-256 is
+  `3dadef2b3927efe1e9b52e73d2b057c7f5c3e46c9d04e725a80ef6fa5c900a18`.
+- The focused verifier executed successfully in a disposable host. The first launch attempt against
+  `BuildPlugin`'s removed temporary `.uproject` was not a test failure; wrapping the packaged plugin
+  in a disposable minimal host made the test executable.
+- Copied only committed source into the closed Game Animation Sample and verified an empty rsync
+  parity check. Its universal `GameAnimationSampleEditor` target built successfully in 36.93 seconds.
+  The deployed editor dylib contains both architectures; SHA-256 is
+  `56843d72210e04030e03f8979b291b454b9f55dbeb1d9e0e4d74300a5b9ff8e6`.
+- Headless NullRHI execution found exactly six actual-sample MotionWorld tests. Command, coordinate,
+  recorder, reset verifier, authoritative state, and causal pairing all completed with `Success`.
+- Scope boundary: compilation and pure verification do not prove that queued effects reset the live
+  sample. Two same-session PIE resets and their episode boundaries remain the D-017 acceptance gate.
+- Preserved automation evidence: `evidence/unreal/d017_actual_automation.log`.

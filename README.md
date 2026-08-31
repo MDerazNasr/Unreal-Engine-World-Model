@@ -50,6 +50,8 @@ fail-closed causal-transition contract, and bounded in-memory episode recorder h
 UE 5.8.2 builds for universal Mac Editor Development, Game Development, and Game Shipping targets.
 The recorder's live chronology gate captured 922 consecutive action-state transitions with no
 rejected pair or capacity loss.
-File persistence and deterministic reset are deliberately not claimed yet.
+A Mover-owned deterministic character reset and fail-closed finalized-state verifier pass strict
+builds and actual-sample automation; live same-session repeatability remains pending.
+File persistence is deliberately not claimed yet.
 
 No positive result is assumed. A reproducible negative result with a clear diagnosis is a valid research outcome.

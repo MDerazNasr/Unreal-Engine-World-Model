@@ -387,7 +387,7 @@ Related config/commit/experiment: `FEAS-001`; `unreal/Plugins/MotionWorld`.
 
 ## D-017 - Verified Mover-owned character reset
 
-Status: design accepted; implementation pending editor close
+Status: implementation accepted; strict and actual-sample automation pass, live repeatability gate pending
 
 Decision: Capture a valid finalized gameplay anchor, then reset through Mover's queued teleport and
 non-additive zero-velocity effects. Stop the old episode before queuing, force a zero command during
@@ -420,8 +420,11 @@ marker cannot be written externally; or an external system mutates gameplay stat
 finalization. The verifier must reject these observable mismatches, and the implementation must not
 claim reset of unobservable animation or arena state.
 
-How I tested it: Pending. Required gates are pure verifier edge cases, strict universal builds,
-actual-sample automation, then two same-session resets with matching finalized seed states and no
-cross-episode transition.
+How I tested it: The pure verifier executes exact, wrapped-yaw, inclusive-boundary, invalid target,
+invalid tolerance, invalid/resimulated state, position, facing, linear/angular velocity, and mode
+cases. Strict non-unity universal Mac Editor Development, Game Development, and Game Shipping builds
+pass. The committed source matches the actual closed sample; its universal Editor target builds,
+and all six actual-sample MotionWorld tests complete with `Success`. The remaining gate is two
+same-session live resets with matching finalized seed states and no cross-episode transition.
 
 Related config/commit/experiment: `FEAS-001`; `unreal/Plugins/MotionWorld`.

@@ -15,8 +15,8 @@ world-space commands remain available only as an explicit diagnostic mode.
 
 After every Mover finalization, the bridge also retains a versioned authoritative gameplay-state
 snapshot with explicit frames and units. The first valid state and then every configurable Nth
-sample are logged for diagnostics. This is intentionally an in-memory proof before episode file I/O,
-networking, or reset behavior is added.
+sample are logged for diagnostics. This is intentionally an in-memory proof before episode file I/O
+or networking is added.
 
 The causal layer defines a fail-closed transition candidate:
 `previous state --(applied velocity, measured dt)--> next state`. It validates episode identity,
@@ -29,7 +29,12 @@ attempt sequence IDs. Rejections are counted, valid recovery states become the n
 hard capacity stops recording without overwriting older rows. Automatic BeginPlay recording is
 disabled by default. In the actual UE 5.8.2 sample, live episode 1601 reconciled 923 observations
 into 922 consecutive accepted transitions with zero rejected pair, rejected seed, or capacity drop.
-File persistence and deterministic reset remain separate future slices.
+The reset slice captures a fixed authoritative anchor, stops the old recorder, queues Mover-owned
+teleport and zero-velocity effects, stales Smooth Walking history, and starts a new episode only
+after a newer finalized state passes position, yaw, velocity, angular-velocity, and mode checks.
+Its default-off live proof performs two resets in one PIE session so their seed states and episode
+boundaries can be compared. Strict builds and actual-sample automation pass; live repeatability and
+file persistence are not yet claimed.
 
 Build the isolated plugin package on macOS with:
 
