@@ -153,6 +153,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Episode")
 	bool bStartEpisodeRecordingOnBeginPlay = false;
 
+	/** Opt-in durable export under Saved/MotionWorld/Episodes when an episode stops. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Episode")
+	bool bExportEpisodeOnStop = false;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Episode", meta = (ClampMin = "0"))
 	int64 BeginPlayEpisodeId = 0;
 
@@ -166,6 +170,18 @@ protected:
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "MotionWorld|Episode")
 	EMotionWorldRecorderObservationResult LastRecorderObservationResult =
 		EMotionWorldRecorderObservationResult::IgnoredNotRecording;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "MotionWorld|Episode")
+	bool bLastEpisodeExportSucceeded = false;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "MotionWorld|Episode")
+	FString LastEpisodeExportPath;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "MotionWorld|Episode")
+	FString LastEpisodeExportResult;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "MotionWorld|Episode")
+	int64 LastEpisodeExportTransitionCount = 0;
 
 	/** Capture the first valid ordinary finalized state as the fixed character reset pose. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Reset")
@@ -203,6 +219,8 @@ protected:
 	FMotionWorldResetStatus ResetStatus;
 
 private:
+	void ExportCurrentEpisode(const FMotionWorldEpisodeRecorderStats& CompletedStats);
+
 	UFUNCTION()
 	void HandlePostFinalize(
 		const FMoverSyncState& SyncState,

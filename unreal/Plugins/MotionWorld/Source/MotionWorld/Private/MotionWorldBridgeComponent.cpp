@@ -2,10 +2,16 @@
 
 #include "DefaultMovementSet/InstantMovementEffects/BasicInstantMovementEffects.h"
 #include "GameFramework/Actor.h"
+#include "Misc/App.h"
+#include "Misc/DateTime.h"
+#include "Misc/EngineVersion.h"
+#include "Misc/Guid.h"
+#include "Misc/Paths.h"
 #include "MoverComponent.h"
 #include "MoverDataModelTypes.h"
 #include "MoverTypes.h"
 #include "MotionWorldCoordinateFrames.h"
+#include "MotionWorldEpisodeExporter.h"
 #include "MotionWorldStateSample.h"
 #include "MotionWorldVelocityCommand.h"
 
@@ -248,6 +254,72 @@ void UMotionWorldBridgeComponent::StopEpisodeRecording()
 		BeforeStop.RejectedTransitionCount,
 		BeforeStop.RejectedSeedStateCount,
 		BeforeStop.CapacityDropCount);
+
+	if (bExportEpisodeOnStop && BeforeStop.bIsRecording)
+	{
+		ExportCurrentEpisode(BeforeStop);
+	}
+}
+
+void UMotionWorldBridgeComponent::ExportCurrentEpisode(
+	const FMotionWorldEpisodeRecorderStats& CompletedStats)
+{
+	const FDateTime CreatedUtc = FDateTime::UtcNow();
+	const FString UniqueSuffix = FGuid::NewGuid().ToString(EGuidFormats::Digits).Left(12);
+	const FString FileName = FString::Printf(
+		TEXT("episode_%lld_%s_%s.jsonl"),
+		CompletedStats.EpisodeId,
+		*CreatedUtc.ToString(TEXT("%Y%m%dT%H%M%SZ")),
+		*UniqueSuffix);
+	const FString OutputPath = FPaths::Combine(
+		FPaths::ProjectSavedDir(),
+		TEXT("MotionWorld"),
+		TEXT("Episodes"),
+		FileName);
+
+	MotionWorld::FEpisodeExportRequest Request;
+	Request.OutputFilePath = OutputPath;
+	Request.CreatedUtcIso8601 = CreatedUtc.ToIso8601();
+	Request.EngineVersion = FEngineVersion::Current().ToString();
+	Request.ProjectName = FApp::GetProjectName();
+	Request.Stats = CompletedStats;
+	Request.Transitions = EpisodeRecorder.GetTransitions();
+
+	const double ExportStartSeconds = FPlatformTime::Seconds();
+	const MotionWorld::FEpisodeExportOutcome Outcome =
+		MotionWorld::ExportEpisodeJsonLines(Request);
+	const double ExportDurationMilliseconds =
+		(FPlatformTime::Seconds() - ExportStartSeconds) * 1000.0;
+
+	bLastEpisodeExportSucceeded = Outcome.Succeeded();
+	LastEpisodeExportPath = Outcome.OutputFilePath;
+	LastEpisodeExportResult = MotionWorld::LexToString(Outcome.Result);
+	LastEpisodeExportTransitionCount = Outcome.ExportedTransitionCount;
+
+	if (Outcome.Succeeded())
+	{
+		UE_LOG(
+			LogMotionWorldBridge,
+			Display,
+			TEXT("MotionWorld episode exported: episode=%lld transitions=%lld schema_version=%d duration_ms=%.3f path='%s'."),
+			CompletedStats.EpisodeId,
+			Outcome.ExportedTransitionCount,
+			MotionWorld::EpisodeFileSchemaVersion,
+			ExportDurationMilliseconds,
+			*Outcome.OutputFilePath);
+	}
+	else
+	{
+		UE_LOG(
+			LogMotionWorldBridge,
+			Error,
+			TEXT("MotionWorld episode export failed: episode=%lld result=%s detail='%s' duration_ms=%.3f path='%s'."),
+			CompletedStats.EpisodeId,
+			MotionWorld::LexToString(Outcome.Result),
+			*Outcome.Detail,
+			ExportDurationMilliseconds,
+			*Outcome.OutputFilePath);
+	}
 }
 
 bool UMotionWorldBridgeComponent::RequestDeterministicResetAndStartEpisode(
@@ -834,6 +906,10 @@ void UMotionWorldBridgeComponent::HandlePostFinalize(
 				RecorderStats.EpisodeId,
 				MaxRecordedTransitions,
 				RecorderStats.RecordedTransitionCount);
+			if (bExportEpisodeOnStop)
+			{
+				ExportCurrentEpisode(RecorderStats);
+			}
 		}
 	}
 
