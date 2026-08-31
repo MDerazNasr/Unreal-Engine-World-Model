@@ -337,3 +337,44 @@ the command, coordinate, state, and causal-pairing suites with `Success`; the qu
 tests with no D-015 failure.
 
 Related config/commit/experiment: `FEAS-001`; `unreal/Plugins/MotionWorld`.
+
+## D-016 - Bounded in-memory episode recorder
+
+Status: implementation accepted; strict isolated builds pass, actual-sample and live PIE gates pending
+
+Decision: Add an opt-in, game-thread-owned recorder with explicit episode start/stop, first-state
+seeding, attempt-based transition sequence numbers, per-reason rejection counts, recovery seeding,
+and a hard non-overwriting capacity. At `OnPostFinalize`, pair the cached prior finalized state with
+Mover's most recently used velocity packet and the newly finalized state. Keep persistence and
+reset out of this slice.
+
+Why: The transition contract only validates supplied values. A recorder is required to prove the
+live temporal join and to make missing or rejected data observable. A fixed buffer prevents a long
+PIE session from consuming unbounded memory or silently overwriting the beginning of an episode.
+
+Alternatives considered: Independent state/action logs joined offline; automatic recording by
+default; accepted-row-only numbering; overwrite-oldest ring buffer; keep an invalid/resimulated
+endpoint as the next seed; add CSV and reset simultaneously.
+
+Evidence: UE 5.8 assigns `CachedLastUsedInputCmd` and the matching timestep at the end of simulation
+before the backend calls `FinalizeFrame` and broadcasts `OnPostFinalize`. The pure recorder test
+covers disabled behavior, invalid start parameters, first-state seeding, a valid hand-calculated
+pair, unsupported-action rejection, recovery with a visible sequence gap, capacity stop without
+overwrite, restart clearing, invalid seed rejection, and resimulation de-seeding. Strict universal
+Editor Development, Game Development, and Game Shipping builds pass.
+
+Main assumption: `GetLastInputCmd()` and `GetLastTimeStep()` still describe the simulation step
+whose state is being finalized for the standalone sample. Match-based automation provenance is
+sufficient for this experiment because MotionWorld disables movement-base-relative input and
+verifies the consumed velocity against its quantized submission.
+
+How it could fail: An unchanged-frame callback reuses stale timestep/input metadata; another input
+producer writes the same velocity; a delegate changes automation between production/finalization;
+or normal callbacks violate the strict adjacency/timestep tolerance. The live run must inspect
+every rejection count and the exact state/frame/time/action sequence before persistence is allowed.
+
+How I tested it: Repository tests, Ruff, and diff checks pass. Unreal Header Tool generated the new
+reflected API, and strict non-unity universal builds pass for all three targets. Actual-sample test
+execution and a live opt-in episode remain the acceptance gates.
+
+Related config/commit/experiment: `FEAS-001`; `unreal/Plugins/MotionWorld`.

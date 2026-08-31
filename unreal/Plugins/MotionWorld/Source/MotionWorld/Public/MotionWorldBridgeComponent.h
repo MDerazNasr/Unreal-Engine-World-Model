@@ -2,6 +2,7 @@
 
 #include "Components/ActorComponent.h"
 #include "MoverSimulationTypes.h"
+#include "MotionWorldEpisodeRecorder.h"
 #include "MotionWorldStateSample.h"
 #include "MotionWorldBridgeComponent.generated.h"
 
@@ -78,6 +79,26 @@ public:
 	UFUNCTION(BlueprintPure, Category = "MotionWorld|State")
 	FMotionWorldStateSample GetLastAuthoritativeState() const { return LastAuthoritativeState; }
 
+	/** Clears prior rows and starts one explicitly identified in-memory episode. */
+	UFUNCTION(BlueprintCallable, Category = "MotionWorld|Episode")
+	bool StartEpisodeRecording(int64 EpisodeId);
+
+	/** Stops accepting rows while retaining the current episode in memory. */
+	UFUNCTION(BlueprintCallable, Category = "MotionWorld|Episode")
+	void StopEpisodeRecording();
+
+	UFUNCTION(BlueprintPure, Category = "MotionWorld|Episode")
+	FMotionWorldEpisodeRecorderStats GetEpisodeRecorderStats() const
+	{
+		return EpisodeRecorder.GetStats();
+	}
+
+	UFUNCTION(BlueprintPure, Category = "MotionWorld|Episode")
+	FMotionWorldTransitionSample GetLastRecordedTransition() const
+	{
+		return LastRecordedTransition;
+	}
+
 protected:
 	/** False by default so merely adding the component preserves human control. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Command")
@@ -113,6 +134,28 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|State", meta = (ClampMin = "0"))
 	int32 StateDiagnosticLogIntervalSamples = 60;
 
+	/** Hard per-episode bound; overflow stops recording and never overwrites earlier rows. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Episode", meta = (ClampMin = "1", ClampMax = "100000"))
+	int32 MaxRecordedTransitions = 4096;
+
+	/** Opt-in convenience for a self-contained PIE recording trial. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Episode")
+	bool bStartEpisodeRecordingOnBeginPlay = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Episode", meta = (ClampMin = "0"))
+	int64 BeginPlayEpisodeId = 0;
+
+	/** Log every N accepted transitions after the first; zero disables periodic logs. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Episode", meta = (ClampMin = "0"))
+	int32 TransitionDiagnosticLogIntervalSamples = 60;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "MotionWorld|Episode")
+	FMotionWorldTransitionSample LastRecordedTransition;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "MotionWorld|Episode")
+	EMotionWorldRecorderObservationResult LastRecorderObservationResult =
+		EMotionWorldRecorderObservationResult::IgnoredNotRecording;
+
 private:
 	UFUNCTION()
 	void HandlePostFinalize(
@@ -132,4 +175,8 @@ private:
 	bool bLastCommandFrameResolved = true;
 	bool bHasAuthoritativeStateSample = false;
 	bool bPreviousAuthoritativeStateWasValid = false;
+	MotionWorld::FInMemoryEpisodeRecorder EpisodeRecorder;
+	EMotionWorldTransitionRejectionReason LastLoggedRecorderRejectionReason =
+		EMotionWorldTransitionRejectionReason::None;
+	bool bHasLoggedRecorderRejection = false;
 };

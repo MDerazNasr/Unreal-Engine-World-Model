@@ -446,12 +446,54 @@ reason, and never exposes a usable action. This is preferable to "best effort" l
 misaligned row teaches the model a false causal relationship. The builder is constant-time and
 constant-memory: it performs only validation, two timestamp operations, and one planar rotation.
 
-This slice defines and tests the pairing rules but does not yet read Mover's last input or buffer an
-episode. The next recorder slice will take the previous cached finalized state, read
-`GetLastInputCmd()` for the just-completed step, build this transition, and retain it under an
-explicit episode lifecycle.
+This slice defines and tests the pairing rules independently. Section 16 explains the recorder that
+supplies live Mover data to this contract.
 
-## 16. Required personal exercises
+## 16. In-memory episode recorder
+
+An episode is one uninterrupted causal sequence identified by a non-negative integer. Recording is
+opt-in. Starting an episode clears old rows, fixes a hard capacity, and waits for a seed state.
+
+The callback timeline is:
+
+| Finalized callback | What is known | Recorder action |
+|---|---|---|
+| First callback | Current state `s_0`; no earlier endpoint in this episode | Store `s_0` as the seed |
+| Second callback | Mover has used `a_0` and finalized `s_1` | Attempt `(s_0, a_0, delta_0, s_1)` |
+| Third callback | Mover has used `a_1` and finalized `s_2` | Attempt `(s_1, a_1, delta_1, s_2)` |
+
+UE 5.8's implementation supports this ordering. At the end of simulation it assigns
+`CachedLastUsedInputCmd = StartData.InputCmd` and caches the matching timestep. The backend then
+calls `FinalizeFrame`, which broadcasts `OnPostFinalize`. Therefore `GetLastInputCmd()` inside this
+callback refers to the input for the step that produced the new finalized state, not the next step.
+
+Every attempted pair consumes one `transition_sequence`, including rejected pairs. For example, if
+sequences 0 and 2 are stored while sequence 1 was rejected, the gap is evidence of missing data. If
+the current state itself is eligible, it becomes the next seed even when its incoming pair was
+rejected because of an unsupported action. That permits recovery on the next step. A corrupt or
+resimulated state is never used as a seed.
+
+The recorder distinguishes four quantities:
+
+- observed states: callbacks seen while recording;
+- attempted transitions: callbacks for which both endpoints existed;
+- recorded transitions: valid candidates retained in memory;
+- rejected/dropped data: invalid candidates or valid candidates beyond capacity.
+
+The default capacity is 4096 transitions. When it is full, the first extra valid candidate is
+counted as a capacity drop and recording stops. Earlier rows are never overwritten. Per callback,
+validation and appending are amortized `O(1)` time; total memory is `O(N)` up to the fixed capacity.
+
+Mover does not expose which producer authored a packet. The `automated` flag is therefore a checked
+inference: automation was enabled, the input is velocity type, and the consumed world velocity
+matches MotionWorld's last finite submitted packet within Mover's 0.01 cm/s quantization tolerance.
+It must not be described as cryptographic producer identity.
+
+File persistence and deterministic reset remain separate. First, a live episode must show one seed,
+adjacent accepted state/frame/time indices, matching applied actions, zero unexplained rejections,
+and a correct stop summary.
+
+## 17. Required personal exercises
 
 Before each component is accepted, explain without looking:
 

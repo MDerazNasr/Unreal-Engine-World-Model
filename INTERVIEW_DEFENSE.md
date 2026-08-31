@@ -91,6 +91,24 @@ CEM handles bounded actions and non-differentiable analytic collision costs, is 
 
 At each 10 Hz decision, CEM evaluates hundreds of candidates over 12-15 steps and several iterations. Cloning and advancing that many full Unreal worlds is outside the real-time budget. The nominal-plus-residual model is the batched approximation whose accuracy is directly evaluated.
 
+### How do you know each action is paired with the correct state transition?
+
+The first finalized state seeds the episode. UE 5.8 stores the input used by a simulation step and
+its timestep before broadcasting the post-finalization callback. On the next callback I therefore
+pair the prior cached state with that just-used input and the newly finalized state. I require
+adjacent state and Mover-frame IDs, increasing simulation time, and agreement between timestamp
+difference and reported step length. Rejected attempts consume sequence IDs and are counted, so
+missing data cannot masquerade as a continuous trajectory.
+
+Evidence required: UE source ordering, recorder automation test, and a live episode with exact
+seed/transition/stop logs and zero unexplained rejection counts.
+
+### Why stop when the episode buffer is full instead of overwriting old rows?
+
+Overwriting silently changes the episode's start and breaks provenance. A hard bound controls memory
+while a counted capacity drop and automatic stop make truncation explicit. The final persisted
+episodes will be intentionally shorter than the bound.
+
 ### Why not NavMesh?
 
 NavMesh provides global/static routing. MotionWorld addresses short-horizon local control under timing, perturbation, and model mismatch. They are complementary layers.

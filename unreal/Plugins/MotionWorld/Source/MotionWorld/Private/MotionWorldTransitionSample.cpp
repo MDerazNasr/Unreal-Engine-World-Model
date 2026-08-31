@@ -21,7 +21,11 @@ bool IsFiniteVector2D(const FVector2D& Value)
 	return FMath::IsFinite(Value.X) && FMath::IsFinite(Value.Y);
 }
 
-bool IsStateNumericallyValid(const FMotionWorldStateSample& State)
+} // namespace
+
+namespace MotionWorld
+{
+bool IsStateNumericallyValidForTransition(const FMotionWorldStateSample& State)
 {
 	if (!State.bIsValid
 		|| State.SampleSequence < 0
@@ -53,10 +57,7 @@ bool IsStateNumericallyValid(const FMotionWorldStateSample& State)
 			FacingUnitTolerance)
 		&& State.FacingUnitWorld.Equals(ExpectedFacingUnit, FacingUnitTolerance);
 }
-} // namespace
 
-namespace MotionWorld
-{
 FMotionWorldTransitionSample BuildTransitionSample(
 	const FTransitionSampleInputs& Inputs)
 {
@@ -77,13 +78,13 @@ FMotionWorldTransitionSample BuildTransitionSample(
 		return Result;
 	}
 
-	if (!IsStateNumericallyValid(Inputs.PreviousState))
+	if (!IsStateNumericallyValidForTransition(Inputs.PreviousState))
 	{
 		Result.RejectionReason = EMotionWorldTransitionRejectionReason::InvalidPreviousState;
 		return Result;
 	}
 
-	if (!IsStateNumericallyValid(Inputs.NextState))
+	if (!IsStateNumericallyValidForTransition(Inputs.NextState))
 	{
 		Result.RejectionReason = EMotionWorldTransitionRejectionReason::InvalidNextState;
 		return Result;

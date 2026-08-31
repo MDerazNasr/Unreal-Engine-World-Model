@@ -18,11 +18,16 @@ snapshot with explicit frames and units. The first valid state and then every co
 sample are logged for diagnostics. This is intentionally an in-memory proof before episode file I/O,
 networking, or reset behavior is added.
 
-The next bounded layer defines a fail-closed causal transition candidate:
+The causal layer defines a fail-closed transition candidate:
 `previous state --(applied velocity, measured dt)--> next state`. It validates episode identity,
 adjacent simulation chronology, schema, numerical values, and action semantics, and resolves the
-world action in the previous state's character frame. It is currently a pure tested contract; the
-recorder that obtains Mover's last consumed input and buffers complete episodes is the next slice.
+world action in the previous state's character frame.
+
+An opt-in in-memory recorder now seeds the first finalized state, obtains Mover's most recently used
+input at each later finalization, and buffers only accepted transitions under explicit episode and
+attempt sequence IDs. Rejections are counted, valid recovery states become the next seed, and a
+hard capacity stops recording without overwriting older rows. Automatic BeginPlay recording is
+disabled by default. File persistence and deterministic reset remain separate future slices.
 
 Build the isolated plugin package on macOS with:
 

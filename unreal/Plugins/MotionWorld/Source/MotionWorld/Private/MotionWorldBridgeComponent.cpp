@@ -37,11 +37,17 @@ void UMotionWorldBridgeComponent::BeginPlay()
 	UE_LOG(
 		LogMotionWorldBridge,
 		Display,
-		TEXT("MotionWorld bridge ready on '%s'; automation=%s, max_planar_speed=%.2f cm/s, state_log_interval=%d samples."),
+		TEXT("MotionWorld bridge ready on '%s'; automation=%s, max_planar_speed=%.2f cm/s, state_log_interval=%d samples, episode_capacity=%d transitions."),
 		*GetNameSafe(GetOwner()),
 		bAutomationEnabled ? TEXT("enabled") : TEXT("disabled"),
 		MaxPlanarSpeedCmPerSec,
-		StateDiagnosticLogIntervalSamples);
+		StateDiagnosticLogIntervalSamples,
+		MaxRecordedTransitions);
+
+	if (bStartEpisodeRecordingOnBeginPlay)
+	{
+		StartEpisodeRecording(BeginPlayEpisodeId);
+	}
 }
 
 void UMotionWorldBridgeComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -113,6 +119,66 @@ bool UMotionWorldBridgeComponent::SetDesiredVelocityLocalCmPerSec(
 	VelocityCommandFrame = EMotionWorldVelocityCommandFrame::CharacterLocal;
 	++CommandRevision;
 	return true;
+}
+
+bool UMotionWorldBridgeComponent::StartEpisodeRecording(const int64 EpisodeId)
+{
+	if (!ensureMsgf(IsInGameThread(), TEXT("MotionWorld episode recording is game-thread owned."))
+		|| !MoverComponent)
+	{
+		return false;
+	}
+
+	const bool bStarted = EpisodeRecorder.StartEpisode(EpisodeId, MaxRecordedTransitions);
+	LastRecordedTransition = FMotionWorldTransitionSample();
+	LastRecorderObservationResult =
+		EMotionWorldRecorderObservationResult::IgnoredNotRecording;
+	LastLoggedRecorderRejectionReason =
+		EMotionWorldTransitionRejectionReason::None;
+	bHasLoggedRecorderRejection = false;
+
+	if (bStarted)
+	{
+		UE_LOG(
+			LogMotionWorldBridge,
+			Display,
+			TEXT("MotionWorld episode started: episode=%lld capacity=%d; awaiting seed state."),
+			EpisodeId,
+			MaxRecordedTransitions);
+	}
+	else
+	{
+		UE_LOG(
+			LogMotionWorldBridge,
+			Error,
+			TEXT("MotionWorld episode start rejected: episode=%lld capacity=%d."),
+			EpisodeId,
+			MaxRecordedTransitions);
+	}
+
+	return bStarted;
+}
+
+void UMotionWorldBridgeComponent::StopEpisodeRecording()
+{
+	if (!ensureMsgf(IsInGameThread(), TEXT("MotionWorld episode recording is game-thread owned.")))
+	{
+		return;
+	}
+
+	const FMotionWorldEpisodeRecorderStats BeforeStop = EpisodeRecorder.GetStats();
+	EpisodeRecorder.StopEpisode();
+	UE_LOG(
+		LogMotionWorldBridge,
+		Display,
+		TEXT("MotionWorld episode stopped: episode=%lld observed=%lld attempted=%lld recorded=%lld rejected=%lld rejected_seeds=%lld capacity_drops=%lld."),
+		BeforeStop.EpisodeId,
+		BeforeStop.ObservedStateCount,
+		BeforeStop.AttemptedTransitionCount,
+		BeforeStop.RecordedTransitionCount,
+		BeforeStop.RejectedTransitionCount,
+		BeforeStop.RejectedSeedStateCount,
+		BeforeStop.CapacityDropCount);
 }
 
 void UMotionWorldBridgeComponent::ProduceInput_Implementation(
@@ -267,14 +333,123 @@ void UMotionWorldBridgeComponent::HandlePostFinalize(
 	bHasAuthoritativeStateSample = true;
 	bPreviousAuthoritativeStateWasValid = LastAuthoritativeState.bIsValid;
 
+	const FCharacterDefaultInputs* EchoedInputs = nullptr;
+	if (MoverComponent)
+	{
+		const FMoverInputCmdContext& EchoedCommand = MoverComponent->GetLastInputCmd();
+		EchoedInputs =
+			EchoedCommand.InputCollection.FindDataByType<FCharacterDefaultInputs>();
+	}
+
+	if (EpisodeRecorder.GetStats().bIsRecording)
+	{
+		const bool bAppliedInputWasVelocity = EchoedInputs
+			&& EchoedInputs->GetMoveInputType() == EMoveInputType::Velocity;
+		const FVector AppliedVelocityWorldCmPerSec = EchoedInputs
+			? EchoedInputs->GetMoveInput_WorldSpace()
+			: FVector::ZeroVector;
+		const bool bWasMotionWorldAutomated = bAutomationEnabled
+			&& bLastCommandFrameResolved
+			&& bLastSubmittedInputWasFinite
+			&& bAppliedInputWasVelocity
+			&& AppliedVelocityWorldCmPerSec.Equals(
+				LastSubmittedVelocityWorldCmPerSec,
+				0.011);
+
+		LastRecorderObservationResult = EpisodeRecorder.ObserveFinalizedStep(
+			LastAuthoritativeState,
+			bAppliedInputWasVelocity,
+			bWasMotionWorldAutomated,
+			AppliedVelocityWorldCmPerSec);
+		const FMotionWorldEpisodeRecorderStats RecorderStats =
+			EpisodeRecorder.GetStats();
+
+		if (LastRecorderObservationResult
+			== EMotionWorldRecorderObservationResult::Seeded)
+		{
+			UE_LOG(
+				LogMotionWorldBridge,
+				Display,
+				TEXT("MotionWorld episode seeded: episode=%lld state_sequence=%lld mover_step_frame=%d sim_time_s=%.6f."),
+				RecorderStats.EpisodeId,
+				LastAuthoritativeState.SampleSequence,
+				LastAuthoritativeState.MoverStepServerFrame,
+				LastAuthoritativeState.SimulationTimeSeconds);
+		}
+		else if (LastRecorderObservationResult
+			== EMotionWorldRecorderObservationResult::Recorded)
+		{
+			LastRecordedTransition = EpisodeRecorder.GetTransitions().Last();
+			const bool bPeriodicTransitionLog =
+				TransitionDiagnosticLogIntervalSamples > 0
+				&& RecorderStats.RecordedTransitionCount
+					% TransitionDiagnosticLogIntervalSamples == 0;
+			if (RecorderStats.RecordedTransitionCount == 1 || bPeriodicTransitionLog)
+			{
+				UE_LOG(
+					LogMotionWorldBridge,
+					Display,
+					TEXT("MotionWorld transition recorded: episode=%lld transition_sequence=%lld previous_state_sequence=%lld next_state_sequence=%lld delta_s=%.6f action_world_cm_per_sec=(%.2f, %.2f, %.2f) action_local_cm_per_sec=(%.2f, %.2f, %.2f) automated=%s recorded=%lld rejected=%lld."),
+					LastRecordedTransition.EpisodeId,
+					LastRecordedTransition.TransitionSequence,
+					LastRecordedTransition.PreviousState.SampleSequence,
+					LastRecordedTransition.NextState.SampleSequence,
+					LastRecordedTransition.DeltaTimeSeconds,
+					LastRecordedTransition.AppliedAction.VelocityWorldCmPerSec.X,
+					LastRecordedTransition.AppliedAction.VelocityWorldCmPerSec.Y,
+					LastRecordedTransition.AppliedAction.VelocityWorldCmPerSec.Z,
+					LastRecordedTransition.AppliedAction.VelocityLocalPlanarCmPerSec.X,
+					LastRecordedTransition.AppliedAction.VelocityLocalPlanarCmPerSec.Y,
+					LastRecordedTransition.AppliedAction.VelocityLocalPlanarCmPerSec.Z,
+					LastRecordedTransition.AppliedAction.bWasMotionWorldAutomated
+						? TEXT("true")
+						: TEXT("false"),
+					RecorderStats.RecordedTransitionCount,
+					RecorderStats.RejectedTransitionCount);
+			}
+		}
+		else if (LastRecorderObservationResult
+			== EMotionWorldRecorderObservationResult::RejectedSeed
+			|| LastRecorderObservationResult
+				== EMotionWorldRecorderObservationResult::RejectedTransition)
+		{
+			if (!bHasLoggedRecorderRejection
+				|| RecorderStats.LastRejectionReason
+					!= LastLoggedRecorderRejectionReason)
+			{
+				UE_LOG(
+					LogMotionWorldBridge,
+					Warning,
+					TEXT("MotionWorld episode rejected observation: episode=%lld result=%d reason=%d state_sequence=%lld attempted=%lld recorded=%lld rejected=%lld rejected_seeds=%lld."),
+					RecorderStats.EpisodeId,
+					static_cast<int32>(LastRecorderObservationResult),
+					static_cast<int32>(RecorderStats.LastRejectionReason),
+					LastAuthoritativeState.SampleSequence,
+					RecorderStats.AttemptedTransitionCount,
+					RecorderStats.RecordedTransitionCount,
+					RecorderStats.RejectedTransitionCount,
+					RecorderStats.RejectedSeedStateCount);
+				LastLoggedRecorderRejectionReason = RecorderStats.LastRejectionReason;
+				bHasLoggedRecorderRejection = true;
+			}
+		}
+		else if (LastRecorderObservationResult
+			== EMotionWorldRecorderObservationResult::StoppedBufferFull)
+		{
+			UE_LOG(
+				LogMotionWorldBridge,
+				Error,
+				TEXT("MotionWorld episode buffer full: episode=%lld capacity=%d recorded=%lld; recording stopped without overwriting rows."),
+				RecorderStats.EpisodeId,
+				MaxRecordedTransitions,
+				RecorderStats.RecordedTransitionCount);
+		}
+	}
+
 	if (!bAutomationEnabled || !MoverComponent)
 	{
 		return;
 	}
-
-	const FMoverInputCmdContext& EchoedCommand = MoverComponent->GetLastInputCmd();
-	const FCharacterDefaultInputs* EchoedInputs =
-		EchoedCommand.InputCollection.FindDataByType<FCharacterDefaultInputs>();
 
 	bLastCommandEchoMatched = bLastCommandFrameResolved
 		&& bLastSubmittedInputWasFinite

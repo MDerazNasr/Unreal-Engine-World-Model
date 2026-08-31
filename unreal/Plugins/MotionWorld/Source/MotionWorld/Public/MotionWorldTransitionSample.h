@@ -96,6 +96,10 @@ struct MOTIONWORLD_API FMotionWorldTransitionSample
 
 namespace MotionWorld
 {
+/** Revalidates all numeric state fields before the state can seed or enter a transition. */
+MOTIONWORLD_API bool IsStateNumericallyValidForTransition(
+	const FMotionWorldStateSample& State);
+
 struct FTransitionSampleInputs
 {
 	int64 EpisodeId = -1;

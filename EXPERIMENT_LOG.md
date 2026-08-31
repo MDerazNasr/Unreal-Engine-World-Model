@@ -287,3 +287,21 @@ Artifacts: `DECISIONS.md` D-011/D-012/D-013/D-014, `THEORY.md` sections 11-14, `
   causal-pairing suites each completed with `Result={Success}`, and the queue ended with `4 tests
   performed`. D-015 therefore passes as a pure contract. Live consumed-input pairing, episode
   buffering, persistence, and reset are still unimplemented and receive no credit from this test.
+
+### In-memory episode recorder isolated compile gate (2026-08-31)
+
+- UE 5.8 source audit confirms the simulation stores `StartData.InputCmd` as
+  `CachedLastUsedInputCmd` and caches the timestep before the backend finalizes the frame and emits
+  `OnPostFinalize`. This supports the intended prior-state / just-used-action / current-state join.
+- Added an opt-in recorder with explicit episode identity, first-state seeding, attempted-pair
+  sequence numbers, per-reason rejection counts, recovery seeding, a 4096-row default limit, and a
+  stop-without-overwrite capacity policy. BeginPlay auto-start exists only as a disabled-by-default
+  live-test convenience.
+- A compiled test exercises inactive behavior, invalid IDs/capacities, seed semantics, exact causal
+  endpoints and local action conversion, unsupported-action rejection, visible sequence gaps,
+  recovery, capacity stop, episode restart, invalid seed handling, and resimulation de-seeding.
+- Reviewer notes that Mover exposes the consumed packet but not producer identity. `automated=true`
+  is therefore assigned only when the velocity packet matches MotionWorld's last finite submitted
+  command while automation is enabled.
+- Strict non-unity universal Mac Editor Development, Game Development, and Game Shipping builds
+  pass. Actual-sample automation and a live episode are pending; no runtime pairing claim is made.
