@@ -279,7 +279,7 @@ Related config/commit/experiment: `FEAS-001`; `unreal/Plugins/MotionWorld`.
 
 ## D-014 - Versioned finalized authoritative-state snapshot
 
-Status: strict isolated universal builds pass; actual-sample execution and live state evidence are pending
+Status: accepted; strict builds, actual-sample automation, and live finalized-state evidence pass
 
 Decision: Capture a version-1 gameplay-state snapshot from the `FMoverDefaultSyncState` supplied directly to `OnPostFinalize`. Store explicit world position, world velocity, character-local planar velocity, yaw plus sine/cosine facing, world angular velocity, movement mode, end-of-step simulation time, step duration, Mover frame, resimulation flag, validity, and a monotonic callback sequence. Keep this in memory with throttled diagnostic logging; do not add episode file I/O or reset in the same slice.
 
@@ -293,6 +293,6 @@ Main assumption: The standalone Game Animation Sample's finalized Mover state is
 
 How it could fail: A missing default sync block, non-finite data, duplicate/rewound simulation time, an incorrect end-of-step timestamp, coordinate-frame leakage, or a logging rate that harms runtime. Invalid state fails closed; timestep/resimulation metadata remains explicit; later episode logging must deduplicate by simulation chronology rather than callback count alone.
 
-How I tested it: The pure builder tests a hand-calculated yaw-90 conversion, world/local separation, yaw normalization and sine/cosine, sequence advancement, missing source, non-finite input, and non-positive timestep. Strict universal Mac Editor Development, Game Development, and Game Shipping builds pass. Actual-sample automation and live PIE sampling remain required before acceptance.
+How I tested it: The pure builder tests a hand-calculated yaw-90 conversion, world/local separation, yaw normalization and sine/cosine, sequence advancement, missing source, non-finite input, and non-positive timestep. Strict universal Mac Editor Development, Game Development, and Game Shipping builds pass. The actual universal sample target built in 17.84 seconds, and all three MotionWorld tests completed with `Success`. A live default-off PIE run retained 13 throttled samples over sequences 0-720 and simulation times 0.071-39.317 seconds with zero invalid, resimulated, non-monotonic, or non-positive-step samples. The stream covers rest, translation, turning, near-zero motion, and a `Traversing` mode change with elevated world Z. At yaw approximately -45 degrees, world velocity `(266.25, -266.25)` cm/s resolves to local `(376.53, approximately 0)` cm/s as expected.
 
 Related config/commit/experiment: `FEAS-001`; `unreal/Plugins/MotionWorld`.

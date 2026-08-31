@@ -343,17 +343,17 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 
 ### 4.4 Authoritative state and tick order
 
-- [ ] Select actor/capsule/Mover state as the sole planning ground truth.
-- [ ] Sample global XY position after movement.
-- [ ] Sample velocity and convert to declared frame.
-- [ ] Sample facing in a valid representation.
-- [ ] Sample angular velocity with declared units.
-- [ ] Record engine timestamp and step index.
-- [ ] Prove sampling happens after movement rather than before it.
+- [x] Select actor/capsule/Mover state as the sole planning ground truth.
+- [x] Sample global XY position after movement.
+- [x] Sample velocity and convert to declared frame.
+- [x] Sample facing in a valid representation.
+- [x] Sample angular velocity with declared units.
+- [x] Record engine timestamp and step index.
+- [x] Prove sampling happens after movement rather than before it.
 - [ ] Log animation-root transform with a distinct field name.
 - [ ] Log toe transforms only as diagnostics.
 - [ ] Plot actor and animation-root trajectories separately.
-- [ ] Confirm no code substitutes animation root for actor state.
+- [x] Confirm no code substitutes animation root for actor state.
 
 ### 4.5 Deterministic scenario lifecycle
 
