@@ -353,3 +353,20 @@ Artifacts: `DECISIONS.md` D-011/D-012/D-013/D-014, `THEORY.md` sections 11-14, `
 - Scope boundary: compilation and pure verification do not prove that queued effects reset the live
   sample. Two same-session PIE resets and their episode boundaries remain the D-017 acceptance gate.
 - Preserved automation evidence: `evidence/unreal/d017_actual_automation.log`.
+
+### D-017 live attempt 1 — proof trigger inactive (2026-08-31)
+
+- Candidate observed one apparent teleport followed by the character stopping at an obstacle.
+- Log audit shows this was the sample level's existing teleport dock, not MotionWorld: Mover warned
+  that its simulated location near `X=1551.63 cm` disagreed with an out-of-band component location
+  at `X=2500 cm`. No `MotionWorld reset`, episode 1701, or transition message was emitted.
+- The bridge itself was active with automation enabled and local `(200, 0, 0) cm/s`; it captured the
+  reset anchor and continued emitting valid finalized states. Therefore command/state integration
+  did not fail, but the default-off live-test trigger was not enabled on the Blueprint class used to
+  spawn the pawn.
+- Asset inspection supports the configuration diagnosis: the saved Blueprint contains overridden
+  command properties but no serialized `bRequestResetAfterWarmupOnBeginPlay` property name, which
+  would be present if its value differed from the C++ default `false`.
+- Result: invalid as reset evidence; D-017 remains open. Reconfigure the component on the
+  `SandboxCharacter_Mover` Blueprint class, compile and save it, then rerun and require two verified
+  MotionWorld reset messages plus clean episode 1701/1702 boundaries.
