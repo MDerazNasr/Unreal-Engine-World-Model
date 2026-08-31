@@ -467,3 +467,5 @@ Artifacts: `DECISIONS.md` D-011/D-012/D-013/D-014, `THEORY.md` sections 11-14, `
 - The independent Python loader recomputes every gate phase/position/velocity from the schedule and
   rejects false success, early timeout, event/summary disagreement, non-orthogonal frames, unknown
   fields, and all prior chronology/action errors. Full Python result: 16 passed; Ruff passed.
+- Final exact-deployment regression found all eight MotionWorld tests and all eight succeeded with
+  exit code zero. Repository/sample source parity differs only in a directory timestamp.
