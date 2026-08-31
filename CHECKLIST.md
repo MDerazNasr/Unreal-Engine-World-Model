@@ -35,7 +35,7 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [x] Apply programmatic desired velocity and capture authoritative post-movement state (completed after the original Sunday 18:00 target).
 - [x] Demonstrate deterministic character reset and preserve complete in-memory episode lifecycle evidence.
 - [ ] Add the deterministic timed gate and its event/termination labels.
-- [ ] Persist one complete validated episode file for the Python pipeline.
+- [x] Persist one complete character-dynamics episode file and validate all 458 rows independently in Python.
 - [ ] Close/merge `feature/unreal-feasibility` only if the Section 4 feasibility gate and required Section 5 safety checks pass.
 - [x] Do not activate the Manny plus Mover fallback because the Game Animation Sample path is working.
 - [x] Do not freeze Unreal claims at evidence levels 1-2 because UE 5.8.2 runtime evidence is available.
@@ -555,13 +555,13 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 
 ### 7.3 Dataset validation
 
-- [ ] Reject duplicate episode/step keys.
-- [ ] Reject non-monotonic timestamps or step indices.
-- [ ] Reject sequence gaps unless explicitly recorded.
-- [ ] Reject non-finite states/actions.
+- [x] Reject duplicate/non-increasing transition identities within one episode file.
+- [x] Reject non-monotonic timestamps or state/Mover step indices within accepted rows.
+- [x] Reject sequence gaps unless explicitly recorded.
+- [x] Reject non-finite states/actions.
 - [ ] Validate units and plausible ranges.
-- [ ] Validate action/next-state temporal alignment.
-- [ ] Validate reset boundaries.
+- [x] Validate action/next-state temporal alignment.
+- [x] Validate one file has one episode identity and no row crosses its boundary.
 - [ ] Validate no window crosses episode termination.
 - [ ] Produce coverage histograms for speed, direction, turns, stops, contact, impulses, and parameters.
 

@@ -53,7 +53,8 @@ rejected pair or capacity loss.
 A Mover-owned deterministic character reset and fail-closed finalized-state verifier pass strict
 builds, actual-sample automation, and two live same-session resets with identical verified seed
 states and no transition crossing either reset boundary.
-An opt-in atomic JSON Lines exporter and strict Python validator pass isolated and actual-sample
-automation; one live exported file remains the persistence acceptance gate.
+An opt-in atomic JSON Lines exporter and strict Python validator pass isolated, actual-sample, and
+live-file gates. Episode 1801 exported 458 accepted transitions with zero rejection/capacity loss;
+the independent loader validated every row and the completeness footer.
 
 No positive result is assumed. A reproducible negative result with a clear diagnosis is a valid research outcome.

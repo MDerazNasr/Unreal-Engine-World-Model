@@ -415,3 +415,21 @@ Artifacts: `DECISIONS.md` D-011/D-012/D-013/D-014, `THEORY.md` sections 11-14, `
   termination, scenario seed, and animation diagnostics remain outside schema v1 until their
   authoritative sources exist.
 - Preserved automation evidence: `evidence/unreal/d018_actual_automation.log`.
+
+### D-018 live episode 1801 — accepted (2026-08-31)
+
+- The opt-in bridge seeded episode 1801 at state sequence 0 / Mover frame 1 and stopped with 459
+  observations, 458 attempted transitions, 458 recorded transitions, zero rejected transitions,
+  zero rejected seeds, and zero capacity drops.
+- Atomic export published 458 rows in 15.809 ms. The resulting file is 600027 bytes and has exactly
+  460 lines: one header, 458 transition records, and one complete footer. No sibling `.tmp` file
+  remains.
+- The independent Python command returned `valid=true episode=1801 transitions=458 attempted=458
+  rejected=0 capacity_drops=0`; it therefore rechecked every nested state/action record rather than
+  trusting Unreal's success log.
+- Raw-file SHA-256 is `154ab619c883076572d6336a5c785ef8386fd385ffcf33a1d5e801ac24a35bca`.
+  The generated trajectory remains under the sample's `Saved` directory and is not committed.
+- D-018 passes. The file makes character dynamics durable, but it is not yet a complete timed-gate
+  scenario episode because target, obstacle, event, termination, and scenario-seed fields do not
+  exist yet.
+- Preserved audit: `evidence/unreal/d018_live_episode_1801.log`.

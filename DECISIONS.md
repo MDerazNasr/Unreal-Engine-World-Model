@@ -436,7 +436,7 @@ Related config/commit/experiment: `FEAS-001`; `unreal/Plugins/MotionWorld`.
 
 ## D-018 - Atomic versioned episode export
 
-Status: implementation accepted; strict builds and actual-sample automation pass, live file gate pending
+Status: accepted; strict builds, actual-sample automation, and independent live-file validation pass
 
 Decision: Export one completed in-memory episode as UTF-8 JSON Lines under
 `Saved/MotionWorld/Episodes`. Write a typed header, one object per already-accepted transition, and
@@ -467,8 +467,10 @@ How it could fail: Disk permission or capacity failure; process termination befo
 drift; file collision; invalid recorder counters; a corrupt transition; or a downstream parser that
 silently accepts NaN, missing fields, reset leakage, or coordinate mismatch.
 
-How I tested it: Strict C++ compilation and automation plus 11 Python tests and Ruff pass. The
-remaining acceptance gate is one real exported Game Animation Sample episode that the independent
-Python command validates with reconciled counters and no partial `.tmp` file.
+How I tested it: Strict C++ compilation and automation plus 11 Python tests and Ruff pass. Live
+episode 1801 exported 458 of 458 attempted transitions with zero rejection or capacity loss in
+15.809 ms. The 600027-byte file contains exactly one header, 458 rows, and one complete footer; the
+independent Python command accepts every row, no temporary file remains, and the preserved file
+hash is `154ab619...24a35bca`.
 
 Related config/commit/experiment: `FEAS-001`; `bbe2355`; `ae56d35`; `8dcc732`.

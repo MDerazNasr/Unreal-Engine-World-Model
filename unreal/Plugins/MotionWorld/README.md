@@ -40,7 +40,8 @@ were recorded without rejection or a cross-reset row.
 Completed episodes can be exported on opt-in stop as versioned UTF-8 JSON Lines beneath
 `Saved/MotionWorld/Episodes`. The exporter revalidates every row, writes a header and completeness
 footer through a sibling temporary file, and never replaces an existing destination. Strict and
-actual-sample automation pass; one live file plus independent Python validation remains pending.
+actual-sample automation pass. Live episode 1801 exported 458 rows in 15.809 ms; the independent
+Python loader validated every row, reconciled all counters, and found no partial temporary file.
 
 Build the isolated plugin package on macOS with:
 

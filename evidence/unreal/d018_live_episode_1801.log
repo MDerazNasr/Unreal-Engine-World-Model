@@ -1,0 +1,33 @@
+D-018 LIVE EPISODE EXPORT EVIDENCE
+Date: 2026-08-31
+Project: GameAnimationSample
+Engine: 5.8.2-56702186+++UE5+Release-5.8
+
+[2026.08.31-15.45.58:000][624]LogMotionWorldBridge: Display: MotionWorld bridge ready on 'SandboxCharacter_Mover_C_0'; automation=enabled, max_planar_speed=600.00 cm/s, state_log_interval=60 samples, episode_capacity=4096 transitions.
+[2026.08.31-15.45.58:000][624]LogMotionWorldBridge: Display: MotionWorld episode started: episode=1801 capacity=4096; awaiting seed state.
+[2026.08.31-15.45.58:021][624]LogMotionWorldBridge: Display: MotionWorld episode seeded: episode=1801 state_sequence=0 mover_step_frame=1 sim_time_s=0.036000.
+[2026.08.31-15.45.58:476][625]LogMotionWorldBridge: Display: MotionWorld transition recorded: episode=1801 transition_sequence=0 previous_state_sequence=0 next_state_sequence=1 delta_s=0.100000 action_world_cm_per_sec=(200.00, 0.00, 0.00) action_local_cm_per_sec=(200.00, 0.00, 0.00) automated=true recorded=1 rejected=0.
+[2026.08.31-15.46.31:677][86]LogMotionWorldBridge: Display: MotionWorld episode stopped: episode=1801 observed=459 attempted=458 recorded=458 rejected=0 rejected_seeds=0 capacity_drops=0.
+[2026.08.31-15.46.31:693][86]LogMotionWorldBridge: Display: MotionWorld episode exported: episode=1801 transitions=458 schema_version=1 duration_ms=15.809 path='/Users/mderaznasr/Documents/Unreal Projects/GameAnimationSample/Saved/MotionWorld/Episodes/episode_1801_20260831T154631Z_5BBD6AF83040.jsonl'.
+
+Independent Python command:
+.venv/bin/python scripts/validate_episode.py "/Users/mderaznasr/Documents/Unreal Projects/GameAnimationSample/Saved/MotionWorld/Episodes/episode_1801_20260831T154631Z_5BBD6AF83040.jsonl"
+
+Independent Python result:
+valid=true episode=1801 transitions=458 attempted=458 rejected=0 capacity_drops=0 path=/Users/mderaznasr/Documents/Unreal Projects/GameAnimationSample/Saved/MotionWorld/Episodes/episode_1801_20260831T154631Z_5BBD6AF83040.jsonl
+
+File audit:
+- UTF-8 JSON Lines
+- 460 lines = 1 header + 458 transitions + 1 footer
+- 600027 bytes
+- no sibling *.tmp file remained
+- SHA-256: 154ab619c883076572d6336a5c785ef8386fd385ffcf33a1d5e801ac24a35bca
+
+Header:
+{"record_type":"episode_header","schema_name":"motionworld_episode","schema_version":1,"created_utc":"2026-08-31T15:46:31.677Z","engine_version":"5.8.2-56702186+++UE5+Release-5.8","project_name":"GameAnimationSample","episode_id":1801,"state_source":"mover_finalized_sync_state","conventions":{"world_frame":"unreal_world_x_forward_y_right_z_up","local_action_frame":"previous_state_character_x_forward_y_right","position_unit":"centimetres","linear_velocity_unit":"centimetres_per_second","angle_unit":"degrees","angular_velocity_unit":"degrees_per_second","time_unit":"seconds"},"recorder_stats":{"observed_state_count":459,"attempted_transition_count":458,"recorded_transition_count":458,"rejected_transition_count":0,"rejected_seed_state_count":0,"capacity_drop_count":0}}
+
+Footer:
+{"record_type":"episode_footer","schema_version":1,"episode_id":1801,"transition_count":458,"first_transition_sequence":0,"last_transition_sequence":457,"complete":true}
+
+Scope:
+The raw 600027-byte trajectory remains in the sample Saved directory and is not committed. Schema v1 contains character dynamics only; target, obstacle, collision, termination, scenario seed, and animation diagnostics are not claimed.
