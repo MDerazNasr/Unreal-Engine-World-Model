@@ -100,8 +100,10 @@ adjacent state and Mover-frame IDs, increasing simulation time, and agreement be
 difference and reported step length. Rejected attempts consume sequence IDs and are counted, so
 missing data cannot masquerade as a continuous trajectory.
 
-Evidence required: UE source ordering, recorder automation test, and a live episode with exact
-seed/transition/stop logs and zero unexplained rejection counts.
+Evidence: UE source ordering, the recorder automation test, and live episode 1601. The live run
+reconciled 923 observations into 922 adjacent attempted pairs and accepted all 922, with no rejected
+pair, rejected seed, or capacity drop. This proves the implemented callback join behaved
+consistently in that run; it does not prove all future engine configurations or callback paths.
 
 ### Why stop when the episode buffer is full instead of overwriting old rows?
 

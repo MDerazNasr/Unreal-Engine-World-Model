@@ -27,7 +27,9 @@ An opt-in in-memory recorder now seeds the first finalized state, obtains Mover'
 input at each later finalization, and buffers only accepted transitions under explicit episode and
 attempt sequence IDs. Rejections are counted, valid recovery states become the next seed, and a
 hard capacity stops recording without overwriting older rows. Automatic BeginPlay recording is
-disabled by default. File persistence and deterministic reset remain separate future slices.
+disabled by default. In the actual UE 5.8.2 sample, live episode 1601 reconciled 923 observations
+into 922 consecutive accepted transitions with zero rejected pair, rejected seed, or capacity drop.
+File persistence and deterministic reset remain separate future slices.
 
 Build the isolated plugin package on macOS with:
 

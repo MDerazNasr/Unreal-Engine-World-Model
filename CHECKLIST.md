@@ -330,7 +330,7 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [x] Capture a live character-local request resolving through authoritative yaw and echoing the expected world vector.
 - [x] Restore the attached bridge to automation disabled after the fixed-command test.
 - [ ] Apply zero desired velocity.
-- [ ] Apply forward desired velocity.
+- [x] Apply forward desired velocity and retain a causally paired live episode under the consumed command.
 - [ ] Apply lateral desired velocity.
 - [ ] Apply diagonal desired velocity.
 - [ ] Apply stop command from motion.
@@ -501,7 +501,7 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 
 ### 6.5 Nominal empirical validation
 
-- [ ] Align action at time `t` with correct next state at `t+1`.
+- [x] Align action at time `t` with correct next state at `t+1`; live episode 1601 accepted all 922 adjacent pairs with zero rejection.
 - [ ] Compare nominal and Unreal one-step transitions.
 - [ ] Compare recursive errors at 0.5, 1.0, and 1.5 s.
 - [ ] Stratify free motion, acceleration, stopping, reversing, turning, contact, and post-push.

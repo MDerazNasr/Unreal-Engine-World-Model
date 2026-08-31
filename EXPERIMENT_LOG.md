@@ -313,5 +313,15 @@ Artifacts: `DECISIONS.md` D-011/D-012/D-013/D-014, `THEORY.md` sections 11-14, `
   `bc032b0a21f41b48df203fb98ba67075629c231f15e1f861d7664273208c7bad`.
 - Headless NullRHI execution found exactly five MotionWorld tests. Command sanitization, coordinate
   conversion, episode recorder, authoritative state, and transition pairing all completed with
-  `Result={Success}`; the queue ended with `5 tests performed`. Live PIE chronology is still pending
-  and no file-persistence/reset claim is made.
+  `Result={Success}`; the queue ended with `5 tests performed`.
+- Live PIE episode 1601 started with automation enabled and a character-local desired velocity of
+  `(200, 0, 0)` cm/s. State sequence 0 seeded the recorder at Mover frame 1. The first accepted row
+  paired state 0 to 1 with the consumed action resolving to world `(200, 0, 0)` cm/s; diagnostic
+  rows remained consecutive through transition 899 / state 900.
+- The EndPlay summary reconciled 923 observations into 922 attempted and 922 recorded transitions,
+  with `rejected=0`, `rejected_seeds=0`, and `capacity_drops=0`. This passes the live chronology gate
+  and accepts D-016. The roughly 52-second run remained below the 4096-row limit.
+- Scope boundary: rows are retained only in memory and summarized to the Unreal log. Durable file
+  persistence and deterministic reset are still unimplemented and receive no credit from this gate.
+- Preserved evidence: `evidence/unreal/d016_episode_1601.log`, including the source-log SHA-256 at
+  capture time.

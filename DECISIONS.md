@@ -340,7 +340,7 @@ Related config/commit/experiment: `FEAS-001`; `unreal/Plugins/MotionWorld`.
 
 ## D-016 - Bounded in-memory episode recorder
 
-Status: implementation accepted; strict and actual-sample automation pass, live PIE gate pending
+Status: accepted; strict builds, actual-sample automation, and live PIE chronology gate pass
 
 Decision: Add an opt-in, game-thread-owned recorder with explicit episode start/stop, first-state
 seeding, attempt-based transition sequence numbers, per-reason rejection counts, recovery seeding,
@@ -361,7 +361,11 @@ before the backend calls `FinalizeFrame` and broadcasts `OnPostFinalize`. The pu
 covers disabled behavior, invalid start parameters, first-state seeding, a valid hand-calculated
 pair, unsupported-action rejection, recovery with a visible sequence gap, capacity stop without
 overwrite, restart clearing, invalid seed rejection, and resimulation de-seeding. Strict universal
-Editor Development, Game Development, and Game Shipping builds pass.
+Editor Development, Game Development, and Game Shipping builds pass. In live PIE, episode 1601
+seeded state 0 and recorded 922 consecutive transitions from 923 observations under the consumed
+character-local `(200, 0, 0)` cm/s command. The first pair was state 0 to 1; periodic evidence
+continued through pair 899 to 900; the EndPlay summary reported `attempted=922`, `recorded=922`,
+`rejected=0`, `rejected_seeds=0`, and `capacity_drops=0`.
 
 Main assumption: `GetLastInputCmd()` and `GetLastTimeStep()` still describe the simulation step
 whose state is being finalized for the standalone sample. Match-based automation provenance is
@@ -376,7 +380,7 @@ every rejection count and the exact state/frame/time/action sequence before pers
 How I tested it: Repository tests, Ruff, and diff checks pass. Unreal Header Tool generated the new
 reflected API, and strict non-unity universal builds pass for all three targets. Deployed source
 matches the closed sample; its universal Editor target built successfully, and a headless run found
-five MotionWorld tests and completed every suite with `Success`. A live opt-in episode remains the
-final acceptance gate.
+five MotionWorld tests and completed every suite with `Success`. The live opt-in episode reconciled
+every adjacent observation into one accepted transition with no rejection or capacity loss.
 
 Related config/commit/experiment: `FEAS-001`; `unreal/Plugins/MotionWorld`.
