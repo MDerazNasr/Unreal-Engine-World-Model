@@ -52,6 +52,11 @@ void UMotionWorldBridgeComponent::BeginPlay()
 
 void UMotionWorldBridgeComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+	if (EpisodeRecorder.GetStats().bIsRecording)
+	{
+		StopEpisodeRecording();
+	}
+
 	if (MoverComponent)
 	{
 		MoverComponent->OnPostFinalize.RemoveDynamic(

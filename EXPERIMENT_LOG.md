@@ -303,6 +303,8 @@ Artifacts: `DECISIONS.md` D-011/D-012/D-013/D-014, `THEORY.md` sections 11-14, `
 - Reviewer notes that Mover exposes the consumed packet but not producer identity. `automated=true`
   is therefore assigned only when the velocity packet matches MotionWorld's last finite submitted
   command while automation is enabled.
+- Reviewer added an `EndPlay` stop-summary because the in-memory buffer is destroyed when PIE ends;
+  this preserves the final observed/attempted/recorded/rejected/capacity counters in the log.
 - Strict non-unity universal Mac Editor Development, Game Development, and Game Shipping builds
   pass. Actual-sample automation and a live episode are pending; no runtime pairing claim is made.
 - Deployed only committed source into the closed sample and verified source parity. The actual

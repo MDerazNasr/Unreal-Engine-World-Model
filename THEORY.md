@@ -491,7 +491,8 @@ It must not be described as cryptographic producer identity.
 
 File persistence and deterministic reset remain separate. First, a live episode must show one seed,
 adjacent accepted state/frame/time indices, matching applied actions, zero unexplained rejections,
-and a correct stop summary.
+and a correct stop summary. Ending PIE explicitly stops an active recorder and logs its counters
+before the component is destroyed, so evidence is not lost with the in-memory buffer.
 
 ## 17. Required personal exercises
 
