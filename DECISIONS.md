@@ -520,8 +520,8 @@ Related config/commit/experiment: `FEAS-001`; live episodes 1901/1902; `dc09bbf`
 
 ## D-020 - Animation root is separate QA telemetry
 
-Status: pure contract, bounded default-off runtime capture, strict parser, plotter, exact-sample
-universal build, and all eight actual-project tests pass; one live trace remains pending
+Status: accepted; pure contract, bounded default-off runtime capture, strict parser/CSV/plotter,
+exact-sample universal build/tests, and one live manual-movement trace pass
 
 Decision: Read the skeletal root from Mover's own primary visual component using bone index zero,
 and store it in `FMotionWorldAnimationDiagnosticSample`, never in `FMotionWorldStateSample` or a
@@ -554,10 +554,13 @@ volume causes runtime noise.
 
 How I tested it: The automation contract covers valid aligned data, explicit world-centimetre root
 offset, missing visual source, and non-finite transform rejection. Strict universal
-Editor/Development/Shipping builds pass. Nineteen Python tests and Ruff pass, including rejection
+Editor/Development/Shipping builds pass. Twenty Python tests and Ruff pass, including rejection
 of sequence and offset corruption. A three-row synthetic trace passed strict parsing and generated
 a visually inspected plot. The exact sample universal build and all eight actual-project tests pass.
-The live trace remains the acceptance gate.
+A live default-automation-off session produced 356/356 valid rows with no capacity loss. Independent
+parsing/CSV export passed: planar root offset was exactly zero; vertical offset ranged from -88.000
+to -86.549 cm around movement onset. The actor traversed 1776.814 cm. The result establishes this
+sample's in-place root behavior for this trace, not a universal animation-system property.
 
 Related config/commit/experiment: `FEAS-001`; `7ab91f4`.
 

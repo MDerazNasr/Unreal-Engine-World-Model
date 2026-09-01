@@ -306,8 +306,9 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [ ] Locate where movement parameters live.
 - [x] Locate post-movement tick/update hooks.
 - [x] Locate authoritative velocity and angular-velocity access.
-- [ ] Locate collision/contact events.
-- [ ] Locate animation-root and toe transform access for diagnostics; primary visual root is known, toe access remains open.
+- [x] Locate collision/contact events.
+- [x] Locate animation-root transform access through Mover's primary skeletal visual.
+- [ ] Locate toe transforms and reliable contact labels before claiming foot sliding.
 - [x] Verify every selected API in version-matched official docs or engine source.
 - [x] Record source file/class/member names and engine version in `DECISIONS.md`.
 - [x] Compile immediately after the smallest C++ change.
@@ -355,9 +356,9 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [x] Sample angular velocity with declared units.
 - [x] Record engine timestamp and step index.
 - [x] Prove sampling happens after movement rather than before it.
-- [ ] Log animation-root transform with a distinct field name.
+- [x] Log animation-root transform with a distinct field name.
 - [ ] Log toe transforms only as diagnostics.
-- [ ] Plot actor and animation-root trajectories separately.
+- [x] Plot actor and animation-root trajectories separately.
 - [x] Confirm no code substitutes animation root for actor state.
 
 ### 4.5 Deterministic scenario lifecycle
@@ -392,7 +393,7 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [x] Record a deterministic character-reset comparison.
 - [x] Preserve complete in-memory episode lifecycle evidence.
 - [x] Validate every required episode field.
-- [ ] Save actor-versus-animation-root trace.
+- [x] Save actor-versus-animation-root trace.
 - [x] Enter `FEAS-001` with version, commit, seed, commands, and artifacts.
 - [x] Reviewer checks tick phase, frames, units, stale state, and reset leakage.
 - [ ] Candidate answers: “Which transform is authoritative, at what tick point, and why?”
@@ -965,12 +966,12 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 ### 13.4 Animation-quality diagnostics
 
 - [ ] Requested planner path versus authoritative actor path.
-- [ ] Authoritative actor path versus animation-root path.
+- [x] Authoritative actor path versus animation-root path.
 - [ ] Facing relative to requested and executed motion.
 - [ ] Animation-root acceleration/jerk if reliable.
 - [ ] Toe/foot sliding only if contact data is reliable.
-- [ ] Avoid modifying animation/IK merely to improve these metrics during P0.
-- [ ] State clearly that MotionWorld does not generate poses.
+- [x] Avoid modifying animation/IK merely to improve these metrics during P0.
+- [x] State clearly that MotionWorld does not generate poses.
 
 ### 13.5 Demo gate
 

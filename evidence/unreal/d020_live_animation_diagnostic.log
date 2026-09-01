@@ -1,0 +1,54 @@
+D-020 live animation-root diagnostic audit
+Date: 2026-09-01
+Status: ACCEPTED
+
+Configuration
+- Session: 7C88DBC1E840
+- Pawn: SandboxCharacter_Mover_C_0
+- Automation: disabled (confirmed in runtime log)
+- Episode/reset/arena: disabled
+- Diagnostic interval: 1
+- Diagnostic capacity: 512
+- Source: Mover primary visual / skeletal bone index 0
+- Capture phase: mover_on_post_finalize_current_pose_buffer
+- Model input: false
+
+Runtime result
+- Valid samples: 356
+- Invalid samples: 0
+- Logged samples: 356
+- Capacity loss: none
+- First sequence/time: 0 / 0.049000 s
+- Last sequence/time: 355 / 19.166000 s
+- Trace duration: 19.117000 s
+- Median step interval: 53.000 ms
+- p95 step interval: 68.000 ms
+- Actor start world cm: (-800.000000, 0.000000, 90.000000)
+- Actor end world cm: (976.813602, 0.000000, 88.274995)
+- Net planar displacement: 1776.813602 cm
+- Visual component/root: SkeletalMesh / root
+
+Independent validation
+- Strict parser: valid=true
+- Ordered finite samples: 356
+- Median planar actor-to-root offset: 0.000000 cm
+- Maximum planar actor-to-root offset: 0.000000 cm
+- Minimum vertical root-minus-actor offset: -88.000000 cm
+- Maximum vertical root-minus-actor offset: -86.548712 cm
+- Exact diagnostic log-row SHA-256:
+  934262a846363f685c52cc2afced3eb9249bf5e7c5c7a4adf49f861fc54f9242
+
+Durable artifacts
+- evidence/unreal/d020_live_animation_trace.csv
+  - 356 data rows plus header
+  - SHA-256: ba19a7f9deb7a17086dc1f50f50480624a0c11ab86ba08b215e9eff7a0ecdea2
+- evidence/plots/d020_live_actor_vs_animation_root.png
+  - 2691x802 RGBA PNG
+  - SHA-256: fef564b3cc88c501384b3bace772fc2a55e26e5d0f49bcaf4e36ccfa752e0c0e
+
+Interpretation
+- The root bone followed actor XY exactly in this trace, consistent with in-place locomotion.
+- A brief 1.451288 cm change in vertical offset occurred at movement onset.
+- Gameplay/Mover state remains authoritative regardless of this observed visual agreement.
+- This single trace does not prove all animations, skeletons, or tick phases have zero planar offset.
+- Toe/contact telemetry was not collected; no foot-sliding claim is supported.

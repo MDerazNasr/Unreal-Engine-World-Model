@@ -578,3 +578,29 @@ actual-project MotionWorld tests returned `Success` with exit code zero.
 
 **Acceptance boundary:** A live trace/plot must still pass before D-020 or Day 1 is closed. See
 `evidence/unreal/d020_animation_diagnostic_pre_live.log`.
+
+## D-020 live animation-root diagnostic — accepted (2026-09-01)
+
+**Configuration:** Default sample pawn, human input, MotionWorld automation/episode/reset/arena
+features disabled; only animation-root diagnostics enabled at interval 1 with a 512-row cap.
+
+**Result:** Session `7C88DBC1E840` produced 356 valid rows, zero invalid rows, 356 logged rows, and no
+capacity stop over 19.117 s. The actor moved 1776.814 cm along world X. The independent parser
+accepted the protocol, session identity, 356 strictly ordered sequences/times, finite transforms,
+fixed source identity (`SkeletalMesh/root`), and every recomputed root offset.
+
+**Observed animation behavior:** Animation-root and actor XY coincided for every row, so median and
+maximum planar offset were both 0 cm. Vertical root-minus-actor offset was normally -88 cm and
+briefly reached -86.549 cm at movement onset. This is evidence that this selected root is in-place
+for this sample/trace; it is not evidence that all animation roots always match gameplay motion.
+
+**Durable artifacts:** The validated 356-row CSV has 357 lines and SHA-256
+`ba19a7f9deb7a17086dc1f50f50480624a0c11ab86ba08b215e9eff7a0ecdea2`. The visually inspected
+three-panel PNG has SHA-256
+`fef564b3cc88c501384b3bace772fc2a55e26e5d0f49bcaf4e36ccfa752e0c0e`. See
+`evidence/unreal/d020_live_animation_trace.csv`,
+`evidence/plots/d020_live_actor_vs_animation_root.png`, and
+`evidence/unreal/d020_live_animation_diagnostic.log`.
+
+**Claim boundary:** This diagnostic never entered authoritative state, causal transitions, or model
+input. No reliable toe/contact telemetry was collected, so no foot-sliding claim is made.
