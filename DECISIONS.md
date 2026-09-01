@@ -516,7 +516,7 @@ the seed/config/action fixed under a different frame-time distribution, independ
 repeated the collision within 3.995 ms runtime time and 0.153 cm terminal agent position. Live
 success/timeout remain stronger follow-up evidence rather than established facts.
 
-Related config/commit/experiment: `FEAS-001`; live episodes 1901/1902; `dc09bbf`; pending repeat commit.
+Related config/commit/experiment: `FEAS-001`; live episodes 1901/1902; `dc09bbf`; `7cbc007`.
 
 ### D-019a - Terminal events stop control but do not erase physics
 
