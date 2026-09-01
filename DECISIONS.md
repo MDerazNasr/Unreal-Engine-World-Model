@@ -533,7 +533,9 @@ gate events during the unrecorded warmup period.
 Evidence: Live attempt 1 produced two same-step physics callbacks, one terminal classification,
 then visually passed through because collision was disabled while automation remained nonzero.
 The correction has a pure regression assertion that both stored command frames become exactly zero.
-Strict compilation and a second live attempt remain required before acceptance.
+Strict isolated universal Editor/Development/Shipping builds, the exact sample universal Editor
+build, eight actual-project MotionWorld tests, and all 16 Python tests pass. A second live attempt
+remains required before acceptance.
 
 Main assumption: A zero desired velocity submitted on the next Mover production step, together with
 the still-solid frozen gate, is the least surprising safe terminal behavior.
@@ -542,6 +544,8 @@ How it could fail: The sample may decelerate rather than stop instantaneously; t
 could run before the terminal observation is recorded; collision might be altered elsewhere; or a
 new reset might fail to re-arm the one-shot safe stop.
 
-How I tested it: Pending strict builds, automation, and a live reset/record/export/terminal audit.
+How I tested it: Strict builds and automation pass as recorded in
+`evidence/unreal/d019_terminal_safety_automation.log`; the live reset/record/export/terminal audit
+is pending.
 
-Related config/commit/experiment: `FEAS-001`; D-019 live attempt 1; pending correction commit.
+Related config/commit/experiment: `FEAS-001`; D-019 live attempt 1; `95573a3`.

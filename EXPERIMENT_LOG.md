@@ -494,3 +494,20 @@ deterministic reset and recording preconditions were absent. See
 **Reviewer finding:** Terminal handling must stop the agent and preserve the
 gate's physical collision while freezing its motion. Attempt 2 must also verify
 the runtime warmup-reset property before PIE.
+
+## D-019 terminal-safety correction — pre-live validation (2026-09-01)
+
+**Hypothesis:** A terminal arena observation can preserve causal episode data while making the
+post-terminal visualization safe and unambiguous.
+
+**Change:** Scenario events now run only during a verified recording. Same-observation physics
+callbacks are coalesced. At terminal, the gate freezes but remains physically collidable and both
+stored velocity frames become zero exactly once; echo checking waits until zero is submitted.
+
+**Result:** The strict isolated universal Editor/Development/Shipping builds passed. The exact
+Game Animation Sample universal Editor target passed, all eight actual-project MotionWorld tests
+succeeded, and all 16 Python tests plus Ruff passed. Deployed source matches the repository.
+
+**Interpretation:** Static and automated evidence supports the correction, but physical behavior
+is not accepted until live attempt 2 proves reset, terminal stop, retained collision, export, and
+independent schema-v2 validation. See `evidence/unreal/d019_terminal_safety_automation.log`.
