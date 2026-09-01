@@ -457,7 +457,7 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 ### 6.1 Understand and map the model
 
 - [ ] Explain why a cheap predictor is required for hundreds of CEM futures.
-- [ ] Identify known Smooth Walking visible and internal state.
+- [x] Identify known Smooth Walking visible and internal state.
 - [ ] Map every nominal parameter to an engine/sample setting or documented approximation.
 - [ ] Explain acceleration versus deceleration selection.
 - [ ] Explain directional acceleration during turns.

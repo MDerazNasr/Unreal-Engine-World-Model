@@ -707,3 +707,37 @@ sequence IDs and a synthetic label. Reviewer replaced endpoint collision with a 
 The plot was generated headlessly and visually inspected; PNG SHA-256 begins `a368b767`.
 
 Related config/commit/experiment: `SYN-001`; Day 2 deterministic synthetic backend.
+
+## D-024 - Port installed Smooth Walking equations before choosing approximations
+
+Status: source map accepted; live sample parameters and hidden-state capture still open
+
+Decision: Base the nominal predictor on installed UE 5.8.2 `SmoothWalkingMode`, `SmoothWalkingState`,
+`SimpleWalkingMode`, `WalkingMode`, and `SpringMath` source. Carry all five known spring-state fields,
+use Unreal's rational inverse-exponential approximation, and use proposed-velocity explicit Euler
+position integration. Do not freeze C++ defaults until the live Blueprint-derived mode is inspected.
+
+Why: Replacing spring state, smoothing kernels, update order, or integration with convenient textbook
+versions would make the nominal baseline unfairly weak and give the residual credit for known code.
+
+Alternatives considered: extend the scalar teaching oracle; use exact `exp`; use trapezoidal
+position integration; omit private-header state without disclosure; assume class defaults equal the
+sample's runtime values; model collision inside the free-space controller without evidence.
+
+Evidence: Version-matched source establishes input preparation, persistent state, external-influence
+synchronization, acceleration/deceleration branches, directional and turning response, spring/deadzone
+updates, quaternion facing, proposed-velocity integration, and subsequent collision handling. The
+mapping is preserved in `research/ue58_smooth_walking_map.md`.
+
+Main assumption: The installed source matches the 5.8.2 sample binary and the active sample mode
+derives from this Smooth Walking path; runtime class/parameter capture must verify the latter.
+
+How it could fail: The Blueprint can override `GenerateWalkMove` or modify parameters dynamically;
+the private state type may be inaccessible safely; planar angle springs may differ from yaw-only
+quaternion behavior; float/approximation details may create drift; collision mismatch may dominate.
+
+How I tested it: Read the complete installed update path and exact spring kernels. Cross-checked that
+`FSmoothWalkingState` is copied through sync state, `FMoverDataCollection` exposes public iteration,
+and Walking Mode integrates `ProposedMove.LinearVelocity*dt`. No Python parity claim is made yet.
+
+Related config/commit/experiment: UE 5.8.2 source audit; nominal mapping milestone.

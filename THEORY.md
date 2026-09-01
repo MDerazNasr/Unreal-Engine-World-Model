@@ -117,6 +117,13 @@ The movement model is not assumed delta-time invariant. A 100 ms planner transit
 
 `f_100ms = f_16.67ms composed six times`
 
+The installed UE 5.8 implementation map is recorded in
+`research/ue58_smooth_walking_map.md`. A key distinction from the teaching oracle is position
+integration: free-space Walking Mode applies the newly proposed linear velocity for the whole step,
+`p_next = p + v_proposed*dt`. Collision, ramp, step, and slide resolution can then change the
+finalized execution. The faithful port must also reproduce Unreal's rational `InvExpApprox` spring
+kernel rather than silently substituting the mathematical exponential.
+
 Questions to master:
 
 - Why do acceleration and deceleration need different branches?
