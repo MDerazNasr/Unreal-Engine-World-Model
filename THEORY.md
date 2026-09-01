@@ -33,6 +33,20 @@ Global to local:
 
 Required hand check: at `psi = 90 degrees`, confirm which world direction local forward maps to under Unreal's X-forward, Y-right convention. A unit test, not memory, is the authority on sign.
 
+For a local planar vector `x_l = (f, r)`, where `f` is forward and `r` is right:
+
+`x_world = (cos(psi) f - sin(psi) r, sin(psi) f + cos(psi) r)`
+
+At `psi = 90 degrees = pi/2 radians`, `cos(psi) = 0` and `sin(psi) = 1`. Therefore local forward velocity `(200, 0) cm/s` becomes world velocity `(0, 200) cm/s`. Local right `(0, 200) cm/s` becomes world `(-200, 0) cm/s`.
+
+A vector has direction and magnitude but no location, so rotation is sufficient. A point also needs a world origin `o_world`:
+
+`p_world = o_world + R(psi) p_local`
+
+For `o_world = (1000, 500) cm`, `psi = 90 degrees`, and `p_local = (200, 0) cm`, the result is `p_world = (1000, 700) cm`. Subtract the origin before applying `R(psi)^T` to reverse the conversion.
+
+The Python boundary requires an explicit `YawRadians` value. Unreal degrees enter through `YawRadians.from_degrees`; passing a bare number fails rather than silently interpreting degrees as radians.
+
 ## 3. Minimal velocity update proof of concept
 
 Before implementing Smooth Walking springs, test a scalar bounded update:

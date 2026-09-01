@@ -626,3 +626,22 @@ independent loading, and visual-only animation diagnostics. Proceed to Day 2.
 **Not established:** Bitwise/full-hidden-state determinism, live success or timeout trials, a varied
 training dataset, nominal/residual prediction quality, MPC improvement, OOD behavior, runtime
 latency, deployment, or the final video.
+
+## NOM-000 Python coordinate contract (2026-09-01)
+
+**Hypothesis:** A typed Python implementation of the documented planar rotation will reproduce the
+executed Unreal coordinate convention and invert scalar or batched conversions within numerical
+tolerance.
+
+**Configuration:** NumPy float64; fixed random seed 27116; 512 local vectors sampled uniformly from
+`[-500, 500]` on each axis; yaw 37 degrees for the random round trip; absolute recovery tolerance
+`1e-12`. Cardinal tests use the same cases as the Unreal automation suite.
+
+**Result:** All 18 focused tests passed. Cardinal and local-right signs match Unreal. Every random
+vector recovered after local-to-world-to-local conversion, vector length was preserved, and the
+point example `(1000,500) + R(90 deg)(200,0) = (1000,700)` passed. Invalid dimensions, non-finite
+values, and bare numeric yaw failed closed. Focused Ruff and `git diff --check` passed.
+
+**Interpretation:** Accept the Python coordinate kernel. This establishes mathematical and golden-
+case agreement, not live Python-to-Unreal transport. Candidate explanation and blank-page
+derivation remain required before closing Section 3.1.

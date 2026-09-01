@@ -254,10 +254,10 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [x] Record local forward at 90 degrees under Unreal X-forward/Y-right conventions.
 - [x] Implement local-to-global vector conversion.
 - [x] Implement global-to-local vector conversion.
-- [ ] Implement point conversion separately from vector conversion if translation is involved.
+- [x] Implement point conversion separately from vector conversion if translation is involved.
 - [x] Test 0, 90, 180, and -90 degrees.
-- [ ] Test random round trips.
-- [ ] Test radians/degrees misuse is caught or impossible at the interface.
+- [x] Test random round trips.
+- [x] Test radians/degrees misuse is caught or impossible at the interface.
 - [x] Reviewer verifies signs against an Unreal observation.
 - [ ] Examiner asks candidate to derive one conversion on a blank page.
 

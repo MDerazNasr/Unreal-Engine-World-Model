@@ -599,3 +599,39 @@ How I tested it: Strict builds and automation pass as recorded in
 is pending.
 
 Related config/commit/experiment: `FEAS-001`; D-019 live attempt 1; `95573a3`.
+
+## D-021 - Explicit typed planar coordinate contract in Python
+
+Status: accepted for the Day 2 coordinate kernel; candidate blank-page derivation remains open
+
+Decision: Use Unreal world `+X/+Y` and character-local forward/right `+X/+Y`, with model-facing yaw
+stored in a finite `YawRadians` wrapper. Keep vector rotation separate from point
+rotation-plus-translation. Support scalar and batched NumPy arrays, validate the final dimension and
+finite values, and fail on a bare numeric yaw.
+
+Why: The nominal model, residual model, and planner must interpret every action and velocity exactly
+as the Unreal bridge does. Explicit angle construction exposes the degrees-to-radians boundary, and
+separate point/vector functions prevent accidentally translating a velocity.
+
+Alternatives considered: accept unlabelled float angles; use degrees throughout Python; combine
+points and vectors in one helper; depend on implicit NumPy broadcasting without shape checks; copy
+coordinate equations into each future module.
+
+Evidence: The equations and 90-degree hand calculation are recorded in `THEORY.md`. The Python
+cardinal results match the already executed Unreal C++ convention: local forward maps to world `+X`,
+`+Y`, `-X`, and `-Y` at yaw 0, 90, 180, and -90 degrees, respectively; local right at yaw 90 maps to
+world `-X`.
+
+Main assumption: Planar yaw is sufficient for the ground-movement model; pitch, roll, and vertical
+motion are outside this coordinate kernel.
+
+How it could fail: A caller may deliberately construct `YawRadians` from a value that was actually
+measured in degrees; no numeric API can infer that semantic mistake. Incorrect origins, mismatched
+batch shapes, or later duplicated conversion code could also reintroduce frame errors.
+
+How I tested it: Eighteen focused tests cover the Unreal cardinal convention, local right, a
+fixed-seed batch of 512 random round trips, norm preservation, explicit point translation and
+inverse conversion, vector/point separation, degree conversion, bare-angle rejection, malformed
+dimensions, and non-finite vectors/yaws. Focused Ruff and `git diff --check` pass.
+
+Related config/commit/experiment: `NOM-000`; Day 2 coordinate contract.
