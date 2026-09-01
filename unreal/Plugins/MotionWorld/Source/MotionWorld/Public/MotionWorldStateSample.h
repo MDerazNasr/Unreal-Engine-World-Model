@@ -63,6 +63,48 @@ struct MOTIONWORLD_API FMotionWorldStateSample
 	FVector AngularVelocityWorldDegPerSec = FVector::ZeroVector;
 };
 
+/**
+ * Visual-only QA sample aligned to one authoritative Mover observation.
+ * This type is deliberately separate from FMotionWorldStateSample so animation
+ * pose data cannot silently become a world-model state or collision target.
+ */
+USTRUCT(BlueprintType)
+struct MOTIONWORLD_API FMotionWorldAnimationDiagnosticSample
+{
+	GENERATED_BODY()
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Animation Diagnostic")
+	int32 ProtocolVersion = 1;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Animation Diagnostic")
+	int64 AuthoritativeStateSampleSequence = -1;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Animation Diagnostic")
+	double SimulationTimeSeconds = -1.0;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Animation Diagnostic")
+	bool bIsValid = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Animation Diagnostic")
+	FName VisualComponentName = NAME_None;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Animation Diagnostic")
+	FName RootBoneName = NAME_None;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Animation Diagnostic")
+	FVector AuthoritativeActorPositionWorldCm = FVector::ZeroVector;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Animation Diagnostic")
+	FTransform VisualComponentWorldTransform = FTransform::Identity;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Animation Diagnostic")
+	FTransform AnimationRootWorldTransform = FTransform::Identity;
+
+	/** Visual root minus authoritative actor position, expressed in Unreal world axes. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Animation Diagnostic")
+	FVector ActorToAnimationRootWorldCm = FVector::ZeroVector;
+};
+
 namespace MotionWorld
 {
 /** Primitive inputs extracted from UE Mover's finalized sync state and timestep. */
@@ -81,7 +123,22 @@ struct FAuthoritativeStateInputs
 	FVector AngularVelocityWorldDegPerSec = FVector::ZeroVector;
 };
 
+struct FAnimationDiagnosticInputs
+{
+	FMotionWorldStateSample AuthoritativeState;
+	bool bHasPrimarySkeletalVisual = false;
+	bool bBoneTransformsValid = false;
+	FName VisualComponentName = NAME_None;
+	FName RootBoneName = NAME_None;
+	FTransform VisualComponentWorldTransform = FTransform::Identity;
+	FTransform AnimationRootWorldTransform = FTransform::Identity;
+};
+
 /** Builds a finite, explicitly framed state packet or a fail-closed invalid packet. */
 MOTIONWORLD_API FMotionWorldStateSample BuildAuthoritativeStateSample(
 	const FAuthoritativeStateInputs& Inputs);
+
+/** Builds visual QA telemetry or fails closed without modifying gameplay state. */
+MOTIONWORLD_API FMotionWorldAnimationDiagnosticSample BuildAnimationDiagnosticSample(
+	const FAnimationDiagnosticInputs& Inputs);
 } // namespace MotionWorld

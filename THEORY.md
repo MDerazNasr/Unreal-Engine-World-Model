@@ -624,7 +624,30 @@ identifies the episode configuration even though this first schedule uses no ran
 runtime actor and episode schema must still prove that reset restarts time at zero, collision events
 join the correct finalized step, and the logged visible transform agrees with this analytic state.
 
-## 20. Required personal exercises
+## 20. Gameplay state versus animation-root diagnostics
+
+The authoritative gameplay point and the visual animation root answer different questions:
+
+- Mover's finalized actor position answers “where does collision and control say the character is?”
+- the primary skeletal mesh's root bone answers “where does the currently buffered visual pose put
+  the animation root?”
+
+For authoritative position `p_actor` and animation-root world position `p_root`, the diagnostic
+offset is:
+
+`d_root = p_root - p_actor`.
+
+This offset is measured in Unreal world centimetres. It is not appended to the learned state. The
+sample sequence links the diagnostic to one finalized Mover observation, while the capture-phase
+label warns that skeletal animation may have been evaluated on a different visual tick. A plot can
+therefore reveal visual lag or deliberate pose offsets without redefining the physical trajectory.
+
+The root bone is bone index zero of Mover's primary skeletal visual component. Index zero is the
+skeleton root by reference-skeleton convention; reading Mover's selected visual component avoids
+silently inspecting a secondary mesh. Toe transforms remain out of scope until contact annotations
+can distinguish planted feet from swinging feet.
+
+## 21. Required personal exercises
 
 Before each component is accepted, explain without looking:
 

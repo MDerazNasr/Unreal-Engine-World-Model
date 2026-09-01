@@ -518,6 +518,44 @@ success/timeout remain stronger follow-up evidence rather than established facts
 
 Related config/commit/experiment: `FEAS-001`; live episodes 1901/1902; `dc09bbf`; `7cbc007`.
 
+## D-020 - Animation root is separate QA telemetry
+
+Status: pure fail-closed sample contract passes strict universal compilation; runtime capture and
+plot remain pending
+
+Decision: Read the skeletal root from Mover's own primary visual component using bone index zero,
+and store it in `FMotionWorldAnimationDiagnosticSample`, never in `FMotionWorldStateSample` or a
+training transition. Align it to the latest authoritative sequence at `OnPostFinalize` and label
+the source as the current animation pose buffer. Defer toe metrics until reliable contact labels
+exist.
+
+Why: Gameplay collision follows Mover's finalized state, while Motion Matching may offset the mesh
+and root for presentation. A separate type makes accidental state-source substitution visible in
+code review. Mover's primary visual is a stronger source than choosing an arbitrary mesh component,
+and bone index zero avoids assuming a skeleton-specific root name.
+
+Alternatives considered: use the animation root as model state; use the mesh component transform
+as if it were the root bone; find the first skeletal mesh independently of Mover; hard-code a
+mannequin component or bone name; claim toe sliding without contact state.
+
+Evidence: UE 5.8.2 source documents `GetPrimaryVisualComponent()` and world-space
+`GetBoneTransform(int32)`. The pure builder requires a valid non-resimulated authoritative state,
+primary skeletal source, valid bone pose, explicit component/root names, and finite transforms.
+Strict universal Editor/Development/Shipping compilation passes.
+
+Main assumption: The current skeletal pose buffer observed during `OnPostFinalize` is useful for
+QA alignment even though animation evaluation may belong to the preceding visual update.
+
+How it could fail: The primary visual is not skeletal; pose transforms are not valid yet; pose and
+Mover time are offset by an animation tick; root index zero is visually uninformative; or logging
+volume causes runtime noise.
+
+How I tested it: The automation contract covers valid aligned data, explicit world-centimetre root
+offset, missing visual source, and non-finite transform rejection. Runtime and plotting remain the
+acceptance gate.
+
+Related config/commit/experiment: `FEAS-001`; pending contract commit.
+
 ### D-019a - Terminal events stop control but do not erase physics
 
 Decision: Evaluate arena events only while a verified timed-gate episode is actively recording.

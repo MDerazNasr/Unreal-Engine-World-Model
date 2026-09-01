@@ -78,6 +78,58 @@ bool FMotionWorldStateSampleTest::RunTest(const FString& Parameters)
 		MotionWorld::BuildAuthoritativeStateSample(Inputs);
 	TestFalse(TEXT("A missing Mover state fails closed"), MissingSource.bIsValid);
 
+	MotionWorld::FAnimationDiagnosticInputs DiagnosticInputs;
+	DiagnosticInputs.AuthoritativeState = Valid;
+	DiagnosticInputs.bHasPrimarySkeletalVisual = true;
+	DiagnosticInputs.bBoneTransformsValid = true;
+	DiagnosticInputs.VisualComponentName = TEXT("Mesh");
+	DiagnosticInputs.RootBoneName = TEXT("root");
+	DiagnosticInputs.VisualComponentWorldTransform = FTransform(
+		FRotator(0.0, 90.0, 0.0),
+		FVector(100.0, -50.0, 0.0),
+		FVector::OneVector);
+	DiagnosticInputs.AnimationRootWorldTransform = FTransform(
+		FRotator(0.0, 95.0, 0.0),
+		FVector(112.0, -53.0, 4.0),
+		FVector::OneVector);
+	const FMotionWorldAnimationDiagnosticSample Diagnostic =
+		MotionWorld::BuildAnimationDiagnosticSample(DiagnosticInputs);
+	TestTrue(
+		TEXT("Complete primary-visual/root data produces valid QA telemetry"),
+		Diagnostic.bIsValid);
+	TestEqual(
+		TEXT("Diagnostic remains aligned to the authoritative state sequence"),
+		Diagnostic.AuthoritativeStateSampleSequence,
+		Valid.SampleSequence);
+	TestEqual(
+		TEXT("Authoritative actor position is copied under an explicit field name"),
+		Diagnostic.AuthoritativeActorPositionWorldCm,
+		Valid.PositionWorldCm);
+	TestEqual(
+		TEXT("Actor-to-root offset is derived in world centimetres"),
+		Diagnostic.ActorToAnimationRootWorldCm,
+		FVector(12.0, -3.0, -86.0));
+
+	DiagnosticInputs.bHasPrimarySkeletalVisual = false;
+	const FMotionWorldAnimationDiagnosticSample MissingVisual =
+		MotionWorld::BuildAnimationDiagnosticSample(DiagnosticInputs);
+	TestFalse(
+		TEXT("Missing Mover primary skeletal visual fails closed"),
+		MissingVisual.bIsValid);
+	TestEqual(
+		TEXT("Invalid diagnostic does not propagate a visual root position"),
+		MissingVisual.AnimationRootWorldTransform,
+		FTransform::Identity);
+
+	DiagnosticInputs.bHasPrimarySkeletalVisual = true;
+	DiagnosticInputs.AnimationRootWorldTransform.SetTranslation(
+		FVector(std::numeric_limits<double>::quiet_NaN(), 0.0, 0.0));
+	const FMotionWorldAnimationDiagnosticSample NonFiniteVisual =
+		MotionWorld::BuildAnimationDiagnosticSample(DiagnosticInputs);
+	TestFalse(
+		TEXT("Non-finite animation transform fails closed"),
+		NonFiniteVisual.bIsValid);
+
 	(void)Parameters;
 	return true;
 }

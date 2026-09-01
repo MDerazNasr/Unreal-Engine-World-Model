@@ -56,4 +56,40 @@ FMotionWorldStateSample BuildAuthoritativeStateSample(
 
 	return Result;
 }
+
+FMotionWorldAnimationDiagnosticSample BuildAnimationDiagnosticSample(
+	const FAnimationDiagnosticInputs& Inputs)
+{
+	FMotionWorldAnimationDiagnosticSample Result;
+	Result.AuthoritativeStateSampleSequence =
+		Inputs.AuthoritativeState.SampleSequence;
+	Result.SimulationTimeSeconds =
+		Inputs.AuthoritativeState.SimulationTimeSeconds;
+	Result.VisualComponentName = Inputs.VisualComponentName;
+	Result.RootBoneName = Inputs.RootBoneName;
+
+	Result.bIsValid = Inputs.AuthoritativeState.bIsValid
+		&& !Inputs.AuthoritativeState.bIsResimulation
+		&& Inputs.bHasPrimarySkeletalVisual
+		&& Inputs.bBoneTransformsValid
+		&& !Inputs.VisualComponentName.IsNone()
+		&& !Inputs.RootBoneName.IsNone()
+		&& Inputs.VisualComponentWorldTransform.IsValid()
+		&& Inputs.AnimationRootWorldTransform.IsValid();
+	if (!Result.bIsValid)
+	{
+		return Result;
+	}
+
+	Result.AuthoritativeActorPositionWorldCm =
+		Inputs.AuthoritativeState.PositionWorldCm;
+	Result.VisualComponentWorldTransform =
+		Inputs.VisualComponentWorldTransform;
+	Result.AnimationRootWorldTransform =
+		Inputs.AnimationRootWorldTransform;
+	Result.ActorToAnimationRootWorldCm =
+		Result.AnimationRootWorldTransform.GetLocation()
+			- Result.AuthoritativeActorPositionWorldCm;
+	return Result;
+}
 } // namespace MotionWorld
