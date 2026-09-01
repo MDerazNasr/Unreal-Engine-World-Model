@@ -469,3 +469,28 @@ Artifacts: `DECISIONS.md` D-011/D-012/D-013/D-014, `THEORY.md` sections 11-14, `
   fields, and all prior chronology/action errors. Full Python result: 16 passed; Ruff passed.
 - Final exact-deployment regression found all eight MotionWorld tests and all eight succeeded with
   exit code zero. Repository/sample source parity differs only in a directory timestamp.
+
+# D-019 live timed-gate attempt 1 — invalid (2026-09-01)
+
+**Hypothesis:** With warmup reset enabled, the bridge will reset the controlled
+character, start episode 1901, run the deterministic moving-gate scenario, emit
+one terminal outcome, and export a schema-v2 episode.
+
+**Configuration:** Local-frame automation at 200 cm/s; warmup 30 valid samples;
+episode ID and gate seed 1901; gate 600 cm forward; amplitude 200 cm; period 4 s;
+timeout 8 s.
+
+**Observed:** The gate spawned and moved sideways. Runtime logging detected a
+gate collision at scenario time 4.311357 s and terminated the arena. However,
+the log contained no queued/verified reset, no recording lifecycle, and no
+export. After termination, collision was disabled while forward automation
+continued, making the character appear to pass through the gate.
+
+**Conclusion:** Invalid trial. Gate motion and collision-event wiring received
+useful feasibility evidence, but no scenario result is accepted because the
+deterministic reset and recording preconditions were absent. See
+`evidence/unreal/d019_live_attempt_1_invalid.log`.
+
+**Reviewer finding:** Terminal handling must stop the agent and preserve the
+gate's physical collision while freezing its motion. Attempt 2 must also verify
+the runtime warmup-reset property before PIE.
