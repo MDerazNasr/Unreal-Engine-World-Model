@@ -477,8 +477,8 @@ Related config/commit/experiment: `FEAS-001`; `bbe2355`; `ae56d35`; `8dcc732`.
 
 ## D-019 - Absolute-time deterministic timed gate
 
-Status: pure kernel, runtime actor, opt-in lifecycle, independently validated schema v2, and one
-live collision episode pass; same-seed repetition and live success/timeout remain pending
+Status: pure kernel, runtime actor, opt-in lifecycle, independently validated schema v2, one live
+collision episode, and a two-run same-seed repeat pass; live success/timeout remain pending
 
 Decision: Define the P0 gate as a collidable box with sinusoidal sideways translation evaluated
 directly from immutable configuration and scenario-relative time. Keep the success plane fixed
@@ -511,10 +511,12 @@ How I tested it: Strict compilation is complete. The real sample universal Edito
 and all eight actual-sample MotionWorld tests passed after integration. The v2 focused exporter test
 passes in the real sample; 16 Python unit tests and Ruff pass. Live episode 1901 reset with zero
 measured verification error, recorded 70/70 attempted transitions, classified one collision, safely
-stopped, exported in 4.616 ms, and passed strict independent Python validation. Two same-seed live
-traces plus live success/timeout remain stronger follow-up evidence rather than established facts.
+stopped, exported in 4.616 ms, and passed strict independent Python validation. Episode 1902 held
+the seed/config/action fixed under a different frame-time distribution, independently validated,
+repeated the collision within 3.995 ms runtime time and 0.153 cm terminal agent position. Live
+success/timeout remain stronger follow-up evidence rather than established facts.
 
-Related config/commit/experiment: `FEAS-001`; live episode 1901; `dc09bbf`.
+Related config/commit/experiment: `FEAS-001`; live episodes 1901/1902; `dc09bbf`; pending repeat commit.
 
 ### D-019a - Terminal events stop control but do not erase physics
 

@@ -532,3 +532,22 @@ with exit code 0. SHA-256 is
 character/arena reset, causal recording, terminal safe-stop, and durable scenario export. It does
 not establish same-seed repeatability or live success/timeout behavior. See
 `evidence/unreal/d019_live_episode_1901.log`.
+
+## D-019 same-seed repeat — episodes 1901 and 1902 (2026-09-01)
+
+**Hypothesis:** Repeating seed 1901 from the same verified anchor under the same constant action
+will preserve the analytic scenario and terminal outcome despite ordinary frame-time variation.
+
+**Controlled change:** Only the unique episode ID changed from 1901 to 1902. Scenario seed/config,
+anchor, action, controller, executable, and level remained fixed.
+
+**Result:** Both resets matched exactly in position, velocity, and yaw. Both independent files
+validated, every action was automated local `(200,0,0)` cm/s, and both ended with one gate collision.
+The physical collision-time difference was 3.995 ms; terminal agent positions differed by 0.153 cm
+and terminal gate centers by 0.818 cm. Episode 1901 used 70 steps (median 49 ms, p95 59.55 ms), while
+1902 used 62 (median 56 ms, p95 74.95 ms).
+
+**Interpretation:** Accepted as same-seed scenario repeatability under observed variable stepping.
+The result supports absolute-time gate evaluation: the schedule and outcome remain stable without
+requiring identical row counts. It does not provide a variance estimate from only two trials. See
+`evidence/unreal/d019_same_seed_1901_1902.log`.

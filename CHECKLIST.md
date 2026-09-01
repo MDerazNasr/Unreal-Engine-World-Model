@@ -372,7 +372,7 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [ ] Reset observation history.
 - [ ] Reset planner warm start.
 - [x] Run two same-anchor resets and compare verified initial observations.
-- [ ] Run two same-seed gate schedules and compare trajectories/timestamps.
+- [x] Run two same-seed gate schedules and compare trajectories/timestamps.
 - [x] Prove no data from the prior episode appears after reset.
 
 ### 4.6 Timed gate and events

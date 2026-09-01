@@ -1,0 +1,57 @@
+D-019 same-seed timed-gate repeatability evidence
+Date: 2026-09-01
+Episodes: 1901 and 1902
+Scenario seed in both: 1901
+
+Controlled variables
+- Same Game Animation Sample level and controlled pawn.
+- Same verified reset anchor: (-795.49, 0.00, 88.27) cm, yaw 0 degrees, Walking.
+- Same timed-gate configuration except episode-relative absolute start time.
+- Same local desired-velocity policy: (200, 0, 0) cm/s for every recorded action.
+- Same terminal and export implementation.
+- Only the unique episode identity changed from 1901 to 1902.
+
+Episode 1901
+- Reset verified on first check with zero position/yaw/linear/angular error.
+- Transitions: 70/70 attempted; rejected=0; capacity_drops=0.
+- Median step: 0.049 s; p95 step: 0.05955 s.
+- Runtime physics collision time: 3.452759 s.
+- File terminal scenario time: 3.510 s.
+- Outcome: gate_collision; collision_count=1.
+- Export: 72 lines, 132925 bytes, 4.616 ms.
+- SHA-256: 4547c55febe873fb27c93a017b7bdc5f0654e0a8db3202ee3949a1026739900b.
+- Independent validator: valid=true, exit code 0.
+
+Episode 1902
+- Reset verified on first check with zero position/yaw/linear/angular error.
+- Transitions: 62/62 attempted; rejected=0; capacity_drops=0.
+- Median step: 0.056 s; p95 step: 0.07495 s.
+- Runtime physics collision time: 3.448764 s.
+- File terminal scenario time: 3.499 s.
+- Outcome: gate_collision; collision_count=1.
+- Export: 64 lines, 117135 bytes, 5.603 ms.
+- SHA-256: 44084ed00e0a6da0ee09e7383ea50628b40b255117c5c613a4e88f119dd39eea.
+- Independent validator: valid=true, exit code 0.
+
+Strict-loader comparison metrics
+- Scenario config equal excluding per-episode absolute start time: true.
+- Reset position delta: 0.0 cm.
+- Reset velocity delta: 0.0 cm/s.
+- Reset yaw delta: 0.0 degrees.
+- Every recorded action automated and local (200, 0, 0) cm/s: true/true.
+- Runtime physics collision-time delta: 0.003995 s.
+- Terminal-row scenario-time delta: 0.011 s.
+- Terminal agent-position delta: 0.153188 cm.
+- Terminal gate-center delta at the collision interval start: 0.817619 cm.
+- Termination reasons: gate_collision / gate_collision.
+- Collision counts: 1 / 1.
+
+Interpretation
+- ACCEPTED as same-seed repeatability evidence at the scenario level.
+- Bit-identical rows and timestamps are neither observed nor claimed. UE produced different
+  frame-time distributions, which explains 70 versus 62 transitions.
+- The invariant schedule configuration, independently recomputed analytic gate state, identical
+  reset/action/outcome, and sub-centimetre terminal geometry show that the absolute-time design is
+  robust to this observed frame-timing variation.
+- Two trials do not estimate a population variance or confidence interval. Larger repeated-seed
+  evaluation remains required for controller claims later in the project.
