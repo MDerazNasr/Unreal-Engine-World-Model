@@ -275,6 +275,8 @@ private:
 	void RequestConfiguredWarmupResetIfDue();
 	void InitializeTimedArenaIfEligible();
 	void ProcessTimedArenaObservation();
+	void ApplyArenaTerminalSafeStop(
+		EMotionWorldScenarioTerminationReason TerminationReason);
 
 	UPROPERTY(Transient)
 	TObjectPtr<UMoverComponent> MoverComponent;
@@ -306,6 +308,7 @@ private:
 	bool bConfiguredResetSequenceAborted = false;
 	bool bDeferCommandEchoUntilNextProduction = false;
 	bool bArenaInitializationAttempted = false;
+	bool bArenaTerminalSafeStopIssued = false;
 	bool bCurrentEpisodeHasTimedGateScenario = false;
 	double CurrentEpisodeScenarioStartSimulationTimeSeconds = 0.0;
 };

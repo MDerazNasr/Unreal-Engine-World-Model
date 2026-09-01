@@ -13,6 +13,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 bool FMotionWorldVelocityCommandTest::RunTest(const FString& Parameters)
 {
 	using MotionWorld::FSanitizedVelocityCommand;
+	using MotionWorld::ApplyZeroVelocitySafeStop;
 	using MotionWorld::SanitizeWorldVelocityCommand;
 
 	const FSanitizedVelocityCommand Zero =
@@ -51,6 +52,18 @@ bool FMotionWorldVelocityCommandTest::RunTest(const FString& Parameters)
 	TestEqual(
 		TEXT("Rejected command fails closed to zero"),
 		NonFinite.WorldVelocityCmPerSec,
+		FVector::ZeroVector);
+
+	FVector LocalRequest(200.0, -40.0, 0.0);
+	FVector WorldRequest(-100.0, 300.0, 25.0);
+	ApplyZeroVelocitySafeStop(LocalRequest, WorldRequest);
+	TestEqual(
+		TEXT("Safe stop clears the character-local request"),
+		LocalRequest,
+		FVector::ZeroVector);
+	TestEqual(
+		TEXT("Safe stop clears the world-space request"),
+		WorldRequest,
 		FVector::ZeroVector);
 
 	(void)Parameters;

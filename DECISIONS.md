@@ -513,3 +513,35 @@ passes in the real sample; 16 Python unit tests and Ruff pass. The next gate is 
 traces with physical collision/success/timeout trials and independent validation of their files.
 
 Related config/commit/experiment: `FEAS-001`; pending.
+
+### D-019a - Terminal events stop control but do not erase physics
+
+Decision: Evaluate arena events only while a verified timed-gate episode is actively recording.
+At the first terminal event, freeze the gate at its measured pose while retaining blocking
+collision, coalesce multiple physics callbacks before one authoritative observation into one
+collision event, and replace both local- and world-frame desired-velocity requests with zero.
+
+Why: The terminal transition belongs to the action that was already applied, so it must be recorded
+before control changes. Afterward, continuing to command motion or deleting the obstacle makes a
+correct collision look like a pass-through. Clearing both command frames prevents a later frame
+switch from reviving a stale nonzero request.
+
+Alternatives considered: Disable collision at termination; destroy the gate; disable automation
+and fall back to unowned sample input; zero only the currently selected command frame; classify
+gate events during the unrecorded warmup period.
+
+Evidence: Live attempt 1 produced two same-step physics callbacks, one terminal classification,
+then visually passed through because collision was disabled while automation remained nonzero.
+The correction has a pure regression assertion that both stored command frames become exactly zero.
+Strict compilation and a second live attempt remain required before acceptance.
+
+Main assumption: A zero desired velocity submitted on the next Mover production step, together with
+the still-solid frozen gate, is the least surprising safe terminal behavior.
+
+How it could fail: The sample may decelerate rather than stop instantaneously; terminal processing
+could run before the terminal observation is recorded; collision might be altered elsewhere; or a
+new reset might fail to re-arm the one-shot safe stop.
+
+How I tested it: Pending strict builds, automation, and a live reset/record/export/terminal audit.
+
+Related config/commit/experiment: `FEAS-001`; D-019 live attempt 1; pending correction commit.

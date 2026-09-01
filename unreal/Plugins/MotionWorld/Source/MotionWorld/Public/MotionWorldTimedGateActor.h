@@ -40,9 +40,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "MotionWorld|Gate")
 	bool ConsumeTrackedAgentCollision();
 
-	/** Freezes the gate and disables collision after a terminal scenario event. */
+	/** Freezes schedule/event tracking after a terminal event but keeps the obstacle solid. */
 	UFUNCTION(BlueprintCallable, Category = "MotionWorld|Gate")
-	void DeactivateTimedGate();
+	void FreezeTimedGateAtTerminal();
 
 	UFUNCTION(BlueprintPure, Category = "MotionWorld|Gate")
 	FMotionWorldTimedGateConfig GetGateConfig() const { return GateConfig; }
@@ -55,6 +55,9 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "MotionWorld|Gate")
 	bool IsScenarioActive() const { return bScenarioActive; }
+
+	UFUNCTION(BlueprintPure, Category = "MotionWorld|Gate")
+	bool IsPhysicalCollisionEnabled() const;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Gate")

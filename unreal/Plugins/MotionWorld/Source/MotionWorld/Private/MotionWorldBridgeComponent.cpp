@@ -565,6 +565,7 @@ void UMotionWorldBridgeComponent::ProcessPendingResetVerification()
 					EpisodeId);
 				return;
 			}
+			bArenaTerminalSafeStopIssued = false;
 		}
 
 		if (!StartEpisodeRecording(EpisodeId))
@@ -703,6 +704,7 @@ void UMotionWorldBridgeComponent::InitializeTimedArenaIfEligible()
 		Config.OriginWorldCm.Y,
 		Config.OriginWorldCm.Z,
 		TimedGateForwardDistanceCm);
+	bArenaTerminalSafeStopIssued = false;
 }
 
 void UMotionWorldBridgeComponent::ProcessTimedArenaObservation()
@@ -710,7 +712,9 @@ void UMotionWorldBridgeComponent::ProcessTimedArenaObservation()
 	if (!bEnableTimedGateScenario
 		|| !IsValid(ArenaManager)
 		|| !LastAuthoritativeState.bIsValid
-		|| LastAuthoritativeState.bIsResimulation)
+		|| LastAuthoritativeState.bIsResimulation
+		|| !bCurrentEpisodeHasTimedGateScenario
+		|| !EpisodeRecorder.GetStats().bIsRecording)
 	{
 		return;
 	}
@@ -718,11 +722,45 @@ void UMotionWorldBridgeComponent::ProcessTimedArenaObservation()
 	const FMotionWorldScenarioStepResult Result =
 		ArenaManager->ObserveFinalizedAgentPosition(
 			LastAuthoritativeState.PositionWorldCm);
-	if (Result.TerminationReason != EMotionWorldScenarioTerminationReason::None
-		&& EpisodeRecorder.GetStats().bIsRecording)
+	if (Result.TerminationReason == EMotionWorldScenarioTerminationReason::None)
+	{
+		return;
+	}
+
+	ApplyArenaTerminalSafeStop(Result.TerminationReason);
+	if (EpisodeRecorder.GetStats().bIsRecording)
 	{
 		StopEpisodeRecording();
 	}
+}
+
+void UMotionWorldBridgeComponent::ApplyArenaTerminalSafeStop(
+	const EMotionWorldScenarioTerminationReason TerminationReason)
+{
+	if (bArenaTerminalSafeStopIssued
+		|| TerminationReason == EMotionWorldScenarioTerminationReason::None)
+	{
+		return;
+	}
+
+	MotionWorld::ApplyZeroVelocitySafeStop(
+		DesiredVelocityLocalCmPerSec,
+		DesiredVelocityWorldCmPerSec);
+	bArenaTerminalSafeStopIssued = true;
+	++CommandRevision;
+	bLastCommandEchoMatched = false;
+	LastEchoedVelocityWorldCmPerSec = FVector::ZeroVector;
+	// The terminal observation still corresponds to the previously submitted
+	// action. Do not audit the new revision until ProduceInput submits zero.
+	bDeferCommandEchoUntilNextProduction = true;
+
+	UE_LOG(
+		LogMotionWorldBridge,
+		Display,
+		TEXT("MotionWorld arena terminal safe stop issued: reason=%s command_revision=%llu automation=%s local_request_cm_per_sec=(0.00, 0.00, 0.00) world_request_cm_per_sec=(0.00, 0.00, 0.00)."),
+		MotionWorld::LexToString(TerminationReason),
+		CommandRevision,
+		bAutomationEnabled ? TEXT("enabled") : TEXT("disabled"));
 }
 
 void UMotionWorldBridgeComponent::RequestConfiguredWarmupResetIfDue()

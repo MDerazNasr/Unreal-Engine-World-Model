@@ -25,4 +25,12 @@ FSanitizedVelocityCommand SanitizeWorldVelocityCommand(
 	Result.WorldVelocityCmPerSec = PlanarVelocity.GetClampedToMaxSize2D(SafeMaxSpeed);
 	return Result;
 }
+
+void ApplyZeroVelocitySafeStop(
+	FVector& DesiredVelocityLocalCmPerSec,
+	FVector& DesiredVelocityWorldCmPerSec)
+{
+	DesiredVelocityLocalCmPerSec = FVector::ZeroVector;
+	DesiredVelocityWorldCmPerSec = FVector::ZeroVector;
+}
 } // namespace MotionWorld

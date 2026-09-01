@@ -131,7 +131,7 @@ FMotionWorldScenarioStepResult AMotionWorldArenaManager::ObserveFinalizedAgentPo
 	{
 		ArenaStatus.bIsActive = false;
 		ArenaStatus.TerminationReason = Result.TerminationReason;
-		TimedGate->DeactivateTimedGate();
+		TimedGate->FreezeTimedGateAtTerminal();
 		UE_LOG(
 			LogMotionWorldArena,
 			Display,

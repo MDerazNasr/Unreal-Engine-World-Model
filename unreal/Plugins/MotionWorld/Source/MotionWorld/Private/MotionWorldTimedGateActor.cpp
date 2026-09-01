@@ -172,6 +172,12 @@ void AMotionWorldTimedGateActor::HandleCollisionBoxHit(
 	{
 		return;
 	}
+	if (bTrackedAgentCollisionPending)
+	{
+		// Physics may report several contacts before the next authoritative
+		// character observation. They represent one scenario-step collision.
+		return;
+	}
 
 	++TrackedAgentCollisionCount;
 	bTrackedAgentCollisionPending = true;
@@ -198,10 +204,22 @@ bool AMotionWorldTimedGateActor::ConsumeTrackedAgentCollision()
 	return bHadCollision;
 }
 
-void AMotionWorldTimedGateActor::DeactivateTimedGate()
+void AMotionWorldTimedGateActor::FreezeTimedGateAtTerminal()
 {
 	bScenarioActive = false;
 	bTrackedAgentCollisionPending = false;
 	SetActorTickEnabled(false);
-	CollisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	UE_LOG(
+		LogMotionWorldTimedGate,
+		Display,
+		TEXT("MotionWorld timed gate frozen at terminal state: seed=%lld scenario_time_s=%.6f collision_retained=%s."),
+		GateConfig.ScenarioSeed,
+		GateState.ScenarioTimeSeconds,
+		IsPhysicalCollisionEnabled() ? TEXT("true") : TEXT("false"));
+}
+
+bool AMotionWorldTimedGateActor::IsPhysicalCollisionEnabled() const
+{
+	return CollisionBox
+		&& CollisionBox->GetCollisionEnabled() != ECollisionEnabled::NoCollision;
 }

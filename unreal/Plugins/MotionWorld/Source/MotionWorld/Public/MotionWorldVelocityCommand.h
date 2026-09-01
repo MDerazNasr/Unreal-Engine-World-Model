@@ -21,4 +21,12 @@ struct FSanitizedVelocityCommand
 MOTIONWORLD_API FSanitizedVelocityCommand SanitizeWorldVelocityCommand(
 	const FVector& RequestedWorldVelocityCmPerSec,
 	double MaxPlanarSpeedCmPerSec);
+
+/**
+ * Clears every stored velocity frame so a later frame switch cannot revive a
+ * stale nonzero request after a terminal or communication failure.
+ */
+MOTIONWORLD_API void ApplyZeroVelocitySafeStop(
+	FVector& DesiredVelocityLocalCmPerSec,
+	FVector& DesiredVelocityWorldCmPerSec);
 } // namespace MotionWorld

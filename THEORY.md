@@ -611,6 +611,14 @@ Terminal events have a declared priority: gate collision, then successful forwar
 timeout. Collision wins if collision and crossing appear in the same finalized step; otherwise a
 discrete step could claim the character passed through a blocker. Backward crossing is not success.
 
+The terminal observation is still caused by the action submitted for that simulation step, so it
+must enter the episode before the controller changes its request. On the following input-production
+step, MotionWorld commands zero velocity. This is a causal boundary: the dataset keeps the action
+that actually caused the outcome, while future motion is stopped. “Terminal” freezes the gate's
+schedule and event counter; it does not remove the physical obstacle. Multiple engine collision
+callbacks received between two authoritative character observations are coalesced into one scenario
+collision event because the learning row represents that whole finalized interval.
+
 The schedule is deterministic for a fixed configuration and scenario-relative time. `ScenarioSeed`
 identifies the episode configuration even though this first schedule uses no random samples. The
 runtime actor and episode schema must still prove that reset restarts time at zero, collision events
