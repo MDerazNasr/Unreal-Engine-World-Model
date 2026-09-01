@@ -396,7 +396,7 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [x] Save actor-versus-animation-root trace.
 - [x] Enter `FEAS-001` with version, commit, seed, commands, and artifacts.
 - [x] Reviewer checks tick phase, frames, units, stale state, and reset leakage.
-- [ ] Candidate answers: “Which transform is authoritative, at what tick point, and why?”
+- [x] Candidate answers: “Which transform is authoritative, at what tick point, and why?”
 - [ ] Candidate answers: “How do you know hidden controller state was reset?”
 - [ ] Gate passes: external control, authoritative state, reset, events, and logging are all reliable.
 - [x] Retain the Game Animation Sample path; fallback was not required at this checkpoint.

@@ -164,3 +164,16 @@ Examiner assessment: Passed after one retry. The first attempt recognized timest
 mixed position, timing, and velocity. The retry correctly separated the commanded action from the
 post-simulation outcome. Remaining refinement: call the last measurement the finalized next
 velocity, part of `s_(t+1)`, rather than the current speed.
+
+### Q2 - Authoritative transform and sampling point (passed 2026-09-01)
+
+Candidate answer, lightly normalized for terminology: The authoritative transform is Mover's final
+synchronized gameplay state. Record it at the end of the movement process, specifically in
+`OnPostFinalize`, after movement and collision resolution. A requested movement or visual animation
+transform is not authoritative because external simulation conditions can prevent the character
+from executing that requested or depicted motion.
+
+Examiner assessment: Passed after teaching. The candidate identified what, when, and why. Interview
+refinement: say `OnPostFinalize` rather than only "the end," and explicitly distinguish the
+gameplay/Mover state from the skeletal mesh and animation root. Resimulated or invalid callbacks are
+rejected from chronological training data.
