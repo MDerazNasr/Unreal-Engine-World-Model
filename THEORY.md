@@ -81,6 +81,30 @@ independent scalar examples, not the X and Y components of a realistic planar ac
 does not include directional acceleration, Smooth Walking springs, facing dynamics, collisions, or
 hidden controller state.
 
+### Deterministic synthetic 2D backend
+
+`SYNTHETIC / NOT UNREAL EVIDENCE`
+
+The toy backend exists to test reset, hidden-state mismatch, event ordering, pushes, and episode
+logging before those pieces depend on expensive Unreal collection. Its observable state is planar
+position, planar velocity, scenario time, and step index. Its deliberately exposed hidden state is
+a lagged target velocity `h`:
+
+`alpha = 1 - exp(-dt / tau)`
+
+`h_next = h + alpha * (action - h)`
+
+The executed velocity moves toward `h_next` under a vector-magnitude acceleration limit. Position
+uses the average pre/post-update velocity. A configured push adds a deterministic velocity impulse
+at one declared step. The moving gate uses the absolute-time sinusoid from Section 19, and collision
+has priority over crossing and timeout. A swept segment check prevents a fast discrete step from
+jumping through the expanded gate box.
+
+Reset seed controls the initial lateral offset and gate phase. The same configuration, seed, episode
+ID, and actions must produce an exactly equal immutable episode record. This proves pipeline
+determinism in the toy system only. It cannot prove Unreal API correctness, Mover fidelity, useful
+residual structure in real data, or improved real control.
+
 ## 4. Faithful nominal dynamics
 
 The final nominal predictor carries known internal spring state:

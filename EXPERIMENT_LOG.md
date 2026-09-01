@@ -665,3 +665,26 @@ acceleration, speed limit, shape, and non-finite state/action values failed clos
 **Interpretation:** Accept this module as a teaching/test oracle only. It is not evidence about
 Unreal prediction accuracy and cannot serve as the fair nominal baseline because it omits planar
 directional response, springs, facing, collision, and known/hidden controller state.
+
+## SYN-001 deterministic 2D backend proof (2026-09-01)
+
+**Label:** `SYNTHETIC / NOT UNREAL EVIDENCE`
+
+**Hypothesis:** A local seeded reset plus analytic stepping will exactly reproduce a complete episode
+for identical configuration/actions, while a declared hidden target lag produces a visible,
+controlled mismatch from a direct lag-free predictor.
+
+**Configuration:** Default 100 ms toy step, 300 cm/s legal action norm, 600 cm/s^2 acceleration,
+0.35 s hidden-lag time constant, absolute-time sinusoidal gate, seed 27116 for the plot. Tests also
+cover a deterministic step-indexed push and fast swept gate crossing.
+
+**Result:** All 15 focused backend tests passed. Same seed/config/actions yielded exactly equal
+immutable episodes and consecutive sequence IDs; different seeds changed reset state. Analytic gate,
+action range, hidden lag, one-shot push, collision priority, anti-tunnelling sweep, timeout, terminal
+guard, and invalid configuration cases passed. The headless plot is 2160x900 PNG with SHA-256
+`a368b767544b84357799efa9c8244f18e69f30576007842c368977d2cb36aa98`; visual inspection found clear
+trajectory and speed separation with an explicit synthetic-only title.
+
+**Interpretation:** Accept the toy backend as deterministic pipeline infrastructure. The mismatch is
+constructed, so it says nothing about whether real Unreal residuals exist or whether learning or MPC
+will improve the real task.

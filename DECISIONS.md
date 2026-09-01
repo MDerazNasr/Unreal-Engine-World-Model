@@ -670,3 +670,40 @@ velocity, zero acceleration, scalar/batch parity, 1,024 fixed-seed invariant cas
 validation of timestep, parameters, shapes, and every state/action input.
 
 Related config/commit/experiment: `ORACLE-001`; Day 2 bounded-velocity teaching oracle.
+
+## D-023 - Use a transparent deterministic toy backend for pipeline proof only
+
+Status: accepted as synthetic infrastructure; excluded from Unreal evidence
+
+Decision: Define immutable observable position/velocity/time/step state and a separately named
+hidden lagged-target state. Derive reset phase and lateral offset from a local seeded generator,
+enforce a vector-norm action bound, evaluate the gate from absolute time, apply an optional
+step-indexed push, use swept collision, and log complete identity/action/state/event transitions.
+
+Why: We need a cheap controlled system in which the source of prediction mismatch is known. It can
+prove determinism, episode plumbing, event priority, and plotting before real data is available,
+while making the hidden-state assumption inspectable instead of mysterious.
+
+Alternatives considered: label toy trajectories as Unreal evidence; hide the lag implementation;
+use global randomness; update the gate incrementally; check collision only at the endpoint; omit
+episode and sequence identity; wait for every real-data dependency before testing the pipeline.
+
+Evidence: Fifteen focused tests cover same/different-seed reset, the analytic quarter-period gate,
+visible hidden lag, exact full-episode replay, action rejection, one-shot push, collision priority,
+swept anti-tunnelling behavior, terminal protection, and invalid configuration. The generated
+2160x900 plot is visibly stamped `SYNTHETIC / NOT UNREAL EVIDENCE` and separates a lag-free direct
+predictor from the synthetic hidden-lag trajectory and speed response.
+
+Main assumption: A first-order hidden target lag is sufficient to exercise the history/residual
+pipeline mechanics; it is not assumed to match Mover.
+
+How it could fail: The team could overinterpret an intentionally easy synthetic mismatch, tune the
+real method to toy behavior, or confuse the direct lag-free comparison with the forthcoming faithful
+nominal model. The moving gate is evaluated at the end-step analytic pose during swept collision,
+which is deterministic but not continuous relative-motion collision detection.
+
+How I tested it: Same seed/config/actions produce exactly equal immutable episodes with consecutive
+sequence IDs and a synthetic label. Reviewer replaced endpoint collision with a swept segment test.
+The plot was generated headlessly and visually inspected; PNG SHA-256 begins `a368b767`.
+
+Related config/commit/experiment: `SYN-001`; Day 2 deterministic synthetic backend.

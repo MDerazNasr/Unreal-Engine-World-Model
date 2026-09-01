@@ -276,24 +276,24 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 
 ### 3.3 Deterministic 2D backend
 
-- [ ] Define ground-truth toy state and hidden state.
-- [ ] Define deterministic reset from a seed.
-- [ ] Define legal action range.
-- [ ] Implement a transparent hidden lag/spring mismatch.
-- [ ] Implement a timed gate analytically.
-- [ ] Implement optional deterministic push intervention.
-- [ ] Log complete toy episodes in the same conceptual schema as Unreal.
-- [ ] Prove identical seed/actions produce identical trajectories.
-- [ ] Plot nominal versus toy ground truth before learning.
-- [ ] Mark every artifact `SYNTHETIC / NOT UNREAL EVIDENCE`.
+- [x] Define ground-truth toy state and hidden state.
+- [x] Define deterministic reset from a seed.
+- [x] Define legal action range.
+- [x] Implement a transparent hidden lag/spring mismatch.
+- [x] Implement a timed gate analytically.
+- [x] Implement optional deterministic push intervention.
+- [x] Log complete toy episodes in the same conceptual schema as Unreal.
+- [x] Prove identical seed/actions produce identical trajectories.
+- [x] Plot nominal versus toy ground truth before learning.
+- [x] Mark every artifact `SYNTHETIC / NOT UNREAL EVIDENCE`.
 
 ### 3.4 Theory proof gate
 
 - [x] Coordinate tests pass.
 - [x] Hand-oracle dynamics tests pass.
-- [ ] Toy backend determinism test passes.
+- [x] Toy backend determinism test passes.
 - [ ] Candidate explains why the toy backend exists and what it cannot prove.
-- [ ] Reviewer confirms no toy result is phrased as engine evidence.
+- [x] Reviewer confirms no toy result is phrased as engine evidence.
 - [ ] Commit the theory proof as a coherent tested slice.
 
 ## 4. Unreal feasibility
