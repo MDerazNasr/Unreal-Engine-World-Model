@@ -177,3 +177,15 @@ Examiner assessment: Passed after teaching. The candidate identified what, when,
 refinement: say `OnPostFinalize` rather than only "the end," and explicitly distinguish the
 gameplay/Mover state from the skeletal mesh and animation root. Resimulated or invalid callbacks are
 rejected from chronological training data.
+
+### Q3 - Why visible-position reset is insufficient (passed 2026-09-01)
+
+Candidate answer, lightly normalized for terminology: Resetting only the visible position leaves
+hidden state from the previous episode, including velocity and history. That retained state can
+change subsequent movement even if the character appears to start at the correct location.
+
+Examiner assessment: Passed. Interview refinement: examples include linear/angular velocity,
+Mover's smoothing or spring state, the previous movement marker, gate phase, action/sequence IDs,
+and model/planner history. Each state must be reset, explicitly synchronized, or documented as an
+uncontrolled limitation. This answers why position-only reset is invalid; evidence that the actual
+reset worked is a separate question.
