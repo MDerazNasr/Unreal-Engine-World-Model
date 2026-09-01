@@ -150,3 +150,17 @@ Before marking a component finished, answer aloud:
 - What is the weakest claim the evidence supports?
 
 Record weak answers here and resolve them before the final rehearsal.
+
+## 6. Candidate teach-back record
+
+### Q1 - Desired versus executed velocity (passed 2026-09-01)
+
+Candidate answer, lightly normalized for terminology: Desired velocity is a request, not the actual
+result. Acceleration limits, collisions, controller smoothing, and external forces acting on Mover
+can change the executed motion. Record the previous state, requested/applied action, actual timestep,
+and finalized next position and velocity separately.
+
+Examiner assessment: Passed after one retry. The first attempt recognized timestep variation but
+mixed position, timing, and velocity. The retry correctly separated the commanded action from the
+post-simulation outcome. Remaining refinement: call the last measurement the finalized next
+velocity, part of `s_(t+1)`, rather than the current speed.
