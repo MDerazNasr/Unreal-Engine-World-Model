@@ -1,0 +1,40 @@
+D-019 live timed-gate trial — attempt 1 (invalid)
+Date: 2026-09-01
+Episode configuration target: seed=1901, episode_id=1901
+
+User-visible observations
+- A gray gate appeared and moved sideways.
+- The character continued forward and appeared to pass through the gate.
+- No visible deterministic reset occurred.
+
+Runtime log evidence
+- Timed gate initialized with seed 1901.
+- Gate origin: (-195.49, 0.00, 88.27) cm.
+- Motion axis: world +Y; crossing-plane normal: world +X.
+- Amplitude: 200 cm; period: 4 s; half extents: (30, 150, 90) cm.
+- Two overlap/hit callbacks were observed during the same finalized step at
+  scenario_time=4.311357 s and gate center=(-195.49, 93.96, 88.27) cm.
+- Arena terminal event: gate_collision, collision_count=2,
+  agent_position=(-255.66, 0.00, 88.28) cm.
+- No reset-queued or reset-verified message appeared.
+- No episode-started, episode-stopped, or episode-exported message appeared.
+- No episode_1901 export file was found.
+
+Interpretation
+- PASS: timed-gate spawning, deterministic sideways motion, collision callback,
+  and terminal-event classification executed at runtime.
+- FAIL: the requested warmup reset did not execute, so the episode clock and
+  recorder were never initialized through the intended deterministic lifecycle.
+- MISLEADING BEHAVIOR: after the collision event, arena deactivation disabled
+  gate collision while automation kept commanding forward motion. This made the
+  character visually pass through the already-terminated gate.
+- VALIDITY: invalid trial; it must not be used as experimental evidence.
+
+Required correction before attempt 2
+1. Verify that Request Reset After Warmup On Begin Play is actually enabled on
+   the runtime Motion World Bridge component.
+2. On any arena terminal event, issue a zero desired-velocity command.
+3. Freeze the gate at terminal state while retaining physical collision, rather
+   than making it non-colliding.
+4. Repeat the trial and require reset verification, episode start, exactly one
+   terminal classification, episode export, and independent Python validation.

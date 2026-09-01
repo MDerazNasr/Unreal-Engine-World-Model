@@ -1,0 +1,42 @@
+D-020 animation-root diagnostic pre-live audit
+Date: 2026-09-01
+
+Scope
+- Visual-only QA telemetry; never authoritative state, transition data, or model input.
+- Runtime feature default-off, interval-throttled, and capped.
+
+Compiler-directed dead end
+- First runtime integration attempted USkeletalMeshComponent::AreBoneTransformsValid().
+- UE 5.8 declares the override protected, so strict compilation correctly rejected the call.
+- Replacement uses public runtime evidence: IsRegistered(), GetNumBones() > 0, and
+  GetNumComponentSpaceTransforms() > 0. No private/protected engine API is bypassed.
+
+C++ validation
+- MotionWorldAnimationTraceBuild2 Editor Development: PASS.
+- MotionWorldAnimationTraceBuild2 Game Development: PASS.
+- MotionWorldAnimationTraceBuild2 Game Shipping: PASS.
+- Only the previously classified engine-owned MetalShaderConverter warning appeared.
+
+Python validation
+- Full suite: 19 passed.
+- Ruff: passed.
+- git diff --check: passed.
+- Coverage includes latest-session selection and rejection of nonmonotonic sequence and
+  inconsistent root offset.
+
+Synthetic end-to-end plot check
+- Input: three internally consistent session-tagged diagnostic rows.
+- CLI: valid=true session=ABC123 samples=3 component=Mesh root_bone=root
+  median_planar_offset_cm=1.004988 max_planar_offset_cm=1.216553.
+- Output: 1980x802 RGBA PNG, visually inspected; both trajectory and offset panels readable.
+
+Claim boundary
+- Exact Game Animation Sample universal Editor build: PASS (118.50 seconds).
+- Deployed source matches the repository exactly.
+- Deployed dylib is universal x86_64 + arm64; SHA-256:
+  34c7e321de615d1f0f57c874f314fab13cfc0fdfbdc744b6951c873528c3fefe.
+- Actual-project headless automation found 8 MotionWorld tests; all 8 returned Success and the
+  process reported TEST COMPLETE, EXIT CODE: 0.
+- The recurring sample warning reported a 4608 MiB SkinnedAsset compile estimate against about
+  3422 MiB available. It did not fail compilation or automation and is not a MotionWorld allocation.
+- Synthetic data validates parser/plot wiring only; live trace evidence remains pending.

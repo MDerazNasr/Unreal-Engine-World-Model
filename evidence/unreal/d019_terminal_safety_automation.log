@@ -1,0 +1,54 @@
+D-019 terminal safety correction — closed-editor validation
+Date: 2026-09-01
+Implementation commit: 95573a3
+
+Behavioral contract
+- Arena events are evaluated only while a verified timed-gate episode is recording.
+- Physics callbacks before one authoritative observation are coalesced into one collision event.
+- A terminal event freezes schedule/event tracking but retains physical gate collision.
+- The terminal observation is recorded under the action that caused it.
+- The bridge then clears both local- and world-frame desired-velocity requests exactly once.
+- Command echo validation is deferred until the zero request is actually produced.
+- A successful arena reset re-arms terminal safe-stop behavior.
+
+Independent Python checks
+- pytest: 16 passed
+- Ruff: passed
+- git diff --check: passed
+
+Strict isolated BuildPlugin
+- UnrealEditor Mac Development arm64+x64: succeeded
+- UnrealGame Mac Development arm64+x64: succeeded
+- UnrealGame Mac Shipping arm64+x64: succeeded
+- Strict includes, no PCH, no shared PCH, unity disabled
+- AutomationTool exit code: 0
+- Engine-owned warning persisted for missing MetalShaderConverter include; no MotionWorld warning/error
+
+Actual Game Animation Sample
+- Repository source deployed while Unreal Editor was closed
+- Source parity: exact (`diff -qr` produced no differences)
+- GameAnimationSampleEditor Mac Development arm64+x64: succeeded
+- Deployed dylib: Mach-O universal x86_64 + arm64
+- SHA-256: 769c69adc090d2160d2b7eb1d91b6912f35bc3446116d7e16675d895e4e0588e
+
+Actual-project automation
+- Found 8 MotionWorld tests
+- MotionWorld.Command.SanitizeWorldVelocity: Success
+- MotionWorld.Coordinates.PlanarVelocity: Success
+- MotionWorld.Episode.AtomicJsonLinesExporter: Success
+- MotionWorld.Episode.InMemoryRecorder: Success
+- MotionWorld.Gate.DeterministicScheduleAndEvents: Success
+- MotionWorld.Reset.FinalizedVerifier: Success
+- MotionWorld.State.AuthoritativeSample: Success
+- MotionWorld.Transition.CausalPairing: Success
+- Test process exit code: 0
+
+Resource note
+- The headless sample emitted its existing SkinnedAsset compile warning: estimated 4608 MiB
+  versus roughly 3664 MiB available. The run completed successfully. This is sample asset-build
+  pressure, not a MotionWorld allocation failure.
+
+Remaining acceptance gate
+- Live attempt 2 must visibly and log-verifiably prove: warmup reset, verified episode start,
+  one terminal classification, frozen/solid gate, automatic zero command, schema-v2 export,
+  and independent Python validation.

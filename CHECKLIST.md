@@ -29,18 +29,23 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 
 ### Sunday 30 August - environment and Unreal feasibility
 
-- [ ] By 10:00, verify Unreal 5.7/5.8 and Game Animation Sample installation/acquisition.
-- [ ] While installation runs, bootstrap only independent Python environment/contracts/theory tests.
-- [ ] By 13:00, open the sample and compile the smallest project-specific module.
-- [ ] By 18:00, apply programmatic desired velocity and capture authoritative post-movement state.
-- [ ] By 22:00, demonstrate deterministic reset, timed gate, and one complete episode log.
+- [x] Verify Unreal 5.8 and Game Animation Sample installation/acquisition (completed later than the original 10:00 target).
+- [x] While installation runs, bootstrap only independent Python environment/contracts/theory tests.
+- [x] Open the sample and compile the smallest project-specific module (completed later than the original 13:00 target).
+- [x] Apply programmatic desired velocity and capture authoritative post-movement state (completed after the original Sunday 18:00 target).
+- [x] Demonstrate deterministic character reset and preserve complete in-memory episode lifecycle evidence.
+- [x] Add the deterministic timed gate and its event/termination labels.
+- [x] Persist one complete character-dynamics episode file and validate all 458 rows independently in Python.
 - [ ] Close/merge `feature/unreal-feasibility` only if the Section 4 feasibility gate and required Section 5 safety checks pass.
-- [ ] If the sample blocks progress, record and execute Manny plus Mover fallback.
-- [ ] If the engine remains unavailable, freeze Unreal claims and proceed only with clearly labeled evidence levels 1-2.
+- [x] Do not activate the Manny plus Mover fallback because the Game Animation Sample path is working.
+- [x] Do not freeze Unreal claims at evidence levels 1-2 because UE 5.8.2 runtime evidence is available.
 
 ### Monday 31 August - nominal model and data
 
-- [ ] Complete Section 3 coordinate and hand-oracle checks.
+- [x] Implement and execute the core coordinate conversion tests in the actual UE 5.8 sample.
+- [ ] Complete the candidate coordinate derivation and remaining robustness checks in Section 3.1.
+- [ ] Complete the Section 3.2 hand-oracle calculations and tests.
+- [ ] Complete the Section 3.3 deterministic theory backend.
 - [ ] Complete Section 6 faithful nominal model and substep tests.
 - [ ] Complete enough Section 7 collection/validation to measure real residual structure.
 - [ ] Produce first nominal-versus-Unreal recursive error plot.
@@ -132,8 +137,8 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [x] Create `docs/project-foundation` from `main`.
 - [x] Commit research and execution contract as `f855d33`.
 - [x] Commit deadline-adjusted plan as `ee134f9`.
-- [ ] Review and merge `docs/project-foundation` into `main`.
-- [ ] Create `feature/unreal-feasibility` from updated `main`.
+- [x] Review and merge `docs/project-foundation` into `main`.
+- [x] Create `feature/unreal-feasibility` from updated `main`.
 - [ ] Create later milestone branches only after the prior gate merges.
 - [ ] Make small commits after coherent tested slices.
 - [ ] Run focused tests before every commit.
@@ -159,58 +164,60 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 
 ### 1.2 Unreal installation - user/system prerequisite
 
-- [ ] Open Epic Games Launcher.
+- [x] Open Epic Games Launcher.
 - [ ] Check free-space requirement before selecting engine components.
-- [ ] Install or locate Unreal Engine 5.7 or 5.8.
-- [ ] Record exact Unreal version and build identifier.
-- [ ] Acquire the matching Game Animation Sample.
-- [ ] Record the sample version/source.
-- [ ] Launch the unmodified sample once.
-- [ ] Confirm the sample runs on Apple Silicon.
+- [x] Install or locate Unreal Engine 5.7 or 5.8.
+- [x] Record exact Unreal version and build identifier.
+- [x] Acquire the matching Game Animation Sample.
+- [x] Record the sample version/source.
+- [x] Launch the unmodified sample once.
+- [x] Confirm the sample editor opens on Apple Silicon.
 - [ ] Record launch time and any warnings relevant to Mover or animation.
 - [ ] Confirm project files can be generated for Xcode.
-- [ ] Compile an unmodified or minimally modified project target.
-- [ ] Capture the exact engine and sample paths locally without committing licensed content.
+- [x] Compile the behavior-free MotionWorld plugin against UE 5.8.2.
+- [x] Compile and load the behavior-free plugin in the actual Game Animation Sample.
+- [x] Confirm manual Play-In-Editor movement parity with the plugin enabled.
+- [x] Capture the exact engine and sample paths locally without committing licensed content.
 
 ### 1.3 Python environment
 
-- [ ] Create project metadata (`pyproject.toml`) with supported Python range.
-- [ ] Create `.python-version` targeting Python 3.12.
-- [ ] Create project-local `uv` virtual environment.
-- [ ] Add PyTorch, NumPy, SciPy, scikit-learn, plotting, configuration, and test dependencies.
-- [ ] Lock exact dependency versions.
-- [ ] Add `.venv`, caches, checkpoints, datasets, and generated results to `.gitignore` as appropriate.
-- [ ] Import all required packages in one smoke test.
-- [ ] Record PyTorch version.
-- [ ] Record CPU and MPS availability.
-- [ ] Run a deterministic tensor operation twice and compare results.
-- [ ] Decide CPU-versus-MPS policy for tests and training.
-- [ ] Record environment creation and verification commands in README.
+- [x] Create project metadata (`pyproject.toml`) with supported Python range.
+- [x] Create `.python-version` targeting Python 3.12.
+- [x] Create project-local `uv` virtual environment.
+- [x] Add PyTorch, NumPy, SciPy, scikit-learn, plotting, configuration, and test dependencies.
+- [x] Lock exact dependency versions.
+- [x] Add `.venv`, caches, checkpoints, datasets, and generated results to `.gitignore` as appropriate.
+- [x] Import all required packages in one smoke test.
+- [x] Record PyTorch version.
+- [x] Record CPU and MPS availability.
+- [x] Run a deterministic tensor operation twice and compare results.
+- [x] Decide CPU-versus-MPS policy for tests and training.
+- [x] Record environment creation and verification commands in README.
 
 ### 1.4 Environment gate acceptance
 
-- [ ] Unreal editor and matching Game Animation Sample open successfully.
-- [ ] Minimal C++ target compiles successfully.
-- [ ] Python 3.12 environment installs reproducibly from committed metadata.
-- [ ] At least one Python test runs successfully.
-- [ ] Environment inventory is entered as `FEAS-000` or equivalent.
-- [ ] Reviewer confirms no undocumented machine dependency blocks reproduction.
+- [x] Unreal editor and matching Game Animation Sample open successfully.
+- [x] Minimal C++ plugin target compiles successfully.
+- [x] Python 3.12 environment installs reproducibly from committed metadata.
+- [x] At least one Python test runs successfully.
+- [x] Environment inventory is entered as `FEAS-000` or equivalent.
+- [x] Reviewer confirms no undocumented machine dependency blocks reproduction.
 
 ## 2. Repository and interface skeleton
 
 ### 2.1 Repository layout
 
 - [ ] Create `configs/` for data, model, planner, evaluation, and scenario configs.
-- [ ] Create `motionworld/data/`.
+- [x] Create `motionworld/data/`.
 - [ ] Create `motionworld/models/`.
 - [ ] Create `motionworld/planning/`.
 - [ ] Create `motionworld/evaluation/`.
-- [ ] Create `motionworld/protocol/` or an equivalent explicit protocol area.
-- [ ] Create `tests/unit/`.
+- [x] Create `motionworld/protocol/` or an equivalent explicit protocol area.
+- [x] Create `tests/unit/`.
 - [ ] Create `tests/integration/`.
-- [ ] Create `scripts/` only for stable reproduction entry points.
+- [x] Create `scripts/` only for stable reproduction entry points.
 - [ ] Create ignored/local `artifacts/`, `results/`, and dataset locations with tracked README/placeholders where useful.
-- [ ] Create project-specific Unreal module layout without copying the sample.
+- [x] Create project-specific Unreal plugin/module layout without copying the sample.
 
 ### 2.2 Shared typed contracts
 
@@ -230,7 +237,7 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 
 ### 2.3 Skeleton gate
 
-- [ ] Python imports succeed without circular dependencies.
+- [x] Python imports succeed without circular dependencies.
 - [ ] Empty/default typed objects cannot silently represent valid runtime data.
 - [ ] Tests reject incorrect dimensions, units/version tags, and non-finite values.
 - [ ] Candidate can draw the Unreal/Python system boundary from memory.
@@ -241,17 +248,17 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 ### 3.1 Coordinate transformations
 
 - [ ] Explain world/global coordinates versus character-local coordinates.
-- [ ] Write the 2D yaw rotation matrix in `THEORY.md`.
-- [ ] Derive why global-to-local uses the transpose/inverse rotation.
-- [ ] Manually calculate local forward at 0 degrees.
-- [ ] Manually calculate local forward at 90 degrees under Unreal X-forward/Y-right conventions.
-- [ ] Implement local-to-global vector conversion.
-- [ ] Implement global-to-local vector conversion.
+- [x] Write the 2D yaw rotation matrix in `THEORY.md`.
+- [x] Derive why global-to-local uses the transpose/inverse rotation.
+- [x] Record local forward at 0 degrees in the theory/tests.
+- [x] Record local forward at 90 degrees under Unreal X-forward/Y-right conventions.
+- [x] Implement local-to-global vector conversion.
+- [x] Implement global-to-local vector conversion.
 - [ ] Implement point conversion separately from vector conversion if translation is involved.
-- [ ] Test 0, 90, 180, and -90 degrees.
+- [x] Test 0, 90, 180, and -90 degrees.
 - [ ] Test random round trips.
 - [ ] Test radians/degrees misuse is caught or impossible at the interface.
-- [ ] Reviewer verifies signs against an Unreal observation.
+- [x] Reviewer verifies signs against an Unreal observation.
 - [ ] Examiner asks candidate to derive one conversion on a blank page.
 
 ### 3.2 Minimal bounded velocity oracle
@@ -293,17 +300,18 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 
 ### 4.1 Version-matched API/source audit
 
-- [ ] Locate the exact Game Animation Sample character class/Blueprint.
-- [ ] Locate the exact Mover component and Smooth Walking mode used by the sample.
-- [ ] Locate the desired-velocity or movement-input control surface.
+- [x] Locate the exact Game Animation Sample character class/Blueprint.
+- [x] Locate the exact Mover component and Smooth Walking mode used by the sample.
+- [x] Locate the desired-velocity or movement-input control surface.
 - [ ] Locate where movement parameters live.
-- [ ] Locate post-movement tick/update hooks.
-- [ ] Locate authoritative velocity and angular-velocity access.
-- [ ] Locate collision/contact events.
-- [ ] Locate animation-root and toe transform access for diagnostics.
-- [ ] Verify every selected API in version-matched official docs or engine source.
-- [ ] Record source file/class/member names and engine version in `DECISIONS.md`.
-- [ ] Compile immediately after the smallest C++ change.
+- [x] Locate post-movement tick/update hooks.
+- [x] Locate authoritative velocity and angular-velocity access.
+- [x] Locate collision/contact events.
+- [x] Locate animation-root transform access through Mover's primary skeletal visual.
+- [ ] Locate toe transforms and reliable contact labels before claiming foot sliding.
+- [x] Verify every selected API in version-matched official docs or engine source.
+- [x] Record source file/class/member names and engine version in `DECISIONS.md`.
+- [x] Compile immediately after the smallest C++ change.
 
 ### 4.2 Unreal project-specific components
 
@@ -312,76 +320,86 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [ ] Add `AMotionWorldMovingObstacle` or documented equivalent.
 - [ ] Add `UMotionWorldDebugComponent` or documented equivalent.
 - [ ] Keep responsibilities separated rather than creating one monolithic actor.
-- [ ] Ensure module/build dependencies are the minimum required.
-- [ ] Ensure project source does not hard-code one developer machine path.
+- [x] Ensure the behavior-free module uses only `Core`, `CoreUObject`, `Engine`, and `Mover` dependencies.
+- [x] Ensure project source does not hard-code one developer machine path.
+- [x] Attach the bridge locally to the playable sample pawn with automation disabled.
+- [x] Confirm the attached bridge initializes and preserves human-control behavior.
 
 ### 4.3 Programmatic character control
 
-- [ ] Apply zero desired velocity.
-- [ ] Apply forward desired velocity.
-- [ ] Apply lateral desired velocity.
+- [x] Implement and strictly compile a bounded world-space command probe; do not confuse it with the final character-local action interface.
+- [x] Implement and strictly compile character-local/world planar conversion from authoritative Mover yaw.
+- [x] Execute coordinate-frame automation tests in the actual sample: 2 passed, 0 failed/warnings.
+- [x] Prove the character-local axes with combined evidence: visible perpendicular forward/right paths at one starting yaw plus executed cardinal and round-trip tests across additional yaws.
+- [x] Execute the command-sanitizer automation tests in an actual-sample Editor process: 1 passed, 0 failed/warnings.
+- [x] Prove `GetLastInputCmd()` echoes the velocity type and bounded vector.
+- [x] Capture a live character-local request resolving through authoritative yaw and echoing the expected world vector.
+- [x] Restore the attached bridge to automation disabled after the fixed-command test.
+- [x] Apply zero desired velocity and verify the retained packet echo.
+- [x] Apply forward desired velocity and retain a causally paired live episode under the consumed command.
+- [x] Apply lateral desired velocity and verify the local-right path/echo.
 - [ ] Apply diagonal desired velocity.
 - [ ] Apply stop command from motion.
 - [ ] Apply reverse command from forward motion.
 - [ ] Clamp magnitude to active maximum speed.
-- [ ] Verify action is character-local at the interface.
+- [x] Verify action is character-local at the interface.
 - [ ] Verify facing-follows-motion behavior for P0.
 - [ ] Verify action hold duration is 100 ms at the planner interface.
-- [ ] Confirm externally commanded movement still drives acceptable sample animation.
+- [x] Confirm externally commanded movement still drives acceptable sample animation for the feasibility claim.
 
 ### 4.4 Authoritative state and tick order
 
-- [ ] Select actor/capsule/Mover state as the sole planning ground truth.
-- [ ] Sample global XY position after movement.
-- [ ] Sample velocity and convert to declared frame.
-- [ ] Sample facing in a valid representation.
-- [ ] Sample angular velocity with declared units.
-- [ ] Record engine timestamp and step index.
-- [ ] Prove sampling happens after movement rather than before it.
-- [ ] Log animation-root transform with a distinct field name.
+- [x] Select actor/capsule/Mover state as the sole planning ground truth.
+- [x] Sample global XY position after movement.
+- [x] Sample velocity and convert to declared frame.
+- [x] Sample facing in a valid representation.
+- [x] Sample angular velocity with declared units.
+- [x] Record engine timestamp and step index.
+- [x] Prove sampling happens after movement rather than before it.
+- [x] Log animation-root transform with a distinct field name.
 - [ ] Log toe transforms only as diagnostics.
-- [ ] Plot actor and animation-root trajectories separately.
-- [ ] Confirm no code substitutes animation root for actor state.
+- [x] Plot actor and animation-root trajectories separately.
+- [x] Confirm no code substitutes animation root for actor state.
 
 ### 4.5 Deterministic scenario lifecycle
 
-- [ ] Define scenario seed ownership.
-- [ ] Reset actor transform and velocity.
-- [ ] Reset Mover/controller hidden state as far as the API permits.
+- [x] Define scenario seed ownership.
+- [x] Reset actor transform and velocity.
+- [x] Reset Mover/controller hidden state as far as the API permits.
 - [ ] Reset target.
-- [ ] Reset gate phase/schedule.
-- [ ] Reset collision counters.
-- [ ] Reset episode and sequence identifiers.
+- [x] Reset gate phase/schedule.
+- [x] Reset collision counters.
+- [x] Reset episode identity while keeping the global callback sequence monotonic.
 - [ ] Reset observation history.
 - [ ] Reset planner warm start.
-- [ ] Run two same-seed resets and compare initial observations.
-- [ ] Run two same-seed gate schedules and compare trajectories/timestamps.
-- [ ] Prove no data from the prior episode appears after reset.
+- [x] Run two same-anchor resets and compare verified initial observations.
+- [x] Run two same-seed gate schedules and compare trajectories/timestamps.
+- [x] Prove no data from the prior episode appears after reset.
 
 ### 4.6 Timed gate and events
 
-- [ ] Create a gate with an explicit deterministic schedule.
-- [ ] Expose gate position, velocity, size/radius, motion type, and phase.
-- [ ] Log gate schedule metadata.
-- [ ] Detect character/gate collision consistently.
-- [ ] Detect successful crossing.
-- [ ] Detect timeout.
-- [ ] Record termination reason.
+- [x] Create a gate with an explicit deterministic schedule.
+- [x] Expose gate position, velocity, size/radius, motion type, and phase.
+- [x] Log gate schedule metadata.
+- [x] Detect character/gate collision consistently.
+- [x] Detect successful crossing in the pure event contract and reject false-success files.
+- [x] Detect timeout in the pure event contract and reject pre-deadline timeout files.
+- [x] Record termination reason in each terminal row and the reconciled footer summary.
 - [ ] Validate the scenario at slow/manual speed before automated collection.
 
 ### 4.7 Feasibility evidence and gate
 
 - [ ] Record a short video of programmatic movement.
-- [ ] Record a deterministic reset comparison.
-- [ ] Save one complete episode.
-- [ ] Validate every required episode field.
-- [ ] Save actor-versus-animation-root trace.
-- [ ] Enter `FEAS-001` with version, commit, seed, commands, and artifacts.
-- [ ] Reviewer checks tick phase, frames, units, stale state, and reset leakage.
-- [ ] Candidate answers: “Which transform is authoritative, at what tick point, and why?”
-- [ ] Candidate answers: “How do you know hidden controller state was reset?”
-- [ ] Gate passes: external control, authoritative state, reset, events, and logging are all reliable.
-- [ ] If not passed by cutoff, record fallback to Manny plus Mover or freeze Unreal claim level.
+- [x] Record a deterministic character-reset comparison.
+- [x] Preserve complete in-memory episode lifecycle evidence.
+- [x] Validate every required episode field.
+- [x] Save actor-versus-animation-root trace.
+- [x] Enter `FEAS-001` with version, commit, seed, commands, and artifacts.
+- [x] Reviewer checks tick phase, frames, units, stale state, and reset leakage.
+- [x] Candidate answers: “Which transform is authoritative, at what tick point, and why?”
+- [x] Candidate answers: “How do you know hidden controller state was reset?”
+- [x] Gate passes: external control, authoritative state, reset, events, and logging are all reliable.
+- [x] Retain the Game Animation Sample path; fallback was not required at this checkpoint.
 
 ## 5. Unreal-Python protocol and safety
 
@@ -489,7 +507,7 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 
 ### 6.5 Nominal empirical validation
 
-- [ ] Align action at time `t` with correct next state at `t+1`.
+- [x] Align action at time `t` with correct next state at `t+1`; live episode 1601 accepted all 922 adjacent pairs with zero rejection.
 - [ ] Compare nominal and Unreal one-step transitions.
 - [ ] Compare recursive errors at 0.5, 1.0, and 1.5 s.
 - [ ] Stratify free motion, acceleration, stopping, reversing, turning, contact, and post-push.
@@ -511,17 +529,17 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 
 ### 7.1 Episode schema
 
-- [ ] Include episode, scenario, seed, timestamp, and step index.
-- [ ] Include authoritative character state.
-- [ ] Include next authoritative state.
-- [ ] Include applied action, not merely requested pre-clamp action.
+- [x] Include episode, scenario, seed, timestamp, and step index.
+- [x] Include authoritative character state.
+- [x] Include next authoritative state.
+- [x] Include applied action, not merely requested pre-clamp action.
 - [ ] Include target state.
-- [ ] Include obstacle states.
-- [ ] Include collision flag/count.
+- [x] Include analytically revalidated timed-gate obstacle states.
+- [x] Include collision flag/count.
 - [ ] Include external impulse.
 - [ ] Include controller parameters.
-- [ ] Include termination reason.
-- [ ] Include state-source and schema-version labels.
+- [x] Include termination reason.
+- [x] Include state-source and schema-version labels.
 - [ ] Include animation-root/toe diagnostics in distinct optional fields.
 
 ### 7.2 Collection policy
@@ -538,13 +556,13 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 
 ### 7.3 Dataset validation
 
-- [ ] Reject duplicate episode/step keys.
-- [ ] Reject non-monotonic timestamps or step indices.
-- [ ] Reject sequence gaps unless explicitly recorded.
-- [ ] Reject non-finite states/actions.
+- [x] Reject duplicate/non-increasing transition identities within one episode file.
+- [x] Reject non-monotonic timestamps or state/Mover step indices within accepted rows.
+- [x] Reject sequence gaps unless explicitly recorded.
+- [x] Reject non-finite states/actions.
 - [ ] Validate units and plausible ranges.
-- [ ] Validate action/next-state temporal alignment.
-- [ ] Validate reset boundaries.
+- [x] Validate action/next-state temporal alignment.
+- [x] Validate one file has one episode identity and no row crosses its boundary.
 - [ ] Validate no window crosses episode termination.
 - [ ] Produce coverage histograms for speed, direction, turns, stops, contact, impulses, and parameters.
 
@@ -948,12 +966,12 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 ### 13.4 Animation-quality diagnostics
 
 - [ ] Requested planner path versus authoritative actor path.
-- [ ] Authoritative actor path versus animation-root path.
+- [x] Authoritative actor path versus animation-root path.
 - [ ] Facing relative to requested and executed motion.
 - [ ] Animation-root acceleration/jerk if reliable.
 - [ ] Toe/foot sliding only if contact data is reliable.
-- [ ] Avoid modifying animation/IK merely to improve these metrics during P0.
-- [ ] State clearly that MotionWorld does not generate poses.
+- [x] Avoid modifying animation/IK merely to improve these metrics during P0.
+- [x] State clearly that MotionWorld does not generate poses.
 
 ### 13.5 Demo gate
 

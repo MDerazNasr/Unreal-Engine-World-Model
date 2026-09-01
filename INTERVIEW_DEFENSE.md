@@ -69,6 +69,12 @@ I compare predicted and realized return for CEM-selected trajectories with the g
 
 ## 4. Architecture challenges
 
+### Why use an isolated Unreal bridge plugin instead of editing the sample Blueprint?
+
+The Game Animation Sample pawn is a large licensed Blueprint derived from `APawn`, and its project module is distributed precompiled without visible source. Editing the Blueprint would produce a fragile binary diff and entangle MotionWorld with sample input and animation logic. UE 5.8.2 already provides a compositional seam: Mover gathers actor components implementing `IMoverInputProducerInterface`, and `OnPostFinalize` exposes finalized authoritative state. A small source-controlled bridge can therefore override input only in automated mode, leave human control untouched otherwise, and record gameplay state without replacing the pawn or animation stack. The main risk is producer ordering, so the first runtime test checks `GetLastInputCmd()` rather than assuming the command won.
+
+Evidence required: plugin compile, human-control passthrough test, fixed velocity command echo, and finalized-state trace.
+
 ### Why residual learning rather than a full transition model?
 
 Known movement structure is inexpensive and testable. Residual learning gives zero a meaningful baseline, focuses capacity on systematic mismatch, and provides a clean scientific comparison. It can fail if residuals are mostly noise or the nominal model is already sufficient.
@@ -84,6 +90,45 @@ CEM handles bounded actions and non-differentiable analytic collision costs, is 
 ### Why not run Unreal itself for every candidate?
 
 At each 10 Hz decision, CEM evaluates hundreds of candidates over 12-15 steps and several iterations. Cloning and advancing that many full Unreal worlds is outside the real-time budget. The nominal-plus-residual model is the batched approximation whose accuracy is directly evaluated.
+
+### How do you know each action is paired with the correct state transition?
+
+The first finalized state seeds the episode. UE 5.8 stores the input used by a simulation step and
+its timestep before broadcasting the post-finalization callback. On the next callback I therefore
+pair the prior cached state with that just-used input and the newly finalized state. I require
+adjacent state and Mover-frame IDs, increasing simulation time, and agreement between timestamp
+difference and reported step length. Rejected attempts consume sequence IDs and are counted, so
+missing data cannot masquerade as a continuous trajectory.
+
+Evidence: UE source ordering, the recorder automation test, and live episode 1601. The live run
+reconciled 923 observations into 922 adjacent attempted pairs and accepted all 922, with no rejected
+pair, rejected seed, or capacity drop. This proves the implemented callback join behaved
+consistently in that run; it does not prove all future engine configurations or callback paths.
+
+### Why stop when the episode buffer is full instead of overwriting old rows?
+
+Overwriting silently changes the episode's start and breaks provenance. A hard bound controls memory
+while a counted capacity drop and automatic stop make truncation explicit. The final persisted
+episodes will be intentionally shorter than the bound.
+
+### How do you know reset cleared hidden controller state?
+
+I do not infer reset from the visible Actor transform. The request runs through Mover: it teleports
+the authoritative state, applies non-additive zero linear velocity and zero angular velocity in the
+captured movement mode, and marks Smooth Walking's `DidGenerateMove` value stale. In the audited UE
+5.8 source, that stale marker reinitializes spring velocity, acceleration, intermediate velocity,
+intermediate facing, and intermediate angular velocity from the reset velocity and facing. I then
+accept only a newer non-resimulated finalized state whose position, yaw, velocities, and mode meet
+explicit tolerances. Recording starts after that check, so no teleport crosses an episode boundary.
+
+Evidence required: two same-session resets from nonzero displacement, matching finalized seeds,
+zero residual speeds within tolerance, and separate episode summaries. This character-level claim
+does not include animation-graph history, external actors, the timed gate, RNG, or planner state;
+the arena reset must handle those separately.
+
+Observed result: the two resets began 483.813 cm and 509.037 cm away, passed on the first finalized
+check at the identical pose/mode with zero measured residual speeds, and separated episodes 1701
+and 1702 without an accepted cross-reset transition.
 
 ### Why not NavMesh?
 
@@ -105,3 +150,88 @@ Before marking a component finished, answer aloud:
 - What is the weakest claim the evidence supports?
 
 Record weak answers here and resolve them before the final rehearsal.
+
+## 6. Candidate teach-back record
+
+### Q1 - Desired versus executed velocity (passed 2026-09-01)
+
+Candidate answer, lightly normalized for terminology: Desired velocity is a request, not the actual
+result. Acceleration limits, collisions, controller smoothing, and external forces acting on Mover
+can change the executed motion. Record the previous state, requested/applied action, actual timestep,
+and finalized next position and velocity separately.
+
+Examiner assessment: Passed after one retry. The first attempt recognized timestep variation but
+mixed position, timing, and velocity. The retry correctly separated the commanded action from the
+post-simulation outcome. Remaining refinement: call the last measurement the finalized next
+velocity, part of `s_(t+1)`, rather than the current speed.
+
+### Q2 - Authoritative transform and sampling point (passed 2026-09-01)
+
+Candidate answer, lightly normalized for terminology: The authoritative transform is Mover's final
+synchronized gameplay state. Record it at the end of the movement process, specifically in
+`OnPostFinalize`, after movement and collision resolution. A requested movement or visual animation
+transform is not authoritative because external simulation conditions can prevent the character
+from executing that requested or depicted motion.
+
+Examiner assessment: Passed after teaching. The candidate identified what, when, and why. Interview
+refinement: say `OnPostFinalize` rather than only "the end," and explicitly distinguish the
+gameplay/Mover state from the skeletal mesh and animation root. Resimulated or invalid callbacks are
+rejected from chronological training data.
+
+### Q3 - Why visible-position reset is insufficient (passed 2026-09-01)
+
+Candidate answer, lightly normalized for terminology: Resetting only the visible position leaves
+hidden state from the previous episode, including velocity and history. That retained state can
+change subsequent movement even if the character appears to start at the correct location.
+
+Examiner assessment: Passed. Interview refinement: examples include linear/angular velocity,
+Mover's smoothing or spring state, the previous movement marker, gate phase, action/sequence IDs,
+and model/planner history. Each state must be reset, explicitly synchronized, or documented as an
+uncontrolled limitation. This answers why position-only reset is invalid; evidence that the actual
+reset worked is a separate question.
+
+### Q4 - Reset evidence and limitation (passed 2026-09-01)
+
+Candidate answer, lightly normalized for terminology: Reset-state checks directly compare the
+observable state after reset; episode and sequence IDs establish clean data boundaries; repeated
+behavior, including similar collision times, supports reproducibility. Even near-identical results
+do not prove that every inaccessible hidden state is identical.
+
+Examiner assessment: Passed after one retry. The first attempt relied too heavily on IDs, which
+prove identity and chronology rather than physical reset. The bounded claim is that observable
+position, yaw, linear/angular velocity, and movement mode reset correctly, no transition crossed an
+episode boundary, and two same-seed gate trials behaved closely. Do not claim bitwise determinism or
+complete observation of Mover internals.
+
+### Q5 - Rejecting stale and cross-reset transitions (passed 2026-09-01)
+
+Candidate answer, lightly normalized for terminology: Episode IDs prevent transitions from crossing
+resets, sequence IDs require consecutive states, and action IDs ensure the recorded action belongs
+to that exact movement step.
+
+Examiner assessment: Passed after teaching. A transition is accepted only when its previous and next
+states share the active episode, its finalized sequence is adjacent, and its applied action identity
+matches the attempted step. Any mismatch fails closed instead of becoming a false teleport or
+state-action training pair.
+
+## 7. Day 1 closeout answers to practise
+
+These are study answers, not passed candidate teach-backs yet.
+
+### What exact evidence shows the feasibility gate passed?
+
+The isolated plugin compiled against UE 5.8 and the actual Game Animation Sample, and the focused
+Unreal and Python tests passed. External character-local commands visibly controlled the pawn and
+matched Mover's retained command. `OnPostFinalize` supplied valid authoritative post-collision
+state. Mover-owned resets produced matching observable seeds without a cross-episode transition.
+Complete episodes exported atomically and passed an independent strict loader. Two same-seed timed
+gate trials reached the same collision outcome with collision times 3.995 ms apart and terminal
+agent positions 0.153 cm apart. Animation-root data remained in a separately typed QA path.
+
+### What remains unproven after Day 1?
+
+The evidence does not prove bitwise determinism or equality of every inaccessible Mover/animation
+state. Live gate success and timeout outcomes have not been demonstrated. The Unreal dataset is not
+yet sufficiently varied for modelling. A faithful nominal predictor, a learned residual, MPC
+improvement, held-out/OOD behavior, runtime latency, deployment, the final comparison video, and
+toe/contact or foot-sliding claims all remain unproven.
