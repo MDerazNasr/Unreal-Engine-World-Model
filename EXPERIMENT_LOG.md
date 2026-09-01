@@ -511,3 +511,24 @@ succeeded, and all 16 Python tests plus Ruff passed. Deployed source matches the
 **Interpretation:** Static and automated evidence supports the correction, but physical behavior
 is not accepted until live attempt 2 proves reset, terminal stop, retained collision, export, and
 independent schema-v2 validation. See `evidence/unreal/d019_terminal_safety_automation.log`.
+
+## D-019 live timed-gate attempt 2 — accepted collision episode (2026-09-01)
+
+**Hypothesis:** With the saved warmup-reset trigger and corrected terminal policy, episode 1901
+will begin only after verified reset, preserve the collision-causing transition, stop the character,
+freeze a still-solid gate, export schema v2, and pass independent validation.
+
+**Result:** Reset verified on its first finalized check with zero position, facing, linear-speed,
+and angular-speed error. The runtime produced one `gate_collision` classification and one collision
+count. The gate reported `collision_retained=true`; the next Mover command echo was exactly zero
+with `match=true`. The recorder accepted 70/70 attempted transitions with no rejected seed, row,
+or capacity drop and exported in 4.616 ms.
+
+**Independent result:** The strict Python reader accepted the 72-line, 132925-byte schema-v2 file
+with exit code 0. SHA-256 is
+`4547c55febe873fb27c93a017b7bdc5f0654e0a8db3202ee3949a1026739900b`.
+
+**Conclusion:** Accepted as one live collision episode and as end-to-end evidence for deterministic
+character/arena reset, causal recording, terminal safe-stop, and durable scenario export. It does
+not establish same-seed repeatability or live success/timeout behavior. See
+`evidence/unreal/d019_live_episode_1901.log`.

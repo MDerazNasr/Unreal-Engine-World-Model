@@ -1,0 +1,61 @@
+D-019 accepted live timed-gate collision trial
+Date: 2026-09-01
+Episode ID: 1901
+Scenario seed: 1901
+
+Candidate-visible evidence
+- One initial MotionWorld reset occurred.
+- The gray gate moved sideways.
+- The character collided with the gate and stopped automatically.
+- The gate froze at terminal and remained a solid obstacle.
+
+Runtime chronology
+- Bridge ready with automation enabled and 4096-transition capacity.
+- Reset anchor: (-795.49, 0.00, 88.27) cm, yaw 0 degrees, Walking.
+- Gate origin: (-195.49, 0.00, 88.27) cm, 600 cm forward from the anchor.
+- Initial command echo: local (200, 0, 0) cm/s -> world (200, 0, 0) cm/s, match=true.
+- Reset queued after finalized state 29 from 272.739 cm away from the anchor.
+- Reset verified on attempt 1 at state 30 / Mover frame 31.
+- Verification errors: position 0 cm, facing 0 degrees, linear speed 0 cm/s,
+  angular speed 0 degrees/s; Walking mode restored.
+- Episode seeded at simulation time 1.819 s.
+- First transition action: local/world (200, 0, 0) cm/s, automated=true.
+- One coalesced collision at runtime gate time 3.452759 s.
+- Gate frozen with collision_retained=true.
+- One arena terminal classification: gate_collision; collision_count=1.
+- Terminal agent position: (-255.94, 0.23, 88.28) cm.
+- One-shot terminal safe stop issued at command revision 3.
+- Next command echo: local/world request, submission, and echo all zero; match=true.
+- Episode stopped with observed=71, attempted=70, recorded=70, rejected=0,
+  rejected_seeds=0, capacity_drops=0.
+- Export succeeded with schema_version=2 in 4.616 ms.
+
+Exported artifact
+- Sample-local path:
+  Saved/MotionWorld/Episodes/episode_1901_20260901T120319Z_123DE7338D4A.jsonl
+- Lines: 72 (header + 70 transitions + complete footer)
+- Bytes: 132925
+- SHA-256: 4547c55febe873fb27c93a017b7bdc5f0654e0a8db3202ee3949a1026739900b
+- Terminal transition: collision_this_step=true, crossed_success_plane_this_step=false,
+  termination_reason=gate_collision.
+- Footer: transition_count=70, first=0, last=69, complete=true,
+  termination_reason=gate_collision, collision_count=1.
+
+Independent Python validation
+- Exit code: 0
+- valid=true
+- episode=1901
+- transitions=70; attempted=70; rejected=0; capacity_drops=0
+- The strict reader independently validated schema keys, finite values, chronology,
+  endpoint chains, coordinate reconstruction, analytic gate states, event semantics,
+  counts, identity, and the complete footer.
+
+Reviewer interpretation
+- ACCEPTED as one live collision episode and as evidence for the reset -> record ->
+  terminal -> safe-stop -> atomic export lifecycle.
+- The physics callback gate time (3.452759 s) aligns with the terminal transition's
+  previous analytic gate time (3.453 s); the row ends at scenario time 3.510 s.
+  This is expected: collision occurs during the action interval and the row stores
+  the finalized state at the interval end.
+- This does not yet prove a second same-seed runtime trace, a live successful crossing,
+  or a live timeout.

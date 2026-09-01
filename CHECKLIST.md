@@ -34,7 +34,7 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [x] Open the sample and compile the smallest project-specific module (completed later than the original 13:00 target).
 - [x] Apply programmatic desired velocity and capture authoritative post-movement state (completed after the original Sunday 18:00 target).
 - [x] Demonstrate deterministic character reset and preserve complete in-memory episode lifecycle evidence.
-- [ ] Add the deterministic timed gate and its event/termination labels.
+- [x] Add the deterministic timed gate and its event/termination labels.
 - [x] Persist one complete character-dynamics episode file and validate all 458 rows independently in Python.
 - [ ] Close/merge `feature/unreal-feasibility` only if the Section 4 feasibility gate and required Section 5 safety checks pass.
 - [x] Do not activate the Manny plus Mover fallback because the Game Animation Sample path is working.
@@ -380,7 +380,7 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [x] Create a gate with an explicit deterministic schedule.
 - [x] Expose gate position, velocity, size/radius, motion type, and phase.
 - [x] Log gate schedule metadata.
-- [ ] Detect character/gate collision consistently.
+- [x] Detect character/gate collision consistently.
 - [x] Detect successful crossing in the pure event contract and reject false-success files.
 - [x] Detect timeout in the pure event contract and reject pre-deadline timeout files.
 - [x] Record termination reason in each terminal row and the reconciled footer summary.
@@ -391,9 +391,9 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [ ] Record a short video of programmatic movement.
 - [x] Record a deterministic character-reset comparison.
 - [x] Preserve complete in-memory episode lifecycle evidence.
-- [ ] Validate every required episode field.
+- [x] Validate every required episode field.
 - [ ] Save actor-versus-animation-root trace.
-- [ ] Enter `FEAS-001` with version, commit, seed, commands, and artifacts.
+- [x] Enter `FEAS-001` with version, commit, seed, commands, and artifacts.
 - [x] Reviewer checks tick phase, frames, units, stale state, and reset leakage.
 - [ ] Candidate answers: “Which transform is authoritative, at what tick point, and why?”
 - [ ] Candidate answers: “How do you know hidden controller state was reset?”
