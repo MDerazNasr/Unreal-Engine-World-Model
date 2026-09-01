@@ -52,3 +52,7 @@ Interpretation
 - Gameplay/Mover state remains authoritative regardless of this observed visual agreement.
 - This single trace does not prove all animations, skeletons, or tick phases have zero planar offset.
 - Toe/contact telemetry was not collected; no foot-sliding claim is supported.
+
+Closeout
+- Candidate disabled animation-root diagnostics, compiled/saved the Blueprint, and closed Unreal.
+- Diagnostic data remains available only in the committed CSV/plot/audit artifacts.

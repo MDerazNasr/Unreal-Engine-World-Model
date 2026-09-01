@@ -604,3 +604,7 @@ three-panel PNG has SHA-256
 
 **Claim boundary:** This diagnostic never entered authoritative state, causal transitions, or model
 input. No reliable toe/contact telemetry was collected, so no foot-sliding claim is made.
+
+**Closeout:** After preserving the CSV and plot, the candidate disabled animation-root diagnostics,
+compiled/saved the Blueprint, and closed Unreal. The installed sample is back in its default-off
+evidence state.
