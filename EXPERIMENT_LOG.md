@@ -551,3 +551,27 @@ and terminal gate centers by 0.818 cm. Episode 1901 used 70 steps (median 49 ms,
 The result supports absolute-time gate evaluation: the schedule and outcome remain stable without
 requiring identical row counts. It does not provide a variance estimate from only two trials. See
 `evidence/unreal/d019_same_seed_1901_1902.log`.
+
+## D-020 animation-root diagnostic — closed-editor validation (2026-09-01)
+
+**Hypothesis:** Visual animation-root motion can be measured without contaminating the gameplay
+state or episode schema.
+
+**Implementation:** A separate fail-closed diagnostic is aligned to the finalized authoritative
+sequence/time. Default-off runtime capture queries Mover's primary skeletal visual, reads bone zero
+from the current public pose buffer, and emits session-tagged rows with `model_input=false`. Logging
+has an interval and hard capacity. A strict Python reader verifies protocol, source identity,
+chronology, finite values, and recomputed actor-to-root offsets before plotting.
+
+**Reviewer finding:** `USkeletalMeshComponent::AreBoneTransformsValid()` cannot be called here
+because the UE 5.8 override is protected. The rejected first integration build exposed this. The
+runtime now uses only public evidence: registered component, nonempty skeleton, and nonempty
+component-space transform buffer; the pure builder still fails closed.
+
+**Result:** The corrected strict universal Editor/Development/Shipping builds pass. All 19 Python
+tests and Ruff pass. A three-row synthetic session parsed successfully and produced a visually
+inspected 1980x802 actor-versus-root/offset plot. This validates the tooling, not the real sample.
+
+**Acceptance boundary:** The exact Game Animation Sample target, actual-project automation, and a
+live trace/plot must still pass before D-020 or Day 1 is closed. See
+`evidence/unreal/d020_animation_diagnostic_pre_live.log`.

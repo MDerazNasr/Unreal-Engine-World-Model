@@ -520,8 +520,8 @@ Related config/commit/experiment: `FEAS-001`; live episodes 1901/1902; `dc09bbf`
 
 ## D-020 - Animation root is separate QA telemetry
 
-Status: pure fail-closed sample contract passes strict universal compilation; runtime capture and
-plot remain pending
+Status: pure contract, bounded default-off runtime capture, strict parser, and plotter pass
+closed-editor validation; one live trace remains pending
 
 Decision: Read the skeletal root from Mover's own primary visual component using bone index zero,
 and store it in `FMotionWorldAnimationDiagnosticSample`, never in `FMotionWorldStateSample` or a
@@ -540,8 +540,10 @@ mannequin component or bone name; claim toe sliding without contact state.
 
 Evidence: UE 5.8.2 source documents `GetPrimaryVisualComponent()` and world-space
 `GetBoneTransform(int32)`. The pure builder requires a valid non-resimulated authoritative state,
-primary skeletal source, valid bone pose, explicit component/root names, and finite transforms.
-Strict universal Editor/Development/Shipping compilation passes.
+primary skeletal source, a registered nonempty public pose buffer, explicit component/root names,
+and finite transforms. The protected `AreBoneTransformsValid()` override is deliberately not used.
+Runtime rows carry a unique session ID, authoritative sequence/time, explicit capture-phase and
+`model_input=false` guards, while logging is default-off, interval-throttled, and capacity-bounded.
 
 Main assumption: The current skeletal pose buffer observed during `OnPostFinalize` is useful for
 QA alignment even though animation evaluation may belong to the preceding visual update.
@@ -551,10 +553,12 @@ Mover time are offset by an animation tick; root index zero is visually uninform
 volume causes runtime noise.
 
 How I tested it: The automation contract covers valid aligned data, explicit world-centimetre root
-offset, missing visual source, and non-finite transform rejection. Runtime and plotting remain the
-acceptance gate.
+offset, missing visual source, and non-finite transform rejection. Strict universal
+Editor/Development/Shipping builds pass. Nineteen Python tests and Ruff pass, including rejection
+of sequence and offset corruption. A three-row synthetic trace passed strict parsing and generated
+a visually inspected plot. The actual-sample build/tests and live trace remain the acceptance gate.
 
-Related config/commit/experiment: `FEAS-001`; pending contract commit.
+Related config/commit/experiment: `FEAS-001`; `7ab91f4`.
 
 ### D-019a - Terminal events stop control but do not erase physics
 
