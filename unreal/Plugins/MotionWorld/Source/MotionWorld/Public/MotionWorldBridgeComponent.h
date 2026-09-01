@@ -5,6 +5,7 @@
 #include "MotionWorldArenaManager.h"
 #include "MotionWorldEpisodeRecorder.h"
 #include "MotionWorldReset.h"
+#include "MotionWorldSmoothWalkingDiagnostic.h"
 #include "MotionWorldStateSample.h"
 #include "MotionWorldBridgeComponent.generated.h"
 
@@ -86,6 +87,12 @@ public:
 	FMotionWorldAnimationDiagnosticSample GetLastAnimationDiagnostic() const
 	{
 		return LastAnimationDiagnostic;
+	}
+
+	UFUNCTION(BlueprintPure, Category = "MotionWorld|Smooth Walking Diagnostic")
+	FMotionWorldSmoothWalkingDiagnosticSample GetLastSmoothWalkingDiagnostic() const
+	{
+		return LastSmoothWalkingDiagnostic;
 	}
 
 	/** Clears prior rows and starts one explicitly identified in-memory episode. */
@@ -179,6 +186,19 @@ protected:
 
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "MotionWorld|Animation Diagnostic")
 	FMotionWorldAnimationDiagnosticSample LastAnimationDiagnostic;
+
+	/** Default-off research logging; does not alter authoritative state or episodes. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Smooth Walking Diagnostic")
+	bool bLogSmoothWalkingDiagnostics = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Smooth Walking Diagnostic", meta = (ClampMin = "1", ClampMax = "600"))
+	int32 SmoothWalkingDiagnosticLogIntervalSamples = 60;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Smooth Walking Diagnostic", meta = (ClampMin = "1", ClampMax = "10000"))
+	int32 MaxSmoothWalkingDiagnosticLogSamples = 512;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "MotionWorld|Smooth Walking Diagnostic")
+	FMotionWorldSmoothWalkingDiagnosticSample LastSmoothWalkingDiagnostic;
 
 	/** Log every N valid finalized samples after the first; zero disables periodic logs. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|State", meta = (ClampMin = "0"))
@@ -298,6 +318,7 @@ private:
 	void InitializeTimedArenaIfEligible();
 	void ProcessTimedArenaObservation();
 	void CaptureAnimationDiagnosticIfEnabled();
+	void CaptureSmoothWalkingDiagnosticIfEnabled(const FMoverSyncState& SyncState);
 	void ApplyArenaTerminalSafeStop(
 		EMotionWorldScenarioTerminationReason TerminationReason);
 
@@ -340,4 +361,10 @@ private:
 	int64 LoggedAnimationDiagnosticSampleCount = 0;
 	bool bHasLoggedAnimationDiagnosticFailure = false;
 	bool bHasLoggedAnimationDiagnosticCapacity = false;
+	FString SmoothWalkingDiagnosticSessionId;
+	int64 ValidSmoothWalkingDiagnosticSampleCount = 0;
+	int64 InvalidSmoothWalkingDiagnosticSampleCount = 0;
+	int64 LoggedSmoothWalkingDiagnosticSampleCount = 0;
+	bool bHasLoggedSmoothWalkingDiagnosticFailure = false;
+	bool bHasLoggedSmoothWalkingDiagnosticCapacity = false;
 };

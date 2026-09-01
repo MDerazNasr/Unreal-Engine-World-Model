@@ -1,0 +1,26 @@
+# MotionWorld bounded Smooth Walking diagnostic — closed-editor evidence
+# Captured: 2026-09-02 Europe/Copenhagen
+# Raw actual-sample log: /private/tmp/motionworld_smooth_walking_actual_automation_final.log
+# Raw log SHA-256: f0be38a5e24e2c3eb4f0e4cc1951e0e6573f19276c1adfd20c032cc108dac483
+# Deployed universal dylib SHA-256: b05c982a77285ad6bfa9030f0e23c4923e1036f116ce24a96a604ac882d283cd
+
+Validation boundary
+- Strict isolated BuildPlugin: universal Mac Editor Development, Game Development, Game Shipping succeeded.
+- Exact Game Animation Sample full universal Editor build succeeded in 318.51 seconds; the final
+  hardened incremental rebuild succeeded in 17.00 seconds.
+- Repository and deployed plugin Source directories matched exactly.
+- Deployed dylib contains arm64 and x86_64.
+- This run validates class-default parameter reflection and pure fail-closed validation.
+- It does not validate a live Blueprint-derived parameter override or live SmoothWalkingState entry.
+
+[2026.09.01-22.15.25:300][277]LogAutomationCommandLine: Display: Found 9 automation tests based on 'MotionWorld.'
+[2026.09.01-22.15.25:340][280]LogAutomationController: Display: Test Completed. Result={Success} Name={SanitizeWorldVelocity} Path={MotionWorld.Command.SanitizeWorldVelocity}
+[2026.09.01-22.15.25:390][283]LogAutomationController: Display: Test Completed. Result={Success} Name={PlanarVelocity} Path={MotionWorld.Coordinates.PlanarVelocity}
+[2026.09.01-22.15.25:440][286]LogAutomationController: Display: Test Completed. Result={Success} Name={SmoothWalking} Path={MotionWorld.Diagnostics.SmoothWalking}
+[2026.09.01-22.15.25:490][289]LogAutomationController: Display: Test Completed. Result={Success} Name={AtomicJsonLinesExporter} Path={MotionWorld.Episode.AtomicJsonLinesExporter}
+[2026.09.01-22.15.25:540][292]LogAutomationController: Display: Test Completed. Result={Success} Name={InMemoryRecorder} Path={MotionWorld.Episode.InMemoryRecorder}
+[2026.09.01-22.15.25:590][295]LogAutomationController: Display: Test Completed. Result={Success} Name={DeterministicScheduleAndEvents} Path={MotionWorld.Gate.DeterministicScheduleAndEvents}
+[2026.09.01-22.15.25:640][298]LogAutomationController: Display: Test Completed. Result={Success} Name={FinalizedVerifier} Path={MotionWorld.Reset.FinalizedVerifier}
+[2026.09.01-22.15.25:690][301]LogAutomationController: Display: Test Completed. Result={Success} Name={AuthoritativeSample} Path={MotionWorld.State.AuthoritativeSample}
+[2026.09.01-22.15.25:740][304]LogAutomationController: Display: Test Completed. Result={Success} Name={CausalPairing} Path={MotionWorld.Transition.CausalPairing}
+[2026.09.01-22.15.25:758][305]LogAutomationCommandLine: Display: **** TEST COMPLETE. EXIT CODE: 0 ****

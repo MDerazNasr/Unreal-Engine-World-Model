@@ -688,3 +688,35 @@ trajectory and speed separation with an explicit synthetic-only title.
 **Interpretation:** Accept the toy backend as deterministic pipeline infrastructure. The mismatch is
 constructed, so it says nothing about whether real Unreal residuals exist or whether learning or MPC
 will improve the real task.
+
+## NOM-DIAG-001 bounded Smooth Walking diagnostic — pre-live accepted (2026-09-02)
+
+**Hypothesis:** The plugin can inspect the UE 5.8 Smooth Walking parameter contract and create a
+fail-closed, model-isolated diagnostic seam for its five known spring-state fields without including
+Epic's private state header.
+
+**Configuration:** Active-mode parameters are read from public UObject metadata. Finalized sync
+state is traversed through `FMoverDataCollection::GetDataArray()` and exactly five named properties
+are reflected from `SmoothWalkingState`. Capture is default-off at `OnPostFinalize`, logs every 60th
+authoritative sample by default, caps output at 512 rows by default (hard clamp 10,000), and labels
+every row `model_input=false`.
+
+**Result:** The final strict universal Mac Editor Development, Game Development, and Game Shipping
+builds passed in 2 min 3 s. Deployed repository source matched the closed Game Animation Sample
+exactly; its first full universal Editor build passed in 318.51 s and the final hardened incremental
+rebuild passed in 17.00 s. The dylib contains arm64 and x86_64 and has SHA-256
+`b05c982a77285ad6bfa9030f0e23c4923e1036f116ce24a96a604ac882d283cd`. All nine actual-project
+MotionWorld tests passed with exit code zero, including `MotionWorld.Diagnostics.SmoothWalking`.
+The complete 87-test Python suite and Ruff also pass.
+
+**Reviewer checks:** The pure builder rejects incomplete identity, missing parameters/state, wrong
+parameter count, non-finite parameters, invalid physical ranges, and non-finite vectors/quaternion.
+Reflection rejects the wrong active mode, missing/type-mismatched properties, and invalid values.
+No diagnostic field enters `FMotionWorldStateSample`, `FMotionWorldTransitionSample`, or episode
+serialization.
+
+**Interpretation:** Accept the bounded implementation and closed-editor API/compile evidence. Do
+not yet freeze the Python nominal parameters or claim live hidden-state access. One opt-in Walking
+PIE trace must still show the actual Blueprint-derived mode class, all runtime parameter values, and
+a valid reflected state row; diagnostics must then be restored off. See
+`evidence/unreal/nom_smooth_walking_diagnostic_automation.log`.

@@ -14,6 +14,7 @@
 #include "MotionWorldArenaManager.h"
 #include "MotionWorldCoordinateFrames.h"
 #include "MotionWorldEpisodeExporter.h"
+#include "MotionWorldSmoothWalkingDiagnostic.h"
 #include "MotionWorldStateSample.h"
 #include "MotionWorldVelocityCommand.h"
 #include "Components/SkeletalMeshComponent.h"
@@ -49,6 +50,12 @@ void UMotionWorldBridgeComponent::BeginPlay()
 	LoggedAnimationDiagnosticSampleCount = 0;
 	bHasLoggedAnimationDiagnosticFailure = false;
 	bHasLoggedAnimationDiagnosticCapacity = false;
+	SmoothWalkingDiagnosticSessionId.Reset();
+	ValidSmoothWalkingDiagnosticSampleCount = 0;
+	InvalidSmoothWalkingDiagnosticSampleCount = 0;
+	LoggedSmoothWalkingDiagnosticSampleCount = 0;
+	bHasLoggedSmoothWalkingDiagnosticFailure = false;
+	bHasLoggedSmoothWalkingDiagnosticCapacity = false;
 	if (bLogAnimationRootDiagnostics)
 	{
 		AnimationDiagnosticSessionId =
@@ -60,6 +67,18 @@ void UMotionWorldBridgeComponent::BeginPlay()
 			*AnimationDiagnosticSessionId,
 			FMath::Clamp(AnimationDiagnosticLogIntervalSamples, 1, 600),
 			FMath::Clamp(MaxAnimationDiagnosticLogSamples, 1, 100000));
+	}
+	if (bLogSmoothWalkingDiagnostics)
+	{
+		SmoothWalkingDiagnosticSessionId =
+			FGuid::NewGuid().ToString(EGuidFormats::Digits).Left(12);
+		UE_LOG(
+			LogMotionWorldBridge,
+			Display,
+			TEXT("MotionWorld Smooth Walking diagnostic session started: session=%s capture_phase=mover_on_post_finalize source=runtime_mode_and_reflected_sync_state model_input=false interval=%d max_rows=%d."),
+			*SmoothWalkingDiagnosticSessionId,
+			FMath::Clamp(SmoothWalkingDiagnosticLogIntervalSamples, 1, 600),
+			FMath::Clamp(MaxSmoothWalkingDiagnosticLogSamples, 1, 10000));
 	}
 
 	UE_LOG(
@@ -88,6 +107,18 @@ void UMotionWorldBridgeComponent::BeginPlay()
 
 void UMotionWorldBridgeComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+	if (bLogSmoothWalkingDiagnostics)
+	{
+		UE_LOG(
+			LogMotionWorldBridge,
+			Display,
+			TEXT("MotionWorld Smooth Walking diagnostic session stopped: session=%s valid=%lld invalid=%lld logged=%lld capacity=%d model_input=false."),
+			*SmoothWalkingDiagnosticSessionId,
+			ValidSmoothWalkingDiagnosticSampleCount,
+			InvalidSmoothWalkingDiagnosticSampleCount,
+			LoggedSmoothWalkingDiagnosticSampleCount,
+			FMath::Clamp(MaxSmoothWalkingDiagnosticLogSamples, 1, 10000));
+	}
 	if (bLogAnimationRootDiagnostics)
 	{
 		UE_LOG(
@@ -1060,6 +1091,122 @@ void UMotionWorldBridgeComponent::ProduceInput_Implementation(
 	(void)SimTimeMs;
 }
 
+void UMotionWorldBridgeComponent::CaptureSmoothWalkingDiagnosticIfEnabled(
+	const FMoverSyncState& SyncState)
+{
+	if (!bLogSmoothWalkingDiagnostics || !MoverComponent || !LastAuthoritativeState.bIsValid)
+	{
+		return;
+	}
+
+	MotionWorld::FSmoothWalkingDiagnosticInputs Inputs;
+	Inputs.AuthoritativeStateSampleSequence = LastAuthoritativeState.SampleSequence;
+	Inputs.MovementModeName = SyncState.MovementMode;
+	FName ParameterFailure;
+	FName StateFailure;
+	MotionWorld::ReadSmoothWalkingParameters(
+		MoverComponent->GetMovementMode(),
+		Inputs,
+		ParameterFailure);
+	MotionWorld::ReadSmoothWalkingSpringState(
+		SyncState.SyncStateCollection,
+		Inputs,
+		StateFailure);
+	Inputs.FailureReason = !ParameterFailure.IsNone() ? ParameterFailure : StateFailure;
+	LastSmoothWalkingDiagnostic =
+		MotionWorld::BuildSmoothWalkingDiagnosticSample(Inputs);
+
+	if (!LastSmoothWalkingDiagnostic.bIsValid)
+	{
+		++InvalidSmoothWalkingDiagnosticSampleCount;
+		if (!bHasLoggedSmoothWalkingDiagnosticFailure)
+		{
+			bHasLoggedSmoothWalkingDiagnosticFailure = true;
+			UE_LOG(
+				LogMotionWorldBridge,
+				Warning,
+				TEXT("MotionWorld Smooth Walking diagnostic invalid: session=%s sequence=%lld mode=%s failure=%s model_input=false."),
+				*SmoothWalkingDiagnosticSessionId,
+				LastAuthoritativeState.SampleSequence,
+				*SyncState.MovementMode.ToString(),
+				*LastSmoothWalkingDiagnostic.FailureReason.ToString());
+		}
+		return;
+	}
+
+	++ValidSmoothWalkingDiagnosticSampleCount;
+	const int32 Interval = FMath::Clamp(
+		SmoothWalkingDiagnosticLogIntervalSamples,
+		1,
+		600);
+	if (LastSmoothWalkingDiagnostic.AuthoritativeStateSampleSequence % Interval != 0)
+	{
+		return;
+	}
+	const int32 Capacity = FMath::Clamp(
+		MaxSmoothWalkingDiagnosticLogSamples,
+		1,
+		10000);
+	if (LoggedSmoothWalkingDiagnosticSampleCount >= Capacity)
+	{
+		if (!bHasLoggedSmoothWalkingDiagnosticCapacity)
+		{
+			bHasLoggedSmoothWalkingDiagnosticCapacity = true;
+			UE_LOG(
+				LogMotionWorldBridge,
+				Warning,
+				TEXT("MotionWorld Smooth Walking diagnostic capacity reached: session=%s max_rows=%d; further rows suppressed."),
+				*SmoothWalkingDiagnosticSessionId,
+				Capacity);
+		}
+		return;
+	}
+	++LoggedSmoothWalkingDiagnosticSampleCount;
+
+	const FMotionWorldSmoothWalkingDiagnosticSample& Sample =
+		LastSmoothWalkingDiagnostic;
+	UE_LOG(
+		LogMotionWorldBridge,
+		Display,
+		TEXT("MotionWorld Smooth Walking diagnostic: session=%s protocol=%d sequence=%lld mode=%s mode_class=%s model_input=false acceleration_cm_per_sec2=%.9g deceleration_cm_per_sec2=%.9g directional_factor=%.9g turning_strength=%.9g acceleration_smoothing_s=%.9g deceleration_smoothing_s=%.9g acceleration_compensation=%.9g deceleration_compensation=%.9g velocity_deadzone_cm_per_sec=%.9g acceleration_deadzone_cm_per_sec2=%.9g outside_influence_smoothing_s=%.9g facing_smoothing_s=%.9g double_facing_spring=%s facing_deadzone_deg=%.9g angular_velocity_deadzone_deg_per_sec=%.9g spring_velocity_world_cm_per_sec=(%.9g,%.9g,%.9g) spring_acceleration_world_cm_per_sec2=(%.9g,%.9g,%.9g) intermediate_velocity_world_cm_per_sec=(%.9g,%.9g,%.9g) intermediate_facing_world_quat=(%.9g,%.9g,%.9g,%.9g) intermediate_angular_velocity_world_rad_per_sec=(%.9g,%.9g,%.9g)."),
+		*SmoothWalkingDiagnosticSessionId,
+		Sample.ProtocolVersion,
+		Sample.AuthoritativeStateSampleSequence,
+		*Sample.MovementModeName.ToString(),
+		*Sample.MovementModeClass.ToString(),
+		Sample.AccelerationCmPerSecSquared,
+		Sample.DecelerationCmPerSecSquared,
+		Sample.DirectionalAccelerationFactor,
+		Sample.TurningStrength,
+		Sample.AccelerationSmoothingTimeSeconds,
+		Sample.DecelerationSmoothingTimeSeconds,
+		Sample.AccelerationSmoothingCompensation,
+		Sample.DecelerationSmoothingCompensation,
+		Sample.VelocityDeadzoneCmPerSec,
+		Sample.AccelerationDeadzoneCmPerSecSquared,
+		Sample.OutsideInfluenceSmoothingTimeSeconds,
+		Sample.FacingSmoothingTimeSeconds,
+		Sample.bSmoothFacingWithDoubleSpring ? TEXT("true") : TEXT("false"),
+		Sample.FacingDeadzoneDegrees,
+		Sample.AngularVelocityDeadzoneDegreesPerSec,
+		Sample.SpringVelocityWorldCmPerSec.X,
+		Sample.SpringVelocityWorldCmPerSec.Y,
+		Sample.SpringVelocityWorldCmPerSec.Z,
+		Sample.SpringAccelerationWorldCmPerSecSquared.X,
+		Sample.SpringAccelerationWorldCmPerSecSquared.Y,
+		Sample.SpringAccelerationWorldCmPerSecSquared.Z,
+		Sample.IntermediateVelocityWorldCmPerSec.X,
+		Sample.IntermediateVelocityWorldCmPerSec.Y,
+		Sample.IntermediateVelocityWorldCmPerSec.Z,
+		Sample.IntermediateFacingWorld.X,
+		Sample.IntermediateFacingWorld.Y,
+		Sample.IntermediateFacingWorld.Z,
+		Sample.IntermediateFacingWorld.W,
+		Sample.IntermediateAngularVelocityWorldRadPerSec.X,
+		Sample.IntermediateAngularVelocityWorldRadPerSec.Y,
+		Sample.IntermediateAngularVelocityWorldRadPerSec.Z);
+}
+
 void UMotionWorldBridgeComponent::HandlePostFinalize(
 	const FMoverSyncState& SyncState,
 	const FMoverAuxStateContext& AuxState)
@@ -1094,6 +1241,7 @@ void UMotionWorldBridgeComponent::HandlePostFinalize(
 
 	LastAuthoritativeState = MotionWorld::BuildAuthoritativeStateSample(StateInputs);
 	CaptureAnimationDiagnosticIfEnabled();
+	CaptureSmoothWalkingDiagnosticIfEnabled(SyncState);
 	const bool bValidityChanged = !bHasAuthoritativeStateSample
 		|| LastAuthoritativeState.bIsValid != bPreviousAuthoritativeStateWasValid;
 	const bool bPeriodicStateLog = StateDiagnosticLogIntervalSamples > 0

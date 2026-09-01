@@ -741,3 +741,44 @@ How I tested it: Read the complete installed update path and exact spring kernel
 and Walking Mode integrates `ProposedMove.LinearVelocity*dt`. No Python parity claim is made yet.
 
 Related config/commit/experiment: UE 5.8.2 source audit; nominal mapping milestone.
+
+## D-025 - Inspect runtime Smooth Walking state through bounded public reflection
+
+Status: implementation and closed-editor verification accepted; live PIE capture open
+
+Decision: Add a default-off diagnostic at Mover `OnPostFinalize`. Read the active
+`USmoothWalkingMode` object through public UObject property metadata, and inspect the finalized
+`FMoverDataCollection` through its public iterator for a `SmoothWalkingState` entry. Reflect exactly
+the five source-mapped state fields by name and type. Keep this packet separate from authoritative
+state, transitions, episodes, and model input; fail closed and bound all logging.
+
+Why: The fair nominal model needs the sample's actual parameter overrides and a declared policy for
+known controller state. Epic's `SmoothWalkingState.h` is private, so including it would create an
+invalid project dependency. Public reflection gives us a narrow UE-5.8 diagnostic without weakening
+module boundaries or pretending inaccessible state does not exist.
+
+Alternatives considered: include the private engine header; copy the private struct layout; assume
+C++ defaults; omit all spring state; estimate hidden state before checking whether bounded telemetry
+is possible; add the diagnostic fields to training transitions.
+
+Evidence: The reflected parameter list is limited to the 14 source-mapped floats plus the double-
+spring flag. The state list is limited to spring velocity, spring acceleration, intermediate
+velocity, intermediate facing, and intermediate angular velocity. The isolated strict plugin built
+for universal Mac Editor Development, Game Development, and Game Shipping. The exact Game Animation
+Sample universal Editor target built, and all nine actual-project tests passed, including the new
+Smooth Walking reflection/validation test.
+
+Main assumption: UE 5.8 runtime reflection preserves the audited class and property names, and the
+active sample sync collection contains the expected `SmoothWalkingState` entry while Walking is
+active. A live trace must verify both assumptions before values are frozen into Python.
+
+How it could fail: The Blueprint may replace or dynamically alter the mode; a future engine version
+may rename a property; the sync entry may be absent during another movement mode; a reflected type
+may change; capturing internal state could be confused with making it a deployable model input.
+
+How I tested it: Actual-project automation reads UE 5.8 `USmoothWalkingMode` defaults through
+reflection, checks the 14-value contract, and tests complete, missing, out-of-range, NaN, and
+infinite inputs. The builder independently rejects invalid parameters and hidden state. Runtime
+logging is opt-in, interval-throttled, capped at 10,000 rows, and labelled `model_input=false`.
+
+Related config/commit/experiment: `NOM-DIAG-001`; `MotionWorld.Diagnostics.SmoothWalking`.

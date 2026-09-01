@@ -303,7 +303,7 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [x] Locate the exact Game Animation Sample character class/Blueprint.
 - [x] Locate the exact Mover component and Smooth Walking mode used by the sample.
 - [x] Locate the desired-velocity or movement-input control surface.
-- [ ] Locate where movement parameters live.
+- [x] Locate where movement parameters live.
 - [x] Locate post-movement tick/update hooks.
 - [x] Locate authoritative velocity and angular-velocity access.
 - [x] Locate collision/contact events.

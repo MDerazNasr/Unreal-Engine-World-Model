@@ -154,8 +154,13 @@ facing controls. These defaults are not treated as the live parameter record.
 
 ## Stop/go checks before Python implementation
 
-- Capture the live movement-mode class and all reflected parameter values.
-- Decide whether reflected `FSmoothWalkingState` telemetry is safe and version-bounded.
+- [ ] Capture the live movement-mode class and all reflected parameter values in one opt-in PIE trace.
+- [x] Implement a safe, version-bounded `FSmoothWalkingState` diagnostic seam: iterate the public
+  `FMoverDataCollection`, identify `SmoothWalkingState`, and read only five named reflected struct
+  properties. The plugin never includes the private state header, fails closed on missing/type/
+  non-finite values, is default-off, capped, and marks every row `model_input=false`. The actual
+  sample test proves the parameter reflection and pure validation contract; a live trace is still
+  required to prove the sample's runtime state entry and Blueprint overrides.
 - Define planar quaternion/angle golden cases, including wraparound.
 - Implement Unreal's `InvExpApprox`, not the mathematical exponential.
 - Use explicit Euler position integration and six verified 1/60 s substeps for a 100 ms macro step.
