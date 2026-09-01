@@ -635,3 +635,38 @@ inverse conversion, vector/point separation, degree conversion, bare-angle rejec
 dimensions, and non-finite vectors/yaws. Focused Ruff and `git diff --check` pass.
 
 Related config/commit/experiment: `NOM-000`; Day 2 coordinate contract.
+
+## D-022 - Keep the bounded-velocity module as a scalar teaching oracle
+
+Status: accepted for equation and test validation; not accepted as the nominal baseline
+
+Decision: Implement one-dimensional bounded acceleration with trapezoidal position integration as
+a pure scalar function plus a same-shaped batch wrapper. Optionally clamp the desired target speed,
+but never instantaneously clamp an observed speed produced by an external force. Return the applied
+acceleration and limited target explicitly.
+
+Why: This is the smallest transparent calculation that proves command, acceleration, timestep,
+velocity, and position semantics before adding Smooth Walking's coupled planar and spring dynamics.
+Scalar and batch paths share one calculation so batching cannot silently change the equation.
+
+Alternatives considered: begin directly with the full Smooth Walking implementation; call the
+componentwise scalar clip a realistic 2D acceleration rule; instantaneously clamp current velocity
+to the normal speed limit; omit the position update; allow NumPy to broadcast mismatched batches.
+
+Evidence: The code maps directly to the three equations in `THEORY.md`. The recorded hand case starts
+at 200 cm/s, requests 500 cm/s, uses 800 cm/s^2 and 1/60 s, and produces 213.333 cm/s plus 3.444 cm
+displacement.
+
+Main assumption: Independent scalar examples are sufficient for teaching and detecting clamp or
+timestep errors before the faithful model exists.
+
+How it could fail: Treating this oracle as the final nominal model would create an unfairly weak
+baseline. Componentwise use in 2D would give a different diagonal acceleration magnitude. A large
+timestep can also be numerically valid here while being an inappropriate approximation of Unreal.
+
+How I tested it: Thirty-four focused tests cover rest, unclamped and clamped acceleration, the hand
+calculation, stopping without overshoot, reversal, target speed limiting, above-limit external
+velocity, zero acceleration, scalar/batch parity, 1,024 fixed-seed invariant cases, and fail-closed
+validation of timestep, parameters, shapes, and every state/action input.
+
+Related config/commit/experiment: `ORACLE-001`; Day 2 bounded-velocity teaching oracle.

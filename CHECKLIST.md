@@ -265,14 +265,14 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 
 - [ ] Explain desired velocity, acceleration bound, timestep, and integration.
 - [ ] Reproduce the scalar hand calculation currently in `THEORY.md`.
-- [ ] Implement the deliberately simple bounded-acceleration oracle.
-- [ ] Test zero current/zero desired velocity.
-- [ ] Test acceleration below the clamp.
-- [ ] Test acceleration at the clamp.
-- [ ] Test deceleration to zero without overshoot.
-- [ ] Test direction reversal.
-- [ ] Test trapezoidal position integration by hand.
-- [ ] Clearly label this module as a teaching oracle, not the final nominal model.
+- [x] Implement the deliberately simple bounded-acceleration oracle.
+- [x] Test zero current/zero desired velocity.
+- [x] Test acceleration below the clamp.
+- [x] Test acceleration at the clamp.
+- [x] Test deceleration to zero without overshoot.
+- [x] Test direction reversal.
+- [x] Test trapezoidal position integration by hand.
+- [x] Clearly label this module as a teaching oracle, not the final nominal model.
 
 ### 3.3 Deterministic 2D backend
 
@@ -289,8 +289,8 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 
 ### 3.4 Theory proof gate
 
-- [ ] Coordinate tests pass.
-- [ ] Hand-oracle dynamics tests pass.
+- [x] Coordinate tests pass.
+- [x] Hand-oracle dynamics tests pass.
 - [ ] Toy backend determinism test passes.
 - [ ] Candidate explains why the toy backend exists and what it cannot prove.
 - [ ] Reviewer confirms no toy result is phrased as engine evidence.

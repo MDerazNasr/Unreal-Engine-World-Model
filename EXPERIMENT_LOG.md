@@ -645,3 +645,23 @@ values, and bare numeric yaw failed closed. Focused Ruff and `git diff --check` 
 **Interpretation:** Accept the Python coordinate kernel. This establishes mathematical and golden-
 case agreement, not live Python-to-Unreal transport. Candidate explanation and blank-page
 derivation remain required before closing Section 3.1.
+
+## ORACLE-001 bounded-velocity teaching proof (2026-09-01)
+
+**Hypothesis:** The implementation will reproduce the hand-derived bounded-acceleration transition,
+will not overshoot a reachable target velocity, and will preserve the same equation under batching.
+
+**Configuration:** Float64 NumPy; scalar hand case `(p=0 cm, v=200 cm/s, desired=500 cm/s,
+a_max=800 cm/s^2, dt=1/60 s)`; fixed random seed 27116 for 1,024 independent invariant cases;
+optional target speed limit 500 cm/s.
+
+**Result:** All 34 focused tests passed. The hand case returned `v_next=213.333333 cm/s`,
+`p_next=3.444444 cm`, and applied acceleration 800 cm/s^2. Rest, below-clamp, at-clamp, stop,
+reversal, target limiting, above-limit observed velocity, and zero-acceleration cases passed. Batch
+results matched repeated scalar calls. Every random case obeyed `abs(delta_v) <= a_max * dt`, the
+declared trapezoidal position equation, and the requested speed bound. Invalid timestep,
+acceleration, speed limit, shape, and non-finite state/action values failed closed.
+
+**Interpretation:** Accept this module as a teaching/test oracle only. It is not evidence about
+Unreal prediction accuracy and cannot serve as the fair nominal baseline because it omits planar
+directional response, springs, facing, collision, and known/hidden controller state.

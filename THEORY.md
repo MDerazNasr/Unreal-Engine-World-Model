@@ -67,7 +67,19 @@ Hand calculation:
 - `v_next = 213.333 cm/s`
 - `p_next - p = 3.444 cm`
 
-This is a unit-test oracle, not the final nominal model.
+The implementation optionally limits the requested target speed before applying the acceleration
+bound:
+
+`v_desired_limited = clip(v_desired, -v_max, v_max)`
+
+This does not erase an observed velocity above `v_max`. For example, an external push may make the
+character faster than the normal target limit; the oracle then decelerates toward the limited target
+at no more than `a_max` instead of teleporting the velocity back inside the range.
+
+This is a one-dimensional unit-test oracle, not the final nominal model. Batched inputs represent
+independent scalar examples, not the X and Y components of a realistic planar acceleration rule. It
+does not include directional acceleration, Smooth Walking springs, facing dynamics, collisions, or
+hidden controller state.
 
 ## 4. Faithful nominal dynamics
 
