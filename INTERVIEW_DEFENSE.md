@@ -213,3 +213,25 @@ Examiner assessment: Passed after teaching. A transition is accepted only when i
 states share the active episode, its finalized sequence is adjacent, and its applied action identity
 matches the attempted step. Any mismatch fails closed instead of becoming a false teleport or
 state-action training pair.
+
+## 7. Day 1 closeout answers to practise
+
+These are study answers, not passed candidate teach-backs yet.
+
+### What exact evidence shows the feasibility gate passed?
+
+The isolated plugin compiled against UE 5.8 and the actual Game Animation Sample, and the focused
+Unreal and Python tests passed. External character-local commands visibly controlled the pawn and
+matched Mover's retained command. `OnPostFinalize` supplied valid authoritative post-collision
+state. Mover-owned resets produced matching observable seeds without a cross-episode transition.
+Complete episodes exported atomically and passed an independent strict loader. Two same-seed timed
+gate trials reached the same collision outcome with collision times 3.995 ms apart and terminal
+agent positions 0.153 cm apart. Animation-root data remained in a separately typed QA path.
+
+### What remains unproven after Day 1?
+
+The evidence does not prove bitwise determinism or equality of every inaccessible Mover/animation
+state. Live gate success and timeout outcomes have not been demonstrated. The Unreal dataset is not
+yet sufficiently varied for modelling. A faithful nominal predictor, a learned residual, MPC
+improvement, held-out/OOD behavior, runtime latency, deployment, the final comparison video, and
+toe/contact or foot-sliding claims all remain unproven.

@@ -608,3 +608,21 @@ input. No reliable toe/contact telemetry was collected, so no foot-sliding claim
 **Closeout:** After preserving the CSV and plot, the candidate disabled animation-root diagnostics,
 compiled/saved the Blueprint, and closed Unreal. The installed sample is back in its default-off
 evidence state.
+
+## FEAS-001 branch-close audit (2026-09-01)
+
+**Claim under review:** The Day 1 engineering system is sufficiently reliable to begin offline
+nominal-model work without claiming that the final interview demo is complete.
+
+**Fresh checks:** The project-local Python environment passed 20/20 tests, Ruff passed, and
+`git diff --check` passed. The latest exact Game Animation Sample universal build and all eight
+actual-project MotionWorld automation tests remain applicable because no Unreal source changed
+after that validation; later commits only record evidence, safe Blueprint defaults, and teach-back.
+
+**Decision:** Accept the bounded engineering gate for external control, finalized authoritative
+state, Mover-owned reset, causal episode identity, timed-gate events, bounded persistence, strict
+independent loading, and visual-only animation diagnostics. Proceed to Day 2.
+
+**Not established:** Bitwise/full-hidden-state determinism, live success or timeout trials, a varied
+training dataset, nominal/residual prediction quality, MPC improvement, OOD behavior, runtime
+latency, deployment, or the final video.
