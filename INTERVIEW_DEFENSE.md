@@ -189,3 +189,16 @@ Mover's smoothing or spring state, the previous movement marker, gate phase, act
 and model/planner history. Each state must be reset, explicitly synchronized, or documented as an
 uncontrolled limitation. This answers why position-only reset is invalid; evidence that the actual
 reset worked is a separate question.
+
+### Q4 - Reset evidence and limitation (passed 2026-09-01)
+
+Candidate answer, lightly normalized for terminology: Reset-state checks directly compare the
+observable state after reset; episode and sequence IDs establish clean data boundaries; repeated
+behavior, including similar collision times, supports reproducibility. Even near-identical results
+do not prove that every inaccessible hidden state is identical.
+
+Examiner assessment: Passed after one retry. The first attempt relied too heavily on IDs, which
+prove identity and chronology rather than physical reset. The bounded claim is that observable
+position, yaw, linear/angular velocity, and movement mode reset correctly, no transition crossed an
+episode boundary, and two same-seed gate trials behaved closely. Do not claim bitwise determinism or
+complete observation of Mover internals.
