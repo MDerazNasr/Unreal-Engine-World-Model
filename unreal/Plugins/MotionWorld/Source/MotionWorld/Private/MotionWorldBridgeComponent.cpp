@@ -16,6 +16,7 @@
 #include "MotionWorldEpisodeExporter.h"
 #include "MotionWorldStateSample.h"
 #include "MotionWorldVelocityCommand.h"
+#include "Components/SkeletalMeshComponent.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogMotionWorldBridge, Log, All);
 
@@ -42,6 +43,24 @@ void UMotionWorldBridgeComponent::BeginPlay()
 	MoverComponent->OnPostFinalize.AddDynamic(
 		this,
 		&UMotionWorldBridgeComponent::HandlePostFinalize);
+	AnimationDiagnosticSessionId.Reset();
+	ValidAnimationDiagnosticSampleCount = 0;
+	InvalidAnimationDiagnosticSampleCount = 0;
+	LoggedAnimationDiagnosticSampleCount = 0;
+	bHasLoggedAnimationDiagnosticFailure = false;
+	bHasLoggedAnimationDiagnosticCapacity = false;
+	if (bLogAnimationRootDiagnostics)
+	{
+		AnimationDiagnosticSessionId =
+			FGuid::NewGuid().ToString(EGuidFormats::Digits).Left(12);
+		UE_LOG(
+			LogMotionWorldBridge,
+			Display,
+			TEXT("MotionWorld animation diagnostic session started: session=%s source=mover_primary_visual root_source=bone_index_0 capture_phase=mover_on_post_finalize_current_pose_buffer model_input=false interval=%d max_rows=%d."),
+			*AnimationDiagnosticSessionId,
+			FMath::Clamp(AnimationDiagnosticLogIntervalSamples, 1, 600),
+			FMath::Clamp(MaxAnimationDiagnosticLogSamples, 1, 100000));
+	}
 
 	UE_LOG(
 		LogMotionWorldBridge,
@@ -69,6 +88,19 @@ void UMotionWorldBridgeComponent::BeginPlay()
 
 void UMotionWorldBridgeComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+	if (bLogAnimationRootDiagnostics)
+	{
+		UE_LOG(
+			LogMotionWorldBridge,
+			Display,
+			TEXT("MotionWorld animation diagnostic session stopped: session=%s valid=%lld invalid=%lld logged=%lld capacity=%d model_input=false."),
+			*AnimationDiagnosticSessionId,
+			ValidAnimationDiagnosticSampleCount,
+			InvalidAnimationDiagnosticSampleCount,
+			LoggedAnimationDiagnosticSampleCount,
+			FMath::Clamp(MaxAnimationDiagnosticLogSamples, 1, 100000));
+	}
+
 	if (ResetStatus.bIsPending)
 	{
 		FailPendingReset(TEXT("component ended before verification"));
@@ -734,6 +766,132 @@ void UMotionWorldBridgeComponent::ProcessTimedArenaObservation()
 	}
 }
 
+void UMotionWorldBridgeComponent::CaptureAnimationDiagnosticIfEnabled()
+{
+	if (!bLogAnimationRootDiagnostics)
+	{
+		return;
+	}
+
+	MotionWorld::FAnimationDiagnosticInputs Inputs;
+	Inputs.AuthoritativeState = LastAuthoritativeState;
+	USkeletalMeshComponent* VisualMesh = MoverComponent
+		? MoverComponent->GetPrimaryVisualComponent<USkeletalMeshComponent>()
+		: nullptr;
+	Inputs.bHasPrimarySkeletalVisual = IsValid(VisualMesh);
+	Inputs.bBoneTransformsValid = VisualMesh
+		&& VisualMesh->IsRegistered()
+		&& VisualMesh->GetNumBones() > 0
+		&& VisualMesh->GetNumComponentSpaceTransforms() > 0;
+	if (VisualMesh)
+	{
+		Inputs.VisualComponentName = VisualMesh->GetFName();
+		Inputs.VisualComponentWorldTransform = VisualMesh->GetComponentTransform();
+		if (VisualMesh->GetNumBones() > 0)
+		{
+			Inputs.RootBoneName = VisualMesh->GetBoneName(0);
+			if (Inputs.bBoneTransformsValid)
+			{
+				Inputs.AnimationRootWorldTransform =
+					VisualMesh->GetBoneTransform(0);
+			}
+		}
+	}
+
+	LastAnimationDiagnostic =
+		MotionWorld::BuildAnimationDiagnosticSample(Inputs);
+	if (!LastAnimationDiagnostic.bIsValid)
+	{
+		++InvalidAnimationDiagnosticSampleCount;
+		if (!bHasLoggedAnimationDiagnosticFailure)
+		{
+			bHasLoggedAnimationDiagnosticFailure = true;
+			UE_LOG(
+				LogMotionWorldBridge,
+				Warning,
+				TEXT("MotionWorld animation diagnostic unavailable: session=%s state_sequence=%lld primary_skeletal_visual=%s bone_transforms_valid=%s component=%s root_bone=%s; gameplay state remains authoritative."),
+				*AnimationDiagnosticSessionId,
+				LastAuthoritativeState.SampleSequence,
+				Inputs.bHasPrimarySkeletalVisual ? TEXT("true") : TEXT("false"),
+				Inputs.bBoneTransformsValid ? TEXT("true") : TEXT("false"),
+				*Inputs.VisualComponentName.ToString(),
+				*Inputs.RootBoneName.ToString());
+		}
+		return;
+	}
+
+	++ValidAnimationDiagnosticSampleCount;
+	const int32 Interval = FMath::Clamp(
+		AnimationDiagnosticLogIntervalSamples,
+		1,
+		600);
+	if (LastAnimationDiagnostic.AuthoritativeStateSampleSequence % Interval != 0)
+	{
+		return;
+	}
+
+	const int32 Capacity = FMath::Clamp(
+		MaxAnimationDiagnosticLogSamples,
+		1,
+		100000);
+	if (LoggedAnimationDiagnosticSampleCount >= Capacity)
+	{
+		if (!bHasLoggedAnimationDiagnosticCapacity)
+		{
+			bHasLoggedAnimationDiagnosticCapacity = true;
+			UE_LOG(
+				LogMotionWorldBridge,
+				Warning,
+				TEXT("MotionWorld animation diagnostic logging stopped at capacity: session=%s capacity=%d; gameplay recording is unaffected."),
+				*AnimationDiagnosticSessionId,
+				Capacity);
+		}
+		return;
+	}
+
+	++LoggedAnimationDiagnosticSampleCount;
+	const FTransform& VisualTransform =
+		LastAnimationDiagnostic.VisualComponentWorldTransform;
+	const FTransform& RootTransform =
+		LastAnimationDiagnostic.AnimationRootWorldTransform;
+	const FRotator VisualRotation = VisualTransform.Rotator();
+	const FRotator RootRotation = RootTransform.Rotator();
+	UE_LOG(
+		LogMotionWorldBridge,
+		Display,
+		TEXT("MotionWorld animation diagnostic: session=%s protocol=%d state_sequence=%lld sim_time_s=%.6f capture_phase=mover_on_post_finalize_current_pose_buffer visual_component=%s root_bone=%s actor_position_world_cm=(%.6f, %.6f, %.6f) visual_component_position_world_cm=(%.6f, %.6f, %.6f) visual_component_rotation_world_deg=(%.6f, %.6f, %.6f) visual_component_scale=(%.6f, %.6f, %.6f) animation_root_position_world_cm=(%.6f, %.6f, %.6f) animation_root_rotation_world_deg=(%.6f, %.6f, %.6f) animation_root_scale=(%.6f, %.6f, %.6f) actor_to_animation_root_world_cm=(%.6f, %.6f, %.6f) model_input=false"),
+		*AnimationDiagnosticSessionId,
+		LastAnimationDiagnostic.ProtocolVersion,
+		LastAnimationDiagnostic.AuthoritativeStateSampleSequence,
+		LastAnimationDiagnostic.SimulationTimeSeconds,
+		*LastAnimationDiagnostic.VisualComponentName.ToString(),
+		*LastAnimationDiagnostic.RootBoneName.ToString(),
+		LastAnimationDiagnostic.AuthoritativeActorPositionWorldCm.X,
+		LastAnimationDiagnostic.AuthoritativeActorPositionWorldCm.Y,
+		LastAnimationDiagnostic.AuthoritativeActorPositionWorldCm.Z,
+		VisualTransform.GetLocation().X,
+		VisualTransform.GetLocation().Y,
+		VisualTransform.GetLocation().Z,
+		VisualRotation.Roll,
+		VisualRotation.Pitch,
+		VisualRotation.Yaw,
+		VisualTransform.GetScale3D().X,
+		VisualTransform.GetScale3D().Y,
+		VisualTransform.GetScale3D().Z,
+		RootTransform.GetLocation().X,
+		RootTransform.GetLocation().Y,
+		RootTransform.GetLocation().Z,
+		RootRotation.Roll,
+		RootRotation.Pitch,
+		RootRotation.Yaw,
+		RootTransform.GetScale3D().X,
+		RootTransform.GetScale3D().Y,
+		RootTransform.GetScale3D().Z,
+		LastAnimationDiagnostic.ActorToAnimationRootWorldCm.X,
+		LastAnimationDiagnostic.ActorToAnimationRootWorldCm.Y,
+		LastAnimationDiagnostic.ActorToAnimationRootWorldCm.Z);
+}
+
 void UMotionWorldBridgeComponent::ApplyArenaTerminalSafeStop(
 	const EMotionWorldScenarioTerminationReason TerminationReason)
 {
@@ -935,6 +1093,7 @@ void UMotionWorldBridgeComponent::HandlePostFinalize(
 	}
 
 	LastAuthoritativeState = MotionWorld::BuildAuthoritativeStateSample(StateInputs);
+	CaptureAnimationDiagnosticIfEnabled();
 	const bool bValidityChanged = !bHasAuthoritativeStateSample
 		|| LastAuthoritativeState.bIsValid != bPreviousAuthoritativeStateWasValid;
 	const bool bPeriodicStateLog = StateDiagnosticLogIntervalSamples > 0

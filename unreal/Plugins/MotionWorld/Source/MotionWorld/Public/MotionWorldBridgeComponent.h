@@ -81,6 +81,13 @@ public:
 	UFUNCTION(BlueprintPure, Category = "MotionWorld|State")
 	FMotionWorldStateSample GetLastAuthoritativeState() const { return LastAuthoritativeState; }
 
+	/** Latest visual-only QA sample; never used by the recorder or model state. */
+	UFUNCTION(BlueprintPure, Category = "MotionWorld|Animation Diagnostic")
+	FMotionWorldAnimationDiagnosticSample GetLastAnimationDiagnostic() const
+	{
+		return LastAnimationDiagnostic;
+	}
+
 	/** Clears prior rows and starts one explicitly identified in-memory episode. */
 	UFUNCTION(BlueprintCallable, Category = "MotionWorld|Episode")
 	bool StartEpisodeRecording(int64 EpisodeId);
@@ -157,6 +164,21 @@ protected:
 
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "MotionWorld|State")
 	FMotionWorldStateSample LastAuthoritativeState;
+
+	/** Default-off visual QA logging; does not alter episode/model state. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Animation Diagnostic")
+	bool bLogAnimationRootDiagnostics = false;
+
+	/** Log every Nth aligned valid sample while animation diagnostics are enabled. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Animation Diagnostic", meta = (ClampMin = "1", ClampMax = "600"))
+	int32 AnimationDiagnosticLogIntervalSamples = 1;
+
+	/** Hard cap on logged rows per PIE session. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Animation Diagnostic", meta = (ClampMin = "1", ClampMax = "100000"))
+	int32 MaxAnimationDiagnosticLogSamples = 4096;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "MotionWorld|Animation Diagnostic")
+	FMotionWorldAnimationDiagnosticSample LastAnimationDiagnostic;
 
 	/** Log every N valid finalized samples after the first; zero disables periodic logs. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|State", meta = (ClampMin = "0"))
@@ -275,6 +297,7 @@ private:
 	void RequestConfiguredWarmupResetIfDue();
 	void InitializeTimedArenaIfEligible();
 	void ProcessTimedArenaObservation();
+	void CaptureAnimationDiagnosticIfEnabled();
 	void ApplyArenaTerminalSafeStop(
 		EMotionWorldScenarioTerminationReason TerminationReason);
 
@@ -311,4 +334,10 @@ private:
 	bool bArenaTerminalSafeStopIssued = false;
 	bool bCurrentEpisodeHasTimedGateScenario = false;
 	double CurrentEpisodeScenarioStartSimulationTimeSeconds = 0.0;
+	FString AnimationDiagnosticSessionId;
+	int64 ValidAnimationDiagnosticSampleCount = 0;
+	int64 InvalidAnimationDiagnosticSampleCount = 0;
+	int64 LoggedAnimationDiagnosticSampleCount = 0;
+	bool bHasLoggedAnimationDiagnosticFailure = false;
+	bool bHasLoggedAnimationDiagnosticCapacity = false;
 };
