@@ -572,6 +572,9 @@ component-space transform buffer; the pure builder still fails closed.
 tests and Ruff pass. A three-row synthetic session parsed successfully and produced a visually
 inspected 1980x802 actor-versus-root/offset plot. This validates the tooling, not the real sample.
 
-**Acceptance boundary:** The exact Game Animation Sample target, actual-project automation, and a
-live trace/plot must still pass before D-020 or Day 1 is closed. See
+**Exact-sample result:** The closed Game Animation Sample universal Editor build passed in 118.50
+seconds. Deployed source matches the repository, the dylib contains x86_64 and arm64, and all eight
+actual-project MotionWorld tests returned `Success` with exit code zero.
+
+**Acceptance boundary:** A live trace/plot must still pass before D-020 or Day 1 is closed. See
 `evidence/unreal/d020_animation_diagnostic_pre_live.log`.

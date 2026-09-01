@@ -31,5 +31,12 @@ Synthetic end-to-end plot check
 - Output: 1980x802 RGBA PNG, visually inspected; both trajectory and offset panels readable.
 
 Claim boundary
-- Synthetic data validates parser/plot wiring only.
-- Exact sample build, actual-project automation, and live trace evidence remain pending.
+- Exact Game Animation Sample universal Editor build: PASS (118.50 seconds).
+- Deployed source matches the repository exactly.
+- Deployed dylib is universal x86_64 + arm64; SHA-256:
+  34c7e321de615d1f0f57c874f314fab13cfc0fdfbdc744b6951c873528c3fefe.
+- Actual-project headless automation found 8 MotionWorld tests; all 8 returned Success and the
+  process reported TEST COMPLETE, EXIT CODE: 0.
+- The recurring sample warning reported a 4608 MiB SkinnedAsset compile estimate against about
+  3422 MiB available. It did not fail compilation or automation and is not a MotionWorld allocation.
+- Synthetic data validates parser/plot wiring only; live trace evidence remains pending.

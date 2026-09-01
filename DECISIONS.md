@@ -520,8 +520,8 @@ Related config/commit/experiment: `FEAS-001`; live episodes 1901/1902; `dc09bbf`
 
 ## D-020 - Animation root is separate QA telemetry
 
-Status: pure contract, bounded default-off runtime capture, strict parser, and plotter pass
-closed-editor validation; one live trace remains pending
+Status: pure contract, bounded default-off runtime capture, strict parser, plotter, exact-sample
+universal build, and all eight actual-project tests pass; one live trace remains pending
 
 Decision: Read the skeletal root from Mover's own primary visual component using bone index zero,
 and store it in `FMotionWorldAnimationDiagnosticSample`, never in `FMotionWorldStateSample` or a
@@ -556,7 +556,8 @@ How I tested it: The automation contract covers valid aligned data, explicit wor
 offset, missing visual source, and non-finite transform rejection. Strict universal
 Editor/Development/Shipping builds pass. Nineteen Python tests and Ruff pass, including rejection
 of sequence and offset corruption. A three-row synthetic trace passed strict parsing and generated
-a visually inspected plot. The actual-sample build/tests and live trace remain the acceptance gate.
+a visually inspected plot. The exact sample universal build and all eight actual-project tests pass.
+The live trace remains the acceptance gate.
 
 Related config/commit/experiment: `FEAS-001`; `7ab91f4`.
 
