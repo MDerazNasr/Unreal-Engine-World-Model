@@ -514,7 +514,7 @@ measured verification error, recorded 70/70 attempted transitions, classified on
 stopped, exported in 4.616 ms, and passed strict independent Python validation. Two same-seed live
 traces plus live success/timeout remain stronger follow-up evidence rather than established facts.
 
-Related config/commit/experiment: `FEAS-001`; live episode 1901; pending evidence commit.
+Related config/commit/experiment: `FEAS-001`; live episode 1901; `dc09bbf`.
 
 ### D-019a - Terminal events stop control but do not erase physics
 
