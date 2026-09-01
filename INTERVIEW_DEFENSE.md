@@ -202,3 +202,14 @@ prove identity and chronology rather than physical reset. The bounded claim is t
 position, yaw, linear/angular velocity, and movement mode reset correctly, no transition crossed an
 episode boundary, and two same-seed gate trials behaved closely. Do not claim bitwise determinism or
 complete observation of Mover internals.
+
+### Q5 - Rejecting stale and cross-reset transitions (passed 2026-09-01)
+
+Candidate answer, lightly normalized for terminology: Episode IDs prevent transitions from crossing
+resets, sequence IDs require consecutive states, and action IDs ensure the recorded action belongs
+to that exact movement step.
+
+Examiner assessment: Passed after teaching. A transition is accepted only when its previous and next
+states share the active episode, its finalized sequence is adjacent, and its applied action identity
+matches the attempted step. Any mismatch fails closed instead of becoming a false teleport or
+state-action training pair.
