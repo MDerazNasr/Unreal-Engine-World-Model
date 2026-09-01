@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import csv
 import math
 import re
 from dataclasses import dataclass
@@ -164,7 +165,13 @@ def plot_animation_trace(trace: AnimationTrace, output_path: Path) -> None:
         for sample in trace.samples
     ]
 
-    figure, (trajectory_axis, offset_axis) = plt.subplots(1, 2, figsize=(11, 4.5))
+    vertical_offsets = [
+        sample.actor_to_animation_root_world_cm[2] for sample in trace.samples
+    ]
+
+    figure, (trajectory_axis, planar_axis, vertical_axis) = plt.subplots(
+        1, 3, figsize=(15, 4.5)
+    )
     trajectory_axis.plot(actor_x, actor_y, label="Authoritative Mover actor", linewidth=2.2)
     trajectory_axis.plot(root_x, root_y, label="Animation root (visual QA)", linewidth=1.6)
     trajectory_axis.set_title("Gameplay vs visual trajectory")
@@ -174,14 +181,88 @@ def plot_animation_trace(trace: AnimationTrace, output_path: Path) -> None:
     trajectory_axis.grid(alpha=0.25)
     trajectory_axis.legend()
 
-    offset_axis.plot(times, planar_offsets, color="#d95f02", linewidth=1.8)
-    offset_axis.set_title("Planar actor-to-root offset")
-    offset_axis.set_xlabel("Trace time (s)")
-    offset_axis.set_ylabel("Offset magnitude (cm)")
-    offset_axis.grid(alpha=0.25)
+    planar_axis.plot(times, planar_offsets, color="#d95f02", linewidth=1.8)
+    planar_axis.set_title("Planar actor-to-root offset")
+    planar_axis.set_xlabel("Trace time (s)")
+    planar_axis.set_ylabel("Offset magnitude (cm)")
+    planar_axis.grid(alpha=0.25)
+
+    vertical_axis.plot(times, vertical_offsets, color="#7570b3", linewidth=1.8)
+    vertical_axis.set_title("Vertical actor-to-root offset")
+    vertical_axis.set_xlabel("Trace time (s)")
+    vertical_axis.set_ylabel("Root Z minus actor Z (cm)")
+    vertical_axis.grid(alpha=0.25)
     figure.suptitle(
         f"MotionWorld animation diagnostic — {trace.visual_component_name}/{trace.root_bone_name}"
     )
     figure.tight_layout()
     figure.savefig(output_path, dpi=180, bbox_inches="tight")
     plt.close(figure)
+
+
+def write_animation_trace_csv(trace: AnimationTrace, output_path: Path) -> None:
+    """Write one already-validated session as a portable numeric evidence artifact."""
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    fieldnames = [
+        "session_id",
+        "state_sequence",
+        "simulation_time_s",
+        "visual_component_name",
+        "root_bone_name",
+        "actor_x_world_cm",
+        "actor_y_world_cm",
+        "actor_z_world_cm",
+        "visual_component_x_world_cm",
+        "visual_component_y_world_cm",
+        "visual_component_z_world_cm",
+        "animation_root_x_world_cm",
+        "animation_root_y_world_cm",
+        "animation_root_z_world_cm",
+        "actor_to_root_x_world_cm",
+        "actor_to_root_y_world_cm",
+        "actor_to_root_z_world_cm",
+    ]
+    with output_path.open("w", newline="", encoding="utf-8") as output_file:
+        writer = csv.DictWriter(output_file, fieldnames=fieldnames)
+        writer.writeheader()
+        for sample in trace.samples:
+            writer.writerow(
+                {
+                    "session_id": sample.session_id,
+                    "state_sequence": sample.state_sequence,
+                    "simulation_time_s": f"{sample.simulation_time_s:.6f}",
+                    "visual_component_name": sample.visual_component_name,
+                    "root_bone_name": sample.root_bone_name,
+                    "actor_x_world_cm": f"{sample.actor_position_world_cm[0]:.6f}",
+                    "actor_y_world_cm": f"{sample.actor_position_world_cm[1]:.6f}",
+                    "actor_z_world_cm": f"{sample.actor_position_world_cm[2]:.6f}",
+                    "visual_component_x_world_cm": (
+                        f"{sample.visual_component_position_world_cm[0]:.6f}"
+                    ),
+                    "visual_component_y_world_cm": (
+                        f"{sample.visual_component_position_world_cm[1]:.6f}"
+                    ),
+                    "visual_component_z_world_cm": (
+                        f"{sample.visual_component_position_world_cm[2]:.6f}"
+                    ),
+                    "animation_root_x_world_cm": (
+                        f"{sample.animation_root_position_world_cm[0]:.6f}"
+                    ),
+                    "animation_root_y_world_cm": (
+                        f"{sample.animation_root_position_world_cm[1]:.6f}"
+                    ),
+                    "animation_root_z_world_cm": (
+                        f"{sample.animation_root_position_world_cm[2]:.6f}"
+                    ),
+                    "actor_to_root_x_world_cm": (
+                        f"{sample.actor_to_animation_root_world_cm[0]:.6f}"
+                    ),
+                    "actor_to_root_y_world_cm": (
+                        f"{sample.actor_to_animation_root_world_cm[1]:.6f}"
+                    ),
+                    "actor_to_root_z_world_cm": (
+                        f"{sample.actor_to_animation_root_world_cm[2]:.6f}"
+                    ),
+                }
+            )

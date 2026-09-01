@@ -6,6 +6,7 @@ from .animation_trace import (
     AnimationTraceValidationError,
     load_animation_trace,
     plot_animation_trace,
+    write_animation_trace_csv,
 )
 
 __all__ = [
@@ -14,4 +15,5 @@ __all__ = [
     "AnimationTraceValidationError",
     "load_animation_trace",
     "plot_animation_trace",
+    "write_animation_trace_csv",
 ]

@@ -8,24 +8,34 @@ import math
 import statistics
 from pathlib import Path
 
-from motionworld.diagnostics import load_animation_trace, plot_animation_trace
+from motionworld.diagnostics import (
+    load_animation_trace,
+    plot_animation_trace,
+    write_animation_trace_csv,
+)
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("log", type=Path)
     parser.add_argument("--output", required=True, type=Path)
+    parser.add_argument("--csv", type=Path)
     parser.add_argument("--session")
     args = parser.parse_args()
 
     trace = load_animation_trace(args.log, session_id=args.session)
     plot_animation_trace(trace, args.output)
+    if args.csv is not None:
+        write_animation_trace_csv(trace, args.csv)
     offsets = [
         math.hypot(
             sample.actor_to_animation_root_world_cm[0],
             sample.actor_to_animation_root_world_cm[1],
         )
         for sample in trace.samples
+    ]
+    vertical_offsets = [
+        sample.actor_to_animation_root_world_cm[2] for sample in trace.samples
     ]
     print(
         "valid=true",
@@ -35,6 +45,9 @@ def main() -> None:
         f"root_bone={trace.root_bone_name}",
         f"median_planar_offset_cm={statistics.median(offsets):.6f}",
         f"max_planar_offset_cm={max(offsets):.6f}",
+        f"min_vertical_offset_cm={min(vertical_offsets):.6f}",
+        f"max_vertical_offset_cm={max(vertical_offsets):.6f}",
+        f"csv={args.csv.resolve() if args.csv is not None else 'disabled'}",
         f"output={args.output.resolve()}",
     )
 

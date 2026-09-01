@@ -1,10 +1,15 @@
 from __future__ import annotations
 
+import csv
 from pathlib import Path
 
 import pytest
 
-from motionworld.diagnostics import AnimationTraceValidationError, load_animation_trace
+from motionworld.diagnostics import (
+    AnimationTraceValidationError,
+    load_animation_trace,
+    write_animation_trace_csv,
+)
 
 
 def _line(
@@ -84,3 +89,23 @@ def test_rejects_inconsistent_root_offset(tmp_path: Path) -> None:
 
     with pytest.raises(AnimationTraceValidationError, match="offset"):
         load_animation_trace(path)
+
+
+def test_writes_validated_trace_as_csv(tmp_path: Path) -> None:
+    path = _write(
+        tmp_path,
+        [
+            _line(sequence=0, time=0.1, actor_x=0.0, root_x=1.0),
+            _line(sequence=1, time=0.2, actor_x=2.0, root_x=3.0),
+        ],
+    )
+    output = tmp_path / "trace.csv"
+
+    write_animation_trace_csv(load_animation_trace(path), output)
+
+    with output.open(newline="", encoding="utf-8") as csv_file:
+        rows = list(csv.DictReader(csv_file))
+    assert len(rows) == 2
+    assert rows[0]["session_id"] == "ABC123"
+    assert rows[0]["actor_x_world_cm"] == "0.000000"
+    assert rows[1]["animation_root_x_world_cm"] == "3.000000"
