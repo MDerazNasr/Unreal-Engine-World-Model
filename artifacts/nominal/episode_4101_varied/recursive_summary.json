@@ -1,0 +1,112 @@
+{
+  "evaluation": "recursive_open_loop_recorded_actions",
+  "requested_horizons_s": [
+    0.5,
+    1.0,
+    1.5
+  ],
+  "parameter_semantics": "retrospective_completed_step_snapshots_not_proven_planner_available",
+  "state_reseeding": "initial_endpoint_only_no_intermediate_observation_reseeding",
+  "endpoint_policy": "first_recorded_boundary_at_or_after_requested_horizon",
+  "by_horizon_s": {
+    "0.5": {
+      "window_count": 173,
+      "actual_horizon_s": {
+        "min": 0.4999999999999998,
+        "max": 0.5669999999999993
+      },
+      "metrics": {
+        "planar_position_error_cm": {
+          "mean": 1.7343162064518611e-06,
+          "median": 1.639068159420276e-06,
+          "p95": 4.278557368258712e-06,
+          "max": 5.693248709803815e-06
+        },
+        "planar_velocity_error_cm_s": {
+          "mean": 3.2013050365654464e-06,
+          "median": 1.5125492729417545e-06,
+          "p95": 1.3901960522844238e-05,
+          "max": 1.6431192520372015e-05
+        },
+        "yaw_error_deg": {
+          "mean": 9.946518557428675,
+          "median": 5.306204130506736e-06,
+          "p95": 82.91687746133817,
+          "max": 174.2955806002485
+        },
+        "angular_velocity_yaw_error_deg_s": {
+          "mean": 68.10880652809516,
+          "median": 6.544225648497104e-06,
+          "p95": 551.4786296811714,
+          "max": 1280.3903989541539
+        }
+      }
+    },
+    "1.0": {
+      "window_count": 154,
+      "actual_horizon_s": {
+        "min": 1.0,
+        "max": 1.0659999999999998
+      },
+      "metrics": {
+        "planar_position_error_cm": {
+          "mean": 2.707830497993472e-06,
+          "median": 2.549785357491646e-06,
+          "p95": 6.449137410907332e-06,
+          "max": 8.348254624422763e-06
+        },
+        "planar_velocity_error_cm_s": {
+          "mean": 3.2895420824754104e-06,
+          "median": 1.598293367090884e-06,
+          "p95": 1.3982548871638377e-05,
+          "max": 1.6431199370003988e-05
+        },
+        "yaw_error_deg": {
+          "mean": 13.348001504874127,
+          "median": 8.823010958615725e-06,
+          "p95": 94.19358318652658,
+          "max": 174.2955806002485
+        },
+        "angular_velocity_yaw_error_deg_s": {
+          "mean": 90.96701891717946,
+          "median": 2.3584626262618258e-05,
+          "p95": 681.5914614338697,
+          "max": 1280.3903989541539
+        }
+      }
+    },
+    "1.5": {
+      "window_count": 136,
+      "actual_horizon_s": {
+        "min": 1.4999999999999996,
+        "max": 1.5810000000000004
+      },
+      "metrics": {
+        "planar_position_error_cm": {
+          "mean": 2.847719477371315e-06,
+          "median": 2.461776864319289e-06,
+          "p95": 5.677937959476539e-06,
+          "max": 6.070384495209287e-06
+        },
+        "planar_velocity_error_cm_s": {
+          "mean": 3.603335048346984e-06,
+          "median": 1.8003573632863553e-06,
+          "p95": 1.3984664461119739e-05,
+          "max": 1.6431200478450656e-05
+        },
+        "yaw_error_deg": {
+          "mean": 5.815734089935138,
+          "median": 1.2218889382847602e-05,
+          "p95": 39.76781064418527,
+          "max": 89.38995477850463
+        },
+        "angular_velocity_yaw_error_deg_s": {
+          "mean": 28.225769979397484,
+          "median": 3.7689597627732496e-05,
+          "p95": 185.7106109239025,
+          "max": 442.73072087898834
+        }
+      }
+    }
+  }
+}

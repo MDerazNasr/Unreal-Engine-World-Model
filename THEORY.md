@@ -209,6 +209,22 @@ One-step evaluation supplies the real state at every transition. Planning cannot
 
 A small velocity bias accumulates into position error; that new position can change collision cost and drive the planner toward increasingly unrealistic trajectories. Therefore the training and evaluation interface must match recursive planning.
 
+For variable Unreal timesteps, MotionWorld accumulates the recorded `delta_t` values and evaluates at
+the first finalized boundary at or after the requested horizon. It reports both values. A 0.5-second
+request might therefore represent 0.518 seconds of actual simulated time, but it never pretends that
+a fractional Unreal state was observed between boundaries.
+
+An open-loop evaluation is allowed to know the future action sequence because those are the
+interventions whose consequences we are testing. It is not allowed to know intermediate future
+states. Episode-4101 evaluation initializes `(s_hat,z_hat)` once, then advances:
+
+`(s_hat[k+1], z_hat[k+1]) = f_nominal(s_hat[k], z_hat[k], a[k], theta[k], delta_t[k])`
+
+The recorded `theta[k]` values are labeled retrospective. Using them diagnoses equation fidelity but
+does not prove that an online planner can predict future Blueprint regime switches. A dedicated test
+corrupts an intermediate recorded state and verifies that a rollout beginning earlier is unchanged;
+this catches accidental teacher forcing.
+
 Zero-residual invariant:
 
 `r_theta(.) = 0` must make the corrected rollout numerically equal to the nominal rollout.
@@ -836,3 +852,9 @@ intent-derived scalar target is -180 degrees. A scalar shortest-angle function s
 equal arc, producing a one-row angular mismatch. This is not evidence that the movement is random;
 it is evidence that exact-opposite quaternion construction/representation is part of the known
 nominal transformation and must be reproduced or explicitly declared unresolved.
+
+The recursive result makes the difference between median and tail statistics concrete. Most rollout
+windows never cross the exact-opposite edge, so median yaw error is near zero. Every window with more
+than one degree of yaw error crosses that single row, so p95 and maximum error are large. Reporting
+only the median would hide a planner-dangerous failure; reporting only the maximum would falsely
+suggest every trajectory fails.

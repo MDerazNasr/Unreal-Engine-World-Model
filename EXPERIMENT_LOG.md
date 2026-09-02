@@ -50,6 +50,7 @@ Artifacts and reproduction command:
 | NOM-001 | Does the nominal implementation pass hand-calculated and timestep tests? | Day 2 | Planned |
 | NOM-002 | Is meaningful, systematic residual error present in Unreal rollouts? | Day 2 | Planned |
 | VAR-DATA-001 | Does the deterministic schedule produce valid stop/reverse/turn coverage? | Day 2 | Completed |
+| NOM-ROLL-001 | How does faithful nominal error compound over 0.5/1.0/1.5 s? | Day 2 | Completed |
 | RES-001 | Does residual learning improve held-out recursive prediction over nominal? | Day 3 | Planned |
 | RES-002 | Does four-step history improve post-perturbation prediction over no history? | Day 3 | Planned |
 | CEM-001 | Does fixed-seed CEM recover known optima in toy costs deterministically? | Day 4 | Planned |
@@ -970,3 +971,38 @@ are still required before residual training claims.
 **Artifacts:** `evidence/unreal/var_data_001_live_episode_4101.log` and
 `artifacts/nominal/episode_4101_varied/`. The raw Unreal episode remains outside Git; its content hash
 and provenance are committed.
+
+## NOM-ROLL-001 recursive nominal rollout on episode 4101 (2026-09-02)
+
+**Question:** When intermediate real states are withheld, how does faithful nominal error compound
+over 0.5, 1.0, and 1.5 seconds of varied recorded actions?
+
+**Method:** Initialize from each eligible real previous state/context once. Recursively advance the
+predicted observable and internal state under recorded schema-v4 actions, recorded variable
+timesteps, and explicitly retrospective completed-step parameters. Compare at the first finalized
+boundary at or after each requested horizon. No intermediate observation or hidden-state re-seeding.
+
+**Result:** There are 173, 154, and 136 complete windows at 0.5, 1.0, and 1.5 seconds. Actual endpoint
+ranges are 0.500–0.567, 1.000–1.066, and 1.500–1.581 seconds. Maximum translational errors over all
+windows are `8.35e-6 cm` position and `1.65e-5 cm/s` velocity. Median yaw errors are
+`5.31e-6`, `8.82e-6`, and `1.22e-5` degrees, yet p95 yaw errors are 82.917, 94.194, and 39.768
+degrees; maxima are 174.296, 174.296, and 89.390 degrees.
+
+**Reviewer localization:** At 0.5/1.0/1.5 seconds, 19/39/35 windows have yaw error above one degree.
+Every one crosses transition 46; zero non-crossing windows exceed one degree. Maximum non-crossing
+yaw errors are only `2.21e-5`, `1.79e-5`, and `1.81e-5` degrees. The large tail is therefore the
+identified exact-opposite quaternion edge compounding through recursive rotation, not diffuse model
+failure. Translation remains unaffected.
+
+**Interpretation:** The nominal translation is source-faithful for this collision-free episode. The
+rotation baseline is not yet fair at exact opposite facing and must be resolved or represented before
+residual training. This episode alone supplies no systematic learnable free-space residual and does
+not satisfy NOM-002 contact/push/generalization evidence. The result also demonstrates why median,
+p95, and failure localization must all be reported.
+
+**Validation:** Nine focused rollout tests and 189 full tests pass; Ruff passes on all Python source.
+The recursive-state trap proves no intermediate teacher forcing. Plot reviewed visually.
+
+**Artifacts:** `artifacts/nominal/episode_4101_varied/recursive_rollouts.csv`,
+`recursive_summary.json`, `recursive_error.png`, and
+`evidence/unreal/nom_roll_001_episode_4101.log`.

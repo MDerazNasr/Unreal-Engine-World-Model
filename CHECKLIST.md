@@ -48,7 +48,7 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [ ] Complete the Section 3.3 deterministic theory backend.
 - [ ] Complete Section 6 faithful nominal model and substep tests.
 - [ ] Complete enough Section 7 collection/validation to measure real residual structure.
-- [ ] Produce first nominal-versus-Unreal recursive error plot.
+- [x] Produce first nominal-versus-Unreal recursive error plot.
 - [ ] Decide by end of day whether meaningful decision-relevant residual structure exists.
 - [ ] Merge nominal/data branches only after their respective gates pass.
 
@@ -509,10 +509,10 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 
 - [x] Align action at time `t` with correct next state at `t+1`; live episode 1601 accepted all 922 adjacent pairs with zero rejection.
 - [x] Compare nominal and Unreal one-step transitions; schema-v4 episode 4001 reproduces 104 non-collision rows to micro-numerical tolerance without manual facing/max-speed inputs.
-- [ ] Compare recursive errors at 0.5, 1.0, and 1.5 s.
+- [x] Compare recursive errors at 0.5, 1.0, and 1.5 s.
 - [ ] Stratify free motion, acceleration, stopping, reversing, turning, contact, and post-push.
-- [ ] Plot position, velocity, facing, and angular-velocity error separately.
-- [ ] Inspect systematic bias rather than only aggregate mean.
+- [x] Plot position, velocity, facing, and angular-velocity error separately.
+- [x] Inspect systematic bias rather than only aggregate mean.
 - [x] Enter `NOM-001` hand/reference validation.
 - [ ] Enter `NOM-002` real Unreal mismatch study.
 

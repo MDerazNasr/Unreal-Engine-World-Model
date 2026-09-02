@@ -1,0 +1,46 @@
+# NOM-ROLL-001 recursive nominal evaluation — episode 4101
+
+Date: 2026-09-02
+Episode SHA-256: `4fdd65f02cdf83f9c4858f3b2ea423305f24b417c6171ed252b8bdfe50e09afb`
+Requested horizons: 0.5, 1.0, 1.5 seconds
+
+## Contract
+
+- Seed observable/internal state once at each rollout start.
+- Advance predicted state recursively; never re-seed from intermediate Unreal state/context.
+- Use recorded future actions as the open-loop interventions being evaluated.
+- Use variable recorded timesteps and the first finalized endpoint at/after each request.
+- Record actual endpoint duration.
+- Completed-step parameters remain explicitly retrospective and are not claimed MPC-available.
+
+## Results
+
+| Requested | Windows | Actual horizon range | Median / p95 / max position cm | Median / p95 / max velocity cm/s | Median / p95 / max yaw deg | Median / p95 / max yaw-rate deg/s |
+|---:|---:|---:|---:|---:|---:|---:|
+| 0.5 | 173 | 0.500–0.567 | 1.64e-6 / 4.28e-6 / 5.69e-6 | 1.51e-6 / 1.39e-5 / 1.64e-5 | 5.31e-6 / 82.917 / 174.296 | 6.54e-6 / 551.479 / 1280.390 |
+| 1.0 | 154 | 1.000–1.066 | 2.55e-6 / 6.45e-6 / 8.35e-6 | 1.60e-6 / 1.40e-5 / 1.64e-5 | 8.82e-6 / 94.194 / 174.296 | 2.36e-5 / 681.591 / 1280.390 |
+| 1.5 | 136 | 1.500–1.581 | 2.46e-6 / 5.68e-6 / 6.07e-6 | 1.80e-6 / 1.40e-5 / 1.64e-5 | 1.22e-5 / 39.768 / 89.390 | 3.77e-5 / 185.711 / 442.731 |
+
+## Failure localization
+
+- Yaw error above 1 degree: 19, 39, and 35 windows by increasing horizon.
+- Every such window crosses transition 46; no other window exceeds 1 degree.
+- Maximum yaw error in non-crossing windows: 2.21e-5, 1.79e-5, and 1.81e-5 degrees.
+- Maximum yaw-rate error in non-crossing windows stays below 9.67e-5 deg/s.
+
+Therefore the angular tail is caused by the identified exact-opposite quaternion/preprocessing edge,
+not general free-space drift. Translation remains micro-numerically faithful throughout.
+
+## Validation and artifacts
+
+- Focused tests: 9 passed.
+- Full Python tests: 189 passed.
+- Ruff check: passed on all Python source.
+- `recursive_error.png` visually inspected.
+- Artifact hashes:
+  - PNG: `81132220f2da618302e1b371f7c968adec6a5a00280f64ad95921b666555a3aa`
+  - CSV: `99232c9f4254eac4203f916cf2575e2a636ba1f75e6993af4e6e2ae7d5cebdd2`
+  - JSON: `3f338a36183853e9ed7467045f3cfa28cacf3b88caae2ce038548f6a4933731d`
+
+Reproduction:
+`.venv/bin/python scripts/evaluate_recursive_nominal_episode.py <episode> --output-dir artifacts/nominal/episode_4101_varied`

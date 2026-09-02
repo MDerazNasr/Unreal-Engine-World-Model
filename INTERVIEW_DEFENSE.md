@@ -15,6 +15,14 @@ It implements the known Smooth Walking structure, carries known intermediate spr
 
 Evidence required: nominal hand tests, code/reference comparison, recursive Unreal error plot.
 
+### Why is median rollout error tiny while p95 rotation error is large?
+
+The failure is localized, not contradictory. Most episode-4101 windows avoid the exact 180-degree
+turn and stay at numerical-noise angular error. Every window above one degree crosses one reverse
+boundary where Unreal temporarily represents the target as -179 degrees while the scalar nominal
+chooses the other equal 180-degree arc. Median describes typical windows; p95 exposes a rare but
+planner-dangerous edge. I report both and fix the known quaternion path before training a residual.
+
 ### Why keep actor and animation state separate?
 
 The actor/capsule determines gameplay collision and is authoritative. Motion Matching and downstream animation can intentionally offset the rendered root to preserve visual quality. Mixing those signals would give the dynamics model inconsistent targets. I log animation root and toe behavior separately to show the control remains animation-friendly.

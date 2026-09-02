@@ -200,9 +200,7 @@ def _write_plot(rows: list[RowMetrics], path: Path) -> None:
     position_errors = np.asarray([row.planar_position_error_cm for row in rows])
     velocity_errors = np.asarray([row.planar_velocity_error_cm_s for row in rows])
     yaw_errors = np.asarray([row.yaw_error_deg for row in rows])
-    angular_velocity_errors = np.asarray(
-        [row.angular_velocity_yaw_error_deg_s for row in rows]
-    )
+    angular_velocity_errors = np.asarray([row.angular_velocity_yaw_error_deg_s for row in rows])
     collision_times = [row.end_simulation_time_s for row in rows if row.collision_this_step]
 
     figure, axes = plt.subplots(4, 1, figsize=(9.0, 9.2), sharex=True, constrained_layout=True)

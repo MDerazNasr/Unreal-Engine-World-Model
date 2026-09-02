@@ -1028,3 +1028,43 @@ the equivalent 180-degree representation. The scalar-yaw nominal takes the oppos
 creating one 16.266-degree yaw error and 677.733 deg/s yaw-rate error while translation remains at
 micro-numerical parity. Treat this as a known 180-degree representation/preprocessing edge requiring
 source-faithful resolution, not automatically as a learnable residual.
+
+## D-031 - Recursive evaluation without intermediate observation re-seeding
+
+Status: accepted for the nominal episode-4101 diagnostic; held-out residual comparison pending
+
+Decision: For each start transition, initialize observable and known internal state once from the
+real episode, then recursively feed every nominal prediction into the next step under the recorded
+future action sequence. Evaluate 0.5, 1.0, and 1.5 seconds at the first real transition boundary at
+or after each requested duration and report the actual duration. Never replace an intermediate
+predicted state with an Unreal observation. Permit completed-step parameter snapshots only for this
+explicitly retrospective diagnostic; do not claim they are available to online MPC.
+
+Why: One-step evaluation can hide compounding because it gives the model the correct state again at
+every row. Planning cannot do that. Variable Unreal timesteps also mean an exact requested duration
+usually falls between finalized boundaries, so the endpoint rule must be explicit.
+
+Alternatives considered: teacher-force every step; use a fixed number of rows as though timestep were
+constant; interpolate the authoritative endpoint; use recorded hidden state at every step; silently
+give MPC future Blueprint parameters; report only a mean across horizons.
+
+Evidence: Nine focused tests include stationary zero-error rollouts, invalid horizons, and a trap
+where an intermediate real state is deliberately corrupted while the start-to-end recursive result
+must remain unchanged. All 189 Python tests pass. Episode 4101 yields 173/154/136 valid windows at
+0.5/1.0/1.5 seconds. Translational errors remain below `8.35e-6 cm` position and `1.65e-5 cm/s`
+velocity. Median angular errors are near numerical noise, but windows crossing transition 46 produce
+all errors above one degree and raise p95 yaw to 82.917/94.194/39.768 degrees.
+
+Main assumption: The recorded future action sequence is a legitimate open-loop intervention for
+offline evaluation, and the retrospectively observed parameter snapshot governed its labeled step.
+
+How it could fail: A future parameter regime may be unavailable to a planner; endpoint overshoot can
+reach one long frame; one episode is not held-out evidence; exact-opposite quaternion representation
+can dominate tail statistics; contacts and pushes require their own strata and state synchronization.
+
+How I tested it: The evaluator reports requested and actual horizons, step/action-change/collision
+counts, all four error types, median/p95/max, and explicit leakage semantics. Every rollout above one
+degree crosses the already-identified transition 46; all non-crossing windows stay below
+`2.21e-5 deg` yaw error, localizing rather than averaging away the failure.
+
+Related config/commit/experiment: `NOM-ROLL-001`; episode 4101; horizons 0.5/1.0/1.5 seconds.
