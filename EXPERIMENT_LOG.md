@@ -720,3 +720,13 @@ not yet freeze the Python nominal parameters or claim live hidden-state access. 
 PIE trace must still show the actual Blueprint-derived mode class, all runtime parameter values, and
 a valid reflected state row; diagnostics must then be restored off. See
 `evidence/unreal/nom_smooth_walking_diagnostic_automation.log`.
+
+### Live attempt 1 — rejected (2026-09-02)
+
+The candidate opened `SandboxCharacter_Mover`, changed settings, compiled, saved, and ran a valid
+human-controlled Walking trace. Authoritative samples prove movement from rest through forward
+motion, turning, and return to rest over sequences 0–300. However, BeginPlay logged only the normal
+bridge-ready line: no Smooth Walking diagnostic session-start, row, invalid-row, capacity, or
+session-stop message exists. Therefore the runtime diagnostic flag was false and this trace contains
+no parameter/state evidence. The run is rejected rather than reused. See
+`evidence/unreal/nom_smooth_walking_live_attempt_1_invalid.log`.

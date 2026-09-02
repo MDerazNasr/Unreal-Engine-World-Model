@@ -1,0 +1,21 @@
+# MotionWorld Smooth Walking live attempt 1 — INVALID
+# Captured: 2026-09-02 Europe/Copenhagen
+# Source: GameAnimationSampleEditor/GameAnimationSample.log
+
+Reason for rejection
+- The Blueprint compiled and saved before PIE.
+- The pawn ran under human control with automation disabled.
+- No Smooth Walking diagnostic session-start, data row, failure, capacity, or session-stop line exists.
+- Consequently `bLogSmoothWalkingDiagnostics` was false in the spawned runtime component.
+- The saved asset also had no serialized `LogSmoothWalking` property-name string, corroborating that
+  no non-default true override was stored.
+- This attempt provides no live parameter or spring-state evidence and must not be used to freeze the
+  nominal model.
+
+[2026.09.02-04.55.41:333][526]LogBlueprint: Compiling Blueprint '/Game/Blueprints/SandboxCharacter_Mover.SandboxCharacter_Mover'
+[2026.09.02-04.55.45:586][546]LogFileHelpers: Saving Package: /Game/Blueprints/SandboxCharacter_Mover
+[2026.09.02-04.56.20:633][803]LogMotionWorldBridge: Display: MotionWorld bridge ready on 'SandboxCharacter_Mover_C_0'; automation=disabled, max_planar_speed=600.00 cm/s, state_log_interval=60 samples, episode_capacity=4096 transitions.
+[2026.09.02-04.56.20:645][803]LogMotionWorldBridge: Display: MotionWorld state sample: protocol=1 sequence=0 valid=true mover_step_frame=1 sim_time_s=0.049000 step_s=0.049000 resim=false mode=Walking position_world_cm=(-800.00, 0.00, 90.00) velocity_world_cm_per_sec=(0.00, 0.00, 0.00)
+[2026.09.02-04.56.27:595][923]LogMotionWorldBridge: Display: MotionWorld state sample: protocol=1 sequence=120 valid=true mover_step_frame=121 sim_time_s=6.403000 step_s=0.055000 resim=false mode=Walking position_world_cm=(220.39, 0.00, 88.27) velocity_world_cm_per_sec=(375.00, 0.00, 0.00)
+[2026.09.02-04.56.30:824][983]LogMotionWorldBridge: Display: MotionWorld state sample: protocol=1 sequence=180 valid=true mover_step_frame=181 sim_time_s=9.629000 step_s=0.054000 resim=false mode=Walking position_world_cm=(853.43, 157.40, 88.27) velocity_world_cm_per_sec=(170.37, 329.94, 0.00) facing_yaw_deg=60.45
+[2026.09.02-04.56.34:177][43]LogMotionWorldBridge: Display: MotionWorld state sample: protocol=1 sequence=240 valid=true mover_step_frame=241 sim_time_s=12.983000 step_s=0.057000 resim=false mode=Walking position_world_cm=(1079.84, 606.15, 88.27) velocity_world_cm_per_sec=(0.00, 0.00, 0.00) facing_yaw_deg=90.00
