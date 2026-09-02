@@ -541,6 +541,8 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [x] Include both endpoints of the five-field known Smooth Walking internal context.
 - [x] Reject missing, invalid, wrong-version, or state-misaligned nominal context.
 - [x] Preserve schema-v1/v2 reader compatibility without fabricating missing context.
+- [x] Validate one live Unreal schema-v3 episode end to end in the independent Python loader.
+- [ ] Enforce or manifest-check globally unique episode identity across files.
 - [x] Include termination reason.
 - [x] Include state-source and schema-version labels.
 - [ ] Include animation-root/toe diagnostics in distinct optional fields.

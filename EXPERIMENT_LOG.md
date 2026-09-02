@@ -645,6 +645,22 @@ timing and causal future selector are established.
 
 **Commits:** `fbe8b38`, `5be47f0`.
 
+### NOM-CONTEXT-001 live acceptance addendum
+
+The actual sample exported schema-v3 file
+`episode_1902_20260902T095709Z_D4626AD19F4A.jsonl`: 119/119 attempted transitions were recorded with
+zero rejected seeds, rejected transitions, or capacity drops. Independent Python validation accepted
+all 121 JSONL records. A separate all-row audit confirmed transition protocol 2, automated actions,
+state/context alignment at both endpoints, exact completed-step/next-parameter equality, and exact
+hidden endpoint continuity. Timestep ranged from 0.021 to 0.054 s; spring velocity reached 165 cm/s
+and spring acceleration norm reached 475.505 cm/s^2.
+
+The intended unique ID `2701` did not persist; the file reused episode ID `1902`, which already names
+an earlier schema-v2 trial. Therefore this file closes the live serialization boundary but is
+quarantined from dataset manifests. Straight motion produced no angular response, so turning/facing
+coverage remains open. Raw file SHA-256:
+`65b6ba374d556cc0e69f729b65489cee6dc3e7dfa60d5e9a4b1c2128d2efe30a`.
+
 ## FEAS-001 branch-close audit (2026-09-01)
 
 **Claim under review:** The Day 1 engineering system is sufficiently reliable to begin offline

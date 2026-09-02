@@ -1,0 +1,49 @@
+# MotionWorld live schema-v3 nominal-context episode evidence
+# Captured: 2026-09-02 Europe/Copenhagen
+# Raw episode remains in the local Game Animation Sample Saved directory.
+# Raw episode SHA-256: 65b6ba374d556cc0e69f729b65489cee6dc3e7dfa60d5e9a4b1c2128d2efe30a
+# Raw episode size: 571556 bytes, 121 JSONL records
+
+Run identity
+- Requested setup intended episode 2701, but the saved Blueprint still emitted episode 1902.
+- File: episode_1902_20260902T095709Z_D4626AD19F4A.jsonl
+- This episode ID duplicates an earlier schema-v2 trial. The file is accepted as interface evidence
+  but quarantined from dataset manifests until identity is made unique/composite.
+- Timed-gate scenario seed remained 1901.
+
+Runtime chronology
+- Bridge ready with automation enabled and character-local request (200,0,0) cm/s.
+- Reset queued after 139.209 cm displacement and verified on the first finalized check.
+- Reset errors: position 0 cm, facing 0 deg, linear speed 0 cm/s, angular speed 0 deg/s.
+- State sequence 30 seeded the episode; transition 0 joined state sequences 30 -> 31.
+- Gate collision occurred at runtime scenario time 3.477269 s; the gate froze solid.
+- Terminal safe stop zeroed both request frames; the following Mover echo matched zero.
+- Recorder: observed=120, attempted=119, recorded=119, rejected=0, rejected_seeds=0,
+  capacity_drops=0.
+- Atomic schema-v3 export completed in 21.739 ms.
+
+Independent Python validation
+- Result: valid=true, episode=1902, transitions=119, attempted=119, rejected=0,
+  capacity_drops=0.
+- Transition sequences: 0..118; authoritative state sequences: 30..149.
+- All transition protocols equal 2 and all actions are marked MotionWorld-automated.
+- Every previous/next nominal context is valid and aligned to its state sequence/mode.
+- Every completed-step parameter object equals the next finalized parameter snapshot.
+- Every consecutive hidden endpoint matches exactly across adjacent rows.
+- Mode/class are fixed to Walking / BP_MovementMode_Walking_C.
+
+Observed context range in this straight collision trial
+- Acceleration: 500 cm/s^2.
+- Deceleration: 300 cm/s^2.
+- Facing smoothing: 0.40000000596 s.
+- Timestep range: 0.021..0.054 s.
+- Maximum spring-velocity norm: 165 cm/s.
+- Maximum spring-acceleration norm: 475.504697 cm/s^2.
+- Maximum intermediate-velocity norm: 165 cm/s.
+- Intermediate angular velocity remained zero; quaternion unit error was zero because this trial
+  did not turn.
+
+Acceptance boundary
+- Accepted: live Unreal -> schema-v3 JSONL -> independent Python contract and chronology.
+- Not accepted: global dataset identity, varied action coverage, turning/facing validation,
+  faithful nominal prediction, residual structure, or online future-parameter availability.

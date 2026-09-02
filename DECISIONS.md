@@ -826,7 +826,7 @@ Related config/commit/experiment: `NOM-DIAG-001`; session `FF6768704542`.
 
 ## D-027 - Version nominal context separately and require endpoint alignment
 
-Status: accepted for collection and offline modelling; live schema-v3 episode still required
+Status: accepted through live schema-v3 interface validation; varied collection still required
 
 Decision: Keep authoritative state protocol 1 unchanged. Add nominal-context protocol 1 containing
 the active Smooth Walking class/name, all 15 runtime parameter values, and the five audited internal
@@ -868,3 +868,8 @@ The first full actual-sample run exposed a mixed-purpose test fixture; the corre
 ten MotionWorld tests with `Success`.
 
 Related config/commit/experiment: `NOM-CONTEXT-001`; commits `fbe8b38`, `5be47f0`.
+
+Live acceptance addendum: one 119-transition schema-v3 episode passed the independent loader and
+full-context audit with zero rejected rows. Its episode ID reused `1902` instead of the intended
+unique `2701`, so it is interface evidence only and must not enter a split manifest under a duplicated
+episode identity. See `evidence/unreal/nom_schema_v3_live_episode_1902.log`.
