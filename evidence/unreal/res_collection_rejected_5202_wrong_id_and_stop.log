@@ -1,0 +1,38 @@
+# RES-COLLECTION-001 rejected validation-5202 attempt
+
+Date: 2026-09-03 local / 2026-09-02 UTC
+Disposition: quarantined from train, validation, and test
+
+## Intended frozen configuration
+
+- Episode ID: 5202.
+- Motion / intermediate-stop / final-stop durations: 0.80 / 0.25 / 0.20 s.
+- Forward / reverse / lateral / diagonal-component speeds: 70 / 150 / 120 / 65 cm/s.
+- Expected total duration: 4.700 s.
+
+## Realized identity and configuration
+
+- Runtime/header/rows/footer/filename episode ID: 5201.
+- Motion / intermediate-stop / final-stop durations: 0.80 / 0.80 / 0.20 s.
+- Forward / reverse / lateral / diagonal-component speeds: 70 / 150 / 120 / 65 cm/s.
+- Runtime-declared duration: 5.800 s; completion: 5.809 s.
+- Phase boundaries at approximately 0.806, 1.601, 2.401, 3.225, 4.019, 4.801, and 5.613 s
+  independently expose the two incorrect 0.80-second intermediate stops.
+
+## Technical integrity
+
+- Reset passed on attempt one with zero position, facing, linear-speed, and angular-speed error.
+- Recorder: observed 206, attempted 205, recorded 205, rejected 0, rejected seeds 0,
+  capacity drops 0.
+- Export: schema 5, 207 JSONL lines, 1104762 bytes, 33.430 ms.
+- Strict loader: `valid=true episode=5201 transitions=205 attempted=205 rejected=0
+  capacity_drops=0`.
+- Raw file: `episode_5201_20260902T221949Z_5A5B5DB83C45.jsonl`.
+- Raw SHA-256: `f7b2b89cd629eb6ba43915c7ef6f80a148f142f82c215545d126681fb52460a0`.
+
+## Rejection boundary
+
+Reject despite technical validity. The artifact duplicates an already accepted episode identity and
+does not match the frozen validation-5202 duration configuration. Renaming cannot change its embedded
+identity, and accepting the altered duration would modify the validation design after observation.
+Set episode ID 5202 and intermediate-stop duration 0.25 seconds, compile/save, and rerun.

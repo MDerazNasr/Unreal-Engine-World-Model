@@ -16,6 +16,11 @@ rejected_attempts:
     reason: training_configuration_recorded_under_reserved_validation_id
     raw_file: episode_5201_20260902T204916Z_14E3988C3842.jsonl
     raw_sha256: 4c5629c510fdb9a2ca15646694dd90950687e4e0a4b1bb87cab4333bccf79305
+  - embedded_episode_id: 5201
+    intended_configuration_episode_id: 5202
+    reason: validation_5202_configuration_used_accepted_5201_id_and_wrong_intermediate_stop
+    raw_file: episode_5201_20260902T221949Z_5A5B5DB83C45.jsonl
+    raw_sha256: f7b2b89cd629eb6ba43915c7ef6f80a148f142f82c215545d126681fb52460a0
 episodes:
   - episode_id: 5101
     split: train

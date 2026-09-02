@@ -1389,3 +1389,19 @@ position, 3/3 velocity, 13/13 yaw, and 17/17 yaw-rate rows, with zero off-change
 Held-parameter recursive p95 position error is 16.836/23.585/17.724 cm at 0.5/1.0/1.5 seconds.
 Accept this new artifact into validation only; do not train on it. Evidence:
 `evidence/unreal/res_collection_live_validation_5201.log`.
+
+### Rejected 5202 attempt: accepted 5201 identity and wrong stop duration
+
+The attempted validation-5202 run is technically complete but cannot enter any split. Runtime,
+header, rows, footer, and filename all embed episode ID 5201, which is already the identity of an
+accepted validation artifact. The realized speeds are the frozen 5202 values
+70/150/120/65 cm/s, but the two intermediate stops each lasted 0.80 seconds rather than the frozen
+0.25 seconds. Consequently runtime declared and executed a 5.800-second schedule instead of the
+predeclared 4.700 seconds.
+
+The file contains 205/205 valid schema-v5 transitions, an exact first-attempt reset, zero loss, and
+SHA-256 `f7b2b89cd629eb6ba43915c7ef6f80a148f142f82c215545d126681fb52460a0`. These technical
+properties do not repair its duplicate identity or changed configuration. Quarantine it from every
+split; do not rename it or reinterpret it as another 5201 run. Retry only after setting episode ID
+5202 and intermediate-stop duration 0.25 seconds, then compile/save both values. Evidence:
+`evidence/unreal/res_collection_rejected_5202_wrong_id_and_stop.log`.
