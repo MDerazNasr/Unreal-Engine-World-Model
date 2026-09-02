@@ -700,7 +700,7 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [ ] Candidate explains recursive compounding error and multi-step loss.
 - [x] Held-out recursive prediction improves in a decision-relevant stratum, and the weaker history
   result is preserved.
-- [ ] Commit model, training, evaluation, and documentation updates.
+- [x] Commit model, training, evaluation, and documentation updates as `249f39e`.
 
 ## 9. Cross-Entropy Method planner
 
