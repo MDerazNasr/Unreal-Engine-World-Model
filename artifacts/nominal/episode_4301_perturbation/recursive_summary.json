@@ -1,0 +1,206 @@
+{
+  "evaluation": "recursive_open_loop_recorded_actions",
+  "requested_horizons_s": [
+    0.5,
+    1.0,
+    1.5
+  ],
+  "parameter_semantics": "retrospective_completed_step_snapshots_not_proven_planner_available",
+  "state_reseeding": "initial_endpoint_only_no_intermediate_observation_reseeding",
+  "endpoint_policy": "first_recorded_boundary_at_or_after_requested_horizon",
+  "by_horizon_s": {
+    "0.5": {
+      "window_count": 117,
+      "actual_horizon_s": {
+        "min": 0.5009999999999999,
+        "max": 0.538
+      },
+      "metrics": {
+        "planar_position_error_cm": {
+          "mean": 3.9635553411650593,
+          "median": 3.878027143855434e-06,
+          "p95": 24.358525902573206,
+          "max": 24.426662817117517
+        },
+        "planar_velocity_error_cm_s": {
+          "mean": 9.515505339885712,
+          "median": 0.0,
+          "p95": 64.26159880724325,
+          "max": 233.47966573995885
+        },
+        "yaw_error_deg": {
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "max": 0.0
+        },
+        "angular_velocity_yaw_error_deg_s": {
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "max": 0.0
+        }
+      }
+    },
+    "1.0": {
+      "window_count": 96,
+      "actual_horizon_s": {
+        "min": 0.9999999999999996,
+        "max": 1.0389999999999997
+      },
+      "metrics": {
+        "planar_position_error_cm": {
+          "mean": 9.109235292373215,
+          "median": 8.213202022488986e-06,
+          "p95": 24.433264501377003,
+          "max": 24.433264501493646
+        },
+        "planar_velocity_error_cm_s": {
+          "mean": 5.178085752888619,
+          "median": 0.0,
+          "p95": 18.7100236882036,
+          "max": 165.36195776422716
+        },
+        "yaw_error_deg": {
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "max": 0.0
+        },
+        "angular_velocity_yaw_error_deg_s": {
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "max": 0.0
+        }
+      }
+    },
+    "1.5": {
+      "window_count": 75,
+      "actual_horizon_s": {
+        "min": 1.5,
+        "max": 1.537
+      },
+      "metrics": {
+        "planar_position_error_cm": {
+          "mean": 16.371764434161403,
+          "median": 24.426662836050884,
+          "p95": 24.43326451176023,
+          "max": 24.433264512073514
+        },
+        "planar_velocity_error_cm_s": {
+          "mean": 13.148534797259567,
+          "median": 0.0,
+          "p95": 115.94858738566813,
+          "max": 233.47966573995885
+        },
+        "yaw_error_deg": {
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "max": 0.0
+        },
+        "angular_velocity_yaw_error_deg_s": {
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "max": 0.0
+        }
+      }
+    }
+  },
+  "perturbation_relation_metrics": {
+    "pre_event": {
+      "window_count": 50,
+      "metrics": {
+        "planar_position_error_cm": {
+          "mean": 5.227494009432121e-06,
+          "median": 4.0424714029541065e-06,
+          "p95": 8.214469789891155e-06,
+          "max": 1.1984932143604965e-05
+        },
+        "planar_velocity_error_cm_s": {
+          "mean": 5.018080969421135e-08,
+          "median": 0.0,
+          "p95": 3.603078440050915e-07,
+          "max": 8.652812937270937e-07
+        },
+        "yaw_error_deg": {
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "max": 0.0
+        },
+        "angular_velocity_yaw_error_deg_s": {
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "max": 0.0
+        }
+      }
+    },
+    "event_crossing": {
+      "window_count": 112,
+      "metrics": {
+        "planar_position_error_cm": {
+          "mean": 22.911641477316657,
+          "median": 24.430729020700923,
+          "p95": 24.43326451167115,
+          "max": 24.433264512073514
+        },
+        "planar_velocity_error_cm_s": {
+          "mean": 23.18348628768266,
+          "median": 0.07016787209665117,
+          "p95": 165.36195776422716,
+          "max": 233.47966573995885
+        },
+        "yaw_error_deg": {
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "max": 0.0
+        },
+        "angular_velocity_yaw_error_deg_s": {
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "max": 0.0
+        }
+      }
+    },
+    "post_event": {
+      "window_count": 126,
+      "metrics": {
+        "planar_position_error_cm": {
+          "mean": 6.259619680844088e-06,
+          "median": 5.785441892906478e-06,
+          "p95": 1.1458323057812438e-05,
+          "max": 1.1867032271418853e-05
+        },
+        "planar_velocity_error_cm_s": {
+          "mean": 8.643235437704909e-10,
+          "median": 0.0,
+          "p95": 2.842170943040401e-14,
+          "max": 4.5505768613738484e-08
+        },
+        "yaw_error_deg": {
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "max": 0.0
+        },
+        "angular_velocity_yaw_error_deg_s": {
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "max": 0.0
+        }
+      }
+    }
+  },
+  "claim_boundary": [
+    "event-crossing windows contain an unforeseeable evaluation-only intervention",
+    "post-event windows re-seed from an observed post-event state only at their start",
+    "event-crossing and non-crossing windows must not be averaged into one causal claim"
+  ]
+}

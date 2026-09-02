@@ -1,0 +1,334 @@
+{
+  "episode_file": "episode_4301_20260902T185722Z_73C9171D394C.jsonl",
+  "episode_sha256": "e8bcecc12724f7e8a5ccf9c90cbc7249ae3703091dc713191f175f74cc60df0f",
+  "evaluation": "retrospective_one_step",
+  "desired_facing_source": "recorded_applied_action",
+  "parameter_source": "parameters_observed_for_completed_step",
+  "effective_max_speed_cm_s": [
+    165.0
+  ],
+  "effective_max_speed_source": [
+    "mode_override"
+  ],
+  "transition_count": 133,
+  "collision_step_count": 0,
+  "metrics": {
+    "position_error_cm": {
+      "mean": 0.040376369634834895,
+      "median": 2.1231335267657414e-07,
+      "p95": 3.4612992294569225e-07,
+      "max": 5.370032757404254
+    },
+    "planar_position_error_cm": {
+      "mean": 0.040376369634834895,
+      "median": 2.1231335267657414e-07,
+      "p95": 3.4612992294569225e-07,
+      "max": 5.370032757404254
+    },
+    "velocity_error_cm_s": {
+      "mean": 1.7554866317933373,
+      "median": 0.0,
+      "p95": 2.7341334883456214e-06,
+      "max": 233.47966573995885
+    },
+    "planar_velocity_error_cm_s": {
+      "mean": 1.7554866317933373,
+      "median": 0.0,
+      "p95": 2.7341334883456214e-06,
+      "max": 233.47966573995885
+    },
+    "yaw_error_deg": {
+      "mean": 0.0,
+      "median": 0.0,
+      "p95": 0.0,
+      "max": 0.0
+    },
+    "angular_velocity_yaw_error_deg_s": {
+      "mean": 0.0,
+      "median": 0.0,
+      "p95": 0.0,
+      "max": 0.0
+    },
+    "spring_velocity_error_cm_s": {
+      "mean": 1.7554866317933835,
+      "median": 0.0,
+      "p95": 2.7341324838810904e-06,
+      "max": 233.47966573995882
+    },
+    "spring_acceleration_error_cm_s2": {
+      "mean": 9.230348824070788,
+      "median": 0.0,
+      "p95": 2.0114883649204895e-05,
+      "max": 1227.6359495457255
+    },
+    "intermediate_velocity_error_cm_s": {
+      "mean": 0.2907124166621563,
+      "median": 0.0,
+      "p95": 6.46710363128022e-07,
+      "max": 38.664739230450934
+    }
+  },
+  "non_collision_metrics": {
+    "position_error_cm": {
+      "mean": 0.040376369634834895,
+      "median": 2.1231335267657414e-07,
+      "p95": 3.4612992294569225e-07,
+      "max": 5.370032757404254
+    },
+    "planar_position_error_cm": {
+      "mean": 0.040376369634834895,
+      "median": 2.1231335267657414e-07,
+      "p95": 3.4612992294569225e-07,
+      "max": 5.370032757404254
+    },
+    "velocity_error_cm_s": {
+      "mean": 1.7554866317933373,
+      "median": 0.0,
+      "p95": 2.7341334883456214e-06,
+      "max": 233.47966573995885
+    },
+    "planar_velocity_error_cm_s": {
+      "mean": 1.7554866317933373,
+      "median": 0.0,
+      "p95": 2.7341334883456214e-06,
+      "max": 233.47966573995885
+    },
+    "yaw_error_deg": {
+      "mean": 0.0,
+      "median": 0.0,
+      "p95": 0.0,
+      "max": 0.0
+    },
+    "angular_velocity_yaw_error_deg_s": {
+      "mean": 0.0,
+      "median": 0.0,
+      "p95": 0.0,
+      "max": 0.0
+    },
+    "spring_velocity_error_cm_s": {
+      "mean": 1.7554866317933835,
+      "median": 0.0,
+      "p95": 2.7341324838810904e-06,
+      "max": 233.47966573995882
+    },
+    "spring_acceleration_error_cm_s2": {
+      "mean": 9.230348824070788,
+      "median": 0.0,
+      "p95": 2.0114883649204895e-05,
+      "max": 1227.6359495457255
+    },
+    "intermediate_velocity_error_cm_s": {
+      "mean": 0.2907124166621563,
+      "median": 0.0,
+      "p95": 6.46710363128022e-07,
+      "max": 38.664739230450934
+    }
+  },
+  "claim_boundary": [
+    "one-step evaluation re-seeds observable and internal state from every real transition",
+    "completed-step parameters are retrospective and are not automatically planner-available",
+    "schema v4+ supplies recorded facing and SimpleWalking input preparation",
+    "dataset eligibility and split membership are decided outside this evaluator",
+    "the scheduled perturbation label is evaluation-only and is not a model input",
+    "the event transition is unforeseeable from pre-event state and action alone",
+    "pre-event, event, and post-event errors are reported separately"
+  ],
+  "perturbation_phase_metrics": {
+    "pre_event": {
+      "transition_count": 53,
+      "metrics": {
+        "position_error_cm": {
+          "mean": 1.8608925486505713e-07,
+          "median": 2.123415470123291e-07,
+          "p95": 4.5683261760132146e-07,
+          "max": 5.189726834942121e-07
+        },
+        "planar_position_error_cm": {
+          "mean": 1.8608925486505713e-07,
+          "median": 2.123415470123291e-07,
+          "p95": 4.5683261760132146e-07,
+          "max": 5.189726834942121e-07
+        },
+        "velocity_error_cm_s": {
+          "mean": 4.551354995212908e-07,
+          "median": 0.0,
+          "p95": 2.5768083936839045e-06,
+          "max": 7.139817206791577e-06
+        },
+        "planar_velocity_error_cm_s": {
+          "mean": 4.551354995212908e-07,
+          "median": 0.0,
+          "p95": 2.5768083936839045e-06,
+          "max": 7.139817206791577e-06
+        },
+        "yaw_error_deg": {
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "max": 0.0
+        },
+        "angular_velocity_yaw_error_deg_s": {
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "max": 0.0
+        },
+        "spring_velocity_error_cm_s": {
+          "mean": 4.551356187194432e-07,
+          "median": 0.0,
+          "p95": 2.5768074948473437e-06,
+          "max": 7.139816993628756e-06
+        },
+        "spring_acceleration_error_cm_s2": {
+          "mean": 4.237048300267134e-06,
+          "median": 0.0,
+          "p95": 2.3219729689571962e-05,
+          "max": 6.122295502564157e-05
+        },
+        "intermediate_velocity_error_cm_s": {
+          "mean": 1.4451314774613313e-07,
+          "median": 0.0,
+          "p95": 8.359551490144663e-07,
+          "max": 1.3858080194495415e-06
+        }
+      }
+    },
+    "event": {
+      "transition_count": 1,
+      "metrics": {
+        "position_error_cm": {
+          "mean": 5.370032757404254,
+          "median": 5.370032757404254,
+          "p95": 5.370032757404254,
+          "max": 5.370032757404254
+        },
+        "planar_position_error_cm": {
+          "mean": 5.370032757404254,
+          "median": 5.370032757404254,
+          "p95": 5.370032757404254,
+          "max": 5.370032757404254
+        },
+        "velocity_error_cm_s": {
+          "mean": 233.47966573995885,
+          "median": 233.47966573995885,
+          "p95": 233.47966573995885,
+          "max": 233.47966573995885
+        },
+        "planar_velocity_error_cm_s": {
+          "mean": 233.47966573995885,
+          "median": 233.47966573995885,
+          "p95": 233.47966573995885,
+          "max": 233.47966573995885
+        },
+        "yaw_error_deg": {
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "max": 0.0
+        },
+        "angular_velocity_yaw_error_deg_s": {
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "max": 0.0
+        },
+        "spring_velocity_error_cm_s": {
+          "mean": 233.47966573995882,
+          "median": 233.47966573995882,
+          "p95": 233.47966573995882,
+          "max": 233.47966573995882
+        },
+        "spring_acceleration_error_cm_s2": {
+          "mean": 1227.6359495457255,
+          "median": 1227.6359495457255,
+          "p95": 1227.6359495457255,
+          "max": 1227.6359495457255
+        },
+        "intermediate_velocity_error_cm_s": {
+          "mean": 38.664739230450934,
+          "median": 38.664739230450934,
+          "p95": 38.664739230450934,
+          "max": 38.664739230450934
+        }
+      }
+    },
+    "post_event": {
+      "transition_count": 79,
+      "metrics": {
+        "position_error_cm": {
+          "mean": 1.84067066835738e-07,
+          "median": 1.9696649349477577e-07,
+          "p95": 3.0346266230838735e-07,
+          "max": 4.246830940246582e-07
+        },
+        "planar_position_error_cm": {
+          "mean": 1.84067066835738e-07,
+          "median": 1.9696649349477577e-07,
+          "p95": 3.0346266230838735e-07,
+          "max": 4.246830940246582e-07
+        },
+        "velocity_error_cm_s": {
+          "mean": 4.071692857468358e-07,
+          "median": 0.0,
+          "p95": 2.410340363257721e-06,
+          "max": 9.401277353442186e-06
+        },
+        "planar_velocity_error_cm_s": {
+          "mean": 4.071692857468358e-07,
+          "median": 0.0,
+          "p95": 2.410340363257721e-06,
+          "max": 9.401277353442186e-06
+        },
+        "yaw_error_deg": {
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "max": 0.0
+        },
+        "angular_velocity_yaw_error_deg_s": {
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "max": 0.0
+        },
+        "spring_velocity_error_cm_s": {
+          "mean": 4.071692834771534e-07,
+          "median": 0.0,
+          "p95": 2.4103404107373226e-06,
+          "max": 9.401277320034099e-06
+        },
+        "spring_acceleration_error_cm_s2": {
+          "mean": 2.77838138330092e-06,
+          "median": 0.0,
+          "p95": 1.5617353400347997e-05,
+          "max": 7.519984586307537e-05
+        },
+        "intermediate_velocity_error_cm_s": {
+          "mean": 5.7296443295500756e-08,
+          "median": 0.0,
+          "p95": 2.9446010408905682e-08,
+          "max": 3.2479915207591285e-06
+        }
+      }
+    }
+  },
+  "external_perturbation_observation": {
+    "transition_sequence": 53,
+    "queued_after_state_sample_sequence": 83,
+    "previous_state_sample_sequence": 83,
+    "next_state_sample_sequence": 84,
+    "requested_velocity_delta_world_cm_per_s": [
+      0.0,
+      250.0,
+      0.0
+    ],
+    "observed_transition_velocity_change_world_cm_per_s": [
+      0.047390756054539906,
+      233.47966093036703,
+      0.0
+    ],
+    "observed_component_along_request_cm_per_s": 233.47966093036703,
+    "observed_to_requested_component_ratio": 0.9339186437214682,
+    "warning": "the observed transition change includes ordinary Mover dynamics during the same step; it is not a direct measurement of effect application"
+  }
+}

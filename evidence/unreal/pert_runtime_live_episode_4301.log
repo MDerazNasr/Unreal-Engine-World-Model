@@ -1,0 +1,27 @@
+MotionWorld live perturbation evidence — episode 4301 — 2026-09-02
+
+Source: GameAnimationSampleEditor/GameAnimationSample.log, runtime lines 4227-4243.
+Raw episode is local/licensed data and is not committed.
+
+reset queued: episode=4301 request_state_sequence=29 request_mover_frame=30 distance_from_anchor_cm=110.891
+episode started: episode=4301 capacity=4096; awaiting seed state
+schedule started: episode=4301 start_sim_time_s=0.883000 warmup_s=1.500000 velocity_delta_world_cm_per_sec=(0.00,250.00,0.00) post_s=2.000000
+reset verified: episode=4301 attempts=1 state_sequence=30 mover_frame=31 position_error_cm=0.000 facing_error_deg=0.000 linear_speed_cm_per_sec=0.000 angular_speed_deg_per_sec=0.000
+episode seeded: episode=4301 state_sequence=30 mover_step_frame=31 sim_time_s=0.883000
+velocity perturbation queued: episode=4301 elapsed_s=1.506000 queued_after_state_sequence=83 queued_after_mover_frame=84 velocity_delta_world_cm_per_sec=(0.00,250.00,0.00) forced_mode=Walking
+velocity perturbation recorded: episode=4301 transition_sequence=53 previous_state_sequence=83 next_state_sequence=84 velocity_delta_world_cm_per_sec=(0.00,250.00,0.00)
+schedule complete: episode=4301 elapsed_s=3.500000 duration_s=3.500000 event_recorded=true
+episode stopped: episode=4301 observed=134 attempted=133 recorded=133 rejected=0 rejected_seeds=0 capacity_drops=0
+episode exported: episode=4301 transitions=133 schema_version=5 duration_ms=18.818
+
+Independent validation:
+valid=true episode=4301 transitions=133 attempted=133 rejected=0 capacity_drops=0
+episode_sha256=e8bcecc12724f7e8a5ccf9c90cbc7249ae3703091dc713191f175f74cc60df0f
+
+Observed event transition:
+delta_time_s=0.023
+previous_velocity_world_cm_per_s=(150.000000,0.000000,0.000000)
+next_velocity_world_cm_per_s=(150.047391,233.479661,0.000000)
+observed_velocity_change_world_cm_per_s=(0.047391,233.479661,0.000000)
+final_lateral_displacement_cm=24.433175
+time_until_abs_lateral_speed_below_1_cm_per_s=0.416_s

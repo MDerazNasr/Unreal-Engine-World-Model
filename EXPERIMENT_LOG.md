@@ -48,11 +48,11 @@ Artifacts and reproduction command:
 |---|---|---|---|
 | FEAS-001 | Can Unreal accept desired velocity, expose post-movement state, reset, and log deterministically? | Day 1 | Planned |
 | NOM-001 | Does the nominal implementation pass hand-calculated and timestep tests? | Day 2 | Planned |
-| NOM-002 | Is meaningful, systematic residual error present in Unreal rollouts? | Day 2 | Planned |
+| NOM-002 | Is meaningful, systematic residual error present in Unreal rollouts? | Day 2 | Completed: bounded negative result |
 | VAR-DATA-001 | Does the deterministic schedule produce valid stop/reverse/turn coverage? | Day 2 | Completed |
 | NOM-ROLL-001 | How does faithful nominal error compound over 0.5/1.0/1.5 s? | Day 2 | Completed |
 | FACING-001 | Does an explicit antipodal tie-break remove the known angular rollout spike? | Day 2 | Completed |
-| PERT-SCHEDULE-001 | Can one controlled Mover velocity kick be scheduled without frame-skip or duplicate ambiguity? | Day 2 | In progress |
+| PERT-SCHEDULE-001 | Can one controlled Mover velocity kick be scheduled without frame-skip or duplicate ambiguity? | Day 2 | Completed |
 | RES-001 | Does residual learning improve held-out recursive prediction over nominal? | Day 3 | Planned |
 | RES-002 | Does four-step history improve post-perturbation prediction over no history? | Day 3 | Planned |
 | CEM-001 | Does fixed-seed CEM recover known optima in toy costs deterministically? | Day 4 | Planned |
@@ -1095,3 +1095,43 @@ before the experiment can be completed.
 **Artifacts:** `evidence/unreal/pert_schedule_001_automation.log` and
 `evidence/unreal/pert_schema_v5_automation.log`.
 Closed-editor runtime evidence: `evidence/unreal/pert_runtime_closed_editor_automation.log`.
+
+### Live episode 4301 — accepted
+
+**Configuration:** Verified warmup reset; unique episode 4301; fixed character-local
+`(150,0,0)` cm/s action; 1.5-second warmup; one scheduled additive world-space velocity request
+`(0,250,0)` cm/s; 2.0-second post-event interval; gate and varied-action schedules off; schema 5.
+
+**Identity and integrity:** Reset passed on attempt one at the anchor with exactly zero position,
+facing, linear-speed, and angular-speed error. The run recorded 133/133 adjacent transitions with
+zero rejection, rejected seeds, or capacity drops. The event was queued after finalized state 83 /
+Mover frame 84 and attached once to transition 53 from state 83 to 84. Completion occurred only
+after the full 3.5-second schedule, and the strict independent loader returned `valid=true`. Raw
+episode SHA-256 is `e8bcecc12724f7e8a5ccf9c90cbc7249ae3703091dc713191f175f74cc60df0f`.
+
+**Physical observation:** The event step lasted 0.023 s. Requested lateral change was +250 cm/s;
+the finalized transition changed velocity by `(0.047391,233.479661,0)` cm/s, so its component along
+the request was 93.392% of the requested magnitude. This ratio is descriptive, not proof of the
+instantaneous API effect, because ordinary Mover dynamics also ran during that step. Lateral speed
+fell below 10, 5, 1, and 0.1 cm/s after 0.281, 0.328, 0.416, and 0.549 s respectively. Final lateral
+displacement was 24.433 cm.
+
+**NOM-002 result:** Perturbation-aware one-step evaluation reports 53 pre-event, one event, and 79
+post-event rows. Pre-event maximum planar position/velocity errors are `5.19e-7 cm` and
+`7.14e-6 cm/s`. The hidden event row produces `5.370 cm` and `233.480 cm/s`. After the disturbed
+state is observed and one-step evaluation re-seeds from it, post-event maxima return to
+`4.25e-7 cm` and `9.40e-6 cm/s`. Recursive 0.5/1.0/1.5-second windows show the same causal split:
+112 event-crossing windows have p95 endpoint position/velocity error `24.433 cm` / `165.362 cm/s`,
+while 126 post-event windows have p95 `1.15e-5 cm` / `2.84e-14 cm/s`.
+
+**Interpretation and decision:** Accept PERT-SCHEDULE-001 and complete NOM-002 as a bounded negative
+result. The faithful retrospective nominal model explains recovery once the disturbed state is
+observed. The event-causing row is not a learnable residual target because the event is intentionally
+absent from model inputs. Training on that row would teach an average surprise or leak the schedule,
+not predict an unpredictable push. Any Day-3 learned comparison must therefore target a genuinely
+causal deployable-state limitation, such as reconstructing unavailable internal context from
+history, and must be justified separately rather than weakening this baseline.
+
+**Artifacts:** `artifacts/nominal/episode_4301_perturbation/` contains row metrics, summaries, and
+three reviewed plots. The perturbation-aware evaluator commit is `f0d7348`. Runtime evidence is
+`evidence/unreal/pert_runtime_live_episode_4301.log`.

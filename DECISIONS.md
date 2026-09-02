@@ -1121,7 +1121,7 @@ preserved as known preprocessing residue, not a learned residual target.
 
 ## D-033 - Treat a controlled push as a labeled velocity intervention
 
-Status: closed-editor schedule, schema-v5 contract, and runtime integration accepted; live application pending
+Status: accepted in live schema-v5 episode 4301; recovery produced a bounded negative residual result
 
 Decision: Implement the controlled external perturbation with Mover's public one-tick additive
 velocity effect. Describe and store the intervention as a world-space velocity delta in cm/s, not as
@@ -1179,4 +1179,14 @@ the label from that exact state sequence/Mover frame, queues an additive `FApply
 requires the immediately following causal row to accept the pending label. Any rejection stops the
 episode and the exporter refuses to publish an incomplete scheduled file. Completion requires both
 the configured total duration and proof that the event row was recorded. The exact sample rebuilt in
-19.99 seconds and all 13 MotionWorld tests passed. Live effect/application evidence is still required.
+19.99 seconds and all 13 MotionWorld tests passed. Live effect/application evidence was still
+required at that gate and is supplied by the addendum below.
+
+Live addendum: episode 4301 reset exactly, recorded 133/133 transitions without loss, attached one
+event to transition 53 after state 83/Mover frame 84, completed its two-second post-event interval,
+and passed the strict schema-v5 loader. The requested +250 cm/s world-Y delta became a +233.480 cm/s
+observed transition change along Y after the same step's normal Mover dynamics. Lateral speed fell
+below 1 cm/s after 0.416 s and settled at 24.433 cm displacement. The faithful nominal model is
+numerically exact before and after the event when re-seeded from observed state/context; only windows
+that cross the hidden intervention fail. Therefore the event row remains evaluation-only and is
+excluded from any claim of predictable residual structure. Related experiment: `NOM-002`.

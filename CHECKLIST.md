@@ -49,7 +49,9 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [ ] Complete Section 6 faithful nominal model and substep tests.
 - [ ] Complete enough Section 7 collection/validation to measure real residual structure.
 - [x] Produce first nominal-versus-Unreal recursive error plot.
-- [ ] Decide by end of day whether meaningful decision-relevant residual structure exists.
+- [x] Decide whether meaningful decision-relevant residual structure exists: NOM-002 is a bounded
+  negative result for the faithful retrospective model; the hidden event step is large, while
+  observed post-event recovery is reproduced to numerical tolerance.
 - [ ] Merge nominal/data branches only after their respective gates pass.
 
 ### Tuesday 1 September - residual model
@@ -516,7 +518,7 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [x] Plot position, velocity, facing, and angular-velocity error separately.
 - [x] Inspect systematic bias rather than only aggregate mean.
 - [x] Enter `NOM-001` hand/reference validation.
-- [ ] Enter `NOM-002` real Unreal mismatch study.
+- [x] Enter `NOM-002` real Unreal mismatch study using accepted schema-v5 episode 4301.
 
 ### 6.6 Nominal gate
 
@@ -524,7 +526,8 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [ ] Reviewer confirms no future state/action is used.
 - [ ] Candidate derives one transition and explains substepping.
 - [ ] Candidate explains every known, hidden, and estimated state variable.
-- [ ] Meaningful decision-relevant residual structure exists, or a negative result is recorded.
+- [x] Meaningful decision-relevant residual structure exists, or a negative result is recorded;
+  NOM-002 records the negative post-observation result and forbids learning the unforeseeable kick.
 - [ ] Commit nominal model, tests, plots, and decision record.
 
 ## 7. Dataset collection and validation
@@ -538,7 +541,8 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [ ] Include target state.
 - [x] Include analytically revalidated timed-gate obstacle states.
 - [x] Include collision flag/count.
-- [x] Include an external velocity perturbation as a schema-v5 evaluation-only label; live episode validation remains pending.
+- [x] Include and live-validate an external velocity perturbation as a schema-v5 evaluation-only
+  label; episode 4301 contains exactly one source-aligned event row.
 - [x] Include controller parameters with explicit post-step observation semantics.
 - [x] Include both endpoints of the five-field known Smooth Walking internal context.
 - [x] Reject missing, invalid, wrong-version, or state-misaligned nominal context.
@@ -558,7 +562,8 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [ ] Implement random piecewise-constant velocities.
 - [ ] Implement near-contact/boundary-following collection.
 - [x] Implement stops, reversals, and rapid turns.
-- [x] Implement a default-off controlled external velocity perturbation; live application/recovery validation remains pending.
+- [x] Implement and live-validate a default-off controlled external velocity perturbation; episode
+  4301 records the requested kick, realized next state, and 2.0-second recovery interval.
 - [ ] Record realized action-mixture proportions.
 - [ ] Ensure actions cover planner-relevant magnitudes and directions.
 - [ ] Ensure free-space data does not dominate all other strata.
@@ -815,10 +820,10 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 
 ### 11.2 External push recovery
 
-- [ ] Predefine impulse direction, magnitude, and time/condition.
+- [x] Predefine velocity-kick direction, magnitude, and time: world +Y, 250 cm/s, at 1.5 s.
 - [ ] Apply identical impulse schedule to compared controllers.
-- [ ] Begin evaluation immediately after the impulse.
-- [ ] Do not claim the model predicts the push before it occurs.
+- [x] Begin evaluation on the exact event-causing transition and stratify every later row.
+- [x] Do not claim the model predicts the push before it occurs; the label is evaluation-only.
 - [ ] Define trajectory-error recovery threshold.
 - [ ] Define recovery time metric.
 - [ ] Compare nominal, no-history residual, and history residual prediction.

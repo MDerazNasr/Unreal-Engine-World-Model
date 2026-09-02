@@ -287,3 +287,30 @@ state. Live gate success and timeout outcomes have not been demonstrated. The Un
 yet sufficiently varied for modelling. A faithful nominal predictor, a learned residual, MPC
 improvement, held-out/OOD behavior, runtime latency, deployment, the final comparison video, and
 toe/contact or foot-sliding claims all remain unproven.
+
+## 8. Day 2 perturbation defense
+
+### Can your model predict an unpredictable push?
+
+No. If two histories are identical through state `s_t` and only one receives an external kick after
+that observation, a deterministic model given only `s_t` and action `a_t` cannot know which future
+occurred. Episode 4301 therefore labels the kick for evaluation but never supplies it as a model
+input. I report the event-causing transition separately. Once the next disturbed state is observed,
+the model can predict recovery from that new state.
+
+### Why not train the residual model on the large error at the kick?
+
+Because that error is not causally predictable from the model inputs. Training on it would either
+learn an average sideways jump that is wrong on ordinary frames or require leaking the known event
+schedule. The honest result is that the faithful retrospective nominal model is effectively exact
+before and after the hidden event and fails only while crossing it. A learned model now needs a
+different justified target, such as reconstructing nominal internal context that will not be
+available to the deployed planner from recent observable history.
+
+### What does the +250 versus +233.48 cm/s difference mean?
+
++250 cm/s is the requested additive velocity. +233.48 cm/s is the observed world-Y velocity change
+between the finalized states bracketing the 0.023-second event transition. Mover's ordinary update
+and smoothing also act during that transition, so 93.39% is a descriptive realized ratio, not a
+claim that the API applied only 93.39% instantaneously. The final lateral displacement was 24.43 cm,
+and lateral speed fell below 1 cm/s after 0.416 s.

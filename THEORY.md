@@ -878,6 +878,24 @@ the first disturbed state is observed: does the faithful nominal model recover e
 recent observable history explain a persistent mismatch? This distinction prevents a model from
 appearing accurate merely because evaluation leaked the future intervention into its inputs.
 
+Live episode 4301 makes the distinction concrete. Let the nominal prediction be
+`f_nominal(s_t,a_t)` and the recorded next state be `s_(t+1)`. On the hidden event row,
+
+`r_t = s_(t+1) - f_nominal(s_t,a_t)`
+
+is large: 5.370 cm planar position error and 233.480 cm/s planar velocity error. But this `r_t` is
+not a function of the supplied `s_t,a_t`; it contains an intervention deliberately omitted from the
+inputs. A learner cannot infer which otherwise identical episode will be kicked. After `s_(t+1)` is
+observed, the disturbance is inside the new state and the nominal model predicts the recovery to
+micro-numerical tolerance. This is the difference between predicting a surprise before it happens
+and predicting dynamics after observing its effect.
+
+The physical response also shows why requested and realized change are different. The requested
++250 cm/s world-Y kick produced +233.480 cm/s in the first finalized next state because the normal
+movement update acted during the same 0.023-second transition. Smoothing reduced lateral speed below
+1 cm/s in 0.416 s and left 24.433 cm total lateral displacement. These are measured outcomes, not
+values assumed from the command.
+
 Episode 4101 exposes why rotations cannot always be reduced to an ordinary scalar angle without a
 declared tie rule. A requested 180-degree turn has two equally short physical paths: clockwise and
 counter-clockwise. Quaternions also identify `q` and `-q` as the same orientation. On the first
