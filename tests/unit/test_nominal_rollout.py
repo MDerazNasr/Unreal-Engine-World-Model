@@ -89,6 +89,40 @@ def test_stationary_recursive_rollout_remains_exact() -> None:
     assert all(row.planar_position_error_cm == 0.0 for row in rows)
     assert all(row.planar_velocity_error_cm_s == 0.0 for row in rows)
     assert all(row.yaw_error_deg == 0.0 for row in rows)
+    assert all(row.external_perturbation_step_count == 0 for row in rows)
+    assert all(row.perturbation_relation == "no_event" for row in rows)
+
+
+def test_recursive_rollouts_label_event_crossing_without_using_event_as_input() -> None:
+    transitions = _stationary_transitions(5)
+    for transition in transitions:
+        transition["external_perturbation"] = {"type": "none"}
+    transitions[2]["external_perturbation"] = {"type": "additive_velocity"}
+
+    rows = evaluate_recursive_nominal_rollouts(transitions, horizons_s=(0.2,))
+
+    relations = {
+        row.start_transition_sequence: (
+            row.perturbation_relation,
+            row.external_perturbation_step_count,
+        )
+        for row in rows
+    }
+    assert relations == {
+        0: ("pre_event", 0),
+        1: ("event_crossing", 1),
+        2: ("event_crossing", 1),
+        3: ("post_event", 0),
+    }
+
+
+def test_recursive_rollout_rejects_multiple_perturbations() -> None:
+    transitions = _stationary_transitions(3)
+    for transition in transitions:
+        transition["external_perturbation"] = {"type": "additive_velocity"}
+
+    with pytest.raises(ValueError, match="at most one"):
+        evaluate_recursive_nominal_rollouts(transitions, horizons_s=(0.2,))
 
 
 def test_rollout_does_not_reseed_from_intermediate_real_state() -> None:

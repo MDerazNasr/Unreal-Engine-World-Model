@@ -27,6 +27,8 @@ class RecursiveRolloutMetrics:
     step_count: int
     action_change_count: int
     collision_step_count: int
+    external_perturbation_step_count: int
+    perturbation_relation: str
     planar_position_error_cm: float
     planar_velocity_error_cm_s: float
     yaw_error_deg: float
@@ -51,7 +53,7 @@ def evaluate_recursive_nominal_rollouts(
     duration. Consequently ``actual_horizon_s`` is reported explicitly and can
     exceed the requested duration by at most one recorded step.
 
-    Schema-v4 rows supply action preprocessing and desired facing. The completed-
+    Schema-v4/v5 rows supply action preprocessing and desired facing. The completed-
     step parameter snapshots are retrospective; this function is an offline
     equation/compounding diagnostic, not proof that future parameters are online-
     planner inputs.
@@ -71,6 +73,15 @@ def evaluate_recursive_nominal_rollouts(
             f"({horizons[-1]:.6g}s > {episode_duration_s:.6g}s)"
         )
 
+    event_indices = [
+        index
+        for index, row in enumerate(transitions)
+        if row.get("external_perturbation", {}).get("type") == "additive_velocity"
+    ]
+    if len(event_indices) > 1:
+        raise ValueError("recursive evaluator supports at most one external perturbation")
+    event_index = event_indices[0] if event_indices else None
+
     results: list[RecursiveRolloutMetrics] = []
     for start_index, first_transition in enumerate(transitions):
         initial = retrospective_nominal_inputs(first_transition)
@@ -80,6 +91,7 @@ def evaluate_recursive_nominal_rollouts(
         next_horizon_index = 0
         action_change_count = 0
         collision_step_count = 0
+        external_perturbation_step_count = 0
         previous_action_key: tuple[float, ...] | None = None
 
         for end_index in range(start_index, len(transitions)):
@@ -92,6 +104,9 @@ def evaluate_recursive_nominal_rollouts(
             scenario = transition.get("scenario")
             if scenario is not None and bool(scenario["collision_this_step"]):
                 collision_step_count += 1
+            perturbation = transition.get("external_perturbation")
+            if perturbation is not None and perturbation["type"] == "additive_velocity":
+                external_perturbation_step_count += 1
 
             prediction = smooth_walking_nominal_step(
                 predicted_observable,
@@ -129,6 +144,16 @@ def evaluate_recursive_nominal_rollouts(
                         step_count=end_index - start_index + 1,
                         action_change_count=action_change_count,
                         collision_step_count=collision_step_count,
+                        external_perturbation_step_count=external_perturbation_step_count,
+                        perturbation_relation=(
+                            "no_event"
+                            if event_index is None
+                            else "event_crossing"
+                            if start_index <= event_index <= end_index
+                            else "pre_event"
+                            if end_index < event_index
+                            else "post_event"
+                        ),
                         planar_position_error_cm=position_error,
                         planar_velocity_error_cm_s=velocity_error,
                         yaw_error_deg=abs(

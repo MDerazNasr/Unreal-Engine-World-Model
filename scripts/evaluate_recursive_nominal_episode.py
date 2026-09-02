@@ -51,7 +51,7 @@ def _summary(rows: tuple[object, ...], horizons: tuple[float, ...]) -> dict[str,
                 for field in METRIC_FIELDS
             },
         }
-    return {
+    result = {
         "evaluation": "recursive_open_loop_recorded_actions",
         "requested_horizons_s": list(horizons),
         "parameter_semantics": (
@@ -61,6 +61,24 @@ def _summary(rows: tuple[object, ...], horizons: tuple[float, ...]) -> dict[str,
         "endpoint_policy": "first_recorded_boundary_at_or_after_requested_horizon",
         "by_horizon_s": by_horizon,
     }
+    relations = ("pre_event", "event_crossing", "post_event", "no_event")
+    result["perturbation_relation_metrics"] = {
+        relation: {
+            "window_count": len(selected),
+            "metrics": {
+                field: _stats(np.asarray([getattr(row, field) for row in selected]))
+                for field in METRIC_FIELDS
+            },
+        }
+        for relation in relations
+        if (selected := [row for row in rows if row.perturbation_relation == relation])
+    }
+    result["claim_boundary"] = [
+        "event-crossing windows contain an unforeseeable evaluation-only intervention",
+        "post-event windows re-seed from an observed post-event state only at their start",
+        "event-crossing and non-crossing windows must not be averaged into one causal claim",
+    ]
+    return result
 
 
 def _plot(summary: dict[str, object], path: Path) -> None:
@@ -97,6 +115,58 @@ def _plot(summary: dict[str, object], path: Path) -> None:
     plt.close(figure)
 
 
+def _plot_perturbation_relations(summary: dict[str, object], path: Path) -> None:
+    relation_items = summary["perturbation_relation_metrics"]
+    order = [
+        relation
+        for relation in ("pre_event", "event_crossing", "post_event")
+        if relation in relation_items
+    ]
+    if "event_crossing" not in order:
+        return
+
+    labels = {
+        "pre_event": "Before kick",
+        "event_crossing": "Crosses hidden kick",
+        "post_event": "After kick observed",
+    }
+    fields = ("planar_position_error_cm", "planar_velocity_error_cm_s")
+    axis_labels = ("p95 endpoint position error (cm)", "p95 endpoint velocity error (cm/s)")
+    colors = ("#4c78a8", "#e45756", "#54a24b")
+    floor = 1.0e-12
+    figure, axes = plt.subplots(1, 2, figsize=(10.2, 4.5), constrained_layout=True)
+    for axis, field, axis_label in zip(axes, fields, axis_labels, strict=True):
+        actual_values = [
+            float(relation_items[item]["metrics"][field]["p95"])
+            for item in order
+        ]
+        values = [max(value, floor) for value in actual_values]
+        bars = axis.bar(
+            [labels[item] for item in order],
+            values,
+            color=[
+                colors[("pre_event", "event_crossing", "post_event").index(item)]
+                for item in order
+            ],
+        )
+        axis.set_yscale("log")
+        axis.set_ylabel(axis_label)
+        axis.grid(axis="y", alpha=0.25)
+        axis.tick_params(axis="x", rotation=12)
+        for bar, value, actual_value in zip(bars, values, actual_values, strict=True):
+            axis.text(
+                bar.get_x() + bar.get_width() / 2.0,
+                value * 1.35,
+                f"{actual_value:.3g}",
+                ha="center",
+                va="bottom",
+                fontsize=9,
+            )
+    figure.suptitle("Recursive nominal error, separated by causal relation to the kick")
+    figure.savefig(path, dpi=180)
+    plt.close(figure)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("episode", type=Path)
@@ -105,8 +175,8 @@ def main() -> None:
     args = parser.parse_args()
 
     episode = load_episode(args.episode)
-    if int(episode.header["schema_version"]) != 4:
-        raise ValueError("recursive evaluator currently requires schema version 4")
+    if int(episode.header["schema_version"]) not in {4, 5}:
+        raise ValueError("recursive evaluator currently requires schema version 4 or 5")
     horizons = tuple(args.horizons)
     rows = evaluate_recursive_nominal_rollouts(
         episode.transitions,
@@ -129,6 +199,10 @@ def main() -> None:
         encoding="utf-8",
     )
     _plot(summary, args.output_dir / "recursive_error.png")
+    _plot_perturbation_relations(
+        summary,
+        args.output_dir / "recursive_perturbation_error.png",
+    )
     print(json.dumps(summary, indent=2))
 
 
