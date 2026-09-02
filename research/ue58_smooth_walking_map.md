@@ -161,8 +161,9 @@ facing controls. These defaults are not treated as the live parameter record.
   non-finite values, is default-off, capped, and marks every row `model_input=false`. The actual
   sample test proves the parameter reflection and pure validation contract; a live trace is still
   required to prove the sample's runtime state entry and Blueprint overrides.
-- Define planar quaternion/angle golden cases, including wraparound.
-- Implement Unreal's `InvExpApprox`, not the mathematical exponential.
+- [x] Define and execute planar quaternion/angle golden cases, including wraparound. Five UE 5.8
+  cases passed orientation, yaw-rate, and zero pitch/roll-rate parity in the actual sample.
+- [x] Implement Unreal's `InvExpApprox`, not the mathematical exponential, with focused hand tests.
 - Use explicit Euler position integration and six verified 1/60 s substeps for a 100 ms macro step.
 - Record which collision behavior is outside the nominal transition and becomes measured mismatch.
 

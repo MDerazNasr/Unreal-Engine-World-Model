@@ -1,0 +1,32 @@
+# MotionWorld planar facing spring parity evidence
+# Captured: 2026-09-02 Europe/Copenhagen
+# Raw actual-sample log SHA-256:
+# d8ad74f64ba9d07f06998d870be976fc9feb6606fe645eca4e0bd49d347e59a9
+
+Validation boundary
+- UE 5.8.2 strict isolated BuildPlugin succeeded for universal Mac Editor Development,
+  Game Development, and Game Shipping with strict includes, no PCH/shared PCH, and unity disabled.
+- The actual universal GameAnimationSampleEditor target succeeded after source-only deployment.
+- The actual sample found 11 MotionWorld tests; all 11 completed with Success.
+- MotionWorld.Nominal.PlanarFacingSpringParity compared SpringMath's angle and quaternion critical
+  springs for five yaw-only cases, including both +/-179 degree wrap directions, nonzero angular
+  velocity, and a near-target case. Orientation, yaw-rate, and zero pitch/roll-rate checks passed.
+- The Python planar facing unit has 10 focused tests. The full suite had 138 passing tests before
+  adding this unit and is rerun at the commit boundary.
+
+Claim boundary
+- This supports replacing quaternion math with wrapped scalar yaw math only at the explicitly
+  planar project boundary. It does not establish parity for pitch, roll, tilted gravity, or general
+  3D rotations.
+- It validates the facing spring equation, not the current automation action contract. The bridge
+  still preserves an upstream orientation intent that is not recorded in the velocity action;
+  that causal-input issue must be resolved before collecting turning data.
+
+Actual-sample selected result
+- Success MotionWorld.Nominal.PlanarFacingSpringParity
+- Success for the other ten MotionWorld command, coordinate, context, diagnostic, episode, gate,
+  reset, state, and transition tests.
+
+Unrelated startup diagnostics
+- Audio sample-rate and stale editor-layout warnings occurred before test discovery. No selected
+  MotionWorld test inherited an error or warning event.

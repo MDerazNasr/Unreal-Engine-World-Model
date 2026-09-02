@@ -111,6 +111,19 @@ The final nominal predictor carries known internal spring state:
 
 `s_nom_next, z_nom_next = f_nominal(s, z_nom, a, params)`
 
+The smallest verified damping primitive follows UE 5.8 rather than substituting the textbook
+exponential. With smoothing time `T`, `y=2/T`, displacement `j0=x-target`, rate term
+`j1=v+j0*y`, and `e=InvExpApprox(y*dt)`:
+
+`x_next = e * (j0 + j1*dt) + target`
+
+`v_next = e * (v - j1*y*dt)`
+
+“Critically damped” means the state approaches its target quickly without oscillating around it.
+For yaw-only ground motion, an executed UE 5.8 parity test shows that applying this equation to the
+wrapped shortest angle matches the engine's quaternion spring. This claim does not extend to pitch,
+roll, or arbitrary 3D rotation.
+
 `z_nom` may contain acceleration, immediate/intermediate velocity, intermediate rotation, and intermediate angular velocity. Omitting known state can make the learned model appear useful only because the baseline was unfairly simplified.
 
 The movement model is not assumed delta-time invariant. A 100 ms planner transition is therefore composed from verified smaller simulation steps:
