@@ -1574,3 +1574,44 @@ configuration separately declares five knots/15 steps and remains gated on integ
 
 Related implementation/evidence: `motionworld/planning/cem.py`, `configs/cem_planner.yaml`,
 `tests/unit/test_cem.py`, `scripts/run_cem_toy.py`, and `artifacts/planning/cem_001/`.
+
+## D-044 - Keep timed-gate geometry and every planning-cost term explicit
+
+Status: independent cost kernels accepted; provisional weights and integrated plot pending
+
+Decision: Rank trajectories with five separately returned quantities: terminal Euclidean goal
+distance, any swept gate collision, mean squared clearance deficit, mean squared action first
+difference, and mean squared action second difference. Recompute the sinusoidal gate center from
+absolute scenario time. Expand collision bounds by agent radius only; apply safety margin separately
+as a soft clearance preference.
+
+Why: A single opaque scalar makes sign errors, unit dominance, collision tunnelling, and accidental
+reward hacking hard to detect. Separate physical components can be hand-checked and plotted before
+weights are chosen. Relative-motion swept collision accounts for both agent and gate movement
+between endpoints.
+
+Alternatives considered: endpoint overlap only; learned collision probability; fold safety margin
+into the binary collision definition; name unscaled action differences acceleration and jerk;
+silently normalize components using validation outcomes.
+
+Evidence: Fourteen focused tests cover the analytic quarter-period gate location, a 3-4-5 terminal
+distance, endpoint tunnelling, relative gate motion, exact clearance deficits, first and second
+action-difference hand calculations, explicit weighted summation, collision cost sign, invalid
+geometry, non-finite values, and non-monotonic time.
+
+Main assumption: Piecewise-linear relative motion between 100 ms analytic gate samples is adequate
+for candidate ranking. The full Unreal gate follows a sinusoid continuously, so an integrated
+conservatism/step-size review remains necessary.
+
+How it could fail: A high-curvature gate segment can deviate from its endpoint chord; unverified
+capsule dimensions make clearance physically wrong; an excessively large smoothness weight can
+prevent an otherwise safe avoidance maneuver; a collision weight that is too small lets goal
+progress dominate safety.
+
+How I tested it: The initial hand-authored miss from `(-20,0)` to `(20,30)` failed because its segment
+actually clips the capsule-expanded gate corner. Recomputing the intersection showed the test
+expectation was wrong; moving the endpoint to `(20,50)` creates the intended miss. The geometry test
+was corrected without weakening the collision implementation.
+
+Related implementation: `motionworld/planning/cost.py` and
+`tests/unit/test_planning_cost.py` (`8c22ae9`).

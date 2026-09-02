@@ -1557,3 +1557,19 @@ Limitations: This proves sampling, bounds, elite updates, convergence direction,
 does not prove the five-knot optimizer solves the timed gate, meets latency, or improves Unreal
 control. Those remain the planning-cost and paired-controller gates. Artifacts:
 `artifacts/planning/cem_001/`; the convergence plot was visually inspected.
+
+## PLANCOST-001 — independent analytic cost oracles
+
+Question: Do all five planned cost components have the intended sign, unit, geometry, and temporal
+behavior before they influence CEM?
+
+Result: Unit gate passed. Fourteen tests independently verify terminal distance, moving-gate swept
+collision, capsule clearance plus safety margin, action first/second differences, and the visible
+weighted sum. A diagonal path initially labelled a miss was correctly classified as clipping the
+expanded gate corner; the hand expectation, not the geometry algorithm, was corrected. No cost
+weights have been selected from validation or final test outcomes.
+
+Limitations: The swept test linearly interpolates relative motion between analytic 100 ms boundary
+positions; continuous sinusoidal curvature is not exact inside the interval. Actual sample capsule
+geometry and provisional weights must be frozen before integrated controller evidence. No claim
+about CEM task success is made. Implementation: `motionworld/planning/cost.py`; commit `8c22ae9`.

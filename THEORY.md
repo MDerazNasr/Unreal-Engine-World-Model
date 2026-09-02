@@ -412,6 +412,26 @@ Initial form:
 
 Physical clearance is geometry in centimeters after capsule radii and a safety margin. It is not a probability. A learned collision probability would answer a different question and is unnecessary for the P0 arena.
 
+The collision and clearance terms answer different questions. Collision is a hard event: between
+two model boundaries, form the agent position relative to the analytically evaluated moving gate and
+test the whole relative line segment against the gate box expanded by the capsule radius. This
+catches tunnelling even when neither endpoint lies inside. Clearance is a soft preference evaluated
+at model boundaries: compute the Euclidean distance from the agent center to the box, subtract the
+capsule radius, then penalize only the shortfall below the explicit safety margin.
+
+For actions `a`, first difference measures changes in requested velocity:
+
+`D1_t = a_t - a_(t-1)`.
+
+Second difference measures curvature of the action sequence:
+
+`D2_t = a_t - 2*a_(t-1) + a_(t-2)`.
+
+Both include the real one- or two-action history at the start of the candidate plan. In the initial
+implementation these are squared velocity differences, not physical acceleration or jerk, because
+they are not divided by timestep. Naming the units honestly prevents a smoothness regularizer from
+being misrepresented as a dynamics measurement.
+
 ## 10. Evaluation concepts
 
 ### ID versus OOD

@@ -746,15 +746,15 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 
 ### 9.4 Planning cost
 
-- [ ] Implement terminal goal-distance term independently.
-- [ ] Implement analytic collision indicator independently.
-- [ ] Implement analytic clearance penalty independently.
-- [ ] Implement action first-difference term independently.
-- [ ] Implement action second-difference term independently.
-- [ ] Propagate scripted obstacle motion analytically.
-- [ ] Include capsule/obstacle geometry and safety margin explicitly.
-- [ ] Test each term's sign and units.
-- [ ] Test zero-cost or known-cost hand cases.
+- [x] Implement terminal goal-distance term independently.
+- [x] Implement swept analytic collision indicator independently.
+- [x] Implement analytic clearance penalty independently.
+- [x] Implement action first-difference term independently.
+- [x] Implement action second-difference term independently.
+- [x] Propagate scripted obstacle motion analytically at every model boundary.
+- [x] Include capsule/obstacle geometry and safety margin explicitly.
+- [x] Test each term's sign and units.
+- [x] Test zero-cost or known-cost hand cases.
 - [ ] Plot each component for representative trajectories.
 - [ ] Record initial weights as hypotheses, not truths.
 - [ ] Never tune cost weights on final test seeds.
