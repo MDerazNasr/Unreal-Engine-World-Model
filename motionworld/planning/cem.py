@@ -148,7 +148,17 @@ def project_velocity_actions(actions_cm_s: FloatArray, *, maximum_speed_cm_s: fl
         raise ValueError("maximum_speed_cm_s must be positive and finite")
     norms = np.linalg.norm(values, axis=-1, keepdims=True)
     scale = np.minimum(1.0, maximum_speed_cm_s / np.maximum(norms, 1.0e-300))
-    return values * scale
+    projected = values * scale
+    # Division/multiplication can round a boundary norm one ULP above the hard limit. Correct only
+    # those rows toward the interior so the safety contract is literal rather than tolerance-based.
+    projected_norms = np.linalg.norm(projected, axis=-1, keepdims=True)
+    inward_limit = np.nextafter(maximum_speed_cm_s, 0.0)
+    inward_scale = np.where(
+        projected_norms > maximum_speed_cm_s,
+        inward_limit / np.maximum(projected_norms, 1.0e-300),
+        1.0,
+    )
+    return projected * inward_scale
 
 
 def expand_action_knots(knots_cm_s: FloatArray, *, num_model_steps: int) -> FloatArray:

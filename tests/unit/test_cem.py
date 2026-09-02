@@ -93,7 +93,7 @@ def test_velocity_projection_preserves_inside_and_scales_outside_norm() -> None:
     np.testing.assert_allclose(projected[0], [3.0, 4.0])
     np.testing.assert_allclose(projected[1], [6.0, 8.0])
     np.testing.assert_array_equal(projected[2], [0.0, 0.0])
-    assert np.all(np.linalg.norm(projected, axis=-1) <= 10.0 + 1.0e-12)
+    assert np.all(np.linalg.norm(projected, axis=-1) <= 10.0)
 
 
 def test_every_optimizer_candidate_respects_speed_ball() -> None:
@@ -115,7 +115,7 @@ def test_every_optimizer_candidate_respects_speed_ball() -> None:
     optimize_cem(cost, config=config, seed=9)
     assert len(seen) == config.num_iterations
     for candidates in seen:
-        assert np.max(np.linalg.norm(candidates, axis=-1)) <= 20.0 + 1.0e-12
+        assert np.max(np.linalg.norm(candidates, axis=-1)) <= 20.0
 
 
 def test_expansion_uses_piecewise_constant_balanced_intervals() -> None:
