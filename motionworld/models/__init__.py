@@ -35,6 +35,16 @@ from motionworld.models.residual_normalization import (
     feature_names_for_history,
     fit_residual_normalization,
 )
+from motionworld.models.residual_training import (
+    ResidualOptimizerConfig,
+    TrainedResidualModel,
+    TrainingTraceRow,
+    normalized_huber_loss,
+    predict_physical_residuals,
+    residual_training_loss,
+    summarize_physical_residual_error,
+    train_residual_model,
+)
 
 __all__ = [
     "ResidualCorrection",
@@ -62,4 +72,12 @@ __all__ = [
     "ResidualNormalization",
     "feature_names_for_history",
     "fit_residual_normalization",
+    "ResidualOptimizerConfig",
+    "TrainedResidualModel",
+    "TrainingTraceRow",
+    "normalized_huber_loss",
+    "predict_physical_residuals",
+    "residual_training_loss",
+    "summarize_physical_residual_error",
+    "train_residual_model",
 ]

@@ -666,9 +666,9 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 
 - [ ] Implement recursive rollout using the same interface as planning.
 - [ ] Implement per-component state error.
-- [ ] Implement Huber loss.
+- [x] Implement and hand-check normalized per-component Huber loss for the fixed one-step baseline.
 - [ ] Implement discounted multi-step loss.
-- [ ] Implement residual-magnitude regularizer.
+- [x] Implement a declared normalized residual-magnitude regularizer.
 - [ ] Log one-step and recursive validation separately.
 - [ ] Never use teacher forcing for the reported recursive evaluation.
 - [ ] Save training config, seed, normalization, schema, commit, and checkpoint hash.

@@ -1,0 +1,42 @@
+schema_name: motionworld_residual_training_config
+schema_version: 1
+frozen_before_training: true
+source_dataset_manifest_sha256: 4c5d921194d339ba0617c930ce1ae41497ac5e04b14280c9ea8610bc3cc4d770
+train_episode_ids: [5101, 5102, 5103, 5104, 5105]
+validation_episode_ids: [5201, 5202]
+test_episode_ids_sealed: [5301, 5302]
+variants:
+  - name: no_history
+    history_length: 1
+  - name: four_history
+    history_length: 4
+architecture:
+  hidden_widths: [256, 256, 128]
+  activation: silu
+  zero_initialized_output: true
+optimizer:
+  name: adamw
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  batch_size: 128
+  optimizer_steps: 1500
+loss:
+  name: normalized_huber_plus_residual_magnitude
+  huber_beta: 1.0
+  residual_magnitude_weight: 0.01
+normalization:
+  fit_split: train_only
+  feature_policy: mean_and_population_standard_deviation
+  target_policy: population_standard_deviation_without_centering
+  scale_floor: 1.0e-8
+reproducibility:
+  seed: 20260903
+  device: cpu
+  dtype: float32
+  batch_sampling: fixed_seed_uniform_with_replacement
+  trace_interval_steps: 50
+evaluation:
+  one_step_comparison_rows: common_four_history_eligible_validation_rows
+  report_strata: [all, parameter_change, parameter_stable]
+  checkpoint_selection: fixed_final_optimizer_step_no_validation_early_stopping
+  test_policy: do_not_collect_or_open_during_training_or_model_selection

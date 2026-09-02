@@ -1443,3 +1443,40 @@ How I tested it: Exact arrays survive normalize/denormalize round trips within `
 zero targets decode bit-exactly to zero; a tuple containing an undeclared episode ID fails closed.
 
 Related implementation: `motionworld/models/residual_normalization.py`.
+
+## D-041 - Freeze a fixed-step one-step baseline before recursive training
+
+Status: deterministic implementation accepted; real frozen run pending
+
+Decision: Train the no-history and four-history MLPs with the same 1,500 seeded CPU AdamW steps,
+batch size 128, normalized Huber loss, and 0.01 normalized correction-magnitude regularizer. Use the
+final fixed step as the checkpoint; do not inspect validation for early stopping. Compare both models
+and nominal on the identical four-history-eligible validation rows.
+
+Why: A one-step baseline isolates whether the frozen features contain predictive signal before adding
+the substantially riskier recursive training path. A fixed optimizer budget prevents validation
+checkpoint cherry-picking and makes a first negative result interpretable.
+
+Alternatives considered: validation early stopping; MPS acceleration; tune architectures separately;
+claim a teacher-forced multi-row loss as recursive training; open test episodes during development.
+
+Evidence: Twelve tests cover a hand-calculated Huber value, regularizer composition, exact seeded
+training reproduction, normalization provenance rejection, exact zero physical decoding, physical
+angular-unit metrics, and invalid configurations. The frozen YAML binds the dataset-manifest hash,
+architecture, optimizer, loss, seed, CPU dtype, common-row comparison, and sealed test policy.
+
+Main assumption: 1,500 uniform-with-replacement updates are sufficient to expose useful one-step
+signal without validation-guided epoch selection. The 100K-parameter models remain large for 725-740
+examples.
+
+How it could fail: Stable near-zero rows dominate; the MLP can overfit the fixed phase family; the
+history model may hallucinate corrections between regime changes; one-step improvement may compound
+badly under recursive rollout.
+
+How I tested it: Two identical 12-step CPU runs produce equal traces and bit-equal state dictionaries.
+The experiment script rebuilds and byte-compares the audited manifest before fitting, constructs
+train-only normalization, saves checkpoint provenance/hashes, and opens validation only after both
+training calls finish.
+
+Related configuration/implementation: `configs/residual_training.yaml`,
+`motionworld/models/residual_training.py`, and `scripts/train_residual_models.py`.
