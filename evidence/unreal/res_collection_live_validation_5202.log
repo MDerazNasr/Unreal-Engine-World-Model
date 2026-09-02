@@ -1,0 +1,68 @@
+# RES-COLLECTION-001 live validation episode 5202 evidence
+
+Date: 2026-09-03 local / 2026-09-02 UTC
+Engine/project: Unreal Engine 5.8.2 / Game Animation Sample
+Accepted split: validation
+
+## Frozen configuration and identity
+
+- Episode ID: 5202 through `BeginPlayResetEpisodeId`.
+- Motion / intermediate-stop / final-stop durations: 0.80 / 0.25 / 0.20 s.
+- Forward / reverse / lateral / diagonal-component speeds: 70 / 150 / 120 / 65 cm/s.
+- Antipodal facing tie break: 0.5 degrees.
+- Varied schedule on; timed gate and external perturbation off; reset repeat count one.
+- Runtime declared a 4.700-second schedule and echoed every configured action.
+- Two prior attempts remain quarantined: one used duplicate ID 5201 and wrong stops; the other used
+  correct ID 5202 but 0.50-second motion phases.
+
+## Runtime and file integrity
+
+- Reset passed on attempt one with exactly zero position, facing, linear-speed, and angular-speed
+  error in Walking mode.
+- Schedule completed at 4.708 s.
+- Recorder: observed 167, attempted 166, recorded 166, rejected 0, rejected seeds 0,
+  capacity drops 0.
+- Export: schema 5, 168 JSONL lines, 906796 bytes, 25.045 ms.
+- Strict loader: `valid=true episode=5202 transitions=166 attempted=166 rejected=0
+  capacity_drops=0`.
+- Raw file: `episode_5202_20260902T223029Z_A40FEF66DB4C.jsonl`.
+- Raw SHA-256: `34c3df8e3dbe893e7d89fdba001b8afd244af93dad2c2b3758b965feb5934ba1`.
+
+## Coverage
+
+- Realized actions: forward 29, reverse 29, right 29, left 23, diagonal 31, stop 25.
+- Timestep min / median / p95 / max: 0.018 / 0.027 / 0.03575 / 0.077 s.
+- Maximum actual planar speed: 149.988 cm/s.
+- Yaw range: -179.975 to 176.194 degrees.
+- All 166 rows are Walking and contain no external event.
+- Current-to-completed parameter change rows: 22.
+- Residual examples: 166 no-history and 163 complete four-history.
+
+## Oracle versus causal baseline
+
+Retrospective maximum position / velocity / yaw / yaw-rate error:
+
+- `8.441e-7 cm` / `1.049e-5 cm/s` / `0.026062 deg` / `1.00238 deg/s`.
+
+Causal current-snapshot maximum position / velocity / yaw / yaw-rate error:
+
+- `0.086523 cm` / `2.791070 cm/s` / `6.976427 deg` / `258.386184 deg/s`.
+
+All material causal errors align with parameter changes:
+
+- position above 0.001 cm: 3/3 on-change, 0 off-change;
+- velocity above 0.01 cm/s: 3/3 on-change, 0 off-change;
+- yaw above 0.1 deg: 11/11 on-change, 0 off-change;
+- yaw rate above 1 deg/s: 15/15 on-change, 0 off-change.
+
+Held-current recursive p95 position / velocity / yaw error:
+
+- 0.5 s: 14.897 cm / 60.262 cm/s / 47.182 deg (148 windows);
+- 1.0 s: 30.779 cm / 55.038 cm/s / 48.336 deg (128 windows);
+- 1.5 s: 31.242 cm / 65.713 cm/s / 44.646 deg (112 windows).
+
+## Acceptance boundary
+
+Accept this artifact into validation only. It is unique, strictly valid, event-free, and matches the
+predeclared validation configuration. It must not fit model weights or normalization. Training has
+740/725 no-history/four-history examples; validation has 283/277. Test episodes remain untouched.

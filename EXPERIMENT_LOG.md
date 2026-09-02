@@ -1419,3 +1419,22 @@ transitions, zero rejection/loss/events, and SHA-256
 split rather than changing the frozen validation schedule after observation. Keep all other values
 unchanged, set only motion-phase duration to 0.80 seconds, compile/save, and rerun. Evidence:
 `evidence/unreal/res_collection_rejected_5202_wrong_motion_duration.log`.
+
+### Corrected validation episode 5202 — accepted
+
+The third attempt matches every frozen field: embedded ID 5202; 0.80-second motion phases;
+0.25-second intermediate stops; 0.20-second final stop; and 70/150/120/65 cm/s
+forward/reverse/lateral/diagonal-component speeds. Runtime declared 4.700 seconds and completed at
+4.708 seconds. Reset passed exactly on its first attempt, and 166/166 schema-v5 transitions recorded
+without rejection, capacity loss, external event, or movement-mode change. It yields 166 no-history
+and 163 four-history validation examples. Raw SHA-256 is
+`34c3df8e3dbe893e7d89fdba001b8afd244af93dad2c2b3758b965feb5934ba1`.
+
+Retrospective maximum position/velocity/yaw/yaw-rate errors are `8.441e-7 cm`, `1.049e-5 cm/s`,
+0.026062 degrees, and 1.00238 deg/s. Causal maxima are 0.086523 cm, 2.791070 cm/s, 6.976427
+degrees, and 258.386184 deg/s. Every material error is confined to a parameter-change row: 3/3
+position, 3/3 velocity, 11/11 yaw, and 15/15 yaw-rate rows, with zero off-change violations.
+Held-parameter recursive p95 position error is 14.897/30.779/31.242 cm at 0.5/1.0/1.5 seconds.
+Accept this artifact into validation only. The two validation episodes provide 283 no-history and
+277 four-history examples; training remains 740/725. Both test episodes remain untouched. Evidence:
+`evidence/unreal/res_collection_live_validation_5202.log`.

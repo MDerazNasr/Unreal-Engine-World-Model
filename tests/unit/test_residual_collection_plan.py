@@ -55,6 +55,7 @@ def test_only_audited_episodes_are_accepted() -> None:
         5104,
         5105,
         5201,
+        5202,
     ]
     assert accepted[0]["raw_file"] == "episode_5101_20260902T203328Z_3ED1E0C50841.jsonl"
     assert accepted[0]["raw_sha256"] == (
@@ -80,6 +81,11 @@ def test_only_audited_episodes_are_accepted() -> None:
     assert accepted[5]["raw_file"] == "episode_5201_20260902T220337Z_DBA8A0798A4E.jsonl"
     assert accepted[5]["raw_sha256"] == (
         "7ef1cc4756e2e49a0f94a15b61fc553e4f595dffebad85dd5ca86855d22336aa"
+    )
+    assert accepted[6]["split"] == "validation"
+    assert accepted[6]["raw_file"] == "episode_5202_20260902T223029Z_A40FEF66DB4C.jsonl"
+    assert accepted[6]["raw_sha256"] == (
+        "34c3df8e3dbe893e7d89fdba001b8afd244af93dad2c2b3758b965feb5934ba1"
     )
     assert plan["rejected_attempts"] == [
         {
