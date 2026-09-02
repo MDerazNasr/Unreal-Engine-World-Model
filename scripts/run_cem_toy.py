@@ -11,11 +11,14 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
-import matplotlib.pyplot as plt
+import matplotlib
 import numpy as np
 import yaml
 
 from motionworld.planning.cem import CEMConfig, optimize_cem
+
+matplotlib.use("Agg")
+from matplotlib import pyplot as plt  # noqa: E402
 
 
 def _sha256(path: Path) -> str:
