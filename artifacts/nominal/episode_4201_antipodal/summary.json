@@ -1,0 +1,133 @@
+{
+  "episode_file": "episode_4201_20260902T144415Z_B488F3C9674A.jsonl",
+  "episode_sha256": "73717460108db8c3b9092e37cb7ef48c4ba5f8e4fdbbeb5252b210977270bfb5",
+  "evaluation": "retrospective_one_step",
+  "desired_facing_source": "recorded_applied_action",
+  "parameter_source": "parameters_observed_for_completed_step",
+  "effective_max_speed_cm_s": [
+    165.0
+  ],
+  "effective_max_speed_source": [
+    "mode_override"
+  ],
+  "transition_count": 193,
+  "collision_step_count": 0,
+  "metrics": {
+    "position_error_cm": {
+      "mean": 8.759496642647652e-08,
+      "median": 8.037352472456405e-08,
+      "p95": 1.884621692305877e-07,
+      "max": 3.127671561742318e-07
+    },
+    "planar_position_error_cm": {
+      "mean": 8.759496642647652e-08,
+      "median": 8.037352472456405e-08,
+      "p95": 1.884621692305877e-07,
+      "max": 3.127671561742318e-07
+    },
+    "velocity_error_cm_s": {
+      "mean": 1.2699850535896398e-06,
+      "median": 7.918715643207008e-07,
+      "p95": 4.016859618013527e-06,
+      "max": 5.4901691749910545e-06
+    },
+    "planar_velocity_error_cm_s": {
+      "mean": 1.2699850535896398e-06,
+      "median": 7.918715643207008e-07,
+      "p95": 4.016859618013527e-06,
+      "max": 5.4901691749910545e-06
+    },
+    "yaw_error_deg": {
+      "mean": 0.00012623001205547767,
+      "median": 4.1984415906128845e-08,
+      "p95": 6.101850391955339e-07,
+      "max": 0.024337253321661877
+    },
+    "angular_velocity_yaw_error_deg_s": {
+      "mean": 0.005050004946444705,
+      "median": 1.7859567051914382e-06,
+      "p95": 2.8539826053020036e-05,
+      "max": 0.973492626372888
+    },
+    "spring_velocity_error_cm_s": {
+      "mean": 1.2699850079467125e-06,
+      "median": 7.918714093335666e-07,
+      "p95": 4.016858641716085e-06,
+      "max": 5.4901685189301674e-06
+    },
+    "spring_acceleration_error_cm_s2": {
+      "mean": 1.1656772832006893e-05,
+      "median": 6.352125510034057e-06,
+      "p95": 3.7010085532074275e-05,
+      "max": 0.00012989850678400298
+    },
+    "intermediate_velocity_error_cm_s": {
+      "mean": 5.4041848576208e-07,
+      "median": 0.0,
+      "p95": 2.5508119961159526e-06,
+      "max": 2.0791185724930377e-05
+    }
+  },
+  "non_collision_metrics": {
+    "position_error_cm": {
+      "mean": 8.759496642647652e-08,
+      "median": 8.037352472456405e-08,
+      "p95": 1.884621692305877e-07,
+      "max": 3.127671561742318e-07
+    },
+    "planar_position_error_cm": {
+      "mean": 8.759496642647652e-08,
+      "median": 8.037352472456405e-08,
+      "p95": 1.884621692305877e-07,
+      "max": 3.127671561742318e-07
+    },
+    "velocity_error_cm_s": {
+      "mean": 1.2699850535896398e-06,
+      "median": 7.918715643207008e-07,
+      "p95": 4.016859618013527e-06,
+      "max": 5.4901691749910545e-06
+    },
+    "planar_velocity_error_cm_s": {
+      "mean": 1.2699850535896398e-06,
+      "median": 7.918715643207008e-07,
+      "p95": 4.016859618013527e-06,
+      "max": 5.4901691749910545e-06
+    },
+    "yaw_error_deg": {
+      "mean": 0.00012623001205547767,
+      "median": 4.1984415906128845e-08,
+      "p95": 6.101850391955339e-07,
+      "max": 0.024337253321661877
+    },
+    "angular_velocity_yaw_error_deg_s": {
+      "mean": 0.005050004946444705,
+      "median": 1.7859567051914382e-06,
+      "p95": 2.8539826053020036e-05,
+      "max": 0.973492626372888
+    },
+    "spring_velocity_error_cm_s": {
+      "mean": 1.2699850079467125e-06,
+      "median": 7.918714093335666e-07,
+      "p95": 4.016858641716085e-06,
+      "max": 5.4901685189301674e-06
+    },
+    "spring_acceleration_error_cm_s2": {
+      "mean": 1.1656772832006893e-05,
+      "median": 6.352125510034057e-06,
+      "p95": 3.7010085532074275e-05,
+      "max": 0.00012989850678400298
+    },
+    "intermediate_velocity_error_cm_s": {
+      "mean": 5.4041848576208e-07,
+      "median": 0.0,
+      "p95": 2.5508119961159526e-06,
+      "max": 2.0791185724930377e-05
+    }
+  },
+  "claim_boundary": [
+    "one-step evaluation re-seeds observable and internal state from every real transition",
+    "completed-step parameters are retrospective and are not automatically planner-available",
+    "schema v4 supplies recorded facing and SimpleWalking input preparation",
+    "dataset eligibility and split membership are decided outside this evaluator"
+  ]
+}

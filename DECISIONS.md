@@ -1071,7 +1071,7 @@ Related config/commit/experiment: `NOM-ROLL-001`; episode 4101; horizons 0.5/1.0
 
 ## D-032 - Make the exact-antipodal facing tie explicit
 
-Status: closed-editor implementation accepted; replacement live episode pending
+Status: accepted through unique live episode 4201
 
 Decision: Preserve the exact reverse velocity request, but offset its orientation intent clockwise
 from world -X by a configurable 0.5 degrees. Reject tie-break values below 0.25 degrees or above
@@ -1108,4 +1108,13 @@ and the complete 12-test suite passed. Next collect a new unique varied episode.
 reverse row to record -179.5 degrees and the one-step/recursive angular spike to disappear before
 accepting the live policy.
 
-Related config/commit/experiment: `FACING-001`; replacement varied episode pending.
+Related config/commit/experiment: `FACING-001`; unique live episode 4201 accepted.
+
+Live acceptance addendum: the first post-build run correctly used -179.5 degrees but repeated
+episode ID 4101 because warmup-reset runs use `BeginPlayResetEpisodeId`, not
+`BeginPlayEpisodeId`; it is excluded from manifests. Unique episode 4201 then reset exactly,
+recorded 193/193 rows with no loss, passed strict schema-v4 validation, and reproduced the policy.
+One-step yaw error max is 0.024337 degrees. Recursive yaw maxima at 0.5/1.0/1.5 seconds are
+0.042917/0.042917/0.029078 degrees, versus 174.296/174.296/89.390 before the policy. A one-frame
+internal -179.0 versus recorded -179.5 target remains below the 0.1-degree facing deadzone and is
+preserved as known preprocessing residue, not a learned residual target.

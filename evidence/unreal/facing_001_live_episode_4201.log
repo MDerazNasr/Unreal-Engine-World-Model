@@ -1,0 +1,70 @@
+# FACING-001 live antipodal policy evidence
+
+Date: 2026-09-02
+Engine/project: Unreal Engine 5.8.2 / Game Animation Sample
+Accepted episode: 4201
+
+## Attempt chronology
+
+- First post-build run exported a new file whose embedded ID was still 4101.
+- Cause: with warmup reset enabled, runtime starts the episode from
+  `BeginPlayResetEpisodeId`; `BeginPlayEpisodeId` applies only to immediate recording.
+- That run confirmed the policy behavior but is excluded from dataset manifests because 4101
+  was already used.
+- The candidate then set `BeginPlayResetEpisodeId=4201`, compiled/saved, and reran once.
+
+## Runtime acceptance
+
+- Reset queued, started, verified, and seeded episode 4201.
+- Reset passed on attempt one with zero position, facing, linear-speed, and angular-speed error.
+- All eight varied phases occurred in order.
+- Reverse and reverse-stop orientation intent was
+  `(-0.9999619231, -0.0087265355, 0)`, or -179.5 degrees.
+- Schedule completed at 5.321 seconds for the declared 5.3-second duration.
+- Recorder counters: observed 194, attempted 193, recorded 193, rejected 0,
+  rejected seeds 0, capacity drops 0.
+- Export: schema 4, 193 transitions, 34.875 ms.
+- Strict independent loader: `valid=true`.
+- Raw episode SHA-256:
+  `73717460108db8c3b9092e37cb7ef48c4ba5f8e4fdbbeb5252b210977270bfb5`
+
+## One-step result
+
+- Planar position error max: `3.128e-7 cm`.
+- Planar velocity error max: `5.490e-6 cm/s`.
+- Yaw error median/p95/max: `4.20e-8 / 6.10e-7 / 0.024337 deg`.
+- Yaw-rate error median/p95/max: `1.79e-6 / 2.85e-5 / 0.973493 deg/s`.
+- The first reverse row retains a bounded one-frame target discrepancy: the recorded target is
+  -179.5 degrees while the next reflected internal quaternion represents -179.0 degrees. On the
+  next row the internal target is -179.5 degrees. This is not assigned to a learned residual.
+
+## Recursive result
+
+At requested 0.5 / 1.0 / 1.5-second horizons:
+
+- Complete windows: 175 / 157 / 140.
+- Yaw p95: `0.029768 / 0.031797 / 0.016503 deg`.
+- Yaw max: `0.042917 / 0.042917 / 0.029078 deg`.
+- Yaw-rate p95: `0.074407 / 0.074349 / 0.055431 deg/s`.
+- Yaw-rate max: `0.973493 / 0.464438 / 0.079287 deg/s`.
+- Planar position max over every horizon: below `7.74e-6 cm`.
+- Planar velocity max over every horizon: below `1.92e-5 cm/s`.
+
+Episode 4101's pre-policy recursive yaw maxima were 174.296 / 174.296 / 89.390 degrees.
+Episode 4201 reduces them to 0.043 / 0.043 / 0.029 degrees, more than three thousand-fold at
+every horizon. The residual does not receive credit for this known input-policy correction.
+
+## Artifact hashes
+
+- `one_step_errors.csv`: `77708a231f653ddb81c9fcf260edab81271fa97482c8577b5881a42fee72be39`
+- `summary.json`: `945bf0fc475f22a23aaf0212ca95c1f2c215ca4c4307795655f9c963c2bc1f60`
+- `one_step_error.png`: `ba4db6d2390ed8afe696c97b575ccb4358f243dbb527cb0ab000449afcaf5002`
+- `recursive_rollouts.csv`: `40c3a5524662e0944a6f3f02c454ea2c57d8922877f0249531a5d627dd7f4aaf`
+- `recursive_summary.json`: `ade8a72f6c98bf9703afb7f5c4900839972c12467c1fcd2631da9124ba78fdb2`
+- `recursive_error.png`: `bd3bbbbbf0c04f1a0c924fc3e8892a982d0f4f4d728e7fc514ac9567d8241b63`
+
+## Claim boundary
+
+This accepts the live deterministic facing policy and a uniquely identified varied free-space
+episode. It does not prove a learnable residual, collision/contact behavior, external-push
+recovery, held-out generalization, or online availability of retrospective parameter snapshots.

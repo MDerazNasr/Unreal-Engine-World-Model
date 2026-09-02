@@ -22,7 +22,9 @@ turn and stay at numerical-noise angular error. Every window above one degree cr
 boundary where Unreal temporarily represents the target as -179 degrees while the scalar nominal
 chooses the other equal 180-degree arc. Median describes typical windows; p95 exposes a rare but
 planner-dangerous edge. I report both and define a deterministic -179.5-degree clockwise tie-break
-before training a residual; replacement live evidence must show the tail disappears.
+before training a residual. In unique live episode 4201, recursive maximum yaw error fell from
+174.30 degrees to 0.043 degrees; I preserve the original failure and do not credit the residual for
+fixing a known controller-interface ambiguity.
 
 ### Why keep actor and animation state separate?
 

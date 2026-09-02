@@ -264,7 +264,11 @@ def main() -> None:
 
     csv_path = args.output_dir / "one_step_errors.csv"
     with csv_path.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=list(asdict(rows[0])))
+        writer = csv.DictWriter(
+            handle,
+            fieldnames=list(asdict(rows[0])),
+            lineterminator="\n",
+        )
         writer.writeheader()
         writer.writerows(asdict(row) for row in rows)
     summary = _summary(

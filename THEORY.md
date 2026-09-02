@@ -851,6 +851,12 @@ This changes only the facing target by 0.5 degrees and deterministically selects
 It is a controller-interface rule, not learned physics. The value is large enough to avoid Unreal's
 exact-opposite branch and small enough not to alter the requested translational task materially.
 
+Unique live episode 4201 validates the practical effect. The exact-opposite version produced
+recursive yaw maxima of 174.296, 174.296, and 89.390 degrees at 0.5, 1.0, and 1.5 seconds. The
+declared -179.5-degree version produces only 0.042917, 0.042917, and 0.029078 degrees. The first
+reverse row still contains a one-frame -179.0-degree reflected hidden target, but its 0.024337-degree
+one-step yaw error is below the configured 0.1-degree facing deadzone and does not compound.
+
 This is a coverage generator, not a claim that the final model has adequate data. A live episode
 must still prove every phase occurred, the reset and export completed, the strict loader accepted all
 rows, and the realized distributions actually contain braking, reversal, turning, and stopping.

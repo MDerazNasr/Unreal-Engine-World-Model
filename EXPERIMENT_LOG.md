@@ -51,7 +51,7 @@ Artifacts and reproduction command:
 | NOM-002 | Is meaningful, systematic residual error present in Unreal rollouts? | Day 2 | Planned |
 | VAR-DATA-001 | Does the deterministic schedule produce valid stop/reverse/turn coverage? | Day 2 | Completed |
 | NOM-ROLL-001 | How does faithful nominal error compound over 0.5/1.0/1.5 s? | Day 2 | Completed |
-| FACING-001 | Does an explicit antipodal tie-break remove the known angular rollout spike? | Day 2 | In progress |
+| FACING-001 | Does an explicit antipodal tie-break remove the known angular rollout spike? | Day 2 | Completed |
 | RES-001 | Does residual learning improve held-out recursive prediction over nominal? | Day 3 | Planned |
 | RES-002 | Does four-step history improve post-perturbation prediction over no history? | Day 3 | Planned |
 | CEM-001 | Does fixed-seed CEM recover known optima in toy costs deterministically? | Day 4 | Planned |
@@ -1038,3 +1038,23 @@ angular evaluation must no longer show the episode-4101 spike.
 experiment `In progress` until the new live episode and angular reevaluation pass.
 
 **Artifact:** `evidence/unreal/facing_001_antipodal_automation.log`.
+
+### Unique live episode 4201 — accepted
+
+The first live attempt repeated embedded ID 4101 because the operator changed
+`BeginPlayEpisodeId`; warmup-reset runs are controlled by `BeginPlayResetEpisodeId`. That file is
+excluded from manifests. After correcting the exact property to 4201, reset passed exactly and all
+eight phases executed. The recorder accepted 193/193 attempted transitions with no rejection or
+loss, exported schema 4, and the independent loader returned `valid=true`.
+
+Every reverse row records a -179.5-degree target. The first row's reflected internal target is
+-179.0 degrees for one frame, causing only 0.024337 degrees maximum one-step yaw error. Recursive
+yaw maxima at 0.5/1.0/1.5 seconds are 0.042917/0.042917/0.029078 degrees, compared with
+174.296/174.296/89.390 in episode 4101. Translation remains at micro-numerical parity. Both plots
+were inspected visually and preserve the small spike with truthful axes.
+
+Accept FACING-001 live. This is a known-input-policy correction, not learned residual improvement.
+Episode 4201 still supplies no systematic free-space residual and no collision/push evidence.
+
+Artifacts: `artifacts/nominal/episode_4201_antipodal/` and
+`evidence/unreal/facing_001_live_episode_4201.log`.
