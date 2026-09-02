@@ -916,3 +916,47 @@ as a command-line argument, reran 174 Python tests, and generated CSV/JSON/PNG a
 1902 remains quarantined from training because its ID was reused.
 
 Related config/commit/experiment: `NOM-001`; `artifacts/nominal/episode_1902/`.
+
+## D-029 - Version every causal Simple Walking input in episode schema 4
+
+Status: implementation, actual-project compilation, and automated contract verification accepted;
+live schema-v4 episode still required
+
+Decision: Upgrade Smooth Walking diagnostics and nominal context to protocol 2, transitions to
+protocol 3, and episode files to schema 4. Record whether Simple Walking has an effective max speed,
+its numeric value and source, the echoed world-space orientation intent, the derived desired-facing
+yaw, and whether zero planar intent used the previous-facing fallback. During MotionWorld automation,
+hold the last finalized facing so the velocity-only policy does not inherit unrecorded camera or
+controller state. Continue reading schemas 1-3 without synthesizing their missing causal fields.
+
+Why: Simple Walking transforms desired velocity and orientation before Smooth Walking. If either
+transformation is absent from a row, two apparently equal model inputs can have different next states,
+and the residual would receive credit for correcting a known interface omission. A versioned contract
+lets new data be complete without relabelling old evidence.
+
+Alternatives considered: learn the 165 cm/s clamp as a residual; infer max speed from observed
+plateaus; preserve upstream orientation without recording it; face the velocity direction implicitly;
+break old episode loading; overwrite schema-v3 meaning.
+
+Evidence: The actual universal `GameAnimationSampleEditor` target compiled for arm64 and x86_64 in
+213.19 seconds. All 11 MotionWorld tests passed inside the actual sample. The independent Python
+loader passed valid schema-v4 rows and rejected mismatched completed-step preprocessing and facing
+targets while retaining schema-v1/v2/v3 tests. The full Python suite passed 180 tests and Ruff passed
+on all source.
+
+Main assumption: The next finalized movement-mode/shared-settings snapshot governed the completed
+step, just as documented for runtime parameters. The Game Animation Sample uses world Z as up; the
+recorded orientation derivation mirrors that scenario's planar Simple Walking preparation.
+
+How it could fail: Max speed or movement mode could change between move generation and post-finalize
+capture; arbitrary-gravity scenarios would require recording the up vector; fixed-facing automation
+does not explore turning; human-controlled data may contain a controller-produced facing policy that
+the eventual planner cannot reproduce.
+
+How I tested it: C++ builders fail closed on missing/non-finite orientation and invalid/unavailable
+speed preparation, re-derive the facing target, and revalidate every transition before atomic export.
+Python independently checks exact keys, enum/value consistency, zero-intent fallback, facing angle,
+completed-step duplication, endpoint continuity, and legacy compatibility. Live capture is explicitly
+not yet credited.
+
+Related config/commit/experiment: `NOM-CONTRACT-002`; schema 4 closed-editor gate.

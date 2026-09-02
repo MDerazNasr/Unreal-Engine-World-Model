@@ -845,3 +845,28 @@ collision is not enough data to train or claim systematic generalization. Before
 capture effective max speed in the versioned context and eliminate the unrecorded orientation
 intent. The plot, row metrics, and machine-readable summary are in
 `artifacts/nominal/episode_1902/`.
+
+## NOM-CONTRACT-002 schema-v4 causal-input gate (2026-09-02)
+
+**Hypothesis:** MotionWorld can record Simple Walking's effective speed preparation and complete
+orientation input at the same causal transition boundary, without weakening strict validation or
+breaking historical schema readers.
+
+**Configuration:** Unreal 5.8.2 Game Animation Sample; diagnostic/context protocol 2; transition
+protocol 3; episode schema 4; automation owns orientation by holding the last finalized facing;
+legacy schemas 1-3 remain strict read-only inputs. No PIE data was collected in this gate.
+
+**Result:** The real universal `GameAnimationSampleEditor` build succeeded across 28 actions in
+213.19 seconds. The actual-project headless suite found 11 MotionWorld tests and all 11 completed with
+`Success`. Python passed 180 tests in 6.08 seconds. Focused formatting and full Ruff lint passed.
+
+**Reviewer checks:** Missing or non-finite orientation rejects the transition. Zero planar orientation
+must explicitly fall back to previous facing. A bounded max speed must cite either mode override or
+common legacy settings; an unbounded mode must use the declared zero placeholder. Completed-step
+preparation must equal the next context. Export re-derives action-facing semantics before writing.
+Python independently rejects mismatched speed/facing fields and keeps valid v1-v3 evidence readable.
+
+**Interpretation:** Accept schema-v4 implementation and closed-editor verification. Do not claim live
+capture until a uniquely identified episode shows `effective_max_speed_cm_per_s=165`, recorded facing
+intent, zero recorder rejections, and strict Python acceptance. Fixed-facing automation also means a
+separate explicit turning-action design is required before collecting turning coverage.

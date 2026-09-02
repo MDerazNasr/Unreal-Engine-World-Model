@@ -9,7 +9,7 @@
 
 namespace
 {
-constexpr int32 SupportedTransitionProtocolVersion = 2;
+constexpr int32 SupportedTransitionProtocolVersion = 3;
 constexpr int32 MaximumExportedTransitions = 100000;
 constexpr double NumericTolerance = 1.e-6;
 
@@ -67,6 +67,33 @@ void WriteSmoothWalkingParameters(
 	Writer.WriteObjectEnd();
 }
 
+const TCHAR* MaxSpeedSourceToString(const EMotionWorldMaxSpeedSource Source)
+{
+	switch (Source)
+	{
+	case EMotionWorldMaxSpeedSource::ModeOverride:
+		return TEXT("mode_override");
+	case EMotionWorldMaxSpeedSource::CommonLegacySettings:
+		return TEXT("common_legacy_settings");
+	case EMotionWorldMaxSpeedSource::Unbounded:
+		return TEXT("unbounded");
+	default:
+		return TEXT("unavailable");
+	}
+}
+
+void WriteInputPreparation(
+	FCondensedWriter& Writer,
+	const TCHAR* Name,
+	const FMotionWorldSimpleWalkingInputPreparation& InputPreparation)
+{
+	Writer.WriteObjectStart(Name);
+	Writer.WriteValue(TEXT("has_max_move_speed"), InputPreparation.bHasMaxMoveSpeed);
+	Writer.WriteValue(TEXT("effective_max_speed_cm_per_s"), InputPreparation.EffectiveMaxSpeedCmPerSec);
+	Writer.WriteValue(TEXT("max_speed_source"), MaxSpeedSourceToString(InputPreparation.MaxSpeedSource));
+	Writer.WriteObjectEnd();
+}
+
 void WriteNominalContext(
 	FCondensedWriter& Writer,
 	const TCHAR* Name,
@@ -79,6 +106,7 @@ void WriteNominalContext(
 	Writer.WriteValue(TEXT("movement_mode_name"), Context.MovementModeName.ToString());
 	Writer.WriteValue(TEXT("movement_mode_class"), Context.MovementModeClass.ToString());
 	WriteSmoothWalkingParameters(Writer, TEXT("parameters"), Context.Parameters);
+	WriteInputPreparation(Writer, TEXT("input_preparation"), Context.InputPreparation);
 	Writer.WriteObjectStart(TEXT("internal_state"));
 	WriteVector(Writer, TEXT("spring_velocity_world_cm_per_s"), Context.InternalState.SpringVelocityWorldCmPerSec);
 	WriteVector(Writer, TEXT("spring_acceleration_world_cm_per_s2"), Context.InternalState.SpringAccelerationWorldCmPerSecSquared);
@@ -154,13 +182,15 @@ FString SerializeHeader(const MotionWorld::FEpisodeExportRequest& Request)
 	Writer->WriteValue(TEXT("episode_id"), Request.Stats.EpisodeId);
 	Writer->WriteValue(TEXT("state_source"), TEXT("mover_finalized_sync_state"));
 	Writer->WriteObjectStart(TEXT("nominal_context_contract"));
-	Writer->WriteValue(TEXT("protocol_version"), 1);
+	Writer->WriteValue(TEXT("protocol_version"), 2);
 	Writer->WriteValue(TEXT("source"), TEXT("ue58_smooth_walking_public_reflection"));
 	Writer->WriteValue(TEXT("capture_phase"), TEXT("mover_on_post_finalize"));
 	Writer->WriteValue(
 		TEXT("step_parameter_semantics"),
 		TEXT("next_finalized_snapshot_assumed_used_during_completed_step"));
 	Writer->WriteValue(TEXT("missing_policy"), TEXT("reject_transition"));
+	Writer->WriteValue(TEXT("input_preparation_source"), TEXT("simple_walking_mode_and_shared_settings"));
+	Writer->WriteValue(TEXT("orientation_intent_semantics"), TEXT("echoed_world_space_input_with_simple_walking_planar_fallback"));
 	Writer->WriteValue(TEXT("future_planner_availability"), TEXT("not_guaranteed_requires_causal_selector"));
 	Writer->WriteObjectEnd();
 	if (Request.TimedGateScenario.bIsPresent)
@@ -260,6 +290,10 @@ FString SerializeTransition(
 		*Writer,
 		TEXT("parameters_observed_for_completed_step"),
 		Transition.ParametersObservedForCompletedStep);
+	WriteInputPreparation(
+		*Writer,
+		TEXT("input_preparation_observed_for_completed_step"),
+		Transition.InputPreparationObservedForCompletedStep);
 	WriteNominalContext(
 		*Writer,
 		TEXT("next"),
@@ -279,6 +313,16 @@ FString SerializeTransition(
 		*Writer,
 		TEXT("velocity_local_planar_cm_per_s"),
 		Transition.AppliedAction.VelocityLocalPlanarCmPerSec);
+	WriteVector(
+		*Writer,
+		TEXT("orientation_intent_world"),
+		Transition.AppliedAction.OrientationIntentWorld);
+	Writer->WriteValue(
+		TEXT("desired_facing_yaw_deg"),
+		Transition.AppliedAction.DesiredFacingYawDegrees);
+	Writer->WriteValue(
+		TEXT("used_previous_facing_for_zero_orientation_intent"),
+		Transition.AppliedAction.bUsedPreviousFacingForZeroOrientationIntent);
 	Writer->WriteObjectEnd();
 	WriteState(*Writer, TEXT("next_state"), Transition.NextState);
 	if (Request.TimedGateScenario.bIsPresent)
@@ -413,6 +457,18 @@ bool ParametersEqual(
 		&& FMath::IsNearlyEqual(Left.AngularVelocityDeadzoneDegreesPerSec, Right.AngularVelocityDeadzoneDegreesPerSec, NumericTolerance);
 }
 
+bool InputPreparationEqual(
+	const FMotionWorldSimpleWalkingInputPreparation& Left,
+	const FMotionWorldSimpleWalkingInputPreparation& Right)
+{
+	return Left.bHasMaxMoveSpeed == Right.bHasMaxMoveSpeed
+		&& FMath::IsNearlyEqual(
+			Left.EffectiveMaxSpeedCmPerSec,
+			Right.EffectiveMaxSpeedCmPerSec,
+			NumericTolerance)
+		&& Left.MaxSpeedSource == Right.MaxSpeedSource;
+}
+
 bool NominalContextsShareEndpoint(
 	const FMotionWorldNominalContextSample& Left,
 	const FMotionWorldNominalContextSample& Right)
@@ -423,6 +479,7 @@ bool NominalContextsShareEndpoint(
 		&& Left.MovementModeName == Right.MovementModeName
 		&& Left.MovementModeClass == Right.MovementModeClass
 		&& ParametersEqual(Left.Parameters, Right.Parameters)
+		&& InputPreparationEqual(Left.InputPreparation, Right.InputPreparation)
 		&& Left.InternalState.SpringVelocityWorldCmPerSec.Equals(Right.InternalState.SpringVelocityWorldCmPerSec, NumericTolerance)
 		&& Left.InternalState.SpringAccelerationWorldCmPerSecSquared.Equals(Right.InternalState.SpringAccelerationWorldCmPerSecSquared, NumericTolerance)
 		&& Left.InternalState.IntermediateVelocityWorldCmPerSec.Equals(Right.InternalState.IntermediateVelocityWorldCmPerSec, NumericTolerance)
@@ -455,6 +512,9 @@ bool IsTransitionReproducible(const FMotionWorldTransitionSample& Transition)
 		Transition.AppliedAction.bWasMotionWorldAutomated;
 	Inputs.AppliedVelocityWorldCmPerSec =
 		Transition.AppliedAction.VelocityWorldCmPerSec;
+	Inputs.bHasAppliedOrientationIntent = true;
+	Inputs.AppliedOrientationIntentWorld =
+		Transition.AppliedAction.OrientationIntentWorld;
 
 	const FMotionWorldTransitionSample Rebuilt =
 		MotionWorld::BuildTransitionSample(Inputs);
@@ -462,9 +522,21 @@ bool IsTransitionReproducible(const FMotionWorldTransitionSample& Transition)
 		&& ParametersEqual(
 			Rebuilt.ParametersObservedForCompletedStep,
 			Transition.ParametersObservedForCompletedStep)
+		&& InputPreparationEqual(
+			Rebuilt.InputPreparationObservedForCompletedStep,
+			Transition.InputPreparationObservedForCompletedStep)
 		&& Rebuilt.AppliedAction.VelocityLocalPlanarCmPerSec.Equals(
 			Transition.AppliedAction.VelocityLocalPlanarCmPerSec,
 			NumericTolerance)
+		&& Rebuilt.AppliedAction.OrientationIntentWorld.Equals(
+			Transition.AppliedAction.OrientationIntentWorld,
+			NumericTolerance)
+		&& FMath::IsNearlyEqual(
+			Rebuilt.AppliedAction.DesiredFacingYawDegrees,
+			Transition.AppliedAction.DesiredFacingYawDegrees,
+			NumericTolerance)
+		&& Rebuilt.AppliedAction.bUsedPreviousFacingForZeroOrientationIntent
+			== Transition.AppliedAction.bUsedPreviousFacingForZeroOrientationIntent
 		&& FMath::IsNearlyEqual(
 			Rebuilt.StartSimulationTimeSeconds,
 			Transition.StartSimulationTimeSeconds,

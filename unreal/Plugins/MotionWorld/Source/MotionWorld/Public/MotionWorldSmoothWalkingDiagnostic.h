@@ -6,6 +6,15 @@
 
 class UBaseMovementMode;
 
+UENUM(BlueprintType)
+enum class EMotionWorldMaxSpeedSource : uint8
+{
+	Unavailable,
+	ModeOverride,
+	CommonLegacySettings,
+	Unbounded
+};
+
 /** Default-off research telemetry; never part of authoritative model state. */
 USTRUCT(BlueprintType)
 struct MOTIONWORLD_API FMotionWorldSmoothWalkingDiagnosticSample
@@ -13,7 +22,7 @@ struct MOTIONWORLD_API FMotionWorldSmoothWalkingDiagnosticSample
 	GENERATED_BODY()
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Smooth Walking Diagnostic")
-	int32 ProtocolVersion = 1;
+	int32 ProtocolVersion = 2;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Smooth Walking Diagnostic")
 	bool bIsValid = false;
@@ -75,6 +84,16 @@ struct MOTIONWORLD_API FMotionWorldSmoothWalkingDiagnosticSample
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Smooth Walking Diagnostic")
 	double AngularVelocityDeadzoneDegreesPerSec = 0.0;
 
+	/** Input preprocessing performed by USimpleWalkingMode before Smooth Walking. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Smooth Walking Diagnostic")
+	bool bHasMaxMoveSpeed = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Smooth Walking Diagnostic")
+	double EffectiveMaxSpeedCmPerSec = 0.0;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Smooth Walking Diagnostic")
+	EMotionWorldMaxSpeedSource MaxSpeedSource = EMotionWorldMaxSpeedSource::Unavailable;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Smooth Walking Diagnostic")
 	FVector SpringVelocityWorldCmPerSec = FVector::ZeroVector;
 
@@ -99,9 +118,13 @@ struct FSmoothWalkingDiagnosticInputs
 	FName MovementModeName = NAME_None;
 	FName MovementModeClass = NAME_None;
 	bool bHasParameters = false;
+	bool bHasInputPreparation = false;
 	bool bHasSpringState = false;
 	TArray<double> Parameters;
 	bool bSmoothFacingWithDoubleSpring = false;
+	bool bHasMaxMoveSpeed = false;
+	double EffectiveMaxSpeedCmPerSec = 0.0;
+	EMotionWorldMaxSpeedSource MaxSpeedSource = EMotionWorldMaxSpeedSource::Unavailable;
 	FVector SpringVelocity = FVector::ZeroVector;
 	FVector SpringAcceleration = FVector::ZeroVector;
 	FVector IntermediateVelocity = FVector::ZeroVector;
@@ -111,6 +134,11 @@ struct FSmoothWalkingDiagnosticInputs
 };
 
 MOTIONWORLD_API bool ReadSmoothWalkingParameters(
+	const UBaseMovementMode* MovementMode,
+	FSmoothWalkingDiagnosticInputs& OutInputs,
+	FName& OutFailureReason);
+
+MOTIONWORLD_API bool ReadSimpleWalkingInputPreparation(
 	const UBaseMovementMode* MovementMode,
 	FSmoothWalkingDiagnosticInputs& OutInputs,
 	FName& OutFailureReason);

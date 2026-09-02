@@ -158,6 +158,15 @@ failures into false physical evidence and teach the residual to compensate for a
 Missing, wrong-version, non-finite, or misaligned context therefore rejects the seed or transition and
 increments an explicit rejection counter.
 
+### Why did schema v4 add both a speed limit and orientation intent?
+
+Because the logged velocity packet is not yet the exact target consumed by Smooth Walking. Simple
+Walking can clamp its magnitude using a mode override or shared max speed, and it converts orientation
+intent into a desired-facing quaternion. Both can change the next state. Omitting either makes the
+transition non-causal from the model's point of view and encourages the learned residual to compensate
+for a known logging error. Schema v4 records the raw causal inputs and the deterministic preparation;
+schemas 1-3 remain readable but their missing fields are never silently invented.
+
 ## 5. Examiner checklist
 
 Before marking a component finished, answer aloud:

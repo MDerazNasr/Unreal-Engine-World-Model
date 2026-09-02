@@ -72,7 +72,9 @@ public:
 		const FMotionWorldNominalContextSample& CurrentNominalContext,
 		bool bAppliedInputWasVelocity,
 		bool bWasMotionWorldAutomated,
-		const FVector& AppliedVelocityWorldCmPerSec);
+		const FVector& AppliedVelocityWorldCmPerSec,
+		bool bHasAppliedOrientationIntent,
+		const FVector& AppliedOrientationIntentWorld);
 
 	const FMotionWorldEpisodeRecorderStats& GetStats() const { return Stats; }
 	const TArray<FMotionWorldTransitionSample>& GetTransitions() const { return Transitions; }

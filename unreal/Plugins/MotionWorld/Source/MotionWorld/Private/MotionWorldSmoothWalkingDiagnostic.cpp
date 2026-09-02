@@ -1,7 +1,10 @@
 #include "MotionWorldSmoothWalkingDiagnostic.h"
 
+#include "DefaultMovementSet/Modes/SimpleWalkingMode.h"
 #include "DefaultMovementSet/Modes/SmoothWalkingMode.h"
+#include "DefaultMovementSet/Settings/CommonLegacyMovementSettings.h"
 #include "MovementMode.h"
+#include "MoverComponent.h"
 #include "UObject/UnrealType.h"
 
 namespace
@@ -113,6 +116,64 @@ bool MotionWorld::ReadSmoothWalkingParameters(
 	return true;
 }
 
+bool MotionWorld::ReadSimpleWalkingInputPreparation(
+	const UBaseMovementMode* MovementMode,
+	FSmoothWalkingDiagnosticInputs& OutInputs,
+	FName& OutFailureReason)
+{
+	OutFailureReason = NAME_None;
+	OutInputs.bHasInputPreparation = false;
+	OutInputs.bHasMaxMoveSpeed = false;
+	OutInputs.EffectiveMaxSpeedCmPerSec = 0.0;
+	OutInputs.MaxSpeedSource = EMotionWorldMaxSpeedSource::Unavailable;
+
+	const USimpleWalkingMode* SimpleWalkingMode = Cast<USimpleWalkingMode>(MovementMode);
+	if (!IsValid(SimpleWalkingMode))
+	{
+		OutFailureReason = TEXT("active_mode_is_not_simple_walking");
+		return false;
+	}
+
+	if (!FMath::IsFinite(SimpleWalkingMode->MaxSpeedOverride))
+	{
+		OutFailureReason = TEXT("invalid_max_speed_override");
+		return false;
+	}
+
+	if (SimpleWalkingMode->MaxSpeedOverride >= 0.0f)
+	{
+		OutInputs.bHasMaxMoveSpeed = true;
+		OutInputs.EffectiveMaxSpeedCmPerSec = SimpleWalkingMode->MaxSpeedOverride;
+		OutInputs.MaxSpeedSource = EMotionWorldMaxSpeedSource::ModeOverride;
+		OutInputs.bHasInputPreparation = true;
+		return true;
+	}
+
+	const UMoverComponent* MoverComponent = SimpleWalkingMode->GetMoverComponent();
+	const UCommonLegacyMovementSettings* CommonSettings = MoverComponent
+		? MoverComponent->FindSharedSettings<UCommonLegacyMovementSettings>()
+		: nullptr;
+	if (CommonSettings)
+	{
+		if (!FMath::IsFinite(CommonSettings->MaxSpeed) || CommonSettings->MaxSpeed < 0.0f)
+		{
+			OutFailureReason = TEXT("invalid_common_max_speed");
+			return false;
+		}
+		OutInputs.bHasMaxMoveSpeed = true;
+		OutInputs.EffectiveMaxSpeedCmPerSec = CommonSettings->MaxSpeed;
+		OutInputs.MaxSpeedSource = EMotionWorldMaxSpeedSource::CommonLegacySettings;
+	}
+	else
+	{
+		// This exactly matches SimpleWalkingMode: no override and no shared
+		// settings means that the desired velocity is not speed-clamped.
+		OutInputs.MaxSpeedSource = EMotionWorldMaxSpeedSource::Unbounded;
+	}
+	OutInputs.bHasInputPreparation = true;
+	return true;
+}
+
 bool MotionWorld::ReadSmoothWalkingSpringState(
 	const FMoverDataCollection& SyncStateCollection,
 	FSmoothWalkingDiagnosticInputs& OutInputs,
@@ -172,6 +233,7 @@ FMotionWorldSmoothWalkingDiagnosticSample MotionWorld::BuildSmoothWalkingDiagnos
 		|| Inputs.MovementModeName.IsNone()
 		|| Inputs.MovementModeClass.IsNone()
 		|| !Inputs.bHasParameters
+		|| !Inputs.bHasInputPreparation
 		|| !Inputs.bHasSpringState
 		|| Inputs.Parameters.Num() != ParameterCount)
 	{
@@ -213,6 +275,18 @@ FMotionWorldSmoothWalkingDiagnosticSample MotionWorld::BuildSmoothWalkingDiagnos
 		Result.FailureReason = TEXT("invalid_parameter_range");
 		return Result;
 	}
+	const bool bInputPreparationValid = Inputs.bHasMaxMoveSpeed
+		? (FMath::IsFinite(Inputs.EffectiveMaxSpeedCmPerSec)
+			&& Inputs.EffectiveMaxSpeedCmPerSec >= 0.0
+			&& (Inputs.MaxSpeedSource == EMotionWorldMaxSpeedSource::ModeOverride
+				|| Inputs.MaxSpeedSource == EMotionWorldMaxSpeedSource::CommonLegacySettings))
+		: (Inputs.EffectiveMaxSpeedCmPerSec == 0.0
+			&& Inputs.MaxSpeedSource == EMotionWorldMaxSpeedSource::Unbounded);
+	if (!bInputPreparationValid)
+	{
+		Result.FailureReason = TEXT("invalid_input_preparation");
+		return Result;
+	}
 	if (Inputs.SpringVelocity.ContainsNaN()
 		|| Inputs.SpringAcceleration.ContainsNaN()
 		|| Inputs.IntermediateVelocity.ContainsNaN()
@@ -236,6 +310,9 @@ FMotionWorldSmoothWalkingDiagnosticSample MotionWorld::BuildSmoothWalkingDiagnos
 	Result.FacingSmoothingTimeSeconds = Inputs.Parameters[11];
 	Result.FacingDeadzoneDegrees = Inputs.Parameters[12];
 	Result.AngularVelocityDeadzoneDegreesPerSec = Inputs.Parameters[13];
+	Result.bHasMaxMoveSpeed = Inputs.bHasMaxMoveSpeed;
+	Result.EffectiveMaxSpeedCmPerSec = Inputs.EffectiveMaxSpeedCmPerSec;
+	Result.MaxSpeedSource = Inputs.MaxSpeedSource;
 	Result.bSmoothFacingWithDoubleSpring = Inputs.bSmoothFacingWithDoubleSpring;
 	Result.SpringVelocityWorldCmPerSec = Inputs.SpringVelocity;
 	Result.SpringAccelerationWorldCmPerSecSquared = Inputs.SpringAcceleration;

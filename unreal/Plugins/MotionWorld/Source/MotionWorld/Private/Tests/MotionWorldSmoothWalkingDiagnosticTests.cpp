@@ -24,6 +24,11 @@ bool FMotionWorldSmoothWalkingDiagnosticTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("Fourteen float parameters are captured"), Inputs.Parameters.Num(), 14);
 	TestEqual(TEXT("Default acceleration is version-matched"), Inputs.Parameters[0], 1500.0);
 	TestEqual(TEXT("Default turning strength is version-matched"), Inputs.Parameters[3], 10.0);
+	TestTrue(
+		TEXT("Simple Walking input preprocessing is readable"),
+		MotionWorld::ReadSimpleWalkingInputPreparation(Defaults, Inputs, FailureReason));
+	TestFalse(TEXT("A detached class default has no max-speed source"), Inputs.bHasMaxMoveSpeed);
+	TestEqual(TEXT("Detached defaults are explicitly unbounded"), Inputs.MaxSpeedSource, EMotionWorldMaxSpeedSource::Unbounded);
 
 	Inputs.bHasSpringState = true;
 	Inputs.SpringVelocity = FVector(1.0, 2.0, 0.0);
@@ -35,6 +40,7 @@ bool FMotionWorldSmoothWalkingDiagnosticTest::RunTest(const FString& Parameters)
 		MotionWorld::BuildSmoothWalkingDiagnosticSample(Inputs);
 	TestTrue(TEXT("Complete finite diagnostic is valid"), Valid.bIsValid);
 	TestEqual(TEXT("Spring velocity is preserved"), Valid.SpringVelocityWorldCmPerSec, Inputs.SpringVelocity);
+	TestEqual(TEXT("Input preparation is versioned in the diagnostic"), Valid.ProtocolVersion, 2);
 
 	Inputs.Parameters[0] = std::numeric_limits<double>::quiet_NaN();
 	const FMotionWorldSmoothWalkingDiagnosticSample Invalid =

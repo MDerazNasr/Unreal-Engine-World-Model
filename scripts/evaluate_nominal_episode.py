@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Evaluate the faithful nominal model one step at a time on a schema-v3 episode."""
+"""Evaluate the faithful nominal model one step at a time on a schema-v3/v4 episode."""
 
 from __future__ import annotations
 
@@ -51,12 +51,16 @@ def _norm(values: np.ndarray) -> float:
 def _metrics(
     transition: dict[str, object],
     *,
-    effective_max_speed_cm_s: float,
+    effective_max_speed_cm_s: float | None,
 ) -> RowMetrics:
-    previous_facing = math.radians(float(transition["previous_state"]["facing_yaw_deg"]))
+    desired_facing = (
+        None
+        if "desired_facing_yaw_deg" in transition["applied_action"]
+        else math.radians(float(transition["previous_state"]["facing_yaw_deg"]))
+    )
     inputs = retrospective_nominal_inputs(
         transition,
-        desired_facing_yaw_rad=previous_facing,
+        desired_facing_yaw_rad=desired_facing,
         effective_max_speed_cm_s=effective_max_speed_cm_s,
     )
     prediction = smooth_walking_nominal_step(
@@ -114,7 +118,8 @@ def _summary(
     path: Path,
     rows: list[RowMetrics],
     *,
-    effective_max_speed_cm_s: float,
+    effective_max_speed_cm_s: float | None,
+    schema_version: int,
 ) -> dict[str, object]:
     def stats(field: str, selected_rows: list[RowMetrics]) -> dict[str, float]:
         values = np.asarray([getattr(row, field) for row in selected_rows])
@@ -143,10 +148,18 @@ def _summary(
         "episode_file": path.name,
         "episode_sha256": file_hash,
         "evaluation": "retrospective_one_step",
-        "desired_facing_assumption": "hold_previous_authoritative_facing",
+        "desired_facing_source": (
+            "recorded_applied_action"
+            if schema_version >= 4
+            else "legacy_hold_previous_authoritative_facing_assumption"
+        ),
         "parameter_source": "parameters_observed_for_completed_step",
         "effective_max_speed_cm_s": effective_max_speed_cm_s,
-        "effective_max_speed_source": "required_explicit_evaluator_input",
+        "effective_max_speed_source": (
+            "recorded_per_transition"
+            if schema_version >= 4
+            else "required_explicit_evaluator_input"
+        ),
         "transition_count": len(rows),
         "collision_step_count": sum(row.collision_this_step for row in rows),
         "metrics": {field: stats(field, rows) for field in metric_fields},
@@ -157,9 +170,11 @@ def _summary(
             "one-step evaluation re-seeds observable and internal state from every real transition",
             "completed-step parameters are retrospective and are not automatically "
             "planner-available",
-            "schema v3 does not record orientation intent; this straight episode uses held facing",
-            "schema v3 does not record SimpleWalking effective max speed; evaluator input "
-            "is explicit",
+            (
+                "schema v4 supplies recorded facing and SimpleWalking input preparation"
+                if schema_version >= 4
+                else "schema v3 omits orientation and max speed; explicit legacy assumptions apply"
+            ),
             "episode 1902 is interface evidence and is quarantined from training due duplicate ID",
         ],
     }
@@ -204,12 +219,15 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("episode", type=Path)
     parser.add_argument("--output-dir", type=Path, required=True)
-    parser.add_argument("--effective-max-speed-cm-s", type=float, required=True)
+    parser.add_argument("--effective-max-speed-cm-s", type=float)
     args = parser.parse_args()
 
     episode = load_episode(args.episode)
-    if int(episode.header["schema_version"]) != 3:
-        raise ValueError("faithful nominal evaluation requires episode schema version 3")
+    schema_version = int(episode.header["schema_version"])
+    if schema_version not in {3, 4}:
+        raise ValueError("faithful nominal evaluation requires episode schema version 3 or 4")
+    if schema_version == 3 and args.effective_max_speed_cm_s is None:
+        raise ValueError("schema-v3 evaluation requires --effective-max-speed-cm-s")
     rows = [
         _metrics(
             transition,
@@ -228,6 +246,7 @@ def main() -> None:
         args.episode,
         rows,
         effective_max_speed_cm_s=args.effective_max_speed_cm_s,
+        schema_version=schema_version,
     )
     summary_path = args.output_dir / "summary.json"
     summary_path.write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")

@@ -1,0 +1,25 @@
+# MotionWorld schema-v4 causal-input closed-editor evidence
+# Captured: 2026-09-02 Europe/Copenhagen
+# Raw log: GameAnimationSampleEditor/private/tmp/motionworld_schema_v4_automation.log
+# Raw log SHA-256: cea6475bcbbb9bb1a13e8795eabcb3efa2e9891711cc6f134ac1c75df343e8c9
+# Deployed universal dylib SHA-256: 9feac65aba9231e1d6c1f5ade86b92563f3bb0fa2ccad5821b42ac8f4db9f138
+
+Validation boundary
+- Actual GameAnimationSampleEditor universal Mac Development build: succeeded in 213.19 seconds.
+- Deployed dylib architectures: x86_64 and arm64.
+- Python: 180 tests passed; Ruff lint and focused format check passed.
+- Live schema-v4 episode capture is not part of this evidence.
+
+Actual-sample results
+[2026.09.02-11.56.44:363][253] Found 11 automation tests based on 'MotionWorld.'
+[2026.09.02-11.56.44:415][256] Success MotionWorld.Command.SanitizeWorldVelocity
+[2026.09.02-11.56.44:467][259] Success MotionWorld.Coordinates.PlanarVelocity
+[2026.09.02-11.56.44:520][262] Success MotionWorld.Data.NominalContext
+[2026.09.02-11.56.44:552][264] Success MotionWorld.Diagnostics.SmoothWalking
+[2026.09.02-11.56.44:601][267] Success MotionWorld.Episode.AtomicJsonLinesExporter
+[2026.09.02-11.56.44:651][270] Success MotionWorld.Episode.InMemoryRecorder
+[2026.09.02-11.56.44:701][273] Success MotionWorld.Gate.DeterministicScheduleAndEvents
+[2026.09.02-11.56.44:751][276] Success MotionWorld.Nominal.PlanarFacingSpringParity
+[2026.09.02-11.56.44:803][279] Success MotionWorld.Reset.FinalizedVerifier
+[2026.09.02-11.56.44:852][282] Success MotionWorld.State.AuthoritativeSample
+[2026.09.02-11.56.44:885][284] Success MotionWorld.Transition.CausalPairing

@@ -1,4 +1,4 @@
-"""Strict loader for MotionWorld Unreal episode files (v1-v3)."""
+"""Strict loader for MotionWorld Unreal episode files (v1-v4)."""
 
 from __future__ import annotations
 
@@ -9,10 +9,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-EPISODE_SCHEMA_VERSION = 3
-SUPPORTED_EPISODE_SCHEMA_VERSIONS = frozenset({1, 2, 3})
+EPISODE_SCHEMA_VERSION = 4
+SUPPORTED_EPISODE_SCHEMA_VERSIONS = frozenset({1, 2, 3, 4})
 STATE_PROTOCOL_VERSION = 1
-NOMINAL_CONTEXT_PROTOCOL_VERSION = 1
+NOMINAL_CONTEXT_PROTOCOL_VERSION = 2
 MAX_TRANSITIONS = 100_000
 _NUMERIC_TOLERANCE = 1e-6
 _ACTION_TOLERANCE_CM_PER_S = 0.02
@@ -50,6 +50,7 @@ _HEADER_KEYS = {
 }
 _HEADER_V2_KEYS = _HEADER_KEYS | {"scenario"}
 _HEADER_V3_KEYS = _HEADER_V2_KEYS | {"nominal_context_contract"}
+_HEADER_V4_KEYS = _HEADER_V3_KEYS
 _CONVENTION_KEYS = {
     "world_frame",
     "local_action_frame",
@@ -82,6 +83,7 @@ _TRANSITION_KEYS = {
 }
 _TRANSITION_V2_KEYS = _TRANSITION_KEYS | {"scenario"}
 _TRANSITION_V3_KEYS = _TRANSITION_V2_KEYS | {"nominal_context"}
+_TRANSITION_V4_KEYS = _TRANSITION_V3_KEYS
 _STATE_KEYS = {
     "protocol_version",
     "sample_sequence",
@@ -105,6 +107,11 @@ _ACTION_KEYS = {
     "velocity_world_cm_per_s",
     "velocity_local_planar_cm_per_s",
 }
+_ACTION_V4_KEYS = _ACTION_KEYS | {
+    "orientation_intent_world",
+    "desired_facing_yaw_deg",
+    "used_previous_facing_for_zero_orientation_intent",
+}
 _NOMINAL_CONTEXT_CONTRACT_KEYS = {
     "protocol_version",
     "source",
@@ -113,10 +120,17 @@ _NOMINAL_CONTEXT_CONTRACT_KEYS = {
     "missing_policy",
     "future_planner_availability",
 }
+_NOMINAL_CONTEXT_CONTRACT_V4_KEYS = _NOMINAL_CONTEXT_CONTRACT_KEYS | {
+    "input_preparation_source",
+    "orientation_intent_semantics",
+}
 _NOMINAL_TRANSITION_KEYS = {
     "previous",
     "parameters_observed_for_completed_step",
     "next",
+}
+_NOMINAL_TRANSITION_V4_KEYS = _NOMINAL_TRANSITION_KEYS | {
+    "input_preparation_observed_for_completed_step",
 }
 _NOMINAL_CONTEXT_KEYS = {
     "protocol_version",
@@ -126,6 +140,12 @@ _NOMINAL_CONTEXT_KEYS = {
     "movement_mode_class",
     "parameters",
     "internal_state",
+}
+_NOMINAL_CONTEXT_V4_KEYS = _NOMINAL_CONTEXT_KEYS | {"input_preparation"}
+_INPUT_PREPARATION_KEYS = {
+    "has_max_move_speed",
+    "effective_max_speed_cm_per_s",
+    "max_speed_source",
 }
 _SMOOTH_WALKING_PARAMETER_KEYS = {
     "acceleration_cm_per_s2",
@@ -306,9 +326,18 @@ def _validate_state(value: Any, context: str) -> dict[str, Any]:
     return state
 
 
-def _validate_action(value: Any, previous_state: dict[str, Any], context: str) -> dict[str, Any]:
+def _wrapped_angle_error_degrees(left: float, right: float) -> float:
+    return abs((left - right + 180.0) % 360.0 - 180.0)
+
+
+def _validate_action(
+    value: Any,
+    previous_state: dict[str, Any],
+    schema_version: int,
+    context: str,
+) -> dict[str, Any]:
     action = _object(value, context)
-    _exact_keys(action, _ACTION_KEYS, context)
+    _exact_keys(action, _ACTION_V4_KEYS if schema_version >= 4 else _ACTION_KEYS, context)
     _string(action["type"], f"{context}.type", expected="desired_velocity")
     if not _boolean(action["is_valid"], f"{context}.is_valid"):
         _fail(context, "action is not marked valid")
@@ -332,6 +361,31 @@ def _validate_action(value: Any, previous_state: dict[str, Any], context: str) -
         local_velocity[1], expected_local[1], _ACTION_TOLERANCE_CM_PER_S
     ):
         _fail(context, "local action does not match world action and previous-state facing")
+    if schema_version >= 4:
+        orientation = _vector(
+            action["orientation_intent_world"],
+            3,
+            f"{context}.orientation_intent_world",
+        )
+        desired_yaw = _number(
+            action["desired_facing_yaw_deg"],
+            f"{context}.desired_facing_yaw_deg",
+        )
+        if desired_yaw < -180.0 - _NUMERIC_TOLERANCE or desired_yaw > 180.0 + _NUMERIC_TOLERANCE:
+            _fail(context, "desired facing yaw is not normalized to [-180, 180]")
+        used_fallback = _boolean(
+            action["used_previous_facing_for_zero_orientation_intent"],
+            f"{context}.used_previous_facing_for_zero_orientation_intent",
+        )
+        planar_length = math.hypot(orientation[0], orientation[1])
+        if planar_length > 1e-8:
+            expected_yaw = math.degrees(math.atan2(orientation[1], orientation[0]))
+            if used_fallback or _wrapped_angle_error_degrees(desired_yaw, expected_yaw) > 1e-5:
+                _fail(context, "desired facing does not match planar orientation intent")
+        else:
+            previous_yaw = float(previous_state["facing_yaw_deg"])
+            if not used_fallback or _wrapped_angle_error_degrees(desired_yaw, previous_yaw) > 1e-5:
+                _fail(context, "zero orientation intent must fall back to previous facing")
     return action
 
 
@@ -356,17 +410,39 @@ def _validate_smooth_walking_parameters(value: Any, context: str) -> dict[str, A
     return parameters
 
 
+def _validate_input_preparation(value: Any, context: str) -> dict[str, Any]:
+    preparation = _object(value, context)
+    _exact_keys(preparation, _INPUT_PREPARATION_KEYS, context)
+    has_max_speed = _boolean(preparation["has_max_move_speed"], f"{context}.has_max_move_speed")
+    max_speed = _number(
+        preparation["effective_max_speed_cm_per_s"],
+        f"{context}.effective_max_speed_cm_per_s",
+    )
+    if max_speed < 0.0:
+        _fail(context, "effective max speed must be non-negative")
+    source = _string(preparation["max_speed_source"], f"{context}.max_speed_source")
+    if has_max_speed:
+        if source not in {"mode_override", "common_legacy_settings"}:
+            _fail(context, "bounded input preparation requires a concrete max-speed source")
+    elif max_speed != 0.0 or source != "unbounded":
+        _fail(context, "unbounded input preparation must use zero placeholder and unbounded source")
+    return preparation
+
+
 def _validate_nominal_context(
     value: Any,
     state: dict[str, Any],
+    schema_version: int,
     context: str,
 ) -> dict[str, Any]:
     nominal = _object(value, context)
-    _exact_keys(nominal, _NOMINAL_CONTEXT_KEYS, context)
-    if (
-        _integer(nominal["protocol_version"], f"{context}.protocol_version")
-        != NOMINAL_CONTEXT_PROTOCOL_VERSION
-    ):
+    _exact_keys(
+        nominal,
+        _NOMINAL_CONTEXT_V4_KEYS if schema_version >= 4 else _NOMINAL_CONTEXT_KEYS,
+        context,
+    )
+    expected_protocol = NOMINAL_CONTEXT_PROTOCOL_VERSION if schema_version >= 4 else 1
+    if _integer(nominal["protocol_version"], f"{context}.protocol_version") != expected_protocol:
         _fail(context, "unsupported nominal-context protocol version")
     if not _boolean(nominal["is_valid"], f"{context}.is_valid"):
         _fail(context, "nominal context is not marked valid")
@@ -382,6 +458,11 @@ def _validate_nominal_context(
         _fail(context, "nominal context movement mode does not match state")
     _string(nominal["movement_mode_class"], f"{context}.movement_mode_class")
     _validate_smooth_walking_parameters(nominal["parameters"], f"{context}.parameters")
+    if schema_version >= 4:
+        _validate_input_preparation(
+            nominal["input_preparation"],
+            f"{context}.input_preparation",
+        )
 
     internal = _object(nominal["internal_state"], f"{context}.internal_state")
     _exact_keys(internal, _SMOOTH_WALKING_INTERNAL_STATE_KEYS, f"{context}.internal_state")
@@ -419,18 +500,34 @@ def _validate_nominal_transition(
     value: Any,
     previous_state: dict[str, Any],
     next_state: dict[str, Any],
+    schema_version: int,
     context: str,
 ) -> dict[str, Any]:
     nominal = _object(value, context)
-    _exact_keys(nominal, _NOMINAL_TRANSITION_KEYS, context)
-    _validate_nominal_context(nominal["previous"], previous_state, f"{context}.previous")
+    _exact_keys(
+        nominal,
+        _NOMINAL_TRANSITION_V4_KEYS if schema_version >= 4 else _NOMINAL_TRANSITION_KEYS,
+        context,
+    )
+    _validate_nominal_context(
+        nominal["previous"], previous_state, schema_version, f"{context}.previous"
+    )
     step_parameters = _validate_smooth_walking_parameters(
         nominal["parameters_observed_for_completed_step"],
         f"{context}.parameters_observed_for_completed_step",
     )
-    next_context = _validate_nominal_context(nominal["next"], next_state, f"{context}.next")
+    next_context = _validate_nominal_context(
+        nominal["next"], next_state, schema_version, f"{context}.next"
+    )
     if step_parameters != next_context["parameters"]:
         _fail(context, "completed-step parameters do not equal the next finalized snapshot")
+    if schema_version >= 4:
+        step_preparation = _validate_input_preparation(
+            nominal["input_preparation_observed_for_completed_step"],
+            f"{context}.input_preparation_observed_for_completed_step",
+        )
+        if step_preparation != next_context["input_preparation"]:
+            _fail(context, "completed-step input preparation does not equal the next snapshot")
     return nominal
 
 
@@ -581,11 +678,13 @@ def _validate_transition(
     context: str,
 ) -> dict[str, Any]:
     transition = _object(value, context)
-    # Schema v3 adds model-facing nominal context; older evidence remains readable.
+    # Schema v3 adds nominal context; v4 completes the causal input contract.
     _exact_keys(
         transition,
         (
-            _TRANSITION_V3_KEYS
+            _TRANSITION_V4_KEYS
+            if schema_version >= 4
+            else _TRANSITION_V3_KEYS
             if schema_version == 3
             else _TRANSITION_V2_KEYS
             if schema_version == 2
@@ -597,7 +696,7 @@ def _validate_transition(
     row_schema_version = _integer(transition["schema_version"], f"{context}.schema_version")
     if schema_version != row_schema_version:
         _fail(context, "transition schema does not match the header")
-    expected_transition_protocol = 2 if schema_version == 3 else 1
+    expected_transition_protocol = 3 if schema_version >= 4 else 2 if schema_version == 3 else 1
     if (
         _integer(
             transition["transition_protocol_version"],
@@ -613,13 +712,19 @@ def _validate_transition(
     end = _number(transition["end_simulation_time_s"], f"{context}.end_simulation_time_s")
     delta = _number(transition["delta_time_s"], f"{context}.delta_time_s", positive=True)
     previous_state = _validate_state(transition["previous_state"], f"{context}.previous_state")
-    _validate_action(transition["applied_action"], previous_state, f"{context}.applied_action")
+    _validate_action(
+        transition["applied_action"],
+        previous_state,
+        schema_version,
+        f"{context}.applied_action",
+    )
     next_state = _validate_state(transition["next_state"], f"{context}.next_state")
-    if schema_version == 3:
+    if schema_version >= 3:
         _validate_nominal_transition(
             transition["nominal_context"],
             previous_state,
             next_state,
+            schema_version,
             f"{context}.nominal_context",
         )
 
@@ -656,7 +761,9 @@ def _validate_header(value: Any) -> dict[str, Any]:
     _exact_keys(
         header,
         (
-            _HEADER_V3_KEYS
+            _HEADER_V4_KEYS
+            if schema_version >= 4
+            else _HEADER_V3_KEYS
             if schema_version == 3
             else _HEADER_V2_KEYS
             if schema_version == 2
@@ -706,23 +813,24 @@ def _validate_header(value: Any) -> dict[str, Any]:
         _fail("header.recorder_stats", "attempt counts do not reconcile")
     if schema_version >= 2:
         header["scenario"] = _validate_timed_gate_header(header["scenario"], "header.scenario")
-    if schema_version == 3:
+    if schema_version >= 3:
         contract = _object(
             header["nominal_context_contract"],
             "header.nominal_context_contract",
         )
         _exact_keys(
             contract,
-            _NOMINAL_CONTEXT_CONTRACT_KEYS,
+            (
+                _NOMINAL_CONTEXT_CONTRACT_V4_KEYS
+                if schema_version >= 4
+                else _NOMINAL_CONTEXT_CONTRACT_KEYS
+            ),
             "header.nominal_context_contract",
         )
-        if (
-            _integer(
-                contract["protocol_version"],
-                "header.nominal_context_contract.protocol_version",
-            )
-            != 1
-        ):
+        if _integer(
+            contract["protocol_version"],
+            "header.nominal_context_contract.protocol_version",
+        ) != (2 if schema_version >= 4 else 1):
             _fail("header.nominal_context_contract", "unsupported contract protocol version")
         _string(
             contract["source"],
@@ -749,6 +857,17 @@ def _validate_header(value: Any) -> dict[str, Any]:
             "header.nominal_context_contract.future_planner_availability",
             expected="not_guaranteed_requires_causal_selector",
         )
+        if schema_version >= 4:
+            _string(
+                contract["input_preparation_source"],
+                "header.nominal_context_contract.input_preparation_source",
+                expected="simple_walking_mode_and_shared_settings",
+            )
+            _string(
+                contract["orientation_intent_semantics"],
+                "header.nominal_context_contract.orientation_intent_semantics",
+                expected="echoed_world_space_input_with_simple_walking_planar_fallback",
+            )
     return header
 
 
@@ -864,7 +983,7 @@ def load_episode(path: str | Path, *, max_transitions: int = MAX_TRANSITIONS) ->
             and (
                 transition["previous_state"] != previous_transition["next_state"]
                 or (
-                    schema_version == 3
+                    schema_version >= 3
                     and transition["nominal_context"]["previous"]
                     != previous_transition["nominal_context"]["next"]
                 )

@@ -222,6 +222,40 @@ def _v3_records() -> list[dict[str, object]]:
     return records
 
 
+def _input_preparation() -> dict[str, object]:
+    return {
+        "has_max_move_speed": True,
+        "effective_max_speed_cm_per_s": 165.0,
+        "max_speed_source": "common_legacy_settings",
+    }
+
+
+def _v4_records() -> list[dict[str, object]]:
+    records = _v3_records()
+    records[0]["schema_version"] = 4
+    contract = records[0]["nominal_context_contract"]
+    contract["protocol_version"] = 2
+    contract["input_preparation_source"] = "simple_walking_mode_and_shared_settings"
+    contract["orientation_intent_semantics"] = (
+        "echoed_world_space_input_with_simple_walking_planar_fallback"
+    )
+    for row in records[1:-1]:
+        row["schema_version"] = 4
+        row["transition_protocol_version"] = 3
+        row["applied_action"]["orientation_intent_world"] = [1.0, 0.0, 0.0]
+        row["applied_action"]["desired_facing_yaw_deg"] = 0.0
+        row["applied_action"]["used_previous_facing_for_zero_orientation_intent"] = False
+        nominal = row["nominal_context"]
+        for endpoint in ("previous", "next"):
+            nominal[endpoint]["protocol_version"] = 2
+            nominal[endpoint]["input_preparation"] = _input_preparation()
+        nominal["input_preparation_observed_for_completed_step"] = copy.deepcopy(
+            nominal["next"]["input_preparation"]
+        )
+    records[-1]["schema_version"] = 4
+    return records
+
+
 def _write(path: Path, records: list[dict[str, object]]) -> Path:
     path.write_text("".join(f"{json.dumps(record)}\n" for record in records), encoding="utf-8")
     return path
@@ -253,6 +287,50 @@ def test_valid_v3_episode_loads_aligned_nominal_context(tmp_path: Path) -> None:
         episode.transitions[0]["nominal_context"]["previous"]["authoritative_state_sample_sequence"]
         == 10
     )
+
+
+def test_valid_v4_episode_loads_complete_causal_contract(tmp_path: Path) -> None:
+    episode = load_episode(_write(tmp_path / "complete_contract.jsonl", _v4_records()))
+
+    first = episode.transitions[0]
+    assert episode.header["schema_version"] == 4
+    assert first["transition_protocol_version"] == 3
+    assert first["applied_action"]["desired_facing_yaw_deg"] == 0.0
+    assert (
+        first["nominal_context"]["input_preparation_observed_for_completed_step"][
+            "effective_max_speed_cm_per_s"
+        ]
+        == 165.0
+    )
+
+
+def test_v4_effective_speed_must_match_next_snapshot(tmp_path: Path) -> None:
+    records = _v4_records()
+    records[1]["nominal_context"]["input_preparation_observed_for_completed_step"][
+        "effective_max_speed_cm_per_s"
+    ] = 200.0
+
+    with pytest.raises(EpisodeValidationError, match="completed-step input preparation"):
+        load_episode(_write(tmp_path / "wrong_speed_preparation.jsonl", records))
+
+
+def test_v4_facing_target_must_match_orientation_intent(tmp_path: Path) -> None:
+    records = _v4_records()
+    records[1]["applied_action"]["orientation_intent_world"] = [0.0, 1.0, 0.0]
+
+    with pytest.raises(EpisodeValidationError, match="desired facing"):
+        load_episode(_write(tmp_path / "wrong_facing_target.jsonl", records))
+
+
+def test_v4_zero_orientation_requires_previous_facing_fallback(tmp_path: Path) -> None:
+    records = _v4_records()
+    records[1]["applied_action"]["orientation_intent_world"] = [0.0, 0.0, 5.0]
+    records[1]["applied_action"]["used_previous_facing_for_zero_orientation_intent"] = True
+    episode = load_episode(_write(tmp_path / "zero_orientation.jsonl", records))
+
+    assert episode.transitions[0]["applied_action"][
+        "used_previous_facing_for_zero_orientation_intent"
+    ]
 
 
 def test_v3_context_from_wrong_state_sequence_is_rejected(tmp_path: Path) -> None:

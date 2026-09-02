@@ -14,6 +14,9 @@ namespace
 		Sample.AuthoritativeStateSampleSequence = 42;
 		Sample.MovementModeName = TEXT("Walking");
 		Sample.MovementModeClass = TEXT("BP_MovementMode_Walking_C");
+		Sample.bHasMaxMoveSpeed = true;
+		Sample.EffectiveMaxSpeedCmPerSec = 165.0;
+		Sample.MaxSpeedSource = EMotionWorldMaxSpeedSource::CommonLegacySettings;
 		Sample.AccelerationCmPerSecSquared = 500.0;
 		Sample.DecelerationCmPerSecSquared = 300.0;
 		Sample.DirectionalAccelerationFactor = 1.0;
@@ -48,12 +51,14 @@ bool FMotionWorldNominalContextTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("Strict validator accepts complete context"), MotionWorld::IsNominalContextSampleValid(Valid));
 	TestEqual(TEXT("State sequence remains aligned"), Valid.AuthoritativeStateSampleSequence, int64(42));
 	TestEqual(TEXT("Acceleration is preserved"), Valid.Parameters.AccelerationCmPerSecSquared, 500.0);
+	TestEqual(TEXT("Context protocol includes preprocessing"), Valid.ProtocolVersion, 2);
+	TestEqual(TEXT("Effective max speed is preserved"), Valid.InputPreparation.EffectiveMaxSpeedCmPerSec, 165.0);
 	TestEqual(
 		TEXT("Hidden spring velocity is preserved"),
 		Valid.InternalState.SpringVelocityWorldCmPerSec,
 		Diagnostic.SpringVelocityWorldCmPerSec);
 
-	Diagnostic.ProtocolVersion = 2;
+	Diagnostic.ProtocolVersion = 3;
 	const FMotionWorldNominalContextSample Unsupported =
 		MotionWorld::BuildNominalContextSample(Diagnostic);
 	TestFalse(TEXT("Unknown telemetry version fails closed"), Unsupported.bIsValid);

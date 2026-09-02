@@ -3,7 +3,7 @@
 namespace
 {
 constexpr int32 SupportedStateProtocolVersion = 1;
-constexpr int32 SupportedNominalContextProtocolVersion = 1;
+constexpr int32 SupportedNominalContextProtocolVersion = 2;
 constexpr int32 MaximumSupportedTransitionCapacity = 100000;
 } // namespace
 
@@ -118,7 +118,9 @@ FInMemoryEpisodeRecorder::ObserveFinalizedStep(
 	const FMotionWorldNominalContextSample& CurrentNominalContext,
 	const bool bAppliedInputWasVelocity,
 	const bool bWasMotionWorldAutomated,
-	const FVector& AppliedVelocityWorldCmPerSec)
+	const FVector& AppliedVelocityWorldCmPerSec,
+	const bool bHasAppliedOrientationIntent,
+	const FVector& AppliedOrientationIntentWorld)
 {
 	if (!Stats.bIsRecording)
 	{
@@ -152,6 +154,8 @@ FInMemoryEpisodeRecorder::ObserveFinalizedStep(
 	Inputs.bAppliedInputWasVelocity = bAppliedInputWasVelocity;
 	Inputs.bWasMotionWorldAutomated = bWasMotionWorldAutomated;
 	Inputs.AppliedVelocityWorldCmPerSec = AppliedVelocityWorldCmPerSec;
+	Inputs.bHasAppliedOrientationIntent = bHasAppliedOrientationIntent;
+	Inputs.AppliedOrientationIntentWorld = AppliedOrientationIntentWorld;
 
 	LastCandidate = BuildTransitionSample(Inputs);
 	bHasLastCandidate = true;

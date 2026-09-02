@@ -38,6 +38,9 @@ FMotionWorldNominalContextSample MakeExporterContext(const int64 SampleSequence)
 	Context.AuthoritativeStateSampleSequence = SampleSequence;
 	Context.MovementModeName = TEXT("Walking");
 	Context.MovementModeClass = TEXT("BP_MovementMode_Walking_C");
+	Context.InputPreparation.bHasMaxMoveSpeed = true;
+	Context.InputPreparation.EffectiveMaxSpeedCmPerSec = 165.0;
+	Context.InputPreparation.MaxSpeedSource = EMotionWorldMaxSpeedSource::CommonLegacySettings;
 	Context.Parameters.AccelerationCmPerSecSquared = 500.0;
 	Context.Parameters.DecelerationCmPerSecSquared = 300.0;
 	Context.Parameters.DirectionalAccelerationFactor = 1.0;
@@ -70,6 +73,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 bool FMotionWorldEpisodeExporterTest::RunTest(const FString& Parameters)
 {
 	MotionWorld::FInMemoryEpisodeRecorder Recorder;
+	const FVector OrientationIntent = FVector::ForwardVector;
 	TestTrue(TEXT("Test episode starts"), Recorder.StartEpisode(42, 4));
 	TestEqual(
 		TEXT("Initial state seeds"),
@@ -78,7 +82,9 @@ bool FMotionWorldEpisodeExporterTest::RunTest(const FString& Parameters)
 			MakeExporterContext(10),
 			true,
 			true,
-			FVector(100.0, 0.0, 0.0)),
+			FVector(100.0, 0.0, 0.0),
+			true,
+			OrientationIntent),
 		EMotionWorldRecorderObservationResult::Seeded);
 	TestEqual(
 		TEXT("First row records"),
@@ -87,7 +93,9 @@ bool FMotionWorldEpisodeExporterTest::RunTest(const FString& Parameters)
 			MakeExporterContext(11),
 			true,
 			true,
-			FVector(100.0, 0.0, 0.0)),
+			FVector(100.0, 0.0, 0.0),
+			true,
+			OrientationIntent),
 		EMotionWorldRecorderObservationResult::Recorded);
 	TestEqual(
 		TEXT("Second row records"),
@@ -96,7 +104,9 @@ bool FMotionWorldEpisodeExporterTest::RunTest(const FString& Parameters)
 			MakeExporterContext(12),
 			true,
 			true,
-			FVector(100.0, 0.0, 0.0)),
+			FVector(100.0, 0.0, 0.0),
+			true,
+			OrientationIntent),
 		EMotionWorldRecorderObservationResult::Recorded);
 
 	const FMotionWorldEpisodeRecorderStats CompletedStats = Recorder.GetStats();
@@ -147,9 +157,9 @@ bool FMotionWorldEpisodeExporterTest::RunTest(const FString& Parameters)
 				static_cast<int64>(Header->GetNumberField(TEXT("episode_id"))),
 				int64(42));
 			TestEqual(
-				TEXT("Header declares schema version three"),
+				TEXT("Header declares schema version four"),
 				static_cast<int32>(Header->GetNumberField(TEXT("schema_version"))),
-				3);
+				4);
 			TestEqual(
 				TEXT("Context source contract is explicit"),
 				Header->GetObjectField(TEXT("nominal_context_contract"))->GetStringField(TEXT("source")),
@@ -167,6 +177,14 @@ bool FMotionWorldEpisodeExporterTest::RunTest(const FString& Parameters)
 				TEXT("Completed-step acceleration is serialized"),
 				FirstTransition->GetObjectField(TEXT("nominal_context"))->GetObjectField(TEXT("parameters_observed_for_completed_step"))->GetNumberField(TEXT("acceleration_cm_per_s2")),
 				500.0);
+			TestEqual(
+				TEXT("Effective runtime max speed is serialized"),
+				FirstTransition->GetObjectField(TEXT("nominal_context"))->GetObjectField(TEXT("input_preparation_observed_for_completed_step"))->GetNumberField(TEXT("effective_max_speed_cm_per_s")),
+				165.0);
+			TestEqual(
+				TEXT("Facing target is serialized with the action"),
+				FirstTransition->GetObjectField(TEXT("applied_action"))->GetNumberField(TEXT("desired_facing_yaw_deg")),
+				0.0);
 			TestTrue(TEXT("Footer marks the file complete"), Footer->GetBoolField(TEXT("complete")));
 			TestEqual(
 				TEXT("Footer count matches the payload"),

@@ -5,7 +5,7 @@
 namespace
 {
 constexpr int32 SupportedStateProtocolVersion = 1;
-constexpr int32 SupportedNominalContextProtocolVersion = 1;
+constexpr int32 SupportedNominalContextProtocolVersion = 2;
 constexpr double TimestepToleranceSeconds = 0.001;
 constexpr double PlanarToleranceCmPerSec = 0.011;
 constexpr double FacingUnitTolerance = 0.001;
@@ -150,6 +150,8 @@ FMotionWorldTransitionSample BuildTransitionSample(
 	Result.PreviousNominalContext = Inputs.PreviousNominalContext;
 	Result.NextNominalContext = Inputs.NextNominalContext;
 	Result.ParametersObservedForCompletedStep = Inputs.NextNominalContext.Parameters;
+	Result.InputPreparationObservedForCompletedStep =
+		Inputs.NextNominalContext.InputPreparation;
 
 	if (Inputs.PreviousState.bIsResimulation || Inputs.NextState.bIsResimulation)
 	{
@@ -229,6 +231,19 @@ FMotionWorldTransitionSample BuildTransitionSample(
 		return Result;
 	}
 
+	if (!Inputs.bHasAppliedOrientationIntent)
+	{
+		Result.RejectionReason =
+			EMotionWorldTransitionRejectionReason::MissingOrientationIntent;
+		return Result;
+	}
+	if (!IsFiniteVector(Inputs.AppliedOrientationIntentWorld))
+	{
+		Result.RejectionReason =
+			EMotionWorldTransitionRejectionReason::NonFiniteOrientationIntent;
+		return Result;
+	}
+
 	Result.AppliedAction.Type = EMotionWorldAppliedActionType::DesiredVelocity;
 	Result.AppliedAction.bIsValid = true;
 	Result.AppliedAction.bWasMotionWorldAutomated = Inputs.bWasMotionWorldAutomated;
@@ -240,6 +255,22 @@ FMotionWorldTransitionSample BuildTransitionSample(
 		WorldToCharacterLocalPlanarVelocity(
 			Result.AppliedAction.VelocityWorldCmPerSec,
 			Inputs.PreviousState.FacingYawDegrees);
+	Result.AppliedAction.OrientationIntentWorld = Inputs.AppliedOrientationIntentWorld;
+	FVector PlanarOrientationIntent(
+		Inputs.AppliedOrientationIntentWorld.X,
+		Inputs.AppliedOrientationIntentWorld.Y,
+		0.0);
+	if (PlanarOrientationIntent.Normalize())
+	{
+		Result.AppliedAction.DesiredFacingYawDegrees = FMath::RadiansToDegrees(
+			FMath::Atan2(PlanarOrientationIntent.Y, PlanarOrientationIntent.X));
+	}
+	else
+	{
+		Result.AppliedAction.DesiredFacingYawDegrees =
+			Inputs.PreviousState.FacingYawDegrees;
+		Result.AppliedAction.bUsedPreviousFacingForZeroOrientationIntent = true;
+	}
 	Result.bIsValid = true;
 	Result.RejectionReason = EMotionWorldTransitionRejectionReason::None;
 	return Result;

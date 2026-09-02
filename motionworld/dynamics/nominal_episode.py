@@ -1,4 +1,4 @@
-"""Typed adapter from validated episode-schema-v3 rows to nominal dynamics."""
+"""Typed adapter from validated episode rows to faithful nominal dynamics."""
 
 from __future__ import annotations
 
@@ -103,21 +103,35 @@ def internal_from_context_record(record: dict[str, Any]) -> SmoothWalkingInterna
 def retrospective_nominal_inputs(
     transition: dict[str, Any],
     *,
-    desired_facing_yaw_rad: float,
-    effective_max_speed_cm_s: float,
+    desired_facing_yaw_rad: float | None = None,
+    effective_max_speed_cm_s: float | None = None,
 ) -> NominalTransitionInputs:
-    """Build one-step inputs without inventing the unrecorded orientation intent.
+    """Build one-step inputs, inferring only fields made explicit by schema v4.
 
     The schema explicitly labels ``parameters_observed_for_completed_step`` as
     retrospective.  It is correct for equation-parity evaluation, but a planner
     may use it only when the same parameter setting is known before its action.
-    Desired facing remains an explicit caller argument because schema v3 records
-    only desired velocity; silently deriving it would hide a causal assumption.
+    Legacy schema-v3 rows require explicit facing and max-speed arguments because
+    those causal fields were not recorded. Schema v4 reads both from the row.
     """
 
     nominal_context = transition["nominal_context"]
+    action_record = transition["applied_action"]
+    if desired_facing_yaw_rad is None:
+        if "desired_facing_yaw_deg" not in action_record:
+            raise ValueError("legacy transition requires explicit desired_facing_yaw_rad")
+        desired_facing_yaw_rad = math.radians(float(action_record["desired_facing_yaw_deg"]))
+    if effective_max_speed_cm_s is None:
+        preparation = nominal_context.get("input_preparation_observed_for_completed_step")
+        if preparation is None:
+            raise ValueError("legacy transition requires explicit effective_max_speed_cm_s")
+        if preparation["has_max_move_speed"]:
+            effective_max_speed_cm_s = float(preparation["effective_max_speed_cm_per_s"])
+        else:
+            requested = np.asarray(action_record["velocity_world_cm_per_s"], dtype=np.float64)
+            effective_max_speed_cm_s = float(np.linalg.norm(requested[:2]))
     prepared_input = prepare_velocity_input(
-        transition["applied_action"]["velocity_world_cm_per_s"],
+        action_record["velocity_world_cm_per_s"],
         effective_max_speed_cm_s=effective_max_speed_cm_s,
     )
     return NominalTransitionInputs(

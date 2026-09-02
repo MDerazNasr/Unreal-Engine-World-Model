@@ -32,7 +32,9 @@ enum class EMotionWorldTransitionRejectionReason : uint8
 	TimestepMismatch,
 	UnsupportedActionType,
 	NonFiniteAction,
-	NonPlanarAction
+	NonPlanarAction,
+	MissingOrientationIntent,
+	NonFiniteOrientationIntent
 };
 
 /** Velocity input actually consumed by Mover for one finalized transition. */
@@ -56,6 +58,17 @@ struct MOTIONWORLD_API FMotionWorldAppliedVelocityAction
 	/** Applied velocity expressed using the previous state's character frame. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Transition")
 	FVector VelocityLocalPlanarCmPerSec = FVector::ZeroVector;
+
+	/** Orientation intent consumed by Simple Walking, before planar normalization. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Transition")
+	FVector OrientationIntentWorld = FVector::ZeroVector;
+
+	/** Facing target after Simple Walking's zero-vector fallback and planar normalization. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Transition")
+	double DesiredFacingYawDegrees = 0.0;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Transition")
+	bool bUsedPreviousFacingForZeroOrientationIntent = false;
 };
 
 /** One causal training candidate: previous state, applied action, and finalized next state. */
@@ -65,7 +78,7 @@ struct MOTIONWORLD_API FMotionWorldTransitionSample
 	GENERATED_BODY()
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Transition")
-	int32 ProtocolVersion = 2;
+	int32 ProtocolVersion = 3;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Transition")
 	int64 EpisodeId = -1;
@@ -106,6 +119,9 @@ struct MOTIONWORLD_API FMotionWorldTransitionSample
 	FMotionWorldSmoothWalkingParameters ParametersObservedForCompletedStep;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Transition")
+	FMotionWorldSimpleWalkingInputPreparation InputPreparationObservedForCompletedStep;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Transition")
 	FMotionWorldStateSample NextState;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Transition")
@@ -129,6 +145,8 @@ struct FTransitionSampleInputs
 	bool bAppliedInputWasVelocity = false;
 	bool bWasMotionWorldAutomated = false;
 	FVector AppliedVelocityWorldCmPerSec = FVector::ZeroVector;
+	bool bHasAppliedOrientationIntent = false;
+	FVector AppliedOrientationIntentWorld = FVector::ZeroVector;
 };
 
 /** Builds a causal transition candidate or returns an explicit rejection reason. */

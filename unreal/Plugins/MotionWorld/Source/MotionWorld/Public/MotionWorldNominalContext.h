@@ -78,6 +78,22 @@ struct MOTIONWORLD_API FMotionWorldSmoothWalkingInternalState
 	FVector IntermediateAngularVelocityWorldRadPerSec = FVector::ZeroVector;
 };
 
+/** Known velocity preprocessing performed immediately before Smooth Walking. */
+USTRUCT(BlueprintType)
+struct MOTIONWORLD_API FMotionWorldSimpleWalkingInputPreparation
+{
+	GENERATED_BODY()
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Nominal Context")
+	bool bHasMaxMoveSpeed = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Nominal Context")
+	double EffectiveMaxSpeedCmPerSec = 0.0;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Nominal Context")
+	EMotionWorldMaxSpeedSource MaxSpeedSource = EMotionWorldMaxSpeedSource::Unavailable;
+};
+
 /**
  * Versioned context observed at the same post-finalize boundary as an authoritative state.
  * This augments a transition; it does not replace or redefine authoritative state.
@@ -88,7 +104,7 @@ struct MOTIONWORLD_API FMotionWorldNominalContextSample
 	GENERATED_BODY()
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Nominal Context")
-	int32 ProtocolVersion = 1;
+	int32 ProtocolVersion = 2;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Nominal Context")
 	bool bIsValid = false;
@@ -109,6 +125,9 @@ struct MOTIONWORLD_API FMotionWorldNominalContextSample
 	FMotionWorldSmoothWalkingParameters Parameters;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Nominal Context")
+	FMotionWorldSimpleWalkingInputPreparation InputPreparation;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Nominal Context")
 	FMotionWorldSmoothWalkingInternalState InternalState;
 };
 
@@ -116,6 +135,9 @@ namespace MotionWorld
 {
 MOTIONWORLD_API bool AreSmoothWalkingParametersValid(
 	const FMotionWorldSmoothWalkingParameters& Parameters);
+
+MOTIONWORLD_API bool IsSimpleWalkingInputPreparationValid(
+	const FMotionWorldSimpleWalkingInputPreparation& InputPreparation);
 
 MOTIONWORLD_API bool IsNominalContextSampleValid(
 	const FMotionWorldNominalContextSample& Sample);

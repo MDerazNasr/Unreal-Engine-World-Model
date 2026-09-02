@@ -64,16 +64,31 @@ bool MotionWorld::AreSmoothWalkingParametersValid(
 		&& Parameters.AngularVelocityDeadzoneDegreesPerSec >= 0.0;
 }
 
+bool MotionWorld::IsSimpleWalkingInputPreparationValid(
+	const FMotionWorldSimpleWalkingInputPreparation& InputPreparation)
+{
+	if (InputPreparation.bHasMaxMoveSpeed)
+	{
+		return FMath::IsFinite(InputPreparation.EffectiveMaxSpeedCmPerSec)
+			&& InputPreparation.EffectiveMaxSpeedCmPerSec >= 0.0
+			&& (InputPreparation.MaxSpeedSource == EMotionWorldMaxSpeedSource::ModeOverride
+				|| InputPreparation.MaxSpeedSource == EMotionWorldMaxSpeedSource::CommonLegacySettings);
+	}
+	return InputPreparation.EffectiveMaxSpeedCmPerSec == 0.0
+		&& InputPreparation.MaxSpeedSource == EMotionWorldMaxSpeedSource::Unbounded;
+}
+
 bool MotionWorld::IsNominalContextSampleValid(
 	const FMotionWorldNominalContextSample& Sample)
 {
-	return Sample.ProtocolVersion == 1
+	return Sample.ProtocolVersion == 2
 		&& Sample.bIsValid
 		&& Sample.AuthoritativeStateSampleSequence >= 0
 		&& !Sample.MovementModeName.IsNone()
 		&& !Sample.MovementModeClass.IsNone()
 		&& Sample.FailureReason.IsNone()
 		&& AreSmoothWalkingParametersValid(Sample.Parameters)
+		&& IsSimpleWalkingInputPreparationValid(Sample.InputPreparation)
 		&& IsFiniteVector(Sample.InternalState.SpringVelocityWorldCmPerSec)
 		&& IsFiniteVector(Sample.InternalState.SpringAccelerationWorldCmPerSecSquared)
 		&& IsFiniteVector(Sample.InternalState.IntermediateVelocityWorldCmPerSec)
@@ -90,7 +105,7 @@ FMotionWorldNominalContextSample MotionWorld::BuildNominalContextSample(
 	Result.MovementModeClass = Diagnostic.MovementModeClass;
 	Result.FailureReason = Diagnostic.FailureReason;
 
-	if (Diagnostic.ProtocolVersion != 1)
+	if (Diagnostic.ProtocolVersion != 2)
 	{
 		Result.FailureReason = TEXT("unsupported_diagnostic_protocol");
 		return Result;
@@ -119,6 +134,9 @@ FMotionWorldNominalContextSample MotionWorld::BuildNominalContextSample(
 	Result.Parameters.bSmoothFacingWithDoubleSpring = Diagnostic.bSmoothFacingWithDoubleSpring;
 	Result.Parameters.FacingDeadzoneDegrees = Diagnostic.FacingDeadzoneDegrees;
 	Result.Parameters.AngularVelocityDeadzoneDegreesPerSec = Diagnostic.AngularVelocityDeadzoneDegreesPerSec;
+	Result.InputPreparation.bHasMaxMoveSpeed = Diagnostic.bHasMaxMoveSpeed;
+	Result.InputPreparation.EffectiveMaxSpeedCmPerSec = Diagnostic.EffectiveMaxSpeedCmPerSec;
+	Result.InputPreparation.MaxSpeedSource = Diagnostic.MaxSpeedSource;
 	Result.InternalState.SpringVelocityWorldCmPerSec = Diagnostic.SpringVelocityWorldCmPerSec;
 	Result.InternalState.SpringAccelerationWorldCmPerSecSquared =
 		Diagnostic.SpringAccelerationWorldCmPerSecSquared;

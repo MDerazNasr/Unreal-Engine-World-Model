@@ -31,6 +31,9 @@ FMotionWorldNominalContextSample MakeRecorderContext(const int64 SampleSequence)
 	Context.AuthoritativeStateSampleSequence = SampleSequence;
 	Context.MovementModeName = TEXT("Walking");
 	Context.MovementModeClass = TEXT("BP_MovementMode_Walking_C");
+	Context.InputPreparation.bHasMaxMoveSpeed = true;
+	Context.InputPreparation.EffectiveMaxSpeedCmPerSec = 165.0;
+	Context.InputPreparation.MaxSpeedSource = EMotionWorldMaxSpeedSource::CommonLegacySettings;
 	Context.Parameters.AccelerationCmPerSecSquared = 500.0;
 	Context.Parameters.DecelerationCmPerSecSquared = 300.0;
 	Context.Parameters.DirectionalAccelerationFactor = 1.0;
@@ -56,6 +59,7 @@ bool FMotionWorldEpisodeRecorderTest::RunTest(const FString& Parameters)
 {
 	MotionWorld::FInMemoryEpisodeRecorder Recorder;
 	const FVector WorldVelocity(0.0, 200.0, 0.0);
+	const FVector OrientationIntent(0.0, 1.0, 0.0);
 
 	TestEqual(
 		TEXT("Observations are ignored until an episode starts"),
@@ -64,7 +68,9 @@ bool FMotionWorldEpisodeRecorderTest::RunTest(const FString& Parameters)
 			MakeRecorderContext(10),
 			true,
 			true,
-			WorldVelocity),
+			WorldVelocity,
+			true,
+			OrientationIntent),
 		EMotionWorldRecorderObservationResult::IgnoredNotRecording);
 	TestFalse(TEXT("Negative episode IDs fail closed"), Recorder.StartEpisode(-1, 2));
 	TestFalse(TEXT("Zero capacity fails closed"), Recorder.StartEpisode(7, 0));
@@ -78,7 +84,9 @@ bool FMotionWorldEpisodeRecorderTest::RunTest(const FString& Parameters)
 			MakeRecorderContext(10),
 			true,
 			true,
-			WorldVelocity),
+			WorldVelocity,
+			true,
+			OrientationIntent),
 		EMotionWorldRecorderObservationResult::Seeded);
 	TestEqual(
 		TEXT("Seeding stores no row"),
@@ -92,7 +100,9 @@ bool FMotionWorldEpisodeRecorderTest::RunTest(const FString& Parameters)
 			MakeRecorderContext(11),
 			true,
 			true,
-			WorldVelocity),
+			WorldVelocity,
+			true,
+			OrientationIntent),
 		EMotionWorldRecorderObservationResult::Recorded);
 	const FMotionWorldTransitionSample& First = Recorder.GetTransitions()[0];
 	TestEqual(TEXT("Episode identity reaches the row"), First.EpisodeId, int64(7));
@@ -112,7 +122,9 @@ bool FMotionWorldEpisodeRecorderTest::RunTest(const FString& Parameters)
 			MakeRecorderContext(12),
 			false,
 			false,
-			FVector::ZeroVector),
+			FVector::ZeroVector,
+			true,
+			OrientationIntent),
 		EMotionWorldRecorderObservationResult::RejectedTransition);
 	TestEqual(
 		TEXT("The rejection reason is counted"),
@@ -127,7 +139,9 @@ bool FMotionWorldEpisodeRecorderTest::RunTest(const FString& Parameters)
 			MakeRecorderContext(13),
 			true,
 			true,
-			WorldVelocity),
+			WorldVelocity,
+			true,
+			OrientationIntent),
 		EMotionWorldRecorderObservationResult::Recorded);
 	TestEqual(
 		TEXT("Rejected attempts leave a visible transition-sequence gap"),
@@ -145,7 +159,9 @@ bool FMotionWorldEpisodeRecorderTest::RunTest(const FString& Parameters)
 			MakeRecorderContext(14),
 			true,
 			true,
-			WorldVelocity),
+			WorldVelocity,
+			true,
+			OrientationIntent),
 		EMotionWorldRecorderObservationResult::StoppedBufferFull);
 	const FMotionWorldEpisodeRecorderStats FullStats = Recorder.GetStats();
 	TestFalse(TEXT("Capacity overflow stops recording"), FullStats.bIsRecording);
@@ -165,7 +181,9 @@ bool FMotionWorldEpisodeRecorderTest::RunTest(const FString& Parameters)
 			MakeRecorderContext(50),
 			true,
 			true,
-			WorldVelocity),
+			WorldVelocity,
+			true,
+			OrientationIntent),
 		EMotionWorldRecorderObservationResult::RejectedSeed);
 	TestEqual(TEXT("Restart cleared stored rows"), Recorder.GetTransitions().Num(), 0);
 	TestEqual(
@@ -180,7 +198,9 @@ bool FMotionWorldEpisodeRecorderTest::RunTest(const FString& Parameters)
 			MakeRecorderContext(50),
 			true,
 			true,
-			WorldVelocity),
+			WorldVelocity,
+			true,
+			OrientationIntent),
 		EMotionWorldRecorderObservationResult::Seeded);
 	FMotionWorldStateSample Resimulated = MakeRecorderState(51, 61, 2.050);
 	Resimulated.bIsResimulation = true;
@@ -191,7 +211,9 @@ bool FMotionWorldEpisodeRecorderTest::RunTest(const FString& Parameters)
 			MakeRecorderContext(51),
 			true,
 			true,
-			WorldVelocity),
+			WorldVelocity,
+			true,
+			OrientationIntent),
 		EMotionWorldRecorderObservationResult::RejectedTransition);
 	TestFalse(
 		TEXT("A resimulated endpoint is never retained as the next seed"),
@@ -211,7 +233,9 @@ bool FMotionWorldEpisodeRecorderTest::RunTest(const FString& Parameters)
 			MisalignedSeed,
 			true,
 			true,
-			WorldVelocity),
+			WorldVelocity,
+			true,
+			OrientationIntent),
 		EMotionWorldRecorderObservationResult::RejectedSeed);
 	TestEqual(
 		TEXT("Context mismatch is counted explicitly"),

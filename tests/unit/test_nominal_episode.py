@@ -116,3 +116,24 @@ def test_adapter_applies_explicit_simple_walking_speed_limit() -> None:
         result.action.desired_velocity_world_cm_s,
         [165.0, 0.0, 0.0],
     )
+
+
+def test_adapter_infers_schema_v4_facing_and_speed_limit() -> None:
+    transition = _transition()
+    transition["applied_action"]["velocity_world_cm_per_s"] = [200.0, 0.0, 0.0]
+    transition["applied_action"]["desired_facing_yaw_deg"] = 70.0
+    transition["nominal_context"]["input_preparation_observed_for_completed_step"] = {
+        "has_max_move_speed": True,
+        "effective_max_speed_cm_per_s": 165.0,
+        "max_speed_source": "common_legacy_settings",
+    }
+
+    result = retrospective_nominal_inputs(transition)
+
+    np.testing.assert_array_equal(result.action.desired_velocity_world_cm_s, [165.0, 0.0, 0.0])
+    assert result.action.desired_facing_yaw_rad == pytest.approx(math.radians(70.0))
+
+
+def test_adapter_refuses_to_invent_missing_legacy_causal_fields() -> None:
+    with pytest.raises(ValueError, match="desired_facing"):
+        retrospective_nominal_inputs(_transition())

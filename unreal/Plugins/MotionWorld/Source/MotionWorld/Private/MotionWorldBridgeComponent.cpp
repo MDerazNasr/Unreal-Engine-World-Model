@@ -1074,14 +1074,19 @@ void UMotionWorldBridgeComponent::ProduceInput_Implementation(
 	FCharacterDefaultInputs& Inputs =
 		InputCmdResult.InputCollection.FindOrAddMutableDataByType<FCharacterDefaultInputs>();
 
-	// Preserve the existing facing intent before changing the movement-base frame.
-	const FVector ExistingOrientationIntentWorld = Inputs.GetOrientationIntentDir_WorldSpace();
 	Inputs.bUsingMovementBase = false;
 	Inputs.MovementBase = nullptr;
 	Inputs.MovementBaseBoneName = NAME_None;
+	// Automation owns both causal inputs. Holding the last finalized facing makes
+	// the velocity-only policy deterministic instead of inheriting camera/controller state.
 	Inputs.OrientationIntent = ResetStatus.bIsPending
 		? ResetAnchor.OrientationWorldDegrees.Vector()
-		: ExistingOrientationIntentWorld;
+		: (LastAuthoritativeState.bIsValid
+			? FVector(
+				LastAuthoritativeState.FacingUnitWorld.X,
+				LastAuthoritativeState.FacingUnitWorld.Y,
+				0.0)
+			: Inputs.GetOrientationIntentDir_WorldSpace());
 	Inputs.SetMoveInput(EMoveInputType::Velocity, Sanitized.WorldVelocityCmPerSec);
 
 	// Read back the value stored by SetMoveInput because Mover quantizes it to 0.01 cm/s.
@@ -1110,16 +1115,25 @@ void UMotionWorldBridgeComponent::CaptureSmoothWalkingContextIfNeeded(
 	Inputs.AuthoritativeStateSampleSequence = LastAuthoritativeState.SampleSequence;
 	Inputs.MovementModeName = SyncState.MovementMode;
 	FName ParameterFailure;
+	FName InputPreparationFailure;
 	FName StateFailure;
 	MotionWorld::ReadSmoothWalkingParameters(
 		MoverComponent->GetMovementMode(),
 		Inputs,
 		ParameterFailure);
+	MotionWorld::ReadSimpleWalkingInputPreparation(
+		MoverComponent->GetMovementMode(),
+		Inputs,
+		InputPreparationFailure);
 	MotionWorld::ReadSmoothWalkingSpringState(
 		SyncState.SyncStateCollection,
 		Inputs,
 		StateFailure);
-	Inputs.FailureReason = !ParameterFailure.IsNone() ? ParameterFailure : StateFailure;
+	Inputs.FailureReason = !ParameterFailure.IsNone()
+		? ParameterFailure
+		: (!InputPreparationFailure.IsNone()
+			? InputPreparationFailure
+			: StateFailure);
 	LastSmoothWalkingDiagnostic =
 		MotionWorld::BuildSmoothWalkingDiagnosticSample(Inputs);
 	LastNominalContext =
@@ -1182,7 +1196,7 @@ void UMotionWorldBridgeComponent::CaptureSmoothWalkingContextIfNeeded(
 	UE_LOG(
 		LogMotionWorldBridge,
 		Display,
-		TEXT("MotionWorld Smooth Walking diagnostic: session=%s protocol=%d sequence=%lld mode=%s mode_class=%s model_input=false acceleration_cm_per_sec2=%.9g deceleration_cm_per_sec2=%.9g directional_factor=%.9g turning_strength=%.9g acceleration_smoothing_s=%.9g deceleration_smoothing_s=%.9g acceleration_compensation=%.9g deceleration_compensation=%.9g velocity_deadzone_cm_per_sec=%.9g acceleration_deadzone_cm_per_sec2=%.9g outside_influence_smoothing_s=%.9g facing_smoothing_s=%.9g double_facing_spring=%s facing_deadzone_deg=%.9g angular_velocity_deadzone_deg_per_sec=%.9g spring_velocity_world_cm_per_sec=(%.9g,%.9g,%.9g) spring_acceleration_world_cm_per_sec2=(%.9g,%.9g,%.9g) intermediate_velocity_world_cm_per_sec=(%.9g,%.9g,%.9g) intermediate_facing_world_quat=(%.9g,%.9g,%.9g,%.9g) intermediate_angular_velocity_world_rad_per_sec=(%.9g,%.9g,%.9g)."),
+		TEXT("MotionWorld Smooth Walking diagnostic: session=%s protocol=%d sequence=%lld mode=%s mode_class=%s model_input=false acceleration_cm_per_sec2=%.9g deceleration_cm_per_sec2=%.9g directional_factor=%.9g turning_strength=%.9g acceleration_smoothing_s=%.9g deceleration_smoothing_s=%.9g acceleration_compensation=%.9g deceleration_compensation=%.9g velocity_deadzone_cm_per_sec=%.9g acceleration_deadzone_cm_per_sec2=%.9g outside_influence_smoothing_s=%.9g facing_smoothing_s=%.9g double_facing_spring=%s facing_deadzone_deg=%.9g angular_velocity_deadzone_deg_per_sec=%.9g has_max_move_speed=%s effective_max_speed_cm_per_sec=%.9g max_speed_source=%d spring_velocity_world_cm_per_sec=(%.9g,%.9g,%.9g) spring_acceleration_world_cm_per_sec2=(%.9g,%.9g,%.9g) intermediate_velocity_world_cm_per_sec=(%.9g,%.9g,%.9g) intermediate_facing_world_quat=(%.9g,%.9g,%.9g,%.9g) intermediate_angular_velocity_world_rad_per_sec=(%.9g,%.9g,%.9g)."),
 		*SmoothWalkingDiagnosticSessionId,
 		Sample.ProtocolVersion,
 		Sample.AuthoritativeStateSampleSequence,
@@ -1203,6 +1217,9 @@ void UMotionWorldBridgeComponent::CaptureSmoothWalkingContextIfNeeded(
 		Sample.bSmoothFacingWithDoubleSpring ? TEXT("true") : TEXT("false"),
 		Sample.FacingDeadzoneDegrees,
 		Sample.AngularVelocityDeadzoneDegreesPerSec,
+		Sample.bHasMaxMoveSpeed ? TEXT("true") : TEXT("false"),
+		Sample.EffectiveMaxSpeedCmPerSec,
+		static_cast<int32>(Sample.MaxSpeedSource),
 		Sample.SpringVelocityWorldCmPerSec.X,
 		Sample.SpringVelocityWorldCmPerSec.Y,
 		Sample.SpringVelocityWorldCmPerSec.Z,
@@ -1328,6 +1345,10 @@ void UMotionWorldBridgeComponent::HandlePostFinalize(
 		const FVector AppliedVelocityWorldCmPerSec = EchoedInputs
 			? EchoedInputs->GetMoveInput_WorldSpace()
 			: FVector::ZeroVector;
+		const bool bHasAppliedOrientationIntent = EchoedInputs != nullptr;
+		const FVector AppliedOrientationIntentWorld = EchoedInputs
+			? EchoedInputs->GetOrientationIntentDir_WorldSpace()
+			: FVector::ZeroVector;
 		const bool bWasMotionWorldAutomated = bAutomationEnabled
 			&& bLastCommandFrameResolved
 			&& bLastSubmittedInputWasFinite
@@ -1341,7 +1362,9 @@ void UMotionWorldBridgeComponent::HandlePostFinalize(
 			LastNominalContext,
 			bAppliedInputWasVelocity,
 			bWasMotionWorldAutomated,
-			AppliedVelocityWorldCmPerSec);
+			AppliedVelocityWorldCmPerSec,
+			bHasAppliedOrientationIntent,
+			AppliedOrientationIntentWorld);
 		const FMotionWorldEpisodeRecorderStats RecorderStats =
 			EpisodeRecorder.GetStats();
 

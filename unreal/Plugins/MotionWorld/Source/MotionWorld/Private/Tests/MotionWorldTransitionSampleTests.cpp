@@ -34,6 +34,9 @@ FMotionWorldNominalContextSample MakeValidContext(const int64 SampleSequence)
 	Context.AuthoritativeStateSampleSequence = SampleSequence;
 	Context.MovementModeName = TEXT("Walking");
 	Context.MovementModeClass = TEXT("BP_MovementMode_Walking_C");
+	Context.InputPreparation.bHasMaxMoveSpeed = true;
+	Context.InputPreparation.EffectiveMaxSpeedCmPerSec = 165.0;
+	Context.InputPreparation.MaxSpeedSource = EMotionWorldMaxSpeedSource::CommonLegacySettings;
 	Context.Parameters.AccelerationCmPerSecSquared = 500.0;
 	Context.Parameters.DecelerationCmPerSecSquared = 300.0;
 	Context.Parameters.DirectionalAccelerationFactor = 1.0;
@@ -67,11 +70,13 @@ bool FMotionWorldTransitionSampleTest::RunTest(const FString& Parameters)
 	Inputs.bAppliedInputWasVelocity = true;
 	Inputs.bWasMotionWorldAutomated = true;
 	Inputs.AppliedVelocityWorldCmPerSec = FVector(0.0, 200.0, 0.0);
+	Inputs.bHasAppliedOrientationIntent = true;
+	Inputs.AppliedOrientationIntentWorld = FVector(0.0, 1.0, 0.0);
 
 	const FMotionWorldTransitionSample Valid =
 		MotionWorld::BuildTransitionSample(Inputs);
 	TestTrue(TEXT("Adjacent causal data produces a valid transition"), Valid.bIsValid);
-	TestEqual(TEXT("Transition protocol is explicit"), Valid.ProtocolVersion, 2);
+	TestEqual(TEXT("Transition protocol is explicit"), Valid.ProtocolVersion, 3);
 	TestEqual(TEXT("Episode identity is retained"), Valid.EpisodeId, int64(7));
 	TestEqual(TEXT("Transition sequence is retained"), Valid.TransitionSequence, int64(12));
 	TestEqual(
@@ -95,6 +100,8 @@ bool FMotionWorldTransitionSampleTest::RunTest(const FString& Parameters)
 	TestTrue(
 		TEXT("Automation source is retained"),
 		Valid.AppliedAction.bWasMotionWorldAutomated);
+	TestEqual(TEXT("Orientation intent becomes a causal facing target"), Valid.AppliedAction.DesiredFacingYawDegrees, 90.0);
+	TestFalse(TEXT("Nonzero orientation does not use the fallback"), Valid.AppliedAction.bUsedPreviousFacingForZeroOrientationIntent);
 	TestEqual(
 		TEXT("Previous hidden context remains frame-aligned"),
 		Valid.PreviousNominalContext.AuthoritativeStateSampleSequence,
@@ -103,6 +110,10 @@ bool FMotionWorldTransitionSampleTest::RunTest(const FString& Parameters)
 		TEXT("Completed-step parameters come from the next finalized context"),
 		Valid.ParametersObservedForCompletedStep.AccelerationCmPerSecSquared,
 		Inputs.NextNominalContext.Parameters.AccelerationCmPerSecSquared);
+	TestEqual(
+		TEXT("Completed-step input preparation comes from the next context"),
+		Valid.InputPreparationObservedForCompletedStep.EffectiveMaxSpeedCmPerSec,
+		165.0);
 
 	MotionWorld::FTransitionSampleInputs Failure = Inputs;
 	Failure.EpisodeId = -1;
@@ -154,6 +165,28 @@ bool FMotionWorldTransitionSampleTest::RunTest(const FString& Parameters)
 		TEXT("Vertical desired velocity is not silently relabeled as planar"),
 		MotionWorld::BuildTransitionSample(Failure).RejectionReason,
 		EMotionWorldTransitionRejectionReason::NonPlanarAction);
+
+	Failure = Inputs;
+	Failure.bHasAppliedOrientationIntent = false;
+	TestEqual(
+		TEXT("Missing facing input is rejected rather than hidden"),
+		MotionWorld::BuildTransitionSample(Failure).RejectionReason,
+		EMotionWorldTransitionRejectionReason::MissingOrientationIntent);
+
+	Failure = Inputs;
+	Failure.AppliedOrientationIntentWorld.X = std::numeric_limits<double>::quiet_NaN();
+	TestEqual(
+		TEXT("Non-finite facing input is rejected"),
+		MotionWorld::BuildTransitionSample(Failure).RejectionReason,
+		EMotionWorldTransitionRejectionReason::NonFiniteOrientationIntent);
+
+	Failure = Inputs;
+	Failure.AppliedOrientationIntentWorld = FVector::ZeroVector;
+	const FMotionWorldTransitionSample ZeroOrientation =
+		MotionWorld::BuildTransitionSample(Failure);
+	TestTrue(TEXT("Zero orientation uses Simple Walking's valid fallback"), ZeroOrientation.bIsValid);
+	TestTrue(TEXT("Zero orientation marks the fallback"), ZeroOrientation.AppliedAction.bUsedPreviousFacingForZeroOrientationIntent);
+	TestEqual(TEXT("Fallback targets previous facing"), ZeroOrientation.AppliedAction.DesiredFacingYawDegrees, 90.0);
 
 	Failure = Inputs;
 	Failure.NextState.bIsResimulation = true;
@@ -220,7 +253,7 @@ bool FMotionWorldTransitionSampleTest::RunTest(const FString& Parameters)
 		EMotionWorldTransitionRejectionReason::InvalidPreviousNominalContext);
 
 	Failure = Inputs;
-	Failure.NextNominalContext.ProtocolVersion = 2;
+	Failure.NextNominalContext.ProtocolVersion = 3;
 	TestEqual(
 		TEXT("Unknown nominal-context schemas are rejected"),
 		MotionWorld::BuildTransitionSample(Failure).RejectionReason,
