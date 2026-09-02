@@ -24,6 +24,12 @@ from motionworld.planning.cost import (
     swept_gate_collision_indicator,
     terminal_goal_distance,
 )
+from motionworld.planning.planner_rollout import (
+    PlannerRollout,
+    PlannerRolloutConfig,
+    PlannerSnapshot,
+    rollout_action_candidates,
+)
 
 __all__ = [
     "CEMConfig",
@@ -46,4 +52,8 @@ __all__ = [
     "evaluate_timed_gate_centers",
     "swept_gate_collision_indicator",
     "terminal_goal_distance",
+    "PlannerRollout",
+    "PlannerRolloutConfig",
+    "PlannerSnapshot",
+    "rollout_action_candidates",
 ]
