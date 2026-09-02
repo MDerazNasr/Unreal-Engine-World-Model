@@ -1,0 +1,66 @@
+# RES-COLLECTION-001 live episode 5102 evidence
+
+Date: 2026-09-02
+Engine/project: Unreal Engine 5.8.2 / Game Animation Sample
+Accepted split: train
+
+## Frozen configuration and identity
+
+- Episode ID: 5102 through `BeginPlayResetEpisodeId`.
+- Motion / intermediate-stop / final-stop durations: 0.70 / 0.20 / 0.40 s.
+- Forward / reverse / lateral / diagonal-component speeds: 80 / 130 / 70 / 55 cm/s.
+- Runtime declared a 4.300-second schedule and echoed every configured action.
+- This is the corrected run after a separate wrong-ID 5201 attempt; that file remains quarantined.
+
+## Runtime and file integrity
+
+- Reset passed on attempt one with exactly zero position, facing, linear-speed, and angular-speed
+  error in Walking mode.
+- Schedule completed at 4.322 s.
+- Recorder: observed 157, attempted 156, recorded 156, rejected 0, rejected seeds 0,
+  capacity drops 0.
+- Export: schema 5, 158 JSONL lines, 853159 bytes, 25.768 ms.
+- Strict loader: `valid=true episode=5102 transitions=156 attempted=156 rejected=0
+  capacity_drops=0`.
+- Raw file: `episode_5102_20260902T205700Z_941B611C954B.jsonl`.
+- Raw SHA-256: `a70492872c8b5d55cf669b500c44a703cba6d6e14d8bb21a057cd8efb67094b1`.
+
+## Coverage
+
+- Realized actions: forward 27, reverse 27, right 26, left 25, diagonal 23, stop 28.
+- Timestep min / median / p95 / max: 0.018 / 0.027 / 0.03325 / 0.067 s.
+- Maximum actual planar speed: 129.970 cm/s.
+- Yaw range: -179.670 to 177.162 degrees.
+- All 156 rows are Walking and contain no external event.
+- Current-to-completed parameter change rows: 24.
+- Residual examples: 156 no-history and 153 complete four-history.
+
+## Oracle versus causal baseline
+
+Retrospective maximum position / velocity / yaw / yaw-rate error:
+
+- `2.704e-7 cm` / `4.886e-6 cm/s` / `0.033340 deg` / `1.11136 deg/s`.
+
+Causal current-snapshot maximum position / velocity / yaw / yaw-rate error:
+
+- `0.076833 cm` / `2.561111 cm/s` / `8.233250 deg` / `274.441667 deg/s`.
+
+All material causal errors align with parameter changes:
+
+- position above 0.001 cm: 3/3 on-change, 0 off-change;
+- velocity above 0.01 cm/s: 3/3 on-change, 0 off-change;
+- yaw above 0.1 deg: 14/14 on-change, 0 off-change;
+- yaw rate above 1 deg/s: 18/18 on-change, 0 off-change.
+
+Held-current recursive p95 position / velocity / yaw error:
+
+- 0.5 s: 13.446 cm / 45.196 cm/s / 48.612 deg (137 windows);
+- 1.0 s: 19.836 cm / 30.154 cm/s / 48.392 deg (121 windows);
+- 1.5 s: 19.877 cm / 50.843 cm/s / 44.958 deg (102 windows).
+
+## Acceptance boundary
+
+Accept corrected episode 5102 into the training split. It is a unique, strictly valid, event-free
+episode with a frozen configuration and reproduces the causal parameter-regime target. Together,
+5101 and 5102 provide 286 no-history and 280 four-history examples; this remains too little to train
+or claim generalization. Validation and test episodes remain unused.

@@ -1302,3 +1302,17 @@ Quarantine the file from all splits. Renaming cannot repair embedded identity, a
 5201 would replace the predeclared validation configuration after observing the run. Retry by changing
 only `BeginPlayResetEpisodeId` to 5102. Evidence:
 `evidence/unreal/res_collection_rejected_5201_wrong_config.log`.
+
+### Corrected training episode 5102 — accepted
+
+The corrected run preserves the frozen 4.3-second 80/130/70/55 cm/s schedule under embedded ID 5102.
+Reset passed exactly; 156/156 schema-v5 transitions passed the strict loader with no loss or event;
+the raw SHA is `a70492872c8b5d55cf669b500c44a703cba6d6e14d8bb21a057cd8efb67094b1`.
+It produces 156 no-history and 153 four-history examples.
+
+The retrospective maximum position/velocity/yaw/yaw-rate errors are `2.704e-7 cm`, `4.886e-6 cm/s`,
+0.033340 degrees, and 1.11136 deg/s. Causal maxima are 0.076833 cm, 2.561111 cm/s, 8.233250 degrees,
+and 274.441667 deg/s. Every material error again occurs on a parameter-change row: 3/3 position,
+3/3 velocity, 14/14 yaw, and 18/18 yaw-rate rows, with zero off-change violations. Accept 5102 into
+train; keep the wrong-ID 5201 attempt quarantined. Evidence:
+`evidence/unreal/res_collection_live_episode_5102.log`.

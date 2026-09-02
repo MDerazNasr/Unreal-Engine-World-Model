@@ -43,15 +43,19 @@ def test_every_planned_schedule_is_valid_and_nonidentical() -> None:
     assert len(schedules) == len(set(schedules))
 
 
-def test_only_audited_episode_5101_is_accepted() -> None:
+def test_only_audited_training_episodes_are_accepted() -> None:
     plan = _plan()
     episodes = plan["episodes"]
     accepted = [episode for episode in episodes if episode["status"] == "accepted"]
 
-    assert [episode["episode_id"] for episode in accepted] == [5101]
+    assert [episode["episode_id"] for episode in accepted] == [5101, 5102]
     assert accepted[0]["raw_file"] == "episode_5101_20260902T203328Z_3ED1E0C50841.jsonl"
     assert accepted[0]["raw_sha256"] == (
         "eb437123d88dcf0c7b96b7f4fa5e2d75f502c2b70bc08408094b154693c3eaae"
+    )
+    assert accepted[1]["raw_file"] == "episode_5102_20260902T205700Z_941B611C954B.jsonl"
+    assert accepted[1]["raw_sha256"] == (
+        "a70492872c8b5d55cf669b500c44a703cba6d6e14d8bb21a057cd8efb67094b1"
     )
     assert plan["rejected_attempts"] == [
         {
