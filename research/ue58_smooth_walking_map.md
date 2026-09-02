@@ -154,7 +154,7 @@ facing controls. These defaults are not treated as the live parameter record.
 
 ## Stop/go checks before Python implementation
 
-- [ ] Capture the live movement-mode class and all reflected parameter values in one opt-in PIE trace.
+- [x] Capture the live movement-mode class and all reflected parameter values in one opt-in PIE trace.
 - [x] Implement a safe, version-bounded `FSmoothWalkingState` diagnostic seam: iterate the public
   `FMoverDataCollection`, identify `SmoothWalkingState`, and read only five named reflected struct
   properties. The plugin never includes the private state header, fails closed on missing/type/
@@ -165,3 +165,27 @@ facing controls. These defaults are not treated as the live parameter record.
 - Implement Unreal's `InvExpApprox`, not the mathematical exponential.
 - Use explicit Euler position integration and six verified 1/60 s substeps for a 100 ms macro step.
 - Record which collision behavior is outside the nominal transition and becomes measured mismatch.
+
+## Live UE 5.8.2 parameter/state result
+
+Accepted session `FF6768704542` used `BP_MovementMode_Walking_C` for all 1,422 valid finalized
+Walking states. The 128 bounded rows were sequences `0, 10, ..., 1270`; there were zero invalid
+states. The Blueprint did not use the C++ defaults and did not keep one constant parameter vector:
+
+- acceleration: 500 or 800 cm/s^2;
+- deceleration: 300, 1000, or a one-row startup value of 20000 cm/s^2;
+- directional factor: 1;
+- turning strength: 8;
+- acceleration/deceleration smoothing: 0.1 s;
+- acceleration/deceleration compensation: 0;
+- velocity/acceleration deadzones: 0.01 cm/s and 0.001 cm/s^2;
+- outside-influence smoothing: 0.05 s;
+- facing smoothing: 0.2 or 0.4 s;
+- double-facing spring: false;
+- facing/angular-velocity deadzones: 0.1 degrees and 0.01 degrees/s.
+
+All five reflected state fields became valid; velocity, acceleration, facing, and angular-velocity
+state changed during motion/turning. Quaternion norm error was at most `2.64e-10`. Missing or
+wrong-mode state is not fabricated: that observation has invalid nominal context and must be
+excluded or explicitly evaluated as missing-context mismatch. The episode/protocol schema still
+needs a versioned parameter/state context before varied Unreal data collection.

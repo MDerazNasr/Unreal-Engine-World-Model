@@ -124,6 +124,19 @@ integration: free-space Walking Mode applies the newly proposed linear velocity 
 finalized execution. The faithful port must also reproduce Unreal's rational `InvExpApprox` spring
 kernel rather than silently substituting the mathematical exponential.
 
+The nominal internal state is now version-bounded and typed as:
+
+`z = [spring_velocity_world(3), spring_acceleration_world(3),`
+`intermediate_velocity_world(3), intermediate_facing_world_quat(4),`
+`intermediate_angular_velocity_world_rad_per_sec(3)]`.
+
+The live sample also proves that `params` is `params_t`, not one constant vector. The active
+`BP_MovementMode_Walking_C` changed acceleration, deceleration, and facing smoothing during a
+single human-controlled trace. Therefore the nominal transition accepts an explicit parameter
+snapshot/schedule. Using future recorded values is allowed only as a labelled oracle diagnostic;
+the deployable planner must obtain or causally select parameters from information available at the
+planning step. Silently freezing them across a rollout would create another hidden model mismatch.
+
 Questions to master:
 
 - Why do acceleration and deceleration need different branches?

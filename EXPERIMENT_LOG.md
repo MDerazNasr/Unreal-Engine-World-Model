@@ -730,3 +730,33 @@ bridge-ready line: no Smooth Walking diagnostic session-start, row, invalid-row,
 session-stop message exists. Therefore the runtime diagnostic flag was false and this trace contains
 no parameter/state evidence. The run is rejected rather than reused. See
 `evidence/unreal/nom_smooth_walking_live_attempt_1_invalid.log`.
+
+### Live attempt 2 — accepted (2026-09-02)
+
+**Configuration:** Human control; automation, episode recording, timed gate, animation diagnostics,
+and all model input disabled. Only Smooth Walking diagnostics were enabled at interval 10 with a
+128-row cap. The candidate moved forward, turned, released input, and stopped PIE.
+
+**Result:** Session `FF6768704542` captured 1,422 valid and zero invalid finalized states. Exactly 128
+rows were logged before the expected cap, covering sequences 0–1270 in exact increments of 10. All
+rows were `Walking`, class `BP_MovementMode_Walking_C`, protocol 1, and `model_input=false`.
+
+**Parameter finding:** Parameters changed within the trace. The observed `(acceleration,
+deceleration,facing smoothing)` regimes were `(800,20000,0.2)` for the startup row,
+`(500,1000,0.2)`, and `(800,300,0.4)`. All other mapped parameters were stable: directional factor
+1, turning strength 8, both velocity smoothing times 0.1 s, both compensations 0, outside-influence
+smoothing 0.05 s, double-facing spring false, and documented deadzones. This rejects a constant C++-
+default baseline.
+
+**State finding:** Spring velocity was nonzero in 29/128 rows with maximum norm 375 cm/s; spring
+acceleration was nonzero in 17/128 with maximum norm 1017.247 cm/s^2; intermediate velocity was
+nonzero in 27/128 with maximum norm 375 cm/s; intermediate angular velocity was nonzero in 13/128
+with maximum norm 2.770309 rad/s. Every facing quaternion was finite and unit length within
+`2.64e-10`.
+
+**Interpretation:** Accept the live reflection seam and D-026 state/parameter contract. Do not treat
+the raw diagnostic as training data. Next, version the parameter/internal-state context in the
+episode/protocol schema, then port the nominal equations to accept explicit parameter schedules.
+The 162-line bounded raw excerpt is 137,200 bytes with SHA-256
+`2bbeab642a571b87b141b3bd6161ac73625fb4c6ccd5bab567a34ec1302517cf`; see
+`evidence/unreal/nom_smooth_walking_live_session_FF6768704542.log`.

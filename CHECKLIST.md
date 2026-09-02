@@ -222,7 +222,7 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 ### 2.2 Shared typed contracts
 
 - [ ] Define authoritative character state fields and shapes.
-- [ ] Define nominal internal state fields and shapes.
+- [x] Define nominal internal state fields and shapes.
 - [ ] Define local desired-velocity action fields and bounds.
 - [ ] Define target state.
 - [ ] Define obstacle state, type, radius/extent, position, and velocity.
@@ -458,7 +458,7 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 
 - [ ] Explain why a cheap predictor is required for hundreds of CEM futures.
 - [x] Identify known Smooth Walking visible and internal state.
-- [ ] Map every nominal parameter to an engine/sample setting or documented approximation.
+- [x] Map every nominal parameter to an engine/sample setting or documented approximation.
 - [ ] Explain acceleration versus deceleration selection.
 - [ ] Explain directional acceleration during turns.
 - [ ] Explain turn response.
@@ -470,11 +470,11 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 ### 6.2 Implement state and synchronization
 
 - [ ] Define authoritative planning state `s`.
-- [ ] Define nominal internal state `z`.
+- [x] Define nominal internal state `z`.
 - [ ] Define initialization at episode reset.
 - [ ] Define synchronization after each real Unreal observation.
-- [ ] Decide what happens when internal Mover state is not exposed.
-- [ ] Record whether missing state is estimated, reconstructed, or accepted as nominal mismatch.
+- [x] Decide what happens when internal Mover state is not exposed.
+- [x] Record whether missing state is estimated, reconstructed, or accepted as nominal mismatch.
 - [ ] Prevent residual history from being used to conceal an intentionally omitted known equation.
 
 ### 6.3 Implement nominal transition

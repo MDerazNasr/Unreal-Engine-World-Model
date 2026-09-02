@@ -782,3 +782,44 @@ infinite inputs. The builder independently rejects invalid parameters and hidden
 logging is opt-in, interval-throttled, capped at 10,000 rows, and labelled `model_input=false`.
 
 Related config/commit/experiment: `NOM-DIAG-001`; `MotionWorld.Diagnostics.SmoothWalking`.
+
+## D-026 - Condition nominal dynamics on live parameters and carry all known state
+
+Status: accepted; episode/protocol schema implementation pending
+
+Decision: Define nominal state `z` as the five audited Smooth Walking fields: three world-space
+vectors for spring velocity, spring acceleration, and intermediate velocity; one world quaternion
+for intermediate facing; and one world-space rad/s vector for intermediate angular velocity. Pass a
+time-indexed parameter snapshot to the nominal transition. If the UE 5.8 reflection contract is
+missing, wrong-mode, or invalid, mark nominal context invalid rather than inventing zero state.
+
+Why: Live session `FF6768704542` proves both that the fields are safely available and that the sample
+changes acceleration, deceleration, and facing smoothing during one trace. A single constant setting
+or zeroed spring state would knowingly weaken the baseline and transfer known controller behavior to
+the residual network.
+
+Alternatives considered: freeze C++ defaults; freeze the first live parameter row; zero all state at
+every observation; infer state only from history; use recorded future parameters in deployable MPC;
+silently drop rows whose context reflection fails.
+
+Evidence: All 1,422 finalized state reads were valid and all 128 bounded logged rows used
+`BP_MovementMode_Walking_C`. Acceleration was 500/800 cm/s^2, deceleration 300/1000 plus a one-row
+startup 20000 value, and facing smoothing 0.2/0.4 s. Spring velocity reached 375 cm/s, spring
+acceleration norm 1017.25 cm/s^2, and intermediate angular velocity 2.7703 rad/s. Quaternion unit-
+norm error was at most `2.64e-10`.
+
+Main assumption: A causal parameter selector or runtime controller metadata can supply the parameter
+schedule used for imagined futures. Until that selector is mapped, future recorded parameter rows
+are privileged evaluation context and cannot be used by the deployable planner.
+
+How it could fail: Blueprint regime logic may depend on gait/controller variables absent from the
+planning packet; reflection names may change with Unreal versions; world-frame internal vectors may
+be transformed inconsistently during batched local-frame planning; a missing-context filter could
+bias evaluation toward easy Walking frames.
+
+How I tested it: Verified one session identity, exact step-10 logged chronology, fixed Walking mode/
+class, finite values, three observed parameter regimes, nonzero internal response, quaternion norm,
+zero invalid count, bounded-cap behavior, automation disabled, and `model_input=false`. Raw bounded
+evidence is preserved with SHA-256 `2bbeab64...02517cf`.
+
+Related config/commit/experiment: `NOM-DIAG-001`; session `FF6768704542`.
