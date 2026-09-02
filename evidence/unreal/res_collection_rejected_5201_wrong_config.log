@@ -1,0 +1,32 @@
+# RES-COLLECTION-001 rejected split-identity attempt
+
+Date: 2026-09-02
+Raw file: `episode_5201_20260902T204916Z_14E3988C3842.jsonl`
+Raw SHA-256: `4c5629c510fdb9a2ca15646694dd90950687e4e0a4b1bb87cab4333bccf79305`
+
+## Technical result
+
+- The independent loader accepts schema 5 episode 5201.
+- 151/151 transitions were recorded with zero rejection or capacity loss.
+- Reset passed on attempt one with zero position/facing/linear/angular error.
+- The schedule completed at 4.305 s for a declared 4.300 s duration.
+- File size is 825990 bytes over 153 JSONL records.
+
+## Rejection reason
+
+The realized schedule is the frozen **training episode 5102** configuration:
+
+- motion / intermediate-stop / final-stop durations: 0.70 / 0.20 / 0.40 s;
+- forward / reverse / lateral / diagonal-component speeds: 80 / 130 / 70 / 55 cm/s.
+
+However, every runtime identity field and the exported filename identify **5201**, which is reserved
+for a different validation configuration. No episode 5102 file was created.
+
+The file is quarantined from every split. It is not renamed to 5102, because embedded row/header/
+footer identities would remain wrong. It is not accepted as 5201, because doing so would change the
+predeclared validation configuration after observation and contaminate split discipline.
+
+## Required retry
+
+Keep the current 5102 schedule values, change only `BeginPlayResetEpisodeId` to 5102, compile/save,
+and rerun. The reserved 5201 validation configuration remains unchanged and pending.

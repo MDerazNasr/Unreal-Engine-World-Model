@@ -1367,3 +1367,9 @@ strict loader acceptance, realized action counts, exact reset, and causal/oracle
 
 Related experiment/evidence: `RES-COLLECTION-001`;
 `evidence/unreal/res_collection_live_episode_5101.log`.
+
+Live rejection addendum: a technically valid file embedded as 5201 used the frozen training-5102
+configuration. It is excluded from all splits rather than renamed or reassigned. This preserves both
+embedded identity and the validation configuration frozen before training. Retry 5102 with only the
+reset episode ID corrected. SHA begins `4c5629c5`; see
+`evidence/unreal/res_collection_rejected_5201_wrong_config.log`.

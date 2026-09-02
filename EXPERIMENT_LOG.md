@@ -1290,3 +1290,15 @@ episodes remain unavailable for model selection.
 
 **Evidence:** `evidence/unreal/res_collection_live_episode_5101.log` and
 `configs/residual_collection_plan.yaml`.
+
+### Rejected 5102 attempt: training configuration embedded as validation ID 5201
+
+The next technically valid run exported 151/151 schema-v5 transitions with exact reset and no loss,
+but its runtime/header/row/footer/filename identity is 5201 while its realized 4.3-second,
+80/130/70/55 cm/s schedule is the frozen training-5102 configuration. No 5102 file exists. SHA-256
+is `4c5629c510fdb9a2ca15646694dd90950687e4e0a4b1bb87cab4333bccf79305`.
+
+Quarantine the file from all splits. Renaming cannot repair embedded identity, and accepting it as
+5201 would replace the predeclared validation configuration after observing the run. Retry by changing
+only `BeginPlayResetEpisodeId` to 5102. Evidence:
+`evidence/unreal/res_collection_rejected_5201_wrong_config.log`.

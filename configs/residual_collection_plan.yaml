@@ -10,6 +10,12 @@ common:
   varied_action_schedule: true
   reset_repeat_count: 1
   schema_version_minimum: 4
+rejected_attempts:
+  - embedded_episode_id: 5201
+    intended_configuration_episode_id: 5102
+    reason: training_configuration_recorded_under_reserved_validation_id
+    raw_file: episode_5201_20260902T204916Z_14E3988C3842.jsonl
+    raw_sha256: 4c5629c510fdb9a2ca15646694dd90950687e4e0a4b1bb87cab4333bccf79305
 episodes:
   - episode_id: 5101
     split: train
