@@ -1190,3 +1190,44 @@ below 1 cm/s after 0.416 s and settled at 24.433 cm displacement. The faithful n
 numerically exact before and after the event when re-seeded from observed state/context; only windows
 that cross the hidden intervention fail. Therefore the event row remains evaluation-only and is
 excluded from any claim of predictable residual structure. Related experiment: `NOM-002`.
+
+## D-034 - Separate the retrospective oracle from the deployable causal nominal
+
+Status: accepted for residual-target discovery; dataset collection remains required
+
+Decision: Retain completed-step parameter replay as a labelled equation-fidelity oracle. Define the
+deployable baseline from only the current finalized state, current aligned Smooth Walking internal
+context/parameters/input preparation, and candidate actions. For an open-loop imagined future, carry
+the predicted state/internal memory forward and hold the rollout-start parameters until a separately
+tested causal parameter selector exists.
+
+Why: Parameters captured after a completed step reproduce Unreal almost exactly, but they are future
+information at planning time. Episode 4201 proves that refusing them exposes a structured gap at
+Game Animation Sample parameter-regime changes: every material one-step error is on a changed-
+parameter row, and held-parameter recursive p95 position error reaches 22.971 cm at 0.5 seconds.
+This is the first causal, decision-scale target that remains after implementing the faithful public
+Smooth Walking equations.
+
+Alternatives considered: use every recorded future parameter snapshot in MPC; freeze C++ defaults;
+remove current internal state to make history look better; train on the hidden kick; reverse-engineer
+the complete sample Blueprint scheduler before learning; predict future parameters explicitly.
+
+Evidence: `02ae8bb`, `fc32430`, and `93fb741`; 202 Python tests pass. A regression mutates all future
+parameter and input-preparation snapshots and proves that a rollout started earlier is unchanged.
+Accepted episodes 4101 and 4201 show the same exact alignment between material causal error and
+parameter-change rows. Reviewed plots and summaries are under `artifacts/nominal/*_current_snapshot/`.
+
+Main assumption: Current state/action/history contain enough signal to predict the state-level effect
+of the sample-specific parameter scheduler over 0.5-1.5 seconds.
+
+How it could fail: The scheduler may depend on Blueprint/animation variables absent from the model;
+two near-duplicate episodes may make the pattern look easier than it is; holding parameters may be a
+weaker baseline than an implementable analytic selector; autoregressive rollouts may compound errors
+outside the training distribution.
+
+How I tested it: Compared current-snapshot and completed-step one-step replay; checked error/change-
+row alignment; ran 0.5/1.0/1.5-second held-parameter rollouts; mutated later snapshots in a unit test;
+kept the external kick evaluation-only. Future tests require episode-level splits and no-history/
+history/explicit-selector comparisons.
+
+Related config/commit/experiment: `NOM-CAUSAL-001`; `02ae8bb`, `fc32430`, `93fb741`.

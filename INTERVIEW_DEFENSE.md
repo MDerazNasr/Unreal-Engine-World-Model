@@ -314,3 +314,21 @@ between the finalized states bracketing the 0.023-second event transition. Mover
 and smoothing also act during that transition, so 93.39% is a descriptive realized ratio, not a
 claim that the API applied only 93.39% instantaneously. The final lateral displacement was 24.43 cm,
 and lateral speed fell below 1 cm/s after 0.416 s.
+
+### If the faithful model is exact, what is left for the residual to learn?
+
+It is exact only as a retrospective oracle when I replay the parameter snapshot observed after every
+real step. A planner does not own those future snapshots. My causal baseline starts from the current
+finalized context and holds those parameters while imagining candidate actions. On corrected episode
+4201, every material one-step error aligns with an actual parameter-regime change, and p95 position
+error reaches 22.97 cm by 0.5 seconds. The residual question is whether current state/action and short
+history predict that sample-specific execution effect without seeing future parameters.
+
+### Is holding current parameters an artificially weak baseline?
+
+It is the smallest honest baseline when no causal future-regime selector has been established: it
+uses the complete current state, all audited Smooth Walking memory, current runtime parameters, and
+the exact public equations. I also report the completed-step oracle as an upper-bound diagnostic.
+An explicit parameter predictor is a valid alternative baseline, so I cannot claim residual learning
+is uniquely necessary until I compare against one or explain why its required Blueprint variables
+are unavailable. I never remove known spring state or clamp logic to create error.

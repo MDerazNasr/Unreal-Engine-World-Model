@@ -1,0 +1,148 @@
+{
+  "evaluation": "recursive_open_loop_recorded_actions",
+  "parameter_policy": "hold-current",
+  "requested_horizons_s": [
+    0.5,
+    1.0,
+    1.5
+  ],
+  "parameter_semantics": "initial_current_snapshot_held_through_each_imagined_future",
+  "state_reseeding": "initial_endpoint_only_no_intermediate_observation_reseeding",
+  "endpoint_policy": "first_recorded_boundary_at_or_after_requested_horizon",
+  "by_horizon_s": {
+    "0.5": {
+      "window_count": 173,
+      "actual_horizon_s": {
+        "min": 0.4999999999999998,
+        "max": 0.5669999999999993
+      },
+      "metrics": {
+        "planar_position_error_cm": {
+          "mean": 4.069057590520928,
+          "median": 2.591753471392624e-06,
+          "p95": 22.14722898848784,
+          "max": 29.82289270324054
+        },
+        "planar_velocity_error_cm_s": {
+          "mean": 16.899135235949394,
+          "median": 4.353634576851987e-06,
+          "p95": 76.67874154652212,
+          "max": 90.57040224725148
+        },
+        "yaw_error_deg": {
+          "mean": 17.77461822636404,
+          "median": 0.9750838052403795,
+          "p95": 69.89339369089146,
+          "max": 170.41364444010682
+        },
+        "angular_velocity_yaw_error_deg_s": {
+          "mean": 89.71497762269182,
+          "median": 3.4726719936630843,
+          "p95": 592.6644119771107,
+          "max": 1098.6464833638606
+        }
+      }
+    },
+    "1.0": {
+      "window_count": 154,
+      "actual_horizon_s": {
+        "min": 1.0,
+        "max": 1.0659999999999998
+      },
+      "metrics": {
+        "planar_position_error_cm": {
+          "mean": 12.31425552410966,
+          "median": 0.42164726734406793,
+          "p95": 38.32106719770063,
+          "max": 38.943044541349536
+        },
+        "planar_velocity_error_cm_s": {
+          "mean": 18.829512923114766,
+          "median": 1.314870448656621,
+          "p95": 77.96098719410115,
+          "max": 89.48333663400439
+        },
+        "yaw_error_deg": {
+          "mean": 23.851299492426136,
+          "median": 7.9530611904946085,
+          "p95": 119.3585035315864,
+          "max": 172.91162104240036
+        },
+        "angular_velocity_yaw_error_deg_s": {
+          "mean": 107.8644753864872,
+          "median": 31.658198175311874,
+          "p95": 632.6716205491737,
+          "max": 910.1732036275517
+        }
+      }
+    },
+    "1.5": {
+      "window_count": 136,
+      "actual_horizon_s": {
+        "min": 1.4999999999999996,
+        "max": 1.5810000000000004
+      },
+      "metrics": {
+        "planar_position_error_cm": {
+          "mean": 16.30172730854843,
+          "median": 12.561027938478022,
+          "p95": 38.956526623135915,
+          "max": 38.97392161643927
+        },
+        "planar_velocity_error_cm_s": {
+          "mean": 9.845686064913902,
+          "median": 0.07753676857179331,
+          "p95": 71.3632552256872,
+          "max": 79.8036756181924
+        },
+        "yaw_error_deg": {
+          "mean": 22.652571884788376,
+          "median": 15.053866909804295,
+          "p95": 72.71078485909791,
+          "max": 125.5656375160828
+        },
+        "angular_velocity_yaw_error_deg_s": {
+          "mean": 83.78527272749497,
+          "median": 43.27424676376637,
+          "p95": 369.0656751763379,
+          "max": 465.5972693087315
+        }
+      }
+    }
+  },
+  "perturbation_relation_metrics": {
+    "no_event": {
+      "window_count": 463,
+      "metrics": {
+        "planar_position_error_cm": {
+          "mean": 10.40470243593001,
+          "median": 5.657025399287598e-06,
+          "p95": 38.53324108903566,
+          "max": 38.97392161643927
+        },
+        "planar_velocity_error_cm_s": {
+          "mean": 15.46934922420564,
+          "median": 1.3982403565648912e-05,
+          "p95": 76.17754696336969,
+          "max": 90.57040224725148
+        },
+        "yaw_error_deg": {
+          "mean": 21.228636827917544,
+          "median": 9.066476780338919,
+          "p95": 92.67843347585905,
+          "max": 172.91162104240036
+        },
+        "angular_velocity_yaw_error_deg_s": {
+          "mean": 94.00997284920956,
+          "median": 26.61162449391577,
+          "p95": 463.7863817969183,
+          "max": 1098.6464833638606
+        }
+      }
+    }
+  },
+  "claim_boundary": [
+    "no parameter or input-preparation snapshot after the rollout start is read",
+    "holding current parameters is a causal baseline, not a learned regime selector"
+  ]
+}

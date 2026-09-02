@@ -49,6 +49,7 @@ Artifacts and reproduction command:
 | FEAS-001 | Can Unreal accept desired velocity, expose post-movement state, reset, and log deterministically? | Day 1 | Planned |
 | NOM-001 | Does the nominal implementation pass hand-calculated and timestep tests? | Day 2 | Planned |
 | NOM-002 | Is meaningful, systematic residual error present in Unreal rollouts? | Day 2 | Completed: bounded negative result |
+| NOM-CAUSAL-001 | Does a current-snapshot nominal expose causal parameter-schedule mismatch? | Day 2 | Completed |
 | VAR-DATA-001 | Does the deterministic schedule produce valid stop/reverse/turn coverage? | Day 2 | Completed |
 | NOM-ROLL-001 | How does faithful nominal error compound over 0.5/1.0/1.5 s? | Day 2 | Completed |
 | FACING-001 | Does an explicit antipodal tie-break remove the known angular rollout spike? | Day 2 | Completed |
@@ -1135,3 +1136,48 @@ history, and must be justified separately rather than weakening this baseline.
 **Artifacts:** `artifacts/nominal/episode_4301_perturbation/` contains row metrics, summaries, and
 three reviewed plots. The perturbation-aware evaluator commit is `f0d7348`. Runtime evidence is
 `evidence/unreal/pert_runtime_live_episode_4301.log`.
+
+## NOM-CAUSAL-001 current-snapshot and held-parameter nominal (2026-09-02)
+
+**Question:** Does a deployable nominal predictor that sees only the current finalized context—not
+the parameter snapshot observed after each future step—expose systematic, causal mismatch worth
+modelling?
+
+**Availability contract:** At a real observation boundary the predictor may use authoritative state
+`s_t`, aligned Smooth Walking internal state `z_t`, current parameters/input preparation, and the
+candidate action sequence. It may not read `s_(t+1)`, later internal context, completed-step/future
+parameter snapshots, or external-event labels. During each recursive imagined future, the baseline
+advances its own state and holds the initial current parameters until a separate causal selector is
+defined.
+
+**Implementation:** `02ae8bb` adds current-snapshot one-step inputs; `fc32430` adds held-current
+recursive rollouts; `93fb741` gives every plot an explicit causal or retrospective title. Tests prove
+that mutating later parameter/preparation snapshots cannot affect a rollout started earlier.
+
+**Primary episode:** Use accepted corrected-facing episode 4201, SHA
+`73717460108db8c3b9092e37cb7ef48c4ba5f8e4fdbbeb5252b210977270bfb5`.
+The retrospective completed-step oracle has one-step maxima `3.13e-7 cm`, `5.49e-6 cm/s`, and
+0.0243 degrees. The causal current-snapshot replay has maxima 0.0598 cm, 2.134 cm/s, and 8.761
+degrees. All three position-error rows above 0.001 cm, all three velocity-error rows above 0.01
+cm/s, and all 13 yaw-error rows above 0.1 degrees occur on one of 23 rows whose current parameter
+snapshot differs from the completed-step snapshot; none occur off those rows.
+
+**Recursive result:** With parameters held from each rollout start, episode-4201 p95 position /
+velocity / yaw errors at 0.5 s are 22.971 cm / 76.587 cm/s / 43.103 degrees. At 1.0 s they are
+38.071 cm / 76.547 cm/s / 48.600 degrees; at 1.5 s they are 38.841 cm / 69.666 cm/s / 46.387
+degrees. Retrospective-oracle p95 position remains below `6.71e-6 cm`, velocity below
+`1.47e-5 cm/s`, and yaw below 0.032 degrees across the same horizons.
+
+**Reviewer interpretation:** This is a legitimate deployment gap, not permission to weaken Smooth
+Walking equations. The unavailable quantity is the Game Animation Sample's future parameter regime,
+not public Mover dynamics. A residual model may test whether current state/action and short history
+predict the *effect* of that hidden schedule. It must not receive later parameter snapshots. A more
+explicit causal parameter selector remains a valid alternative and must be acknowledged.
+
+**Data limitation:** Episodes 4101 and 4201 repeat essentially one deterministic action schedule;
+they are evaluation/proof data, not enough independent episodes for a credible train/validation/test
+claim. Before training, collect episode-separated schedules with varied phase order, duration,
+direction, and magnitude, and freeze manifests. Episode 4301 confirms that the held-current policy
+does not turn the hidden kick into a causal target.
+
+**Artifacts:** `artifacts/nominal/episode_{4101,4201,4301}_current_snapshot/`.

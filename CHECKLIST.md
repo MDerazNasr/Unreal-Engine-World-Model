@@ -519,11 +519,14 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [x] Inspect systematic bias rather than only aggregate mean.
 - [x] Enter `NOM-001` hand/reference validation.
 - [x] Enter `NOM-002` real Unreal mismatch study using accepted schema-v5 episode 4301.
+- [x] Compare the retrospective equation oracle with a causal current-snapshot/held-parameter
+  baseline; `NOM-CAUSAL-001` isolates future parameter scheduling as a decision-relevant mismatch.
 
 ### 6.6 Nominal gate
 
 - [ ] Reviewer confirms the nominal is not deliberately weak.
-- [ ] Reviewer confirms no future state/action is used.
+- [x] Reviewer confirms causal evaluation uses no future state or parameter/preparation snapshot;
+  future recorded actions are used only as known candidate interventions in open-loop replay.
 - [ ] Candidate derives one transition and explains substepping.
 - [ ] Candidate explains every known, hidden, and estimated state variable.
 - [x] Meaningful decision-relevant residual structure exists, or a negative result is recorded;
@@ -620,6 +623,8 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [ ] Define what four history observations contain.
 - [ ] Define how imagined history advances recursively.
 - [ ] Remove, derive, or predict contact/timing features that cannot advance consistently.
+- [x] Define the causal baseline boundary: current finalized state/context/parameters plus candidate
+  actions are available; later finalized states, parameter snapshots, and event labels are forbidden.
 
 ### 8.2 Window construction
 

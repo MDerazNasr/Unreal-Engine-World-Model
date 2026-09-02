@@ -1,0 +1,133 @@
+{
+  "episode_file": "episode_4201_20260902T144415Z_B488F3C9674A.jsonl",
+  "episode_sha256": "73717460108db8c3b9092e37cb7ef48c4ba5f8e4fdbbeb5252b210977270bfb5",
+  "evaluation": "causal_current_snapshot_one_step",
+  "desired_facing_source": "recorded_applied_action",
+  "parameter_source": "previous_finalized_context",
+  "effective_max_speed_cm_s": [
+    165.0
+  ],
+  "effective_max_speed_source": [
+    "mode_override"
+  ],
+  "transition_count": 193,
+  "collision_step_count": 0,
+  "metrics": {
+    "position_error_cm": {
+      "mean": 0.0007850332278033218,
+      "median": 8.412892782416748e-08,
+      "p95": 1.9799194888037154e-07,
+      "max": 0.05976374438953595
+    },
+    "planar_position_error_cm": {
+      "mean": 0.0007850332278033218,
+      "median": 8.412892782416748e-08,
+      "p95": 1.9799194888037154e-07,
+      "max": 0.05976374438953595
+    },
+    "velocity_error_cm_s": {
+      "mean": 0.029268922813325646,
+      "median": 8.393214443458419e-07,
+      "p95": 4.170859639884994e-06,
+      "max": 2.1344237130181507
+    },
+    "planar_velocity_error_cm_s": {
+      "mean": 0.029268922813325646,
+      "median": 8.393214443458419e-07,
+      "p95": 4.170859639884994e-06,
+      "max": 2.1344237130181507
+    },
+    "yaw_error_deg": {
+      "mean": 0.11291638320178499,
+      "median": 4.310521793143914e-08,
+      "p95": 0.18895667752018072,
+      "max": 8.76124006454285
+    },
+    "angular_velocity_yaw_error_deg_s": {
+      "mean": 4.127202437021205,
+      "median": 1.8907470220597133e-06,
+      "p95": 7.169623596827159,
+      "max": 282.6206340802227
+    },
+    "spring_velocity_error_cm_s": {
+      "mean": 0.029268922813280057,
+      "median": 8.393224817382361e-07,
+      "p95": 4.170859722307792e-06,
+      "max": 2.134423713017676
+    },
+    "spring_acceleration_error_cm_s2": {
+      "mean": 1.8161087651730836,
+      "median": 7.2257158194588555e-06,
+      "p95": 4.2317602355978994e-05,
+      "max": 125.39389210840156
+    },
+    "intermediate_velocity_error_cm_s": {
+      "mean": 0.29015598083299227,
+      "median": 0.0,
+      "p95": 3.6875133944015376e-06,
+      "max": 19.600000864267475
+    }
+  },
+  "non_collision_metrics": {
+    "position_error_cm": {
+      "mean": 0.0007850332278033218,
+      "median": 8.412892782416748e-08,
+      "p95": 1.9799194888037154e-07,
+      "max": 0.05976374438953595
+    },
+    "planar_position_error_cm": {
+      "mean": 0.0007850332278033218,
+      "median": 8.412892782416748e-08,
+      "p95": 1.9799194888037154e-07,
+      "max": 0.05976374438953595
+    },
+    "velocity_error_cm_s": {
+      "mean": 0.029268922813325646,
+      "median": 8.393214443458419e-07,
+      "p95": 4.170859639884994e-06,
+      "max": 2.1344237130181507
+    },
+    "planar_velocity_error_cm_s": {
+      "mean": 0.029268922813325646,
+      "median": 8.393214443458419e-07,
+      "p95": 4.170859639884994e-06,
+      "max": 2.1344237130181507
+    },
+    "yaw_error_deg": {
+      "mean": 0.11291638320178499,
+      "median": 4.310521793143914e-08,
+      "p95": 0.18895667752018072,
+      "max": 8.76124006454285
+    },
+    "angular_velocity_yaw_error_deg_s": {
+      "mean": 4.127202437021205,
+      "median": 1.8907470220597133e-06,
+      "p95": 7.169623596827159,
+      "max": 282.6206340802227
+    },
+    "spring_velocity_error_cm_s": {
+      "mean": 0.029268922813280057,
+      "median": 8.393224817382361e-07,
+      "p95": 4.170859722307792e-06,
+      "max": 2.134423713017676
+    },
+    "spring_acceleration_error_cm_s2": {
+      "mean": 1.8161087651730836,
+      "median": 7.2257158194588555e-06,
+      "p95": 4.2317602355978994e-05,
+      "max": 125.39389210840156
+    },
+    "intermediate_velocity_error_cm_s": {
+      "mean": 0.29015598083299227,
+      "median": 0.0,
+      "p95": 3.6875133944015376e-06,
+      "max": 19.600000864267475
+    }
+  },
+  "claim_boundary": [
+    "one-step evaluation re-seeds observable and internal state from every real transition",
+    "parameters and input preparation come only from the current finalized state",
+    "schema v4+ supplies recorded facing and SimpleWalking input preparation",
+    "dataset eligibility and split membership are decided outside this evaluator"
+  ]
+}

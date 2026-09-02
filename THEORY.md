@@ -229,6 +229,26 @@ Zero-residual invariant:
 
 `r_theta(.) = 0` must make the corrected rollout numerically equal to the nominal rollout.
 
+### Retrospective oracle versus causal nominal
+
+There are now two deliberately different parameter policies:
+
+`oracle step k: theta_k = parameter snapshot observed after real step k`
+
+`causal rollout: theta_hat_(t+k) = theta_t until a causal selector predicts otherwise`
+
+The oracle answers, “Did we reproduce the known Smooth Walking equation for what Unreal actually
+used?” It is excellent for debugging but cannot be the deployed planning claim because it reads the
+future. The causal version answers, “What can we predict now, using only what is currently known?”
+
+Episode 4201 demonstrates the gap. One-step causal error is nearly zero whenever the parameter
+snapshot stays unchanged. Every material position, velocity, and yaw error occurs when acceleration,
+deceleration, or facing-smoothing parameters change during the step. Holding the initial parameters
+over longer imagined futures then compounds those sparse errors into roughly 23 cm p95 position
+error after 0.5 seconds and 39 cm after 1.5 seconds. This gives the residual model a causal question:
+can present state, action, and recent history predict the *effect* of the unobserved future parameter
+schedule? It is not allowed to read that schedule directly.
+
 ## 7. Huber and multi-step loss
 
 For scalar error `e` and threshold `beta`:
