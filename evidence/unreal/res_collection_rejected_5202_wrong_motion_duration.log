@@ -1,0 +1,38 @@
+# RES-COLLECTION-001 rejected corrected-ID validation-5202 attempt
+
+Date: 2026-09-03 local / 2026-09-02 UTC
+Disposition: quarantined from train, validation, and test
+
+## Intended frozen configuration
+
+- Episode ID: 5202.
+- Motion / intermediate-stop / final-stop durations: 0.80 / 0.25 / 0.20 s.
+- Forward / reverse / lateral / diagonal-component speeds: 70 / 150 / 120 / 65 cm/s.
+- Expected total duration: 4.700 s.
+
+## Realized identity and configuration
+
+- Runtime/header/rows/footer/filename episode ID: 5202.
+- Motion / intermediate-stop / final-stop durations: 0.50 / 0.25 / 0.20 s.
+- Forward / reverse / lateral / diagonal-component speeds: 70 / 150 / 120 / 65 cm/s.
+- Runtime-declared duration: 3.200 s; completion: 3.218 s.
+- Phase transitions around 0.512, 0.753, 1.260, 1.505, 2.001, 2.503, and 3.019 s expose
+  the corrected stops but incorrect 0.50-second motion phases.
+
+## Technical integrity
+
+- Reset passed on attempt one with zero position, facing, linear-speed, and angular-speed error.
+- Recorder: observed 117, attempted 116, recorded 116, rejected 0, rejected seeds 0,
+  capacity drops 0.
+- Export: schema 5, 118 JSONL lines, 633648 bytes, 18.849 ms.
+- Strict loader: `valid=true episode=5202 transitions=116 attempted=116 rejected=0
+  capacity_drops=0`.
+- Raw file: `episode_5202_20260902T222604Z_E31108FF2747.jsonl`.
+- Raw SHA-256: `e6468408acd2a5da27eba2686a9800273ede09acae34e3825727f6fe4ab53dfc`.
+
+## Rejection boundary
+
+Reject despite correct identity and technical validity. The realized motion-phase duration does not
+match the predeclared validation configuration. Accepting it would alter the validation design after
+observation. Keep every other value unchanged, set motion-phase duration to 0.80 seconds,
+compile/save, and rerun.

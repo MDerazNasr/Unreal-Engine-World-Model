@@ -103,4 +103,13 @@ def test_only_audited_episodes_are_accepted() -> None:
                 "f7b2b89cd629eb6ba43915c7ef6f80a148f142f82c215545d126681fb52460a0"
             ),
         },
+        {
+            "embedded_episode_id": 5202,
+            "intended_configuration_episode_id": 5202,
+            "reason": "validation_5202_wrong_motion_phase_duration",
+            "raw_file": "episode_5202_20260902T222604Z_E31108FF2747.jsonl",
+            "raw_sha256": (
+                "e6468408acd2a5da27eba2686a9800273ede09acae34e3825727f6fe4ab53dfc"
+            ),
+        },
     ]

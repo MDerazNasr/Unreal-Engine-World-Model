@@ -1405,3 +1405,17 @@ properties do not repair its duplicate identity or changed configuration. Quaran
 split; do not rename it or reinterpret it as another 5201 run. Retry only after setting episode ID
 5202 and intermediate-stop duration 0.25 seconds, then compile/save both values. Evidence:
 `evidence/unreal/res_collection_rejected_5202_wrong_id_and_stop.log`.
+
+### Rejected corrected-ID 5202 attempt: wrong motion-phase duration
+
+The second validation-5202 attempt fixes the embedded identity and the 0.25-second intermediate
+stops, but executes 0.50-second motion phases rather than the frozen 0.80 seconds. Runtime therefore
+declares a 3.200-second schedule instead of 4.700 seconds. Its 70/150/120/65 cm/s speeds and
+0.20-second final stop are correct.
+
+The artifact is technically complete: exact first-attempt reset, 116/116 valid schema-v5
+transitions, zero rejection/loss/events, and SHA-256
+`e6468408acd2a5da27eba2686a9800273ede09acae34e3825727f6fe4ab53dfc`. Quarantine it from every
+split rather than changing the frozen validation schedule after observation. Keep all other values
+unchanged, set only motion-phase duration to 0.80 seconds, compile/save, and rerun. Evidence:
+`evidence/unreal/res_collection_rejected_5202_wrong_motion_duration.log`.
