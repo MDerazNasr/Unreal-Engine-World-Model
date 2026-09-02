@@ -208,14 +208,29 @@ def _write_readme(path: Path, comparison: dict[str, object]) -> None:
         "Both MLPs use the frozen architecture, train-only normalization, identical fixed "
         "optimizer budgets, and no validation early stopping. Test episodes were not opened.",
         "",
-        "## Common held-out validation rows",
+        "## Common held-out validation rows: all-row mean",
         "",
-        "| Model | Position p95 (cm) | Velocity p95 (cm/s) | Yaw p95 (deg) | "
-        "Yaw-rate p95 (deg/s) |",
+        "| Model | Position (cm) | Velocity (cm/s) | Yaw (deg) | Yaw rate (deg/s) |",
         "|---|---:|---:|---:|---:|",
     ]
     for name in ("nominal", "no_history", "four_history"):
         state = common[name]["all"]["state_error"]
+        lines.append(
+            f"| {name.replace('_', ' ')} | {state['planar_position_cm']['mean']:.6g} | "
+            f"{state['planar_velocity_cm_s']['mean']:.6g} | {state['yaw_deg']['mean']:.6g} | "
+            f"{state['yaw_rate_deg_s']['mean']:.6g} |"
+        )
+    lines.extend(
+        [
+            "",
+            "## Parameter-change rows: p95",
+            "",
+            "| Model | Position (cm) | Velocity (cm/s) | Yaw (deg) | Yaw rate (deg/s) |",
+            "|---|---:|---:|---:|---:|",
+        ]
+    )
+    for name in ("nominal", "no_history", "four_history"):
+        state = common[name]["parameter_change"]["state_error"]
         lines.append(
             f"| {name.replace('_', ' ')} | {state['planar_position_cm']['p95']:.6g} | "
             f"{state['planar_velocity_cm_s']['p95']:.6g} | {state['yaw_deg']['p95']:.6g} | "
@@ -223,6 +238,11 @@ def _write_readme(path: Path, comparison: dict[str, object]) -> None:
         )
     lines.extend(
         [
+            "",
+            "All-row position/velocity p95 is misleading because fewer than 5% of rows contain "
+            "material nominal translation error. The report therefore shows all-row means and the "
+            "predeclared parameter-change stratum separately. Stable-row errors remain in "
+            "`comparison.json`.",
             "",
             "These are one-step results. Recursive 0.5/1.0/1.5-second evaluation remains a "
             "separate gate and must not be inferred from this table.",
@@ -279,7 +299,6 @@ def main() -> None:
     normalizations = {}
     train_examples = {}
     validation_examples = {}
-    predictions = {}
     traces = {}
     checkpoint_hashes = {}
     for variant in config["variants"]:
@@ -306,11 +325,6 @@ def main() -> None:
             seed=seed,
             config=optimizer_config,
         )
-        predictions[name] = predict_physical_residuals(
-            trained[name].model,
-            normalizations[name],
-            _matrix(validation_examples[name], "features"),
-        )
         traces[name] = trained[name].trace
         variant_dir = args.output_dir / name
         variant_dir.mkdir(exist_ok=True)
@@ -332,6 +346,17 @@ def main() -> None:
             checkpoint_path,
         )
         checkpoint_hashes[name] = _sha256(checkpoint_path)
+
+    # The fixed protocol does not run any model on validation until both final
+    # training-only checkpoints have been written and hashed.
+    predictions = {
+        name: predict_physical_residuals(
+            trained[name].model,
+            normalizations[name],
+            _matrix(validation_examples[name], "features"),
+        )
+        for name in ("no_history", "four_history")
+    }
 
     history_keys = {_example_key(example) for example in validation_examples["four_history"]}
     common_no_history = tuple(
@@ -425,6 +450,32 @@ def main() -> None:
             stratum: _subset_summary(common_targets, model_predictions, mask)
             for stratum, mask in masks.items()
         }
+
+    comparison["relative_error_reduction_percent_vs_nominal"] = {}
+    for model_name in ("no_history", "four_history"):
+        model_reductions = {}
+        for stratum in masks:
+            stratum_reductions = {}
+            for metric in (
+                "planar_position_cm",
+                "planar_velocity_cm_s",
+                "yaw_deg",
+                "yaw_rate_deg_s",
+            ):
+                metric_reductions = {}
+                for statistic in ("mean", "p95"):
+                    nominal_value = comparison["common_validation"]["nominal"][stratum][
+                        "state_error"
+                    ][metric][statistic]
+                    model_value = comparison["common_validation"][model_name][stratum][
+                        "state_error"
+                    ][metric][statistic]
+                    metric_reductions[statistic] = 100.0 * (
+                        nominal_value - model_value
+                    ) / nominal_value
+                stratum_reductions[metric] = metric_reductions
+            model_reductions[stratum] = stratum_reductions
+        comparison["relative_error_reduction_percent_vs_nominal"][model_name] = model_reductions
 
     _write_json(args.output_dir / "comparison.json", comparison)
     _write_learning_plot(traces, args.output_dir / "training_curves.png")

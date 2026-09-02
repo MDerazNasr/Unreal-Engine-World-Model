@@ -97,6 +97,8 @@ def _training_matrices(
     observed_ids = tuple(sorted({example.episode_id for example in examples}))
     if observed_ids != normalization.train_episode_ids:
         raise ValueError("training examples do not match normalization episode provenance")
+    if len(examples) != normalization.sample_count:
+        raise ValueError("training example count does not match normalization provenance")
     features = np.stack([example.features for example in examples])
     targets = np.stack([example.target for example in examples])
     normalized_features = normalization.normalize_features(features)

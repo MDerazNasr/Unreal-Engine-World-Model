@@ -138,6 +138,21 @@ def test_training_rejects_normalization_from_other_episode_provenance() -> None:
         )
 
 
+def test_training_rejects_different_row_count_under_same_episode_id() -> None:
+    examples = _examples()
+    normalization = _normalization()
+
+    with pytest.raises(ValueError, match="example count"):
+        train_residual_model(
+            examples[:-1],
+            normalization,
+            history_length=1,
+            seed=123,
+            config=ResidualOptimizerConfig(optimizer_steps=1),
+            hidden_widths=(8,),
+        )
+
+
 def test_zero_model_decodes_to_exact_zero_physical_residual() -> None:
     normalization = _normalization()
     model = ResidualMLP(RESIDUAL_STEP_FEATURE_COUNT, hidden_widths=(8,))
