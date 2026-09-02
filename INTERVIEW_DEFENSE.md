@@ -26,6 +26,14 @@ before training a residual. In unique live episode 4201, recursive maximum yaw e
 174.30 degrees to 0.043 degrees; I preserve the original failure and do not credit the residual for
 fixing a known controller-interface ambiguity.
 
+### Why don't you give the residual model the external-push label?
+
+Because that would reveal a future disturbance that the online planner cannot know. I label the
+event transition for stratified evaluation and exclude it from ordinary predictable-error claims.
+After the first disturbed state becomes observable, I test whether no-history or recent-history
+models can predict recovery. This separates event detection from recovery modeling and prevents
+evaluation leakage.
+
 ### Why keep actor and animation state separate?
 
 The actor/capsule determines gameplay collision and is authoritative. Motion Matching and downstream animation can intentionally offset the rendered root to preserve visual quality. Mixing those signals would give the dynamics model inconsistent targets. I log animation root and toe behavior separately to show the control remains animation-friendly.

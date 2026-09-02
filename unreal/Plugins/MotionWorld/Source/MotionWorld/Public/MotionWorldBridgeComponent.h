@@ -4,6 +4,7 @@
 #include "MoverSimulationTypes.h"
 #include "MotionWorldArenaManager.h"
 #include "MotionWorldEpisodeRecorder.h"
+#include "MotionWorldExternalPerturbationSchedule.h"
 #include "MotionWorldNominalContext.h"
 #include "MotionWorldReset.h"
 #include "MotionWorldSmoothWalkingDiagnostic.h"
@@ -154,6 +155,13 @@ public:
 	FMotionWorldVariedActionScheduleSample GetLastVariedActionScheduleSample() const
 	{
 		return LastVariedActionScheduleSample;
+	}
+
+	UFUNCTION(BlueprintPure, Category = "MotionWorld|Collection")
+	FMotionWorldExternalPerturbationScheduleSample
+	GetLastExternalPerturbationScheduleSample() const
+	{
+		return LastExternalPerturbationScheduleSample;
 	}
 
 protected:
@@ -330,6 +338,17 @@ protected:
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "MotionWorld|Collection")
 	FMotionWorldVariedActionScheduleSample LastVariedActionScheduleSample;
 
+	/** Default-off one-shot recovery experiment; mutually exclusive with gate/varied schedules. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Collection")
+	bool bEnableExternalPerturbationSchedule = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Collection", meta = (EditCondition = "bEnableExternalPerturbationSchedule"))
+	FMotionWorldExternalPerturbationScheduleConfig ExternalPerturbationScheduleConfig;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "MotionWorld|Collection")
+	FMotionWorldExternalPerturbationScheduleSample
+	LastExternalPerturbationScheduleSample;
+
 private:
 	void ExportCurrentEpisode(const FMotionWorldEpisodeRecorderStats& CompletedStats);
 
@@ -350,6 +369,7 @@ private:
 	void ApplyArenaTerminalSafeStop(
 		EMotionWorldScenarioTerminationReason TerminationReason);
 	void ProcessVariedActionScheduleCompletion();
+	void ProcessExternalPerturbationSchedule();
 
 	UPROPERTY(Transient)
 	TObjectPtr<UMoverComponent> MoverComponent;
@@ -388,6 +408,12 @@ private:
 	double CurrentEpisodeActionScheduleStartSimulationTimeSeconds = 0.0;
 	EMotionWorldVariedActionPhase LastLoggedVariedActionPhase =
 		EMotionWorldVariedActionPhase::Invalid;
+	bool bCurrentEpisodeHasExternalPerturbationSchedule = false;
+	double CurrentEpisodeExternalPerturbationScheduleStartSimulationTimeSeconds =
+		0.0;
+	bool bExternalPerturbationQueued = false;
+	bool bExternalPerturbationRecorded = false;
+	FMotionWorldExternalPerturbation PendingExternalPerturbation;
 	FString AnimationDiagnosticSessionId;
 	int64 ValidAnimationDiagnosticSampleCount = 0;
 	int64 InvalidAnimationDiagnosticSampleCount = 0;

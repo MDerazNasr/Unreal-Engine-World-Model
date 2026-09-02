@@ -1121,7 +1121,7 @@ preserved as known preprocessing residue, not a learned residual target.
 
 ## D-033 - Treat a controlled push as a labeled velocity intervention
 
-Status: pure schedule and causal schema-v5 contract accepted; runtime application pending
+Status: closed-editor schedule, schema-v5 contract, and runtime integration accepted; live application pending
 
 Decision: Implement the controlled external perturbation with Mover's public one-tick additive
 velocity effect. Describe and store the intervention as a world-space velocity delta in cm/s, not as
@@ -1172,3 +1172,11 @@ The actual universal sample build succeeded in 126.84 seconds. All 13 MotionWorl
 and all 196 Python tests passed. The independent Python tests reject wrong source identity, missing
 or duplicated schedule events, mismatched velocity, and a contract that falsely declares the event
 as a model input. Runtime queuing and a live schema-v5 episode remain uncredited.
+
+Runtime addendum: the bridge exposes a default-off perturbation schedule mutually exclusive with the
+timed gate and varied-action schedule. After a recorded finalized state reaches the trigger, it builds
+the label from that exact state sequence/Mover frame, queues an additive `FApplyVelocityEffect`, and
+requires the immediately following causal row to accept the pending label. Any rejection stops the
+episode and the exporter refuses to publish an incomplete scheduled file. Completion requires both
+the configured total duration and proof that the event row was recorded. The exact sample rebuilt in
+19.99 seconds and all 13 MotionWorld tests passed. Live effect/application evidence is still required.

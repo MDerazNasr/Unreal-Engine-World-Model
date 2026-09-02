@@ -1,0 +1,37 @@
+# External-perturbation runtime closed-editor evidence
+
+Date: 2026-09-02
+Engine/project: Unreal Engine 5.8.2 / Game Animation Sample
+
+## Runtime control flow
+
+- Default off in the bridge component.
+- Mutually exclusive with timed-gate and varied-action schedules.
+- Requires a valid finalized seed state and valid bounded schedule.
+- Queues one public Mover `FApplyVelocityEffect` with additive velocity enabled.
+- Preserves the current verified movement mode explicitly.
+- Builds the pending event label from the finalized state sequence and Mover frame immediately before
+  queueing.
+- Requires the next causal row to record that exact pending label; failure stops the episode.
+- Clears the pending label after exactly one accepted transition.
+- Completes only after the event row is recorded and the post-event duration expires.
+- Export revalidation prevents an incomplete scheduled episode from being published.
+
+## Validation
+
+- Actual target: `GameAnimationSampleEditor Mac Development -architecture=arm64+x86_64`.
+- Incremental universal build: succeeded in 19.99 seconds.
+- Full headless filter: `MotionWorld.`.
+- Tests found: 13.
+- Result: 13 succeeded, 0 failed.
+- Raw automation log SHA-256:
+  `0c75dbde30bbd62207c9ebe2bc3242df0a3528b4f76411bf6e4b7ad70e48a5e8`
+- Deployed universal dylib SHA-256:
+  `9993e47ca5a26c578e7f3102cf05dd1ec487a2966f9052f4ce01d412e71a31bc`
+- Repo/sample source parity: exact.
+
+## Claim boundary
+
+This accepts only closed-editor runtime integration. Live PIE must still prove visible/authoritative
+velocity disturbance, exactly one aligned event row, complete schema-v5 export, strict Python
+validation, and sufficient post-event samples before NOM-002 analysis.

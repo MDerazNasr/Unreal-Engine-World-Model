@@ -538,7 +538,7 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [ ] Include target state.
 - [x] Include analytically revalidated timed-gate obstacle states.
 - [x] Include collision flag/count.
-- [ ] Include external impulse.
+- [x] Include an external velocity perturbation as a schema-v5 evaluation-only label; live episode validation remains pending.
 - [x] Include controller parameters with explicit post-step observation semantics.
 - [x] Include both endpoints of the five-field known Smooth Walking internal context.
 - [x] Reject missing, invalid, wrong-version, or state-misaligned nominal context.
@@ -558,7 +558,7 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [ ] Implement random piecewise-constant velocities.
 - [ ] Implement near-contact/boundary-following collection.
 - [x] Implement stops, reversals, and rapid turns.
-- [ ] Implement controlled external perturbations.
+- [x] Implement a default-off controlled external velocity perturbation; live application/recovery validation remains pending.
 - [ ] Record realized action-mixture proportions.
 - [ ] Ensure actions cover planner-relevant magnitudes and directions.
 - [ ] Ensure free-space data does not dominate all other strata.

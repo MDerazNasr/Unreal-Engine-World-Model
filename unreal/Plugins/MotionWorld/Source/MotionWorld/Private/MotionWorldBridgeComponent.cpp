@@ -275,12 +275,16 @@ bool UMotionWorldBridgeComponent::StartEpisodeRecording(const int64 EpisodeId)
 			ResetStatus.RequestedEpisodeId);
 		return false;
 	}
-	if (bEnableTimedGateScenario && bEnableVariedActionSchedule)
+	const int32 EnabledExclusiveScheduleCount =
+		(bEnableTimedGateScenario ? 1 : 0)
+		+ (bEnableVariedActionSchedule ? 1 : 0)
+		+ (bEnableExternalPerturbationSchedule ? 1 : 0);
+	if (EnabledExclusiveScheduleCount > 1)
 	{
 		UE_LOG(
 			LogMotionWorldBridge,
 			Error,
-			TEXT("MotionWorld episode %lld cannot combine the timed gate and varied action schedule; use separate episodes so scenario termination cannot truncate coverage."),
+			TEXT("MotionWorld episode %lld cannot combine timed-gate, varied-action, or external-perturbation schedules; use separate episodes so labels and termination remain unambiguous."),
 			EpisodeId);
 		return false;
 	}
@@ -300,6 +304,18 @@ bool UMotionWorldBridgeComponent::StartEpisodeRecording(const int64 EpisodeId)
 			LogMotionWorldBridge,
 			Error,
 			TEXT("MotionWorld varied-action episode %lld cannot start before a finalized seed state exists."),
+			EpisodeId);
+		return false;
+	}
+	if (bEnableExternalPerturbationSchedule
+		&& (!MotionWorld::IsExternalPerturbationScheduleConfigValid(
+				ExternalPerturbationScheduleConfig)
+			|| !LastAuthoritativeState.bIsValid))
+	{
+		UE_LOG(
+			LogMotionWorldBridge,
+			Error,
+			TEXT("MotionWorld external-perturbation episode %lld requires a valid schedule and finalized seed state."),
 			EpisodeId);
 		return false;
 	}
@@ -333,6 +349,18 @@ bool UMotionWorldBridgeComponent::StartEpisodeRecording(const int64 EpisodeId)
 			: 0.0;
 	LastVariedActionScheduleSample = FMotionWorldVariedActionScheduleSample();
 	LastLoggedVariedActionPhase = EMotionWorldVariedActionPhase::Invalid;
+	bCurrentEpisodeHasExternalPerturbationSchedule = bStarted
+		&& bEnableExternalPerturbationSchedule
+		&& LastAuthoritativeState.bIsValid;
+	CurrentEpisodeExternalPerturbationScheduleStartSimulationTimeSeconds =
+		bCurrentEpisodeHasExternalPerturbationSchedule
+			? LastAuthoritativeState.SimulationTimeSeconds
+			: 0.0;
+	bExternalPerturbationQueued = false;
+	bExternalPerturbationRecorded = false;
+	PendingExternalPerturbation = FMotionWorldExternalPerturbation();
+	LastExternalPerturbationScheduleSample =
+		FMotionWorldExternalPerturbationScheduleSample();
 	LastRecordedTransition = FMotionWorldTransitionSample();
 	LastRecorderObservationResult =
 		EMotionWorldRecorderObservationResult::IgnoredNotRecording;
@@ -357,6 +385,20 @@ bool UMotionWorldBridgeComponent::StartEpisodeRecording(const int64 EpisodeId)
 				EpisodeId,
 				CurrentEpisodeActionScheduleStartSimulationTimeSeconds,
 				MotionWorld::GetVariedActionScheduleDurationSeconds(VariedActionScheduleConfig));
+		}
+		if (bCurrentEpisodeHasExternalPerturbationSchedule)
+		{
+			UE_LOG(
+				LogMotionWorldBridge,
+				Display,
+				TEXT("MotionWorld external perturbation schedule started: episode=%lld start_sim_time_s=%.6f warmup_s=%.6f velocity_delta_world_cm_per_sec=(%.2f, %.2f, %.2f) post_s=%.6f."),
+				EpisodeId,
+				CurrentEpisodeExternalPerturbationScheduleStartSimulationTimeSeconds,
+				ExternalPerturbationScheduleConfig.WarmupDurationSeconds,
+				ExternalPerturbationScheduleConfig.AdditiveVelocityWorldCmPerSec.X,
+				ExternalPerturbationScheduleConfig.AdditiveVelocityWorldCmPerSec.Y,
+				ExternalPerturbationScheduleConfig.AdditiveVelocityWorldCmPerSec.Z,
+				ExternalPerturbationScheduleConfig.PostPerturbationDurationSeconds);
 		}
 	}
 	else
@@ -401,6 +443,11 @@ void UMotionWorldBridgeComponent::StopEpisodeRecording()
 	CurrentEpisodeScenarioStartSimulationTimeSeconds = 0.0;
 	bCurrentEpisodeHasVariedActionSchedule = false;
 	CurrentEpisodeActionScheduleStartSimulationTimeSeconds = 0.0;
+	bCurrentEpisodeHasExternalPerturbationSchedule = false;
+	CurrentEpisodeExternalPerturbationScheduleStartSimulationTimeSeconds = 0.0;
+	bExternalPerturbationQueued = false;
+	bExternalPerturbationRecorded = false;
+	PendingExternalPerturbation = FMotionWorldExternalPerturbation();
 }
 
 void UMotionWorldBridgeComponent::ExportCurrentEpisode(
@@ -444,6 +491,15 @@ void UMotionWorldBridgeComponent::ExportCurrentEpisode(
 					Request.Transitions.Last().NextState.SimulationTimeSeconds
 						- CurrentEpisodeScenarioStartSimulationTimeSeconds);
 		}
+	}
+	if (bCurrentEpisodeHasExternalPerturbationSchedule)
+	{
+		Request.ExternalPerturbationSchedule.bIsPresent = true;
+		Request.ExternalPerturbationSchedule.Config =
+			ExternalPerturbationScheduleConfig;
+		Request.ExternalPerturbationSchedule
+			.ScheduleStartSimulationTimeSeconds =
+			CurrentEpisodeExternalPerturbationScheduleStartSimulationTimeSeconds;
 	}
 
 	const double ExportStartSeconds = FPlatformTime::Seconds();
@@ -880,6 +936,124 @@ void UMotionWorldBridgeComponent::ProcessVariedActionScheduleCompletion()
 		EpisodeId,
 		ElapsedSeconds,
 		DurationSeconds);
+	StopEpisodeRecording();
+}
+
+void UMotionWorldBridgeComponent::ProcessExternalPerturbationSchedule()
+{
+	if (!bCurrentEpisodeHasExternalPerturbationSchedule
+		|| !EpisodeRecorder.GetStats().bIsRecording
+		|| !LastAuthoritativeState.bIsValid
+		|| LastAuthoritativeState.bIsResimulation
+		|| !MoverComponent)
+	{
+		return;
+	}
+
+	const double ElapsedSeconds =
+		LastAuthoritativeState.SimulationTimeSeconds
+		- CurrentEpisodeExternalPerturbationScheduleStartSimulationTimeSeconds;
+	LastExternalPerturbationScheduleSample =
+		MotionWorld::EvaluateExternalPerturbationSchedule(
+			ExternalPerturbationScheduleConfig,
+			ElapsedSeconds,
+			bExternalPerturbationQueued);
+	if (!LastExternalPerturbationScheduleSample.bIsValid)
+	{
+		UE_LOG(
+			LogMotionWorldBridge,
+			Error,
+			TEXT("MotionWorld external perturbation schedule became invalid: episode=%lld elapsed_s=%.6f; episode will stop without applying an event."),
+			EpisodeRecorder.GetStats().EpisodeId,
+			ElapsedSeconds);
+		StopEpisodeRecording();
+		return;
+	}
+
+	if (LastExternalPerturbationScheduleSample.bShouldQueuePerturbation)
+	{
+		if (PendingExternalPerturbation.Type
+				!= EMotionWorldExternalPerturbationType::None
+			|| LastAuthoritativeState.MovementMode.IsNone()
+			|| !MoverComponent->FindMovementModeByName(
+				LastAuthoritativeState.MovementMode))
+		{
+			UE_LOG(
+				LogMotionWorldBridge,
+				Error,
+				TEXT("MotionWorld external perturbation could not be queued unambiguously: episode=%lld pending=%s mode=%s; episode will stop."),
+				EpisodeRecorder.GetStats().EpisodeId,
+				PendingExternalPerturbation.Type
+					== EMotionWorldExternalPerturbationType::None
+						? TEXT("false")
+						: TEXT("true"),
+				*LastAuthoritativeState.MovementMode.ToString());
+			StopEpisodeRecording();
+			return;
+		}
+
+		PendingExternalPerturbation =
+			MotionWorld::MakeAdditiveVelocityPerturbation(
+				LastExternalPerturbationScheduleSample
+					.AdditiveVelocityWorldCmPerSec,
+				LastAuthoritativeState.SampleSequence,
+				LastAuthoritativeState.MoverStepServerFrame,
+				true);
+		if (!PendingExternalPerturbation.bIsValid)
+		{
+			UE_LOG(
+				LogMotionWorldBridge,
+				Error,
+				TEXT("MotionWorld external perturbation label construction failed: episode=%lld; episode will stop."),
+				EpisodeRecorder.GetStats().EpisodeId);
+			StopEpisodeRecording();
+			return;
+		}
+
+		TSharedPtr<FApplyVelocityEffect> VelocityEffect =
+			MakeShared<FApplyVelocityEffect>();
+		VelocityEffect->VelocityToApply =
+			PendingExternalPerturbation.RequestedVelocityDeltaWorldCmPerSec;
+		VelocityEffect->bAdditiveVelocity = true;
+		VelocityEffect->ForceMovementMode = LastAuthoritativeState.MovementMode;
+		MoverComponent->QueueInstantMovementEffect(VelocityEffect);
+		bExternalPerturbationQueued = true;
+		UE_LOG(
+			LogMotionWorldBridge,
+			Display,
+			TEXT("MotionWorld external velocity perturbation queued: episode=%lld elapsed_s=%.6f queued_after_state_sequence=%lld queued_after_mover_frame=%d velocity_delta_world_cm_per_sec=(%.2f, %.2f, %.2f) forced_mode=%s."),
+			EpisodeRecorder.GetStats().EpisodeId,
+			ElapsedSeconds,
+			PendingExternalPerturbation.QueuedAfterStateSampleSequence,
+			PendingExternalPerturbation.QueuedAfterMoverStepServerFrame,
+			PendingExternalPerturbation.RequestedVelocityDeltaWorldCmPerSec.X,
+			PendingExternalPerturbation.RequestedVelocityDeltaWorldCmPerSec.Y,
+			PendingExternalPerturbation.RequestedVelocityDeltaWorldCmPerSec.Z,
+			*LastAuthoritativeState.MovementMode.ToString());
+		return;
+	}
+
+	if (!LastExternalPerturbationScheduleSample.bIsComplete
+		|| !bExternalPerturbationRecorded)
+	{
+		return;
+	}
+
+	const int64 EpisodeId = EpisodeRecorder.GetStats().EpisodeId;
+	MotionWorld::ApplyZeroVelocitySafeStop(
+		DesiredVelocityLocalCmPerSec,
+		DesiredVelocityWorldCmPerSec);
+	++CommandRevision;
+	bLastCommandEchoMatched = false;
+	LastEchoedVelocityWorldCmPerSec = FVector::ZeroVector;
+	UE_LOG(
+		LogMotionWorldBridge,
+		Display,
+		TEXT("MotionWorld external perturbation schedule complete: episode=%lld elapsed_s=%.6f duration_s=%.6f event_recorded=true; zero command issued and episode will export."),
+		EpisodeId,
+		ElapsedSeconds,
+		MotionWorld::GetExternalPerturbationScheduleDurationSeconds(
+			ExternalPerturbationScheduleConfig));
 	StopEpisodeRecording();
 }
 
@@ -1490,6 +1664,9 @@ void UMotionWorldBridgeComponent::HandlePostFinalize(
 				LastSubmittedVelocityWorldCmPerSec,
 				0.011);
 
+		const bool bCompletingPendingExternalPerturbation =
+			PendingExternalPerturbation.Type
+				== EMotionWorldExternalPerturbationType::AdditiveVelocity;
 		LastRecorderObservationResult = EpisodeRecorder.ObserveFinalizedStep(
 			LastAuthoritativeState,
 			LastNominalContext,
@@ -1497,9 +1674,32 @@ void UMotionWorldBridgeComponent::HandlePostFinalize(
 			bWasMotionWorldAutomated,
 			AppliedVelocityWorldCmPerSec,
 			bHasAppliedOrientationIntent,
-			AppliedOrientationIntentWorld);
+			AppliedOrientationIntentWorld,
+			PendingExternalPerturbation);
 		const FMotionWorldEpisodeRecorderStats RecorderStats =
 			EpisodeRecorder.GetStats();
+		if (bCompletingPendingExternalPerturbation
+			&& LastRecorderObservationResult
+				!= EMotionWorldRecorderObservationResult::Recorded)
+		{
+			UE_LOG(
+				LogMotionWorldBridge,
+				Error,
+				TEXT("MotionWorld external perturbation transition failed causal recording: episode=%lld result=%d reason=%d source_state_sequence=%lld observed_state_sequence=%lld; episode will stop."),
+				RecorderStats.EpisodeId,
+				static_cast<int32>(LastRecorderObservationResult),
+				static_cast<int32>(RecorderStats.LastRejectionReason),
+				PendingExternalPerturbation.QueuedAfterStateSampleSequence,
+				LastAuthoritativeState.SampleSequence);
+			PendingExternalPerturbation = FMotionWorldExternalPerturbation();
+			StopEpisodeRecording();
+			return;
+		}
+		if (bCompletingPendingExternalPerturbation)
+		{
+			bExternalPerturbationRecorded = true;
+			PendingExternalPerturbation = FMotionWorldExternalPerturbation();
+		}
 
 		if (LastRecorderObservationResult
 			== EMotionWorldRecorderObservationResult::Seeded)
@@ -1517,6 +1717,23 @@ void UMotionWorldBridgeComponent::HandlePostFinalize(
 			== EMotionWorldRecorderObservationResult::Recorded)
 		{
 			LastRecordedTransition = EpisodeRecorder.GetTransitions().Last();
+			if (bCompletingPendingExternalPerturbation)
+			{
+				UE_LOG(
+					LogMotionWorldBridge,
+					Display,
+					TEXT("MotionWorld external velocity perturbation recorded: episode=%lld transition_sequence=%lld previous_state_sequence=%lld next_state_sequence=%lld velocity_delta_world_cm_per_sec=(%.2f, %.2f, %.2f)."),
+					LastRecordedTransition.EpisodeId,
+					LastRecordedTransition.TransitionSequence,
+					LastRecordedTransition.PreviousState.SampleSequence,
+					LastRecordedTransition.NextState.SampleSequence,
+					LastRecordedTransition.ExternalPerturbation
+						.RequestedVelocityDeltaWorldCmPerSec.X,
+					LastRecordedTransition.ExternalPerturbation
+						.RequestedVelocityDeltaWorldCmPerSec.Y,
+					LastRecordedTransition.ExternalPerturbation
+						.RequestedVelocityDeltaWorldCmPerSec.Z);
+			}
 			const bool bPeriodicTransitionLog =
 				TransitionDiagnosticLogIntervalSamples > 0
 				&& RecorderStats.RecordedTransitionCount
@@ -1588,6 +1805,7 @@ void UMotionWorldBridgeComponent::HandlePostFinalize(
 	}
 
 	ProcessTimedArenaObservation();
+	ProcessExternalPerturbationSchedule();
 	ProcessVariedActionScheduleCompletion();
 
 	if (!bAutomationEnabled || !MoverComponent)

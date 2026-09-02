@@ -1081,10 +1081,17 @@ stores the schedule; export and Python validation require exactly one matching e
 post-event duration. Legacy schemas remain readable without synthesized labels. The actual universal
 sample build succeeded in 126.84 seconds; all 13 MotionWorld tests and 196 Python tests pass.
 
-**Reviewer boundary:** This proves the schedule and its fail-closed storage contract. It does not
-yet prove that Mover applies the queued effect, that the live callback consumes the pending label
-exactly once, or that recovery contains a learnable residual. Those remain required before the
-experiment can be completed.
+**Closed-editor runtime gate:** The default-off bridge integration queues the effect only after a
+recorded finalized state, retains a pending label for the next causal row, aborts on any recording
+failure, and completes/exports only after the event row and full recovery duration exist. Timed gate,
+varied action, and perturbation schedules are mutually exclusive. The actual universal sample rebuilt
+in 19.99 seconds; all 13 MotionWorld tests passed again.
+
+**Reviewer boundary:** This proves the schedule, storage contract, and compiled runtime control flow.
+It does not yet prove that Mover applies the requested delta in live PIE, that the next live callback
+contains exactly one event, or that recovery contains a learnable residual. Those remain required
+before the experiment can be completed.
 
 **Artifacts:** `evidence/unreal/pert_schedule_001_automation.log` and
 `evidence/unreal/pert_schema_v5_automation.log`.
+Closed-editor runtime evidence: `evidence/unreal/pert_runtime_closed_editor_automation.log`.
