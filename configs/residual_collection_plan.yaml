@@ -43,7 +43,7 @@ episodes:
     raw_sha256: a70492872c8b5d55cf669b500c44a703cba6d6e14d8bb21a057cd8efb67094b1
   - episode_id: 5103
     split: train
-    status: pending
+    status: accepted
     motion_phase_duration_s: 0.40
     intermediate_stop_duration_s: 0.35
     final_stop_duration_s: 0.25
@@ -51,6 +51,8 @@ episodes:
     reverse_speed_cm_s: 60.0
     lateral_speed_cm_s: 145.0
     diagonal_component_speed_cm_s: 100.0
+    raw_file: episode_5103_20260902T210855Z_6D0DE5726242.jsonl
+    raw_sha256: 59e4d5a2f0c6a2b2f4b3212d17335b8ead8a5d1f6ae947c86904e22f81626abf
   - episode_id: 5104
     split: train
     status: pending

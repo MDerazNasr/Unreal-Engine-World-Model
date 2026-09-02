@@ -48,7 +48,7 @@ def test_only_audited_training_episodes_are_accepted() -> None:
     episodes = plan["episodes"]
     accepted = [episode for episode in episodes if episode["status"] == "accepted"]
 
-    assert [episode["episode_id"] for episode in accepted] == [5101, 5102]
+    assert [episode["episode_id"] for episode in accepted] == [5101, 5102, 5103]
     assert accepted[0]["raw_file"] == "episode_5101_20260902T203328Z_3ED1E0C50841.jsonl"
     assert accepted[0]["raw_sha256"] == (
         "eb437123d88dcf0c7b96b7f4fa5e2d75f502c2b70bc08408094b154693c3eaae"
@@ -56,6 +56,10 @@ def test_only_audited_training_episodes_are_accepted() -> None:
     assert accepted[1]["raw_file"] == "episode_5102_20260902T205700Z_941B611C954B.jsonl"
     assert accepted[1]["raw_sha256"] == (
         "a70492872c8b5d55cf669b500c44a703cba6d6e14d8bb21a057cd8efb67094b1"
+    )
+    assert accepted[2]["raw_file"] == "episode_5103_20260902T210855Z_6D0DE5726242.jsonl"
+    assert accepted[2]["raw_sha256"] == (
+        "59e4d5a2f0c6a2b2f4b3212d17335b8ead8a5d1f6ae947c86904e22f81626abf"
     )
     assert plan["rejected_attempts"] == [
         {
