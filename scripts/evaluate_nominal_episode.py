@@ -282,7 +282,7 @@ def _summary(
     return result
 
 
-def _write_plot(rows: list[RowMetrics], path: Path) -> None:
+def _write_plot(rows: list[RowMetrics], path: Path, *, parameter_source: str) -> None:
     times = np.asarray([row.end_simulation_time_s for row in rows])
     position_errors = np.asarray([row.planar_position_error_cm for row in rows])
     velocity_errors = np.asarray([row.planar_velocity_error_cm_s for row in rows])
@@ -296,7 +296,11 @@ def _write_plot(rows: list[RowMetrics], path: Path) -> None:
     figure, axes = plt.subplots(4, 1, figsize=(9.0, 9.2), sharex=True, constrained_layout=True)
     axes[0].plot(times, position_errors, color="#3366aa", linewidth=1.8)
     axes[0].set_ylabel("Planar position error (cm)")
-    axes[0].set_title("Faithful nominal model: retrospective one-step error")
+    axes[0].set_title(
+        "Faithful nominal model: causal current-snapshot one-step error"
+        if parameter_source == "current-snapshot"
+        else "Faithful nominal model: retrospective one-step error"
+    )
     axes[1].plot(times, velocity_errors, color="#aa5533", linewidth=1.8)
     axes[1].set_ylabel("Planar velocity error (cm/s)")
     axes[2].plot(times, yaw_errors, color="#6b4c9a", linewidth=1.8)
@@ -424,7 +428,11 @@ def main() -> None:
     )
     summary_path = args.output_dir / "summary.json"
     summary_path.write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
-    _write_plot(rows, args.output_dir / "one_step_error.png")
+    _write_plot(
+        rows,
+        args.output_dir / "one_step_error.png",
+        parameter_source=args.parameter_source,
+    )
     print(json.dumps(summary, indent=2))
 
 

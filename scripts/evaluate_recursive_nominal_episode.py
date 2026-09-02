@@ -126,7 +126,11 @@ def _plot(summary: dict[str, object], path: Path) -> None:
         axis.plot(horizons, maxima, marker="^", linestyle=":", color=color, label="max")
         axis.set_ylabel(label)
         axis.grid(alpha=0.25)
-    axes[0].set_title("Faithful nominal model: recursive open-loop error")
+    axes[0].set_title(
+        "Causal held-parameter nominal: recursive open-loop error"
+        if summary["parameter_policy"] == "hold-current"
+        else "Faithful nominal model: retrospective recursive open-loop error"
+    )
     axes[0].legend(ncol=3, fontsize=9)
     axes[-1].set_xlabel("Requested rollout horizon (s)")
     axes[-1].set_xticks(horizons)
