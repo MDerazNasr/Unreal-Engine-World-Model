@@ -98,6 +98,15 @@ Evidence required: plugin compile, human-control passthrough test, fixed velocit
 
 Known movement structure is inexpensive and testable. Residual learning gives zero a meaningful baseline, focuses capacity on systematic mismatch, and provides a clean scientific comparison. It can fail if residuals are mostly noise or the nominal model is already sufficient.
 
+### What exactly does the residual predict, and why use a local frame?
+
+It predicts six corrections: planar position and velocity, yaw, and yaw rate. Planar corrections use
+the previous observed facing frame, so forward and sideways retain the same meaning at every world
+heading and the frame is known at prediction time. Using actual next facing would leak the answer.
+Yaw is the shortest signed scalar correction, avoiding the plus/minus 180-degree discontinuity. A
+zero output returns the exact nominal state; vertical motion is outside the P0 contract and fails
+closed rather than being silently ignored.
+
 ### Why an MLP instead of a GRU or Transformer?
 
 The state is low-dimensional and mostly observed, and four observations cover the hypothesized controller lag. The MLP is faster and easier to debug. This is a falsifiable simplicity choice: if the history MLP fails while error signatures indicate longer hidden state, a recurrent model becomes justified.

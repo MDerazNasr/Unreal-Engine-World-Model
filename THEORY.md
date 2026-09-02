@@ -229,6 +229,27 @@ Zero-residual invariant:
 
 `r_theta(.) = 0` must make the corrected rollout numerically equal to the nominal rollout.
 
+### Planar residual representation
+
+For the first deployable model, the residual has six ordered components:
+
+`r = [delta_p_local_x_cm, delta_p_local_y_cm, delta_v_local_x_cm_s,`
+`     delta_v_local_y_cm_s, delta_yaw_rad, delta_yaw_rate_rad_s]`
+
+The planar position and velocity differences are rotated into the coordinate frame of the previous
+observed facing, not the unknown next facing. This makes the target causal and gives the same physical
+meaning to “forward” and “sideways” corrections when the character turns in world space. The yaw
+target is the shortest signed angular difference from nominal to actual, so a transition from
+`+179 degrees` to `-179 degrees` is a `+2 degree` correction rather than `-358 degrees`.
+
+Composition rotates the first four components back to world space and adds them to the nominal
+position and velocity. It adds and wraps the yaw correction and converts yaw-rate correction from
+radians/second to the nominal state's Unreal-facing degrees/second representation. Vertical motion
+and simulation time are deliberately outside this planar contract; a mismatch in either fails closed
+instead of being silently discarded. An exactly zero six-vector returns the nominal state itself, so
+turning learning off is an exact baseline identity. Numeric normalization scales are not chosen yet:
+they must be fitted using training episodes only after episode-level splits are frozen.
+
 ### Retrospective oracle versus causal nominal
 
 There are now two deliberately different parameter policies:

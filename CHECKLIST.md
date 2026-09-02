@@ -56,7 +56,7 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 
 ### Tuesday 1 September - residual model
 
-- [ ] Complete residual target/composition and zero-residual invariant.
+- [x] Complete residual target/composition and zero-residual invariant.
 - [ ] Complete no-history and four-history model training.
 - [ ] Complete recursive held-out comparison at 0.5/1.0/1.5 s.
 - [ ] Decide by end of day whether learned prediction is strong enough for planning integration.
@@ -613,11 +613,13 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 
 ### 8.1 Residual contract
 
-- [ ] Define `delta_target = difference(Unreal_next, nominal_next)`.
-- [ ] Define units/scales for each residual component.
-- [ ] Choose scalar yaw increment or valid normalized facing correction.
-- [ ] Define `compose(nominal, residual)`.
-- [ ] Prove zero residual numerically equals nominal output.
+- [x] Define `delta_target = difference(Unreal_next, nominal_next)`.
+- [x] Freeze output order and physical units: local position cm, local velocity cm/s, wrapped yaw
+  radians, and yaw rate radians/s.
+- [ ] Fit numeric normalization scales from training episodes only; never from validation/test rows.
+- [x] Choose a shortest-path scalar yaw correction in radians.
+- [x] Define `compose(nominal, residual)`.
+- [x] Prove zero residual returns the exact nominal state, including bit-for-bit scalar identity.
 - [ ] Exclude goal/target features from character dynamics for P0.
 - [ ] Exclude simple obstacle geometry unless a documented contact-context ablation justifies it.
 - [ ] Define what four history observations contain.

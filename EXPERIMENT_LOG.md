@@ -54,6 +54,7 @@ Artifacts and reproduction command:
 | NOM-ROLL-001 | How does faithful nominal error compound over 0.5/1.0/1.5 s? | Day 2 | Completed |
 | FACING-001 | Does an explicit antipodal tie-break remove the known angular rollout spike? | Day 2 | Completed |
 | PERT-SCHEDULE-001 | Can one controlled Mover velocity kick be scheduled without frame-skip or duplicate ambiguity? | Day 2 | Completed |
+| RES-CONTRACT-001 | Is the planar residual target causal, invertible, and exactly zero-identical? | Day 3 | Completed |
 | RES-001 | Does residual learning improve held-out recursive prediction over nominal? | Day 3 | Planned |
 | RES-002 | Does four-step history improve post-perturbation prediction over no history? | Day 3 | Planned |
 | CEM-001 | Does fixed-seed CEM recover known optima in toy costs deterministically? | Day 4 | Planned |
@@ -1181,3 +1182,25 @@ direction, and magnitude, and freeze manifests. Episode 4301 confirms that the h
 does not turn the hidden kick into a causal target.
 
 **Artifacts:** `artifacts/nominal/episode_{4101,4201,4301}_current_snapshot/`.
+
+## RES-CONTRACT-001 residual target/composition invariants (2026-09-02)
+
+**Question:** Can the residual target be represented without future-facing leakage, composed back
+into nominal state, and disabled without changing the baseline?
+
+**Method:** Define a frozen six-component output containing local planar position and velocity,
+shortest signed yaw, and yaw-rate corrections. Use the previous observed facing as the local frame.
+Reject vertical/time mismatch. Test hand-checkable rotation and angle-wrap cases, compute-then-compose
+inversion, non-finite inputs, and exact zero identity.
+
+**Result:** All 11 focused tests pass; all 213 repository tests pass. A world `+Y` error at a
+90-degree reference facing becomes local `+X`; `+179` to `-179` becomes a `+2 degree` correction;
+and difference followed by composition reconstructs the actual planar state. Exact zero returns the
+nominal object, preventing angle normalization from introducing even a tiny floating-point change.
+
+**Reviewer interpretation:** The contract establishes semantics, not learned performance. It does
+not justify normalization values, model architecture, or a prediction claim. Normalization scales
+must be fitted from training episodes only after episode-level splits are frozen.
+
+**Implementation:** `motionworld/models/residual_contract.py` and
+`tests/unit/test_residual_contract.py`.

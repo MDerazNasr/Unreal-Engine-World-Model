@@ -1231,3 +1231,39 @@ kept the external kick evaluation-only. Future tests require episode-level split
 history/explicit-selector comparisons.
 
 Related config/commit/experiment: `NOM-CAUSAL-001`; `02ae8bb`, `fc32430`, `93fb741`.
+
+## D-035 - Use a causal six-component planar residual in the previous-facing frame
+
+Status: accepted for the P0 residual contract; training-only scales remain pending
+
+Decision: Predict local planar position and velocity corrections, a wrapped scalar yaw correction,
+and a yaw-rate correction. Express planar corrections in the previous observed facing frame. Keep
+position in centimeters, velocity in centimeters/second, and learned angular values in radians and
+radians/second. Reject vertical or time mismatch. Define exact-zero composition as the nominal-state
+identity.
+
+Why: A local frame gives forward/sideways errors a consistent interpretation across world headings.
+The previous facing is known when the prediction is made; using actual next facing would leak the
+answer. A scalar shortest-angle correction avoids discontinuity at plus/minus 180 degrees. The exact
+zero identity guarantees that disabling the learned model reproduces the nominal baseline exactly.
+
+Alternatives considered: world-frame planar deltas; target-frame or actual-next-facing deltas; sine
+and cosine facing output; predicting the complete next state; including vertical movement; silently
+ignoring vertical/time disagreement.
+
+Evidence: Eleven focused tests cover exact zero identity, difference/composition inversion, a
+90-degree coordinate example, shortest-angle wrapping, frozen output ordering, and fail-closed
+validation. The full suite has 213 passing tests.
+
+Main assumption: P0 scenarios remain on a planar floor and six corrections are sufficient for the
+decision-relevant character state.
+
+How it could fail: slopes, jumping, root-motion vertical effects, or contact modes may require a 3D
+state; previous-facing coordinates may be unstable if facing itself is unreliable; a scalar yaw
+correction can still be difficult near genuinely ambiguous 180-degree behavior.
+
+How I tested it: Hand-checked that at 90-degree facing a world `+Y` error is local `+X`; composed
+computed differences back to the actual state; tested `+179` to `-179` as a `+2 degree` correction;
+and rejected vertical position, vertical velocity, time, and non-finite discrepancies.
+
+Related config/experiment: `RES-CONTRACT-001`.
