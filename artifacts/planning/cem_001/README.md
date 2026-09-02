@@ -16,5 +16,5 @@ Reproduce from the repository root:
 MPLCONFIGDIR=/tmp/motionworld-mpl .venv/bin/python scripts/run_cem_toy.py \
   --config configs/cem_planner.yaml \
   --output-dir artifacts/planning/cem_001 \
-  --git-commit 4fe3453
+  --git-commit 08d727e
 ```

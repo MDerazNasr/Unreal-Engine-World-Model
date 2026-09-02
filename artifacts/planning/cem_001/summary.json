@@ -7,8 +7,10 @@
   "best_first_action_error_cm_s": 1.6968283971472702,
   "claim_boundary": "synthetic quadratic oracle; not Unreal control evidence",
   "decision_interval_s": 0.1,
+  "dynamics_substep_s": 0.03333333333333333,
+  "dynamics_substeps_per_plan_step": 3,
   "fixed_seed_exact_repeat": true,
-  "git_commit": "4fe3453",
+  "git_commit": "08d727e",
   "horizon_s": 1.5,
   "iteration_best_costs": [
     180.7976929691889,
@@ -32,7 +34,7 @@
     "num_elites": 32,
     "num_iterations": 3,
     "num_knots": 5,
-    "num_model_steps": 15
+    "num_plan_steps": 15
   },
   "schema_name": "motionworld_cem_toy_result",
   "schema_version": 1,
@@ -70,7 +72,7 @@
     "num_elites": 32,
     "num_iterations": 3,
     "num_knots": 1,
-    "num_model_steps": 1
+    "num_plan_steps": 1
   },
   "used_safe_fallback": false
 }
