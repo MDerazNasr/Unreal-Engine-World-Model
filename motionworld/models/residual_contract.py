@@ -16,6 +16,16 @@ from motionworld.dynamics.coordinates import (
 from motionworld.dynamics.smooth_walking_math import find_delta_angle_radians
 from motionworld.dynamics.smooth_walking_nominal import SmoothWalkingObservableState
 
+RESIDUAL_OUTPUT_NAMES = (
+    "position_local_x_cm",
+    "position_local_y_cm",
+    "velocity_local_x_cm_s",
+    "velocity_local_y_cm_s",
+    "yaw_rad",
+    "yaw_rate_rad_s",
+)
+RESIDUAL_OUTPUT_COUNT = len(RESIDUAL_OUTPUT_NAMES)
+
 
 def _planar_vector(value: ArrayLike, *, name: str) -> NDArray[np.float64]:
     result = np.asarray(value, dtype=np.float64)
@@ -179,7 +189,10 @@ def compose_residual(
         nominal.simulation_time_s,
         name="nominal.simulation_time_s",
     )
-    if np.array_equal(residual.as_array(), np.zeros(6, dtype=np.float64)):
+    if np.array_equal(
+        residual.as_array(),
+        np.zeros(RESIDUAL_OUTPUT_COUNT, dtype=np.float64),
+    ):
         return nominal
     position_world = nominal_position.copy()
     position_world[:2] += local_vector_to_world(

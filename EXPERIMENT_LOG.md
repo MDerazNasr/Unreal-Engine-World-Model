@@ -56,6 +56,7 @@ Artifacts and reproduction command:
 | PERT-SCHEDULE-001 | Can one controlled Mover velocity kick be scheduled without frame-skip or duplicate ambiguity? | Day 2 | Completed |
 | RES-CONTRACT-001 | Is the planar residual target causal, invertible, and exactly zero-identical? | Day 3 | Completed |
 | RES-DATASET-001 | Are residual examples consecutive, episode-safe, and free of future/event leakage? | Day 3 | Completed |
+| RES-MODEL-SMOKE-001 | Do matched MLPs satisfy size, fallback, shape, gradient, and seed invariants? | Day 3 | Completed |
 | RES-001 | Does residual learning improve held-out recursive prediction over nominal? | Day 3 | Planned |
 | RES-002 | Does four-step history improve post-perturbation prediction over no history? | Day 3 | Planned |
 | CEM-001 | Does fixed-seed CEM recover known optima in toy costs deterministically? | Day 4 | Planned |
@@ -1229,3 +1230,24 @@ normalization are still blocked on collecting independent action schedules.
 
 **Implementation:** `motionworld/models/residual_dataset.py` and
 `tests/unit/test_residual_dataset.py`.
+
+## RES-MODEL-SMOKE-001 residual MLP implementation checks (2026-09-02)
+
+**Question:** Do the initial no-history and four-history MLPs meet the size, exact fallback, tensor,
+gradient, and reproducibility contracts before any performance experiment?
+
+**Method:** Instantiate 28-input and 112-input models with matched 256/256/128 SiLU hidden layers and
+six outputs. Zero-initialize the output layer. Exercise batches with a horizon prefix, float64 on CPU,
+invalid shapes/configurations, gradient flow, an optimizer step, and repeated seeded initialization
+and training.
+
+**Result:** Fourteen focused tests pass. The models contain 106,886 and 128,390 parameters. Both
+return bit-exact zero tensors before training, the output layer receives finite nonzero gradients,
+one update changes predictions, and repeating the seeded optimizer step reproduces loss and state.
+
+**Reviewer interpretation:** This is an implementation smoke test, not evidence that either model
+generalizes. The history model has 21,504 additional first-layer weights, so any history benefit must
+be interpreted with a size-controlled ablation if it is material.
+
+**Implementation:** `motionworld/models/residual_mlp.py` and
+`tests/unit/test_residual_mlp.py`.

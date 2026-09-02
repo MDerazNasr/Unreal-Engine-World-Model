@@ -643,15 +643,16 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 
 ### 8.3 Model implementation
 
-- [ ] Implement no-history MLP.
-- [ ] Implement history MLP.
-- [ ] Use initial hidden widths 256, 256, 128 with SiLU.
-- [ ] Confirm total parameter count is below approximately 500K.
-- [ ] Add LayerNorm only if instability evidence justifies it.
-- [ ] Initialize final residual output conservatively where appropriate.
+- [x] Implement no-history MLP.
+- [x] Implement history MLP.
+- [x] Use initial hidden widths 256, 256, 128 with SiLU.
+- [x] Confirm total parameter count is below approximately 500K: 106,886 no-history and 128,390
+  four-history parameters.
+- [x] Omit LayerNorm initially; add it only if training-instability evidence justifies it.
+- [x] Initialize the final residual layer to exact zero.
 - [ ] Add residual clipping only from training-set statistics.
-- [ ] Test batch, horizon, device, dtype, and gradient behavior.
-- [ ] Test deterministic initialization/training smoke run under fixed seed.
+- [x] Test batch/horizon-prefix shape, CPU device, float64 dtype, and gradient behavior.
+- [x] Test deterministic initialization and one optimizer step under a fixed seed.
 
 ### 8.4 Recursive training
 

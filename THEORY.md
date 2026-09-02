@@ -265,6 +265,20 @@ would let the model exploit scenario/timeline correlations. During a future recu
 predicted state and candidate action can create the next 28-value query; the four-query history then
 shifts forward. This advancement still requires a dedicated rollout test before it is complete.
 
+### Initial residual MLP
+
+Both comparisons use three hidden layers of widths 256, 256, and 128 with SiLU activations, followed
+by six residual outputs. The current-query model has 106,886 trainable parameters; the four-query
+model has 128,390 because only its first layer is wider. SiLU is a smooth nonlinearity
+`SiLU(x) = x * sigmoid(x)`. Unlike a hard ReLU, it retains a small smooth gradient for negative
+inputs, which is useful for continuous dynamics.
+
+The output layer's weights and bias start at exactly zero. Therefore every untrained prediction is
+the zero residual and the complete system initially equals the nominal model. Earlier hidden layers
+still receive ordinary random initialization; after the first update changes the output layer,
+gradients can propagate into them. LayerNorm and residual clipping are intentionally absent until
+training-only evidence supplies a reason and valid scale.
+
 ### Retrospective oracle versus causal nominal
 
 There are now two deliberately different parameter policies:

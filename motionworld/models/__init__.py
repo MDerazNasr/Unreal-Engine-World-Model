@@ -1,6 +1,8 @@
 """Learned-model contracts for MotionWorld."""
 
 from motionworld.models.residual_contract import (
+    RESIDUAL_OUTPUT_COUNT,
+    RESIDUAL_OUTPUT_NAMES,
     ResidualCorrection,
     compose_residual,
     residual_difference,
@@ -20,9 +22,17 @@ from motionworld.models.residual_features import (
     encode_residual_step_features,
     stack_residual_history,
 )
+from motionworld.models.residual_mlp import (
+    DEFAULT_HIDDEN_WIDTHS,
+    ResidualMLP,
+    make_four_history_residual_mlp,
+    make_no_history_residual_mlp,
+)
 
 __all__ = [
     "ResidualCorrection",
+    "RESIDUAL_OUTPUT_COUNT",
+    "RESIDUAL_OUTPUT_NAMES",
     "compose_residual",
     "residual_difference",
     "zero_residual",
@@ -36,4 +46,8 @@ __all__ = [
     "RESIDUAL_STEP_FEATURE_NAMES",
     "encode_residual_step_features",
     "stack_residual_history",
+    "DEFAULT_HIDDEN_WIDTHS",
+    "ResidualMLP",
+    "make_four_history_residual_mlp",
+    "make_no_history_residual_mlp",
 ]

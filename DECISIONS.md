@@ -1302,3 +1302,33 @@ offset; feature vectors remained equal. Tested schema size, order, read-only sto
 history length, and oldest-to-current flattening.
 
 Related implementation: `motionworld/models/residual_features.py`.
+
+## D-037 - Start with matched small zero-output MLPs
+
+Status: accepted for implementation; training comparison pending
+
+Decision: Use 256/256/128 SiLU hidden layers for both no-history and four-history models. Change only
+the schema-determined input width. Initialize the six-output layer to zero. Do not add LayerNorm or
+output clipping without training evidence and training-only statistics.
+
+Why: The input is low-dimensional and fixed-length, so a feed-forward model is the simplest adequate
+hypothesis. Exact zero output makes the initial learned system identical to nominal. Keeping the body
+matched makes the history comparison understandable while remaining far under the runtime budget.
+
+Alternatives considered: GRU; Transformer; separate hand-tuned widths; random output initialization;
+LayerNorm by default; clipping from validation/test extrema.
+
+Evidence: The no-history model has 106,886 parameters and the history model 128,390, both below
+500,000. Fourteen tests cover exact zero output, batch/horizon-prefix shape, CPU device, float64,
+gradients, bad shapes/configuration, fixed initialization, and a reproducible optimizer step.
+
+Main assumption: Four explicit queries contain enough short memory that recurrence is unnecessary.
+
+How it could fail: Longer hidden state may require recurrence; the modest parameter-count difference
+could partly explain a history gain; zero output initialization temporarily blocks gradients to early
+layers on the first backward pass; unnormalized inputs may destabilize training.
+
+How I tested it: Checked exact parameter counts and zero tensors, performed a gradient/optimizer
+step, repeated a complete step under the same seed, and exercised prefix batches and float64.
+
+Related experiment: `RES-MODEL-SMOKE-001`.
