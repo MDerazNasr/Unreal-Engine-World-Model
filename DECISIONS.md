@@ -1415,7 +1415,7 @@ Related implementation/evidence: `motionworld/data/residual_manifest.py`,
 
 ## D-040 - Center inputs but only scale residual targets
 
-Status: implementation and round-trip contract accepted; real train-only statistics pending
+Status: accepted and fitted on the frozen five-episode training split
 
 Decision: Standardize features with training-only mean and population standard deviation. Normalize
 each residual target component by its training-only standard deviation without subtracting a target
@@ -1442,11 +1442,16 @@ bias to learn.
 How I tested it: Exact arrays survive normalize/denormalize round trips within `1e-12`; normalized
 zero targets decode bit-exactly to zero; a tuple containing an undeclared episode ID fails closed.
 
+Real fitted target scales for the no-history model, in the frozen six-component order, are
+`[0.0101933 cm, 0.00175551 cm, 0.324062 cm/s, 0.0605781 cm/s, 0.0146909 rad,
+0.521149 rad/s]`. The four-history values differ slightly because its first three transitions per
+episode cannot form complete windows. Both artifacts record episode IDs 5101-5105 only.
+
 Related implementation: `motionworld/models/residual_normalization.py`.
 
 ## D-041 - Freeze a fixed-step one-step baseline before recursive training
 
-Status: deterministic implementation accepted; real frozen run pending
+Status: accepted; frozen training and one-step validation completed
 
 Decision: Train the no-history and four-history MLPs with the same 1,500 seeded CPU AdamW steps,
 batch size 128, normalized Huber loss, and 0.01 normalized correction-magnitude regularizer. Use the
@@ -1478,5 +1483,53 @@ The experiment script rebuilds and byte-compares the audited manifest before fit
 train-only normalization, saves checkpoint provenance/hashes, and opens validation only after both
 training calls finish.
 
+The real run trained both checkpoints before validation inference. On the 42 held-out
+parameter-change rows, no-history reduced p95 position/velocity/yaw/yaw-rate error from
+`0.052315 cm / 1.93760 cm/s / 3.60379 deg / 188.180 deg/s` to
+`0.002381 cm / 0.107696 cm/s / 0.917758 deg / 18.9772 deg/s`. Four-history improved over nominal
+but was weaker than no-history. On parameter-stable rows, the nominal equations remain essentially
+exact and either learned model adds small error; results therefore remain stratified.
+
 Related configuration/implementation: `configs/residual_training.yaml`,
 `motionworld/models/residual_training.py`, and `scripts/train_residual_models.py`.
+
+## D-042 - Select the no-history residual for planning on recursive validation
+
+Status: accepted for planner integration; final test remains sealed
+
+Decision: Carry the frozen no-history checkpoint into nominal-versus-residual MPC. Preserve the
+four-history model as an evaluated ablation, not as the selected deployment model. Do not retrain or
+inspect episodes 5301/5302 before final configuration freeze.
+
+Why: On common, teacher-forcing-free validation windows, no-history has lower p95 error than both
+nominal and four-history for position, velocity, yaw, and yaw rate at every requested horizon. At
+0.5/1.0/1.5 seconds its p95 position error is `14.395/27.934/28.964 cm`, compared with
+`16.719/30.222/31.229 cm` nominally. Its yaw error is `20.151/30.691/11.583 deg`, compared with
+`46.156/97.287/52.302 deg`. The simpler model also costs less at inference.
+
+Alternatives considered: select four-history because it was the richer hypothesis; tune history
+length or capacity on validation; train a recursive loss immediately; stop before planning because
+position gains are modest.
+
+Evidence: The no-history relative p95 reductions at 0.5/1.0/1.5 seconds are 13.9/7.6/7.3% for
+position, 10.7/9.7/12.1% for velocity, 56.3/68.5/77.9% for yaw, and 65.0/83.0/81.6% for yaw rate.
+The comparison uses 241/202/171 common endpoints per model and future recorded actions and timesteps,
+but only one real seed state. Predicted state and history advance recursively thereafter.
+
+Main assumption: These angular and modest translational improvements are large enough to alter at
+least some short-horizon planner rankings. The planner experiment, not this prediction result, must
+test that assumption.
+
+How it could fail: Both validation episodes share the scripted eight-phase collection family with
+training; the model may learn scheduler regularities. There are no collision or external-push rows.
+The no-history checkpoint can also add error in parameter-stable regions where nominal is already
+near exact. Better open-loop prediction need not yield better closed-loop control.
+
+How I tested it: The evaluator verifies checkpoint and manifest hashes, uses common endpoints,
+rejects intermediate real-state substitution, labels `teacher_forcing=false`, reports empty strata
+as null rather than zero, and records `test_files_opened=0`. Reviewer tests cover all of these
+contracts. The first two evaluator attempts exposed reporting-schema defects only; they did not
+alter weights, data, or model selection.
+
+Related artifacts: `artifacts/residual/training_001/` and
+`artifacts/residual/recursive_001/`.

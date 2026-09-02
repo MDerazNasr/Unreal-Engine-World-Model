@@ -331,6 +331,26 @@ the nominal model. Constant input or target dimensions receive unit scale and ar
 The fitter requires the observed episode IDs to equal the declared training IDs, so accidentally
 passing validation examples fails before any statistic is computed.
 
+### What the first residual result means
+
+The no-history residual improved recursive held-out p95 error at 0.5, 1.0, and 1.5 seconds for all
+four reported state metrics. It did not make the simulator universally more accurate: on the many
+parameter-stable rows, the known nominal equations are already near numerical precision and a neural
+correction can only add a small approximation error. The gain comes from windows that cross runtime
+parameter changes, which is the causal mismatch this experiment was designed to expose.
+
+Four observations of history did not improve on one observation. More information is useful only if
+the dataset and model can exploit it reliably. Here the history model has more parameters, fewer
+eligible examples, and correlated observations from a fixed phase schedule. The current finalized
+state, action, and known movement context already identify much of the useful signal. Therefore the
+history result is an ablation result—not evidence that temporal models are generally unnecessary.
+
+Recursive evaluation is stricter than one-step evaluation. Starting with one real state, each
+predicted next state becomes the input to the following step. The evaluator may use the future action
+sequence and timestep because a planner proposes those actions and knows its control interval, but it
+may not replace a predicted intermediate state with a recorded Unreal state. That replacement would
+be teacher forcing and would hide compounding error.
+
 ## 8. Cross-Entropy Method
 
 For each planning update:

@@ -58,8 +58,8 @@ Artifacts and reproduction command:
 | RES-DATASET-001 | Are residual examples consecutive, episode-safe, and free of future/event leakage? | Day 3 | Completed |
 | RES-MODEL-SMOKE-001 | Do matched MLPs satisfy size, fallback, shape, gradient, and seed invariants? | Day 3 | Completed |
 | RES-COLLECTION-001 | Does a distinct schedule reproduce valid causal residual structure? | Day 3 | Episode 5101 accepted; collection ongoing |
-| RES-001 | Does residual learning improve held-out recursive prediction over nominal? | Day 3 | Planned |
-| RES-002 | Does four-step history improve post-perturbation prediction over no history? | Day 3 | Planned |
+| RES-001 | Does residual learning improve held-out recursive prediction over nominal? | Day 3 | Completed: no-history gate passed |
+| RES-002 | Does four-step history improve post-perturbation prediction over no history? | Day 3 | Completed: bounded negative result |
 | CEM-001 | Does fixed-seed CEM recover known optima in toy costs deterministically? | Day 4 | Planned |
 | CTRL-001 | Does residual MPC improve the paired timed-gate outcome over nominal MPC? | Day 5 | Planned |
 | CTRL-002 | Does history improve paired post-push recovery? | Day 5 | Planned |
@@ -1466,3 +1466,66 @@ experiment, not a general collision model. Test episodes 5301/5302 remain uncoll
 Artifacts: `artifacts/residual/dataset_audit/{manifest.json,coverage.json,coverage.png,README.md,
 artifact_hashes.json}`. The plot was visually checked for readable labels and honest train/validation
 comparisons. Seven focused and 262 total tests, Ruff, and diff checks pass.
+
+## RES-001 — frozen one-step residual training and validation
+
+Hypothesis: A small residual MLP can predict the causal execution mismatch around runtime parameter
+changes better than the faithful hold-current nominal model on unseen episodes.
+
+Configuration: Manifest SHA-256 `4c5d921194d339ba0617c930ce1ae41497ac5e04b14280c9ea8610bc3cc4d770`;
+train episodes 5101-5105; validation 5201-5202; tests 5301-5302 sealed. Both MLPs use widths
+256/256/128, SiLU, zero-initialized output, CPU float32, seed 20260903, AdamW at 0.001 with 0.0001
+weight decay, batch 128, and exactly 1,500 uniform-with-replacement updates. The objective is
+normalized Huber plus a 0.01 normalized correction-magnitude penalty. Input and target scales are
+fit from training only; validation is first opened after both fixed final-step checkpoints exist.
+
+Result: Accepted. Across 277 common validation rows, no-history mean position/velocity/yaw/yaw-rate
+error is `0.000226 cm / 0.008249 cm/s / 0.045138 deg / 1.34570 deg/s`, versus nominal
+`0.001210 / 0.042378 / 0.137137 / 5.27441`. On 42 parameter-change rows, no-history p95 is
+`0.002381 cm / 0.107696 cm/s / 0.917758 deg / 18.9772 deg/s`, versus nominal
+`0.052315 / 1.93760 / 3.60379 / 188.180`. Four-history also improves that stratum but is weaker
+than no-history. Stable-row nominal error is near numerical precision, and both learned models add
+small error there; the aggregate p95 position and velocity values are consequently misleading and
+remain stratified.
+
+Checkpoint SHA-256: no-history
+`d979549b30bd01b3a304697074c295caf6c7fa16a4a8e25a08c15eec1da7a4f6`; four-history
+`da4e2281c50b5ff329dd41ea3b02811ba634a35c461923c7afc240c11872c30f`.
+Artifacts: `artifacts/residual/training_001/`. Training and validation plots were visually checked.
+No test artifact was opened.
+
+## RES-002 — teacher-forcing-free recursive held-out comparison
+
+Hypothesis: One-step gains survive compounding when predictions, including imagined history, feed
+subsequent predictions without recorded intermediate states.
+
+Configuration: Use the frozen RES-001 checkpoints and identical eligible endpoints for nominal,
+no-history, and four-history. Seed each rollout from one real finalized state, apply recorded future
+actions and timesteps, hold the seed's current causal parameter context, and advance all observable
+and nominal hidden state recursively. Horizons are 0.5/1.0/1.5 seconds. No validation checkpoint
+selection or test inspection occurs.
+
+Result: Gate passed for no-history. Common-window p95 metrics are:
+
+| Horizon | Model | Position cm | Velocity cm/s | Yaw deg | Yaw rate deg/s |
+|---:|---|---:|---:|---:|---:|
+| 0.5 s | Nominal | 16.719 | 64.394 | 46.156 | 292.599 |
+| 0.5 s | No history | 14.395 | 57.483 | 20.151 | 102.550 |
+| 0.5 s | Four history | 15.929 | 63.153 | 41.792 | 255.780 |
+| 1.0 s | Nominal | 30.222 | 61.151 | 97.287 | 441.489 |
+| 1.0 s | No history | 27.934 | 55.206 | 30.691 | 75.100 |
+| 1.0 s | Four history | 29.404 | 57.820 | 40.385 | 125.581 |
+| 1.5 s | Nominal | 31.229 | 66.629 | 52.302 | 361.373 |
+| 1.5 s | No history | 28.964 | 58.558 | 11.583 | 66.670 |
+| 1.5 s | Four history | 30.391 | 63.116 | 25.787 | 106.986 |
+
+No-history improves p95 position by 13.9/7.6/7.3%, velocity by 10.7/9.7/12.1%, yaw by
+56.3/68.5/77.9%, and yaw rate by 65.0/83.0/81.6%. Select it for planner integration. Do not claim
+history helps: it consistently loses to the simpler checkpoint. Longer stable-only strata are empty
+because every long window crosses a scripted parameter change; the report records null, not zero.
+
+Limitations: Both validation episodes use the same eight-phase family as training, no accepted row
+contains contact or an external push, and improved prediction does not establish improved control.
+The first evaluator attempts exposed missing nominal stratum metadata and invalid empty-stratum
+aggregation; only reporting code changed, and the successful run retained the same checkpoints and
+data. Artifacts: `artifacts/residual/recursive_001/`. The final plot was visually checked.

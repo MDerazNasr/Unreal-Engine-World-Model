@@ -57,10 +57,12 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 ### Tuesday 1 September - residual model
 
 - [x] Complete residual target/composition and zero-residual invariant.
-- [ ] Complete no-history and four-history model training.
-- [ ] Complete recursive held-out comparison at 0.5/1.0/1.5 s.
-- [ ] Decide by end of day whether learned prediction is strong enough for planning integration.
-- [ ] Preserve negative outcome rather than weakening nominal baseline or tuning final test cases.
+- [x] Complete no-history and four-history model training.
+- [x] Complete recursive held-out comparison at 0.5/1.0/1.5 s.
+- [x] Decide by end of day whether learned prediction is strong enough for planning integration:
+  proceed with the no-history checkpoint selected on validation only.
+- [x] Preserve negative outcome rather than weakening nominal baseline or tuning final test cases:
+  the four-history model lost to the simpler model and no test episode was opened.
 - [ ] Close/merge `feature/residual-model` only after Section 8.6 gate review.
 
 ### Wednesday 2 September - CEM and live control
@@ -610,7 +612,7 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 
 - [x] Coverage report and plot are inspected manually.
 - [x] Leakage/overlap tests pass, including a test proving pending test files are not opened.
-- [ ] Reviewer checks temporal alignment and normalization leakage.
+- [x] Reviewer checks temporal alignment and normalization leakage.
 - [ ] Candidate explains why adjacent-transition splitting is invalid.
 - [x] Dataset-audit regeneration command is documented without embedding a private absolute path.
 - [x] Commit schema, validators, manifests, and coverage report without raw licensed/private data
@@ -623,14 +625,14 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [x] Define `delta_target = difference(Unreal_next, nominal_next)`.
 - [x] Freeze output order and physical units: local position cm, local velocity cm/s, wrapped yaw
   radians, and yaw rate radians/s.
-- [ ] Fit numeric normalization scales from training episodes only; never from validation/test rows.
+- [x] Fit numeric normalization scales from training episodes only; never from validation/test rows.
 - [x] Choose a shortest-path scalar yaw correction in radians.
 - [x] Define `compose(nominal, residual)`.
 - [x] Prove zero residual returns the exact nominal state, including bit-for-bit scalar identity.
 - [x] Exclude goal/target features from character dynamics for P0.
 - [x] Exclude simple obstacle geometry unless a documented contact-context ablation justifies it.
 - [x] Define each of four chronological observations as the same frozen 28-value causal step query.
-- [ ] Implement and test how imagined four-step history advances recursively.
+- [x] Implement and test how imagined four-step history advances recursively.
 - [x] Exclude absolute position, absolute heading, episode time, contact labels, and other features that
   cannot advance causally; retain only the known per-step `delta_time_s`.
 - [x] Define the causal baseline boundary: current finalized state/context/parameters plus candidate
@@ -664,38 +666,40 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 
 ### 8.4 Recursive training
 
-- [ ] Implement recursive rollout using the same interface as planning.
-- [ ] Implement per-component state error.
+- [x] Implement recursive rollout using the same transition interface intended for planning.
+- [x] Implement per-component state error.
 - [x] Implement and hand-check normalized per-component Huber loss for the fixed one-step baseline.
 - [ ] Implement discounted multi-step loss.
 - [x] Implement a declared normalized residual-magnitude regularizer.
-- [ ] Log one-step and recursive validation separately.
-- [ ] Never use teacher forcing for the reported recursive evaluation.
-- [ ] Save training config, seed, normalization, schema, commit, and checkpoint hash.
-- [ ] Save learning curves and failure diagnostics.
+- [x] Log one-step and recursive validation separately.
+- [x] Never use teacher forcing for the reported recursive evaluation.
+- [x] Save training config, seed, normalization, schema, commit, and checkpoint hash.
+- [x] Save learning curves and failure diagnostics.
 
 ### 8.5 Residual evaluation
 
-- [ ] Evaluate nominal baseline.
-- [ ] Evaluate residual without history.
-- [ ] Evaluate residual with four-step history.
-- [ ] Report 0.5, 1.0, and 1.5 s errors.
-- [ ] Report position, velocity, facing, and angular-velocity separately.
+- [x] Evaluate nominal baseline.
+- [x] Evaluate residual without history.
+- [x] Evaluate residual with four-step history.
+- [x] Report 0.5, 1.0, and 1.5 s errors.
+- [x] Report position, velocity, facing, and angular-velocity separately.
 - [ ] Report free-space, near-contact, post-push, and held-out-setting strata.
-- [ ] Plot recursive error growth.
-- [ ] Plot residual magnitude and outliers.
-- [ ] Inspect whether gains come only from one easy regime.
+- [x] Plot recursive error growth.
+- [x] Plot residual magnitude and outliers.
+- [x] Inspect whether gains come only from one easy regime; gains concentrate around the declared
+  parameter-change stratum, while the near-exact stable nominal rows expose learned-model cost.
 - [ ] Inspect whether history gains persist after controlling for model size.
-- [ ] Enter `RES-001` and `RES-002` with raw artifacts.
+- [x] Enter `RES-001` and `RES-002` with raw artifacts.
 
 ### 8.6 Residual gate
 
-- [ ] Reviewer checks episode leakage, future leakage, teacher forcing, checkpoint selection, and facing validity.
+- [x] Reviewer checks episode leakage, future leakage, teacher forcing, checkpoint selection, and facing validity.
 - [ ] Candidate explains residual versus full-model learning.
 - [ ] Candidate explains MLP versus GRU/Transformer choice.
 - [ ] Candidate explains why history cannot predict a future random push.
 - [ ] Candidate explains recursive compounding error and multi-step loss.
-- [ ] Held-out recursive prediction improves in a decision-relevant stratum, or negative result is preserved.
+- [x] Held-out recursive prediction improves in a decision-relevant stratum, and the weaker history
+  result is preserved.
 - [ ] Commit model, training, evaluation, and documentation updates.
 
 ## 9. Cross-Entropy Method planner

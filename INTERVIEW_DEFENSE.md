@@ -350,3 +350,22 @@ the exact public equations. I also report the completed-step oracle as an upper-
 An explicit parameter predictor is a valid alternative baseline, so I cannot claim residual learning
 is uniquely necessary until I compare against one or explain why its required Blueprint variables
 are unavailable. I never remove known spring state or clamp logic to create error.
+
+### Why did four observations of history lose to no history?
+
+History was a hypothesis, not a guaranteed improvement. The history model has 128,390 parameters
+versus 106,886, loses the first three examples of every episode, and sees highly correlated windows
+from only five scripted training episodes. Meanwhile, the current finalized state, requested action,
+runtime parameters, and nominal memory already expose much of the useful transition context. The
+four-history model still improved over nominal around parameter changes, but its recursive validation
+error was consistently above the no-history model. I therefore selected no-history on validation and
+kept the weaker history result. This does not prove recurrent models are useless; it says added
+history did not earn its complexity in this bounded dataset.
+
+### Does better residual prediction prove the controller will improve?
+
+No. It only passes the prerequisite for planning. The translational p95 gain is roughly 7-14%, while
+the angular gain is much larger, and planner rankings depend on the task cost and candidate actions.
+The next causal test holds candidates, cost, seeds, and compute fixed between nominal and residual
+MPC, then asks whether changed predictions cause changed actions and better Unreal outcomes. If they
+do not, the correct conclusion is better prediction without demonstrated control benefit.

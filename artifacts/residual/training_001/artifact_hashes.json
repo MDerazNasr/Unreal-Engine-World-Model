@@ -1,0 +1,13 @@
+{
+  "README.md": "66e4281ea05a7dedd4ddb56ccf9b3d6244a03be8f97f29ae01eff058ea036b3a",
+  "comparison.json": "cee4b4d09ca3d17b85cade4b8fe2b252cf9398c8c198107ccce7fa6ad0ac355b",
+  "four_history/checkpoint.pt": "da4e2281c50b5ff329dd41ea3b02811ba634a35c461923c7afc240c11872c30f",
+  "four_history/normalization.json": "81d0c5b6edc99b275e63efee796e3fea3621a884234b65a4bc8fcd1c57651201",
+  "four_history/training_trace.csv": "5c372469db3f7f5033ef3919b6a0d35721cc44ff643ac7460aca846eefd05d7d",
+  "no_history/checkpoint.pt": "d979549b30bd01b3a304697074c295caf6c7fa16a4a8e25a08c15eec1da7a4f6",
+  "no_history/normalization.json": "f359b9af31b4a0b93b3865739773aadd210950c0b50f4874d9ab28ff3a05b366",
+  "no_history/training_trace.csv": "88e75f0644391f31e9462ecdc33ff867922567ee4e72f7eba8738faa2c81090c",
+  "training_curves.png": "a8a24f4ed78efb115c48dfa40538278e838a0f3f4cb2f3dd4efb14576939bd7c",
+  "validation_comparison.png": "f43c2575398124e0e7190969cc145ed183e2edfad438ca88b132f5da75e74ecd",
+  "validation_residual_trace.png": "b78d6fb396e2dfde37690b76718e11840edcc5399aff83ca4c8fd8306c8f3df9"
+}
