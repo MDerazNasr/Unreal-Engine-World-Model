@@ -31,6 +31,30 @@ FMotionWorldStateSample MakeExporterState(
 	return State;
 }
 
+FMotionWorldNominalContextSample MakeExporterContext(const int64 SampleSequence)
+{
+	FMotionWorldNominalContextSample Context;
+	Context.bIsValid = true;
+	Context.AuthoritativeStateSampleSequence = SampleSequence;
+	Context.MovementModeName = TEXT("Walking");
+	Context.MovementModeClass = TEXT("BP_MovementMode_Walking_C");
+	Context.Parameters.AccelerationCmPerSecSquared = 500.0;
+	Context.Parameters.DecelerationCmPerSecSquared = 300.0;
+	Context.Parameters.DirectionalAccelerationFactor = 1.0;
+	Context.Parameters.TurningStrength = 8.0;
+	Context.Parameters.AccelerationSmoothingTimeSeconds = 0.1;
+	Context.Parameters.DecelerationSmoothingTimeSeconds = 0.1;
+	Context.Parameters.VelocityDeadzoneCmPerSec = 0.01;
+	Context.Parameters.AccelerationDeadzoneCmPerSecSquared = 0.001;
+	Context.Parameters.OutsideInfluenceSmoothingTimeSeconds = 0.05;
+	Context.Parameters.FacingSmoothingTimeSeconds = 0.2;
+	Context.Parameters.FacingDeadzoneDegrees = 0.1;
+	Context.Parameters.AngularVelocityDeadzoneDegreesPerSec = 0.01;
+	Context.InternalState.SpringVelocityWorldCmPerSec =
+		FVector(static_cast<double>(SampleSequence), 0.0, 0.0);
+	return Context;
+}
+
 bool ParseJsonLine(const FString& Line, TSharedPtr<FJsonObject>& OutObject)
 {
 	const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Line);
@@ -51,6 +75,7 @@ bool FMotionWorldEpisodeExporterTest::RunTest(const FString& Parameters)
 		TEXT("Initial state seeds"),
 		Recorder.ObserveFinalizedStep(
 			MakeExporterState(10, 20, 1.000, 0.0),
+			MakeExporterContext(10),
 			true,
 			true,
 			FVector(100.0, 0.0, 0.0)),
@@ -59,6 +84,7 @@ bool FMotionWorldEpisodeExporterTest::RunTest(const FString& Parameters)
 		TEXT("First row records"),
 		Recorder.ObserveFinalizedStep(
 			MakeExporterState(11, 21, 1.050, 5.0),
+			MakeExporterContext(11),
 			true,
 			true,
 			FVector(100.0, 0.0, 0.0)),
@@ -67,6 +93,7 @@ bool FMotionWorldEpisodeExporterTest::RunTest(const FString& Parameters)
 		TEXT("Second row records"),
 		Recorder.ObserveFinalizedStep(
 			MakeExporterState(12, 22, 1.100, 10.0),
+			MakeExporterContext(12),
 			true,
 			true,
 			FVector(100.0, 0.0, 0.0)),
@@ -120,10 +147,26 @@ bool FMotionWorldEpisodeExporterTest::RunTest(const FString& Parameters)
 				static_cast<int64>(Header->GetNumberField(TEXT("episode_id"))),
 				int64(42));
 			TestEqual(
+				TEXT("Header declares schema version three"),
+				static_cast<int32>(Header->GetNumberField(TEXT("schema_version"))),
+				3);
+			TestEqual(
+				TEXT("Context source contract is explicit"),
+				Header->GetObjectField(TEXT("nominal_context_contract"))->GetStringField(TEXT("source")),
+				FString(TEXT("ue58_smooth_walking_public_reflection")));
+			TestEqual(
 				TEXT("First transition identity is retained"),
 				static_cast<int64>(
 					FirstTransition->GetNumberField(TEXT("transition_sequence"))),
 				int64(0));
+			TestEqual(
+				TEXT("Transition carries aligned previous hidden context"),
+				static_cast<int64>(FirstTransition->GetObjectField(TEXT("nominal_context"))->GetObjectField(TEXT("previous"))->GetNumberField(TEXT("authoritative_state_sample_sequence"))),
+				int64(10));
+			TestEqual(
+				TEXT("Completed-step acceleration is serialized"),
+				FirstTransition->GetObjectField(TEXT("nominal_context"))->GetObjectField(TEXT("parameters_observed_for_completed_step"))->GetNumberField(TEXT("acceleration_cm_per_s2")),
+				500.0);
 			TestTrue(TEXT("Footer marks the file complete"), Footer->GetBoolField(TEXT("complete")));
 			TestEqual(
 				TEXT("Footer count matches the payload"),

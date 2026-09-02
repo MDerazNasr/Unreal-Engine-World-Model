@@ -6,7 +6,7 @@
 
 namespace MotionWorld
 {
-constexpr int32 EpisodeFileSchemaVersion = 2;
+constexpr int32 EpisodeFileSchemaVersion = 3;
 
 struct FTimedGateEpisodeMetadata
 {

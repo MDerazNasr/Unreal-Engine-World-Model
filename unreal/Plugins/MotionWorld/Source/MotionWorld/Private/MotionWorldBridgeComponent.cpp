@@ -14,6 +14,7 @@
 #include "MotionWorldArenaManager.h"
 #include "MotionWorldCoordinateFrames.h"
 #include "MotionWorldEpisodeExporter.h"
+#include "MotionWorldNominalContext.h"
 #include "MotionWorldSmoothWalkingDiagnostic.h"
 #include "MotionWorldStateSample.h"
 #include "MotionWorldVelocityCommand.h"
@@ -56,6 +57,7 @@ void UMotionWorldBridgeComponent::BeginPlay()
 	LoggedSmoothWalkingDiagnosticSampleCount = 0;
 	bHasLoggedSmoothWalkingDiagnosticFailure = false;
 	bHasLoggedSmoothWalkingDiagnosticCapacity = false;
+	LastNominalContext = FMotionWorldNominalContextSample();
 	if (bLogAnimationRootDiagnostics)
 	{
 		AnimationDiagnosticSessionId =
@@ -1091,10 +1093,15 @@ void UMotionWorldBridgeComponent::ProduceInput_Implementation(
 	(void)SimTimeMs;
 }
 
-void UMotionWorldBridgeComponent::CaptureSmoothWalkingDiagnosticIfEnabled(
+void UMotionWorldBridgeComponent::CaptureSmoothWalkingContextIfNeeded(
 	const FMoverSyncState& SyncState)
 {
-	if (!bLogSmoothWalkingDiagnostics || !MoverComponent || !LastAuthoritativeState.bIsValid)
+	LastNominalContext = FMotionWorldNominalContextSample();
+	const bool bRecorderNeedsContext =
+		EpisodeRecorder.GetStats().bIsRecording || ResetStatus.bIsPending;
+	if ((!bLogSmoothWalkingDiagnostics && !bRecorderNeedsContext)
+		|| !MoverComponent
+		|| !LastAuthoritativeState.bIsValid)
 	{
 		return;
 	}
@@ -1115,6 +1122,13 @@ void UMotionWorldBridgeComponent::CaptureSmoothWalkingDiagnosticIfEnabled(
 	Inputs.FailureReason = !ParameterFailure.IsNone() ? ParameterFailure : StateFailure;
 	LastSmoothWalkingDiagnostic =
 		MotionWorld::BuildSmoothWalkingDiagnosticSample(Inputs);
+	LastNominalContext =
+		MotionWorld::BuildNominalContextSample(LastSmoothWalkingDiagnostic);
+
+	if (!bLogSmoothWalkingDiagnostics)
+	{
+		return;
+	}
 
 	if (!LastSmoothWalkingDiagnostic.bIsValid)
 	{
@@ -1241,7 +1255,7 @@ void UMotionWorldBridgeComponent::HandlePostFinalize(
 
 	LastAuthoritativeState = MotionWorld::BuildAuthoritativeStateSample(StateInputs);
 	CaptureAnimationDiagnosticIfEnabled();
-	CaptureSmoothWalkingDiagnosticIfEnabled(SyncState);
+	CaptureSmoothWalkingContextIfNeeded(SyncState);
 	const bool bValidityChanged = !bHasAuthoritativeStateSample
 		|| LastAuthoritativeState.bIsValid != bPreviousAuthoritativeStateWasValid;
 	const bool bPeriodicStateLog = StateDiagnosticLogIntervalSamples > 0
@@ -1324,6 +1338,7 @@ void UMotionWorldBridgeComponent::HandlePostFinalize(
 
 		LastRecorderObservationResult = EpisodeRecorder.ObserveFinalizedStep(
 			LastAuthoritativeState,
+			LastNominalContext,
 			bAppliedInputWasVelocity,
 			bWasMotionWorldAutomated,
 			AppliedVelocityWorldCmPerSec);

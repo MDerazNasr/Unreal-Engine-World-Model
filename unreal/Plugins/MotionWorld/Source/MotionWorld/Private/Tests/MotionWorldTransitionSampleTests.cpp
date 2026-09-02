@@ -26,6 +26,28 @@ FMotionWorldStateSample MakeValidState(
 	State.FacingUnitWorld = FVector2D(FMath::Cos(YawRadians), FMath::Sin(YawRadians));
 	return State;
 }
+
+FMotionWorldNominalContextSample MakeValidContext(const int64 SampleSequence)
+{
+	FMotionWorldNominalContextSample Context;
+	Context.bIsValid = true;
+	Context.AuthoritativeStateSampleSequence = SampleSequence;
+	Context.MovementModeName = TEXT("Walking");
+	Context.MovementModeClass = TEXT("BP_MovementMode_Walking_C");
+	Context.Parameters.AccelerationCmPerSecSquared = 500.0;
+	Context.Parameters.DecelerationCmPerSecSquared = 300.0;
+	Context.Parameters.DirectionalAccelerationFactor = 1.0;
+	Context.Parameters.TurningStrength = 8.0;
+	Context.Parameters.AccelerationSmoothingTimeSeconds = 0.1;
+	Context.Parameters.DecelerationSmoothingTimeSeconds = 0.1;
+	Context.Parameters.VelocityDeadzoneCmPerSec = 0.01;
+	Context.Parameters.AccelerationDeadzoneCmPerSecSquared = 0.001;
+	Context.Parameters.OutsideInfluenceSmoothingTimeSeconds = 0.05;
+	Context.Parameters.FacingSmoothingTimeSeconds = 0.2;
+	Context.Parameters.FacingDeadzoneDegrees = 0.1;
+	Context.Parameters.AngularVelocityDeadzoneDegreesPerSec = 0.01;
+	return Context;
+}
 } // namespace
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
@@ -40,6 +62,8 @@ bool FMotionWorldTransitionSampleTest::RunTest(const FString& Parameters)
 	Inputs.TransitionSequence = 12;
 	Inputs.PreviousState = MakeValidState(40, 100, 1.000, 0.050, 90.0);
 	Inputs.NextState = MakeValidState(41, 101, 1.050, 0.050, 45.0);
+	Inputs.PreviousNominalContext = MakeValidContext(40);
+	Inputs.NextNominalContext = MakeValidContext(41);
 	Inputs.bAppliedInputWasVelocity = true;
 	Inputs.bWasMotionWorldAutomated = true;
 	Inputs.AppliedVelocityWorldCmPerSec = FVector(0.0, 200.0, 0.0);
@@ -47,7 +71,7 @@ bool FMotionWorldTransitionSampleTest::RunTest(const FString& Parameters)
 	const FMotionWorldTransitionSample Valid =
 		MotionWorld::BuildTransitionSample(Inputs);
 	TestTrue(TEXT("Adjacent causal data produces a valid transition"), Valid.bIsValid);
-	TestEqual(TEXT("Transition protocol is explicit"), Valid.ProtocolVersion, 1);
+	TestEqual(TEXT("Transition protocol is explicit"), Valid.ProtocolVersion, 2);
 	TestEqual(TEXT("Episode identity is retained"), Valid.EpisodeId, int64(7));
 	TestEqual(TEXT("Transition sequence is retained"), Valid.TransitionSequence, int64(12));
 	TestEqual(
@@ -71,6 +95,14 @@ bool FMotionWorldTransitionSampleTest::RunTest(const FString& Parameters)
 	TestTrue(
 		TEXT("Automation source is retained"),
 		Valid.AppliedAction.bWasMotionWorldAutomated);
+	TestEqual(
+		TEXT("Previous hidden context remains frame-aligned"),
+		Valid.PreviousNominalContext.AuthoritativeStateSampleSequence,
+		int64(40));
+	TestEqual(
+		TEXT("Completed-step parameters come from the next finalized context"),
+		Valid.ParametersObservedForCompletedStep.AccelerationCmPerSecSquared,
+		Inputs.NextNominalContext.Parameters.AccelerationCmPerSecSquared);
 
 	MotionWorld::FTransitionSampleInputs Failure = Inputs;
 	Failure.EpisodeId = -1;
@@ -132,6 +164,7 @@ bool FMotionWorldTransitionSampleTest::RunTest(const FString& Parameters)
 
 	Failure = Inputs;
 	Failure.NextState.SampleSequence = 42;
+	Failure.NextNominalContext.AuthoritativeStateSampleSequence = 42;
 	TestEqual(
 		TEXT("A skipped state sample is rejected"),
 		MotionWorld::BuildTransitionSample(Failure).RejectionReason,
@@ -178,6 +211,27 @@ bool FMotionWorldTransitionSampleTest::RunTest(const FString& Parameters)
 		TEXT("Unknown state schemas are rejected"),
 		MotionWorld::BuildTransitionSample(Failure).RejectionReason,
 		EMotionWorldTransitionRejectionReason::UnsupportedStateProtocol);
+
+	Failure = Inputs;
+	Failure.PreviousNominalContext.bIsValid = false;
+	TestEqual(
+		TEXT("Invalid previous hidden context is rejected"),
+		MotionWorld::BuildTransitionSample(Failure).RejectionReason,
+		EMotionWorldTransitionRejectionReason::InvalidPreviousNominalContext);
+
+	Failure = Inputs;
+	Failure.NextNominalContext.ProtocolVersion = 2;
+	TestEqual(
+		TEXT("Unknown nominal-context schemas are rejected"),
+		MotionWorld::BuildTransitionSample(Failure).RejectionReason,
+		EMotionWorldTransitionRejectionReason::UnsupportedNominalContextProtocol);
+
+	Failure = Inputs;
+	Failure.NextNominalContext.AuthoritativeStateSampleSequence = 40;
+	TestEqual(
+		TEXT("Context from the wrong finalized frame is rejected"),
+		MotionWorld::BuildTransitionSample(Failure).RejectionReason,
+		EMotionWorldTransitionRejectionReason::NominalContextStateMismatch);
 
 	Failure = Inputs;
 	Failure.NextState.bIsValid = false;

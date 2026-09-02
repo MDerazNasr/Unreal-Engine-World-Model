@@ -69,6 +69,7 @@ public:
 
 	EMotionWorldRecorderObservationResult ObserveFinalizedStep(
 		const FMotionWorldStateSample& CurrentState,
+		const FMotionWorldNominalContextSample& CurrentNominalContext,
 		bool bAppliedInputWasVelocity,
 		bool bWasMotionWorldAutomated,
 		const FVector& AppliedVelocityWorldCmPerSec);
@@ -83,13 +84,17 @@ private:
 	void Reset();
 	void RecordRejection(EMotionWorldTransitionRejectionReason Reason, bool bWasSeed);
 	static EMotionWorldTransitionRejectionReason GetSeedRejectionReason(
-		const FMotionWorldStateSample& State);
-	static bool CanUseAsSeed(const FMotionWorldStateSample& State);
+		const FMotionWorldStateSample& State,
+		const FMotionWorldNominalContextSample& NominalContext);
+	static bool CanUseAsSeed(
+		const FMotionWorldStateSample& State,
+		const FMotionWorldNominalContextSample& NominalContext);
 
 	FMotionWorldEpisodeRecorderStats Stats;
 	TArray<FMotionWorldTransitionSample> Transitions;
 	TMap<EMotionWorldTransitionRejectionReason, int64> RejectionCounts;
 	FMotionWorldStateSample PreviousState;
+	FMotionWorldNominalContextSample PreviousNominalContext;
 	FMotionWorldTransitionSample LastCandidate;
 	int64 NextTransitionSequence = 0;
 	int32 TransitionCapacity = 0;

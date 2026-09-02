@@ -3,6 +3,7 @@
 namespace
 {
 constexpr int32 SupportedStateProtocolVersion = 1;
+constexpr int32 SupportedNominalContextProtocolVersion = 1;
 constexpr int32 MaximumSupportedTransitionCapacity = 100000;
 } // namespace
 
@@ -14,6 +15,7 @@ void FInMemoryEpisodeRecorder::Reset()
 	Transitions.Reset();
 	RejectionCounts.Reset();
 	PreviousState = FMotionWorldStateSample();
+	PreviousNominalContext = FMotionWorldNominalContextSample();
 	LastCandidate = FMotionWorldTransitionSample();
 	NextTransitionSequence = 0;
 	TransitionCapacity = 0;
@@ -44,11 +46,13 @@ void FInMemoryEpisodeRecorder::StopEpisode()
 	Stats.bIsRecording = false;
 	Stats.bHasSeedState = false;
 	PreviousState = FMotionWorldStateSample();
+	PreviousNominalContext = FMotionWorldNominalContextSample();
 }
 
 EMotionWorldTransitionRejectionReason
 FInMemoryEpisodeRecorder::GetSeedRejectionReason(
-	const FMotionWorldStateSample& State)
+	const FMotionWorldStateSample& State,
+	const FMotionWorldNominalContextSample& NominalContext)
 {
 	if (!IsStateNumericallyValidForTransition(State))
 	{
@@ -60,6 +64,22 @@ FInMemoryEpisodeRecorder::GetSeedRejectionReason(
 		return EMotionWorldTransitionRejectionReason::UnsupportedStateProtocol;
 	}
 
+	if (NominalContext.ProtocolVersion != SupportedNominalContextProtocolVersion)
+	{
+		return EMotionWorldTransitionRejectionReason::UnsupportedNominalContextProtocol;
+	}
+
+	if (!IsNominalContextSampleValid(NominalContext))
+	{
+		return EMotionWorldTransitionRejectionReason::InvalidNextNominalContext;
+	}
+
+	if (NominalContext.AuthoritativeStateSampleSequence != State.SampleSequence
+		|| NominalContext.MovementModeName != State.MovementMode)
+	{
+		return EMotionWorldTransitionRejectionReason::NominalContextStateMismatch;
+	}
+
 	if (State.bIsResimulation)
 	{
 		return EMotionWorldTransitionRejectionReason::Resimulation;
@@ -69,9 +89,10 @@ FInMemoryEpisodeRecorder::GetSeedRejectionReason(
 }
 
 bool FInMemoryEpisodeRecorder::CanUseAsSeed(
-	const FMotionWorldStateSample& State)
+	const FMotionWorldStateSample& State,
+	const FMotionWorldNominalContextSample& NominalContext)
 {
-	return GetSeedRejectionReason(State)
+	return GetSeedRejectionReason(State, NominalContext)
 		== EMotionWorldTransitionRejectionReason::None;
 }
 
@@ -94,6 +115,7 @@ void FInMemoryEpisodeRecorder::RecordRejection(
 EMotionWorldRecorderObservationResult
 FInMemoryEpisodeRecorder::ObserveFinalizedStep(
 	const FMotionWorldStateSample& CurrentState,
+	const FMotionWorldNominalContextSample& CurrentNominalContext,
 	const bool bAppliedInputWasVelocity,
 	const bool bWasMotionWorldAutomated,
 	const FVector& AppliedVelocityWorldCmPerSec)
@@ -107,7 +129,7 @@ FInMemoryEpisodeRecorder::ObserveFinalizedStep(
 	if (!Stats.bHasSeedState)
 	{
 		const EMotionWorldTransitionRejectionReason SeedRejectionReason =
-			GetSeedRejectionReason(CurrentState);
+			GetSeedRejectionReason(CurrentState, CurrentNominalContext);
 		if (SeedRejectionReason != EMotionWorldTransitionRejectionReason::None)
 		{
 			RecordRejection(SeedRejectionReason, true);
@@ -115,6 +137,7 @@ FInMemoryEpisodeRecorder::ObserveFinalizedStep(
 		}
 
 		PreviousState = CurrentState;
+		PreviousNominalContext = CurrentNominalContext;
 		Stats.bHasSeedState = true;
 		return EMotionWorldRecorderObservationResult::Seeded;
 	}
@@ -124,6 +147,8 @@ FInMemoryEpisodeRecorder::ObserveFinalizedStep(
 	Inputs.TransitionSequence = NextTransitionSequence++;
 	Inputs.PreviousState = PreviousState;
 	Inputs.NextState = CurrentState;
+	Inputs.PreviousNominalContext = PreviousNominalContext;
+	Inputs.NextNominalContext = CurrentNominalContext;
 	Inputs.bAppliedInputWasVelocity = bAppliedInputWasVelocity;
 	Inputs.bWasMotionWorldAutomated = bWasMotionWorldAutomated;
 	Inputs.AppliedVelocityWorldCmPerSec = AppliedVelocityWorldCmPerSec;
@@ -132,14 +157,16 @@ FInMemoryEpisodeRecorder::ObserveFinalizedStep(
 	bHasLastCandidate = true;
 	++Stats.AttemptedTransitionCount;
 
-	if (CanUseAsSeed(CurrentState))
+	if (CanUseAsSeed(CurrentState, CurrentNominalContext))
 	{
 		PreviousState = CurrentState;
+		PreviousNominalContext = CurrentNominalContext;
 		Stats.bHasSeedState = true;
 	}
 	else
 	{
 		PreviousState = FMotionWorldStateSample();
+		PreviousNominalContext = FMotionWorldNominalContextSample();
 		Stats.bHasSeedState = false;
 	}
 

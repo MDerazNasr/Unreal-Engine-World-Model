@@ -1,4 +1,4 @@
-"""Strict loader for MotionWorld Unreal episode files (v1 character-only and v2 scenario)."""
+"""Strict loader for MotionWorld Unreal episode files (v1-v3)."""
 
 from __future__ import annotations
 
@@ -9,10 +9,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-EPISODE_SCHEMA_VERSION = 2
-SUPPORTED_EPISODE_SCHEMA_VERSIONS = frozenset({1, 2})
+EPISODE_SCHEMA_VERSION = 3
+SUPPORTED_EPISODE_SCHEMA_VERSIONS = frozenset({1, 2, 3})
 STATE_PROTOCOL_VERSION = 1
-TRANSITION_PROTOCOL_VERSION = 1
+NOMINAL_CONTEXT_PROTOCOL_VERSION = 1
 MAX_TRANSITIONS = 100_000
 _NUMERIC_TOLERANCE = 1e-6
 _ACTION_TOLERANCE_CM_PER_S = 0.02
@@ -49,6 +49,7 @@ _HEADER_KEYS = {
     "recorder_stats",
 }
 _HEADER_V2_KEYS = _HEADER_KEYS | {"scenario"}
+_HEADER_V3_KEYS = _HEADER_V2_KEYS | {"nominal_context_contract"}
 _CONVENTION_KEYS = {
     "world_frame",
     "local_action_frame",
@@ -80,6 +81,7 @@ _TRANSITION_KEYS = {
     "next_state",
 }
 _TRANSITION_V2_KEYS = _TRANSITION_KEYS | {"scenario"}
+_TRANSITION_V3_KEYS = _TRANSITION_V2_KEYS | {"nominal_context"}
 _STATE_KEYS = {
     "protocol_version",
     "sample_sequence",
@@ -102,6 +104,52 @@ _ACTION_KEYS = {
     "was_motionworld_automated",
     "velocity_world_cm_per_s",
     "velocity_local_planar_cm_per_s",
+}
+_NOMINAL_CONTEXT_CONTRACT_KEYS = {
+    "protocol_version",
+    "source",
+    "capture_phase",
+    "step_parameter_semantics",
+    "missing_policy",
+    "future_planner_availability",
+}
+_NOMINAL_TRANSITION_KEYS = {
+    "previous",
+    "parameters_observed_for_completed_step",
+    "next",
+}
+_NOMINAL_CONTEXT_KEYS = {
+    "protocol_version",
+    "is_valid",
+    "authoritative_state_sample_sequence",
+    "movement_mode_name",
+    "movement_mode_class",
+    "parameters",
+    "internal_state",
+}
+_SMOOTH_WALKING_PARAMETER_KEYS = {
+    "acceleration_cm_per_s2",
+    "deceleration_cm_per_s2",
+    "directional_acceleration_factor",
+    "turning_strength",
+    "acceleration_smoothing_time_s",
+    "deceleration_smoothing_time_s",
+    "acceleration_smoothing_compensation",
+    "deceleration_smoothing_compensation",
+    "velocity_deadzone_cm_per_s",
+    "acceleration_deadzone_cm_per_s2",
+    "outside_influence_smoothing_time_s",
+    "facing_smoothing_time_s",
+    "smooth_facing_with_double_spring",
+    "facing_deadzone_deg",
+    "angular_velocity_deadzone_deg_per_s",
+}
+_SMOOTH_WALKING_INTERNAL_STATE_KEYS = {
+    "spring_velocity_world_cm_per_s",
+    "spring_acceleration_world_cm_per_s2",
+    "intermediate_velocity_world_cm_per_s",
+    "intermediate_facing_world_xyzw",
+    "intermediate_angular_velocity_world_rad_per_s",
 }
 _FOOTER_KEYS = {
     "record_type",
@@ -287,6 +335,105 @@ def _validate_action(value: Any, previous_state: dict[str, Any], context: str) -
     return action
 
 
+def _validate_smooth_walking_parameters(value: Any, context: str) -> dict[str, Any]:
+    parameters = _object(value, context)
+    _exact_keys(parameters, _SMOOTH_WALKING_PARAMETER_KEYS, context)
+    bounded_unit_fields = {
+        "directional_acceleration_factor",
+        "acceleration_smoothing_compensation",
+        "deceleration_smoothing_compensation",
+    }
+    for key in _SMOOTH_WALKING_PARAMETER_KEYS - {"smooth_facing_with_double_spring"}:
+        number = _number(parameters[key], f"{context}.{key}")
+        if number < 0.0:
+            _fail(f"{context}.{key}", "expected a non-negative number")
+        if key in bounded_unit_fields and number > 1.0:
+            _fail(f"{context}.{key}", "expected a number no greater than one")
+    _boolean(
+        parameters["smooth_facing_with_double_spring"],
+        f"{context}.smooth_facing_with_double_spring",
+    )
+    return parameters
+
+
+def _validate_nominal_context(
+    value: Any,
+    state: dict[str, Any],
+    context: str,
+) -> dict[str, Any]:
+    nominal = _object(value, context)
+    _exact_keys(nominal, _NOMINAL_CONTEXT_KEYS, context)
+    if (
+        _integer(nominal["protocol_version"], f"{context}.protocol_version")
+        != NOMINAL_CONTEXT_PROTOCOL_VERSION
+    ):
+        _fail(context, "unsupported nominal-context protocol version")
+    if not _boolean(nominal["is_valid"], f"{context}.is_valid"):
+        _fail(context, "nominal context is not marked valid")
+    sequence = _integer(
+        nominal["authoritative_state_sample_sequence"],
+        f"{context}.authoritative_state_sample_sequence",
+        minimum=0,
+    )
+    if sequence != state["sample_sequence"]:
+        _fail(context, "nominal context is attached to the wrong state sequence")
+    mode = _string(nominal["movement_mode_name"], f"{context}.movement_mode_name")
+    if mode != state["movement_mode"]:
+        _fail(context, "nominal context movement mode does not match state")
+    _string(nominal["movement_mode_class"], f"{context}.movement_mode_class")
+    _validate_smooth_walking_parameters(nominal["parameters"], f"{context}.parameters")
+
+    internal = _object(nominal["internal_state"], f"{context}.internal_state")
+    _exact_keys(internal, _SMOOTH_WALKING_INTERNAL_STATE_KEYS, f"{context}.internal_state")
+    _vector(
+        internal["spring_velocity_world_cm_per_s"],
+        3,
+        f"{context}.internal_state.spring_velocity_world_cm_per_s",
+    )
+    _vector(
+        internal["spring_acceleration_world_cm_per_s2"],
+        3,
+        f"{context}.internal_state.spring_acceleration_world_cm_per_s2",
+    )
+    _vector(
+        internal["intermediate_velocity_world_cm_per_s"],
+        3,
+        f"{context}.internal_state.intermediate_velocity_world_cm_per_s",
+    )
+    quaternion = _vector(
+        internal["intermediate_facing_world_xyzw"],
+        4,
+        f"{context}.internal_state.intermediate_facing_world_xyzw",
+    )
+    if not _close(math.sqrt(sum(component * component for component in quaternion)), 1.0, 1e-4):
+        _fail(context, "intermediate facing quaternion is not unit length")
+    _vector(
+        internal["intermediate_angular_velocity_world_rad_per_s"],
+        3,
+        f"{context}.internal_state.intermediate_angular_velocity_world_rad_per_s",
+    )
+    return nominal
+
+
+def _validate_nominal_transition(
+    value: Any,
+    previous_state: dict[str, Any],
+    next_state: dict[str, Any],
+    context: str,
+) -> dict[str, Any]:
+    nominal = _object(value, context)
+    _exact_keys(nominal, _NOMINAL_TRANSITION_KEYS, context)
+    _validate_nominal_context(nominal["previous"], previous_state, f"{context}.previous")
+    step_parameters = _validate_smooth_walking_parameters(
+        nominal["parameters_observed_for_completed_step"],
+        f"{context}.parameters_observed_for_completed_step",
+    )
+    next_context = _validate_nominal_context(nominal["next"], next_state, f"{context}.next")
+    if step_parameters != next_context["parameters"]:
+        _fail(context, "completed-step parameters do not equal the next finalized snapshot")
+    return nominal
+
+
 def _unit_vector(value: Any, context: str) -> tuple[float, float, float]:
     vector = _vector(value, 3, context)
     if not _close(math.sqrt(sum(component * component for component in vector)), 1.0, 1e-5):
@@ -434,21 +581,29 @@ def _validate_transition(
     context: str,
 ) -> dict[str, Any]:
     transition = _object(value, context)
+    # Schema v3 adds model-facing nominal context; older evidence remains readable.
     _exact_keys(
         transition,
-        _TRANSITION_V2_KEYS if schema_version == 2 else _TRANSITION_KEYS,
+        (
+            _TRANSITION_V3_KEYS
+            if schema_version == 3
+            else _TRANSITION_V2_KEYS
+            if schema_version == 2
+            else _TRANSITION_KEYS
+        ),
         context,
     )
     _string(transition["record_type"], f"{context}.record_type", expected="transition")
     row_schema_version = _integer(transition["schema_version"], f"{context}.schema_version")
     if schema_version != row_schema_version:
         _fail(context, "transition schema does not match the header")
+    expected_transition_protocol = 2 if schema_version == 3 else 1
     if (
         _integer(
             transition["transition_protocol_version"],
             f"{context}.transition_protocol_version",
         )
-        != TRANSITION_PROTOCOL_VERSION
+        != expected_transition_protocol
     ):
         _fail(context, "unsupported transition protocol version")
     if _integer(transition["episode_id"], f"{context}.episode_id", minimum=0) != episode_id:
@@ -460,6 +615,13 @@ def _validate_transition(
     previous_state = _validate_state(transition["previous_state"], f"{context}.previous_state")
     _validate_action(transition["applied_action"], previous_state, f"{context}.applied_action")
     next_state = _validate_state(transition["next_state"], f"{context}.next_state")
+    if schema_version == 3:
+        _validate_nominal_transition(
+            transition["nominal_context"],
+            previous_state,
+            next_state,
+            f"{context}.nominal_context",
+        )
 
     if next_state["sample_sequence"] != previous_state["sample_sequence"] + 1:
         _fail(context, "state callback sequences are not adjacent")
@@ -475,7 +637,7 @@ def _validate_transition(
         _fail(context, "delta time does not equal end minus start")
     if not _close(delta, float(next_state["step_s"]), 1e-3):
         _fail(context, "delta time does not match the finalized next-state step")
-    if schema_version == 2:
+    if schema_version >= 2:
         _validate_scenario_transition(
             transition["scenario"],
             scenario,
@@ -491,7 +653,17 @@ def _validate_header(value: Any) -> dict[str, Any]:
     schema_version = _integer(header.get("schema_version"), "header.schema_version")
     if schema_version not in SUPPORTED_EPISODE_SCHEMA_VERSIONS:
         _fail("header", "unsupported episode schema version")
-    _exact_keys(header, _HEADER_V2_KEYS if schema_version == 2 else _HEADER_KEYS, "header")
+    _exact_keys(
+        header,
+        (
+            _HEADER_V3_KEYS
+            if schema_version == 3
+            else _HEADER_V2_KEYS
+            if schema_version == 2
+            else _HEADER_KEYS
+        ),
+        "header",
+    )
     _string(header["record_type"], "header.record_type", expected="episode_header")
     _string(header["schema_name"], "header.schema_name", expected="motionworld_episode")
     created_utc = _string(header["created_utc"], "header.created_utc")
@@ -532,8 +704,51 @@ def _validate_header(value: Any) -> dict[str, Any]:
         + stats["capacity_drop_count"]
     ):
         _fail("header.recorder_stats", "attempt counts do not reconcile")
-    if schema_version == 2:
+    if schema_version >= 2:
         header["scenario"] = _validate_timed_gate_header(header["scenario"], "header.scenario")
+    if schema_version == 3:
+        contract = _object(
+            header["nominal_context_contract"],
+            "header.nominal_context_contract",
+        )
+        _exact_keys(
+            contract,
+            _NOMINAL_CONTEXT_CONTRACT_KEYS,
+            "header.nominal_context_contract",
+        )
+        if (
+            _integer(
+                contract["protocol_version"],
+                "header.nominal_context_contract.protocol_version",
+            )
+            != 1
+        ):
+            _fail("header.nominal_context_contract", "unsupported contract protocol version")
+        _string(
+            contract["source"],
+            "header.nominal_context_contract.source",
+            expected="ue58_smooth_walking_public_reflection",
+        )
+        _string(
+            contract["capture_phase"],
+            "header.nominal_context_contract.capture_phase",
+            expected="mover_on_post_finalize",
+        )
+        _string(
+            contract["step_parameter_semantics"],
+            "header.nominal_context_contract.step_parameter_semantics",
+            expected="next_finalized_snapshot_assumed_used_during_completed_step",
+        )
+        _string(
+            contract["missing_policy"],
+            "header.nominal_context_contract.missing_policy",
+            expected="reject_transition",
+        )
+        _string(
+            contract["future_planner_availability"],
+            "header.nominal_context_contract.future_planner_availability",
+            expected="not_guaranteed_requires_causal_selector",
+        )
     return header
 
 
@@ -544,7 +759,11 @@ def _validate_footer(
     scenario: dict[str, Any] | None,
 ) -> dict[str, Any]:
     footer = _object(value, "footer")
-    _exact_keys(footer, _FOOTER_V2_KEYS if schema_version == 2 else _FOOTER_KEYS, "footer")
+    _exact_keys(
+        footer,
+        _FOOTER_V2_KEYS if schema_version >= 2 else _FOOTER_KEYS,
+        "footer",
+    )
     _string(footer["record_type"], "footer.record_type", expected="episode_footer")
     if _integer(footer["schema_version"], "footer.schema_version") != schema_version:
         _fail("footer", "schema does not match the header")
@@ -555,7 +774,7 @@ def _validate_footer(
     _integer(footer["last_transition_sequence"], "footer.last_transition_sequence", minimum=0)
     if not _boolean(footer["complete"], "footer.complete"):
         _fail("footer", "file is not marked complete")
-    if schema_version == 2:
+    if schema_version >= 2:
         summary_value = footer["scenario_summary"]
         if scenario is None:
             if summary_value is not None:
@@ -612,7 +831,7 @@ def load_episode(path: str | Path, *, max_transitions: int = MAX_TRANSITIONS) ->
     header = _validate_header(records[0])
     episode_id = int(header["episode_id"])
     schema_version = int(header["schema_version"])
-    scenario = header.get("scenario") if schema_version == 2 else None
+    scenario = header.get("scenario") if schema_version >= 2 else None
     footer = _validate_footer(records[-1], episode_id, schema_version, scenario)
     transitions = tuple(
         _validate_transition(
@@ -642,7 +861,14 @@ def load_episode(path: str | Path, *, max_transitions: int = MAX_TRANSITIONS) ->
         if (
             previous_transition is not None
             and sequence == previous_sequence + 1
-            and transition["previous_state"] != previous_transition["next_state"]
+            and (
+                transition["previous_state"] != previous_transition["next_state"]
+                or (
+                    schema_version == 3
+                    and transition["nominal_context"]["previous"]
+                    != previous_transition["nominal_context"]["next"]
+                )
+            )
         ):
             _fail("episode", "consecutive rows do not share the same finalized endpoint")
         previous_sequence = sequence
@@ -652,7 +878,7 @@ def load_episode(path: str | Path, *, max_transitions: int = MAX_TRANSITIONS) ->
         _fail("footer", "first transition sequence does not match the payload")
     if footer["last_transition_sequence"] != transitions[-1]["transition_sequence"]:
         _fail("footer", "last transition sequence does not match the payload")
-    if schema_version == 2 and scenario is not None:
+    if schema_version >= 2 and scenario is not None:
         summary = footer["scenario_summary"]
         final_reason = transitions[-1]["scenario"]["termination_reason"]
         if final_reason != summary["termination_reason"]:
@@ -674,12 +900,9 @@ def load_episode(path: str | Path, *, max_transitions: int = MAX_TRANSITIONS) ->
             _fail("footer.scenario_summary", "non-collision termination has collision evidence")
         if final_reason == "success":
             origin = tuple(float(value) for value in scenario["origin_world_cm"])
-            normal = tuple(
-                float(value) for value in scenario["crossing_plane_normal_world"]
-            )
+            normal = tuple(float(value) for value in scenario["crossing_plane_normal_world"])
             previous_position = tuple(
-                float(value)
-                for value in transitions[-1]["previous_state"]["position_world_cm"]
+                float(value) for value in transitions[-1]["previous_state"]["position_world_cm"]
             )
             next_position = tuple(
                 float(value) for value in transitions[-1]["next_state"]["position_world_cm"]

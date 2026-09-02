@@ -4,6 +4,7 @@
 #include "MoverSimulationTypes.h"
 #include "MotionWorldArenaManager.h"
 #include "MotionWorldEpisodeRecorder.h"
+#include "MotionWorldNominalContext.h"
 #include "MotionWorldReset.h"
 #include "MotionWorldSmoothWalkingDiagnostic.h"
 #include "MotionWorldStateSample.h"
@@ -93,6 +94,13 @@ public:
 	FMotionWorldSmoothWalkingDiagnosticSample GetLastSmoothWalkingDiagnostic() const
 	{
 		return LastSmoothWalkingDiagnostic;
+	}
+
+	/** Latest validated hidden/parameter context aligned to authoritative state. */
+	UFUNCTION(BlueprintPure, Category = "MotionWorld|Nominal Context")
+	FMotionWorldNominalContextSample GetLastNominalContext() const
+	{
+		return LastNominalContext;
 	}
 
 	/** Clears prior rows and starts one explicitly identified in-memory episode. */
@@ -199,6 +207,9 @@ protected:
 
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "MotionWorld|Smooth Walking Diagnostic")
 	FMotionWorldSmoothWalkingDiagnosticSample LastSmoothWalkingDiagnostic;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "MotionWorld|Nominal Context")
+	FMotionWorldNominalContextSample LastNominalContext;
 
 	/** Log every N valid finalized samples after the first; zero disables periodic logs. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|State", meta = (ClampMin = "0"))
@@ -318,7 +329,7 @@ private:
 	void InitializeTimedArenaIfEligible();
 	void ProcessTimedArenaObservation();
 	void CaptureAnimationDiagnosticIfEnabled();
-	void CaptureSmoothWalkingDiagnosticIfEnabled(const FMoverSyncState& SyncState);
+	void CaptureSmoothWalkingContextIfNeeded(const FMoverSyncState& SyncState);
 	void ApplyArenaTerminalSafeStop(
 		EMotionWorldScenarioTerminationReason TerminationReason);
 

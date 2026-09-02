@@ -5,6 +5,7 @@
 namespace
 {
 constexpr int32 SupportedStateProtocolVersion = 1;
+constexpr int32 SupportedNominalContextProtocolVersion = 1;
 constexpr double TimestepToleranceSeconds = 0.001;
 constexpr double PlanarToleranceCmPerSec = 0.011;
 constexpr double FacingUnitTolerance = 0.001;
@@ -19,6 +20,29 @@ bool IsFiniteVector(const FVector& Value)
 bool IsFiniteVector2D(const FVector2D& Value)
 {
 	return FMath::IsFinite(Value.X) && FMath::IsFinite(Value.Y);
+}
+
+EMotionWorldTransitionRejectionReason ValidateNominalContext(
+	const FMotionWorldNominalContextSample& Context,
+	const FMotionWorldStateSample& State,
+	const bool bIsPrevious)
+{
+	if (Context.ProtocolVersion != SupportedNominalContextProtocolVersion)
+	{
+		return EMotionWorldTransitionRejectionReason::UnsupportedNominalContextProtocol;
+	}
+	if (!MotionWorld::IsNominalContextSampleValid(Context))
+	{
+		return bIsPrevious
+			? EMotionWorldTransitionRejectionReason::InvalidPreviousNominalContext
+			: EMotionWorldTransitionRejectionReason::InvalidNextNominalContext;
+	}
+	if (Context.AuthoritativeStateSampleSequence != State.SampleSequence
+		|| Context.MovementModeName != State.MovementMode)
+	{
+		return EMotionWorldTransitionRejectionReason::NominalContextStateMismatch;
+	}
+	return EMotionWorldTransitionRejectionReason::None;
 }
 
 } // namespace
@@ -102,6 +126,30 @@ FMotionWorldTransitionSample BuildTransitionSample(
 			EMotionWorldTransitionRejectionReason::UnsupportedStateProtocol;
 		return Result;
 	}
+
+	const EMotionWorldTransitionRejectionReason PreviousContextRejection =
+		ValidateNominalContext(
+			Inputs.PreviousNominalContext,
+			Inputs.PreviousState,
+			true);
+	if (PreviousContextRejection != EMotionWorldTransitionRejectionReason::None)
+	{
+		Result.RejectionReason = PreviousContextRejection;
+		return Result;
+	}
+	const EMotionWorldTransitionRejectionReason NextContextRejection =
+		ValidateNominalContext(
+			Inputs.NextNominalContext,
+			Inputs.NextState,
+			false);
+	if (NextContextRejection != EMotionWorldTransitionRejectionReason::None)
+	{
+		Result.RejectionReason = NextContextRejection;
+		return Result;
+	}
+	Result.PreviousNominalContext = Inputs.PreviousNominalContext;
+	Result.NextNominalContext = Inputs.NextNominalContext;
+	Result.ParametersObservedForCompletedStep = Inputs.NextNominalContext.Parameters;
 
 	if (Inputs.PreviousState.bIsResimulation || Inputs.NextState.bIsResimulation)
 	{

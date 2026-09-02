@@ -23,6 +23,28 @@ FMotionWorldStateSample MakeRecorderState(
 	State.FacingUnitWorld = FVector2D(FMath::Cos(YawRadians), FMath::Sin(YawRadians));
 	return State;
 }
+
+FMotionWorldNominalContextSample MakeRecorderContext(const int64 SampleSequence)
+{
+	FMotionWorldNominalContextSample Context;
+	Context.bIsValid = true;
+	Context.AuthoritativeStateSampleSequence = SampleSequence;
+	Context.MovementModeName = TEXT("Walking");
+	Context.MovementModeClass = TEXT("BP_MovementMode_Walking_C");
+	Context.Parameters.AccelerationCmPerSecSquared = 500.0;
+	Context.Parameters.DecelerationCmPerSecSquared = 300.0;
+	Context.Parameters.DirectionalAccelerationFactor = 1.0;
+	Context.Parameters.TurningStrength = 8.0;
+	Context.Parameters.AccelerationSmoothingTimeSeconds = 0.1;
+	Context.Parameters.DecelerationSmoothingTimeSeconds = 0.1;
+	Context.Parameters.VelocityDeadzoneCmPerSec = 0.01;
+	Context.Parameters.AccelerationDeadzoneCmPerSecSquared = 0.001;
+	Context.Parameters.OutsideInfluenceSmoothingTimeSeconds = 0.05;
+	Context.Parameters.FacingSmoothingTimeSeconds = 0.2;
+	Context.Parameters.FacingDeadzoneDegrees = 0.1;
+	Context.Parameters.AngularVelocityDeadzoneDegreesPerSec = 0.01;
+	return Context;
+}
 } // namespace
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
@@ -39,6 +61,7 @@ bool FMotionWorldEpisodeRecorderTest::RunTest(const FString& Parameters)
 		TEXT("Observations are ignored until an episode starts"),
 		Recorder.ObserveFinalizedStep(
 			MakeRecorderState(10, 20, 1.000),
+			MakeRecorderContext(10),
 			true,
 			true,
 			WorldVelocity),
@@ -52,6 +75,7 @@ bool FMotionWorldEpisodeRecorderTest::RunTest(const FString& Parameters)
 		TEXT("The first eligible state seeds but does not create a transition"),
 		Recorder.ObserveFinalizedStep(
 			MakeRecorderState(10, 20, 1.000),
+			MakeRecorderContext(10),
 			true,
 			true,
 			WorldVelocity),
@@ -65,6 +89,7 @@ bool FMotionWorldEpisodeRecorderTest::RunTest(const FString& Parameters)
 		TEXT("The next state records one causal transition"),
 		Recorder.ObserveFinalizedStep(
 			MakeRecorderState(11, 21, 1.050),
+			MakeRecorderContext(11),
 			true,
 			true,
 			WorldVelocity),
@@ -84,6 +109,7 @@ bool FMotionWorldEpisodeRecorderTest::RunTest(const FString& Parameters)
 		TEXT("Unsupported human-style directional input is rejected"),
 		Recorder.ObserveFinalizedStep(
 			MakeRecorderState(12, 22, 1.100),
+			MakeRecorderContext(12),
 			false,
 			false,
 			FVector::ZeroVector),
@@ -98,6 +124,7 @@ bool FMotionWorldEpisodeRecorderTest::RunTest(const FString& Parameters)
 		TEXT("A valid current state becomes the recovery seed"),
 		Recorder.ObserveFinalizedStep(
 			MakeRecorderState(13, 23, 1.150),
+			MakeRecorderContext(13),
 			true,
 			true,
 			WorldVelocity),
@@ -115,6 +142,7 @@ bool FMotionWorldEpisodeRecorderTest::RunTest(const FString& Parameters)
 		TEXT("The first row beyond capacity stops instead of overwriting"),
 		Recorder.ObserveFinalizedStep(
 			MakeRecorderState(14, 24, 1.200),
+			MakeRecorderContext(14),
 			true,
 			true,
 			WorldVelocity),
@@ -132,7 +160,12 @@ bool FMotionWorldEpisodeRecorderTest::RunTest(const FString& Parameters)
 	InvalidSeed.bIsValid = false;
 	TestEqual(
 		TEXT("An invalid initial state cannot seed an episode"),
-		Recorder.ObserveFinalizedStep(InvalidSeed, true, true, WorldVelocity),
+		Recorder.ObserveFinalizedStep(
+			InvalidSeed,
+			MakeRecorderContext(50),
+			true,
+			true,
+			WorldVelocity),
 		EMotionWorldRecorderObservationResult::RejectedSeed);
 	TestEqual(TEXT("Restart cleared stored rows"), Recorder.GetTransitions().Num(), 0);
 	TestEqual(
@@ -144,6 +177,7 @@ bool FMotionWorldEpisodeRecorderTest::RunTest(const FString& Parameters)
 		TEXT("The next valid state can seed after an invalid one"),
 		Recorder.ObserveFinalizedStep(
 			MakeRecorderState(50, 60, 2.000),
+			MakeRecorderContext(50),
 			true,
 			true,
 			WorldVelocity),
@@ -152,7 +186,12 @@ bool FMotionWorldEpisodeRecorderTest::RunTest(const FString& Parameters)
 	Resimulated.bIsResimulation = true;
 	TestEqual(
 		TEXT("A resimulated endpoint rejects the pair"),
-		Recorder.ObserveFinalizedStep(Resimulated, true, true, WorldVelocity),
+		Recorder.ObserveFinalizedStep(
+			Resimulated,
+			MakeRecorderContext(51),
+			true,
+			true,
+			WorldVelocity),
 		EMotionWorldRecorderObservationResult::RejectedTransition);
 	TestFalse(
 		TEXT("A resimulated endpoint is never retained as the next seed"),
@@ -160,6 +199,24 @@ bool FMotionWorldEpisodeRecorderTest::RunTest(const FString& Parameters)
 	TestEqual(
 		TEXT("Resimulation rejection is counted"),
 		Recorder.GetRejectionCount(EMotionWorldTransitionRejectionReason::Resimulation),
+		int64(1));
+
+	TestTrue(TEXT("A new episode starts for context rejection"), Recorder.StartEpisode(10, 2));
+	FMotionWorldNominalContextSample MisalignedSeed = MakeRecorderContext(70);
+	MisalignedSeed.AuthoritativeStateSampleSequence = 69;
+	TestEqual(
+		TEXT("A mismatched hidden-state frame cannot seed an episode"),
+		Recorder.ObserveFinalizedStep(
+			MakeRecorderState(70, 80, 3.000),
+			MisalignedSeed,
+			true,
+			true,
+			WorldVelocity),
+		EMotionWorldRecorderObservationResult::RejectedSeed);
+	TestEqual(
+		TEXT("Context mismatch is counted explicitly"),
+		Recorder.GetRejectionCount(
+			EMotionWorldTransitionRejectionReason::NominalContextStateMismatch),
 		int64(1));
 
 	(void)Parameters;

@@ -9,7 +9,7 @@
 
 namespace
 {
-constexpr int32 SupportedTransitionProtocolVersion = 1;
+constexpr int32 SupportedTransitionProtocolVersion = 2;
 constexpr int32 MaximumExportedTransitions = 100000;
 constexpr double NumericTolerance = 1.e-6;
 
@@ -31,6 +31,62 @@ void WriteVector2D(FCondensedWriter& Writer, const TCHAR* Name, const FVector2D&
 	Writer.WriteValue(Value.X);
 	Writer.WriteValue(Value.Y);
 	Writer.WriteArrayEnd();
+}
+
+void WriteQuaternion(FCondensedWriter& Writer, const TCHAR* Name, const FQuat& Value)
+{
+	Writer.WriteArrayStart(Name);
+	Writer.WriteValue(Value.X);
+	Writer.WriteValue(Value.Y);
+	Writer.WriteValue(Value.Z);
+	Writer.WriteValue(Value.W);
+	Writer.WriteArrayEnd();
+}
+
+void WriteSmoothWalkingParameters(
+	FCondensedWriter& Writer,
+	const TCHAR* Name,
+	const FMotionWorldSmoothWalkingParameters& Parameters)
+{
+	Writer.WriteObjectStart(Name);
+	Writer.WriteValue(TEXT("acceleration_cm_per_s2"), Parameters.AccelerationCmPerSecSquared);
+	Writer.WriteValue(TEXT("deceleration_cm_per_s2"), Parameters.DecelerationCmPerSecSquared);
+	Writer.WriteValue(TEXT("directional_acceleration_factor"), Parameters.DirectionalAccelerationFactor);
+	Writer.WriteValue(TEXT("turning_strength"), Parameters.TurningStrength);
+	Writer.WriteValue(TEXT("acceleration_smoothing_time_s"), Parameters.AccelerationSmoothingTimeSeconds);
+	Writer.WriteValue(TEXT("deceleration_smoothing_time_s"), Parameters.DecelerationSmoothingTimeSeconds);
+	Writer.WriteValue(TEXT("acceleration_smoothing_compensation"), Parameters.AccelerationSmoothingCompensation);
+	Writer.WriteValue(TEXT("deceleration_smoothing_compensation"), Parameters.DecelerationSmoothingCompensation);
+	Writer.WriteValue(TEXT("velocity_deadzone_cm_per_s"), Parameters.VelocityDeadzoneCmPerSec);
+	Writer.WriteValue(TEXT("acceleration_deadzone_cm_per_s2"), Parameters.AccelerationDeadzoneCmPerSecSquared);
+	Writer.WriteValue(TEXT("outside_influence_smoothing_time_s"), Parameters.OutsideInfluenceSmoothingTimeSeconds);
+	Writer.WriteValue(TEXT("facing_smoothing_time_s"), Parameters.FacingSmoothingTimeSeconds);
+	Writer.WriteValue(TEXT("smooth_facing_with_double_spring"), Parameters.bSmoothFacingWithDoubleSpring);
+	Writer.WriteValue(TEXT("facing_deadzone_deg"), Parameters.FacingDeadzoneDegrees);
+	Writer.WriteValue(TEXT("angular_velocity_deadzone_deg_per_s"), Parameters.AngularVelocityDeadzoneDegreesPerSec);
+	Writer.WriteObjectEnd();
+}
+
+void WriteNominalContext(
+	FCondensedWriter& Writer,
+	const TCHAR* Name,
+	const FMotionWorldNominalContextSample& Context)
+{
+	Writer.WriteObjectStart(Name);
+	Writer.WriteValue(TEXT("protocol_version"), Context.ProtocolVersion);
+	Writer.WriteValue(TEXT("is_valid"), Context.bIsValid);
+	Writer.WriteValue(TEXT("authoritative_state_sample_sequence"), Context.AuthoritativeStateSampleSequence);
+	Writer.WriteValue(TEXT("movement_mode_name"), Context.MovementModeName.ToString());
+	Writer.WriteValue(TEXT("movement_mode_class"), Context.MovementModeClass.ToString());
+	WriteSmoothWalkingParameters(Writer, TEXT("parameters"), Context.Parameters);
+	Writer.WriteObjectStart(TEXT("internal_state"));
+	WriteVector(Writer, TEXT("spring_velocity_world_cm_per_s"), Context.InternalState.SpringVelocityWorldCmPerSec);
+	WriteVector(Writer, TEXT("spring_acceleration_world_cm_per_s2"), Context.InternalState.SpringAccelerationWorldCmPerSecSquared);
+	WriteVector(Writer, TEXT("intermediate_velocity_world_cm_per_s"), Context.InternalState.IntermediateVelocityWorldCmPerSec);
+	WriteQuaternion(Writer, TEXT("intermediate_facing_world_xyzw"), Context.InternalState.IntermediateFacingWorld);
+	WriteVector(Writer, TEXT("intermediate_angular_velocity_world_rad_per_s"), Context.InternalState.IntermediateAngularVelocityWorldRadPerSec);
+	Writer.WriteObjectEnd();
+	Writer.WriteObjectEnd();
 }
 
 void WriteGateState(
@@ -97,6 +153,16 @@ FString SerializeHeader(const MotionWorld::FEpisodeExportRequest& Request)
 	Writer->WriteValue(TEXT("project_name"), Request.ProjectName);
 	Writer->WriteValue(TEXT("episode_id"), Request.Stats.EpisodeId);
 	Writer->WriteValue(TEXT("state_source"), TEXT("mover_finalized_sync_state"));
+	Writer->WriteObjectStart(TEXT("nominal_context_contract"));
+	Writer->WriteValue(TEXT("protocol_version"), 1);
+	Writer->WriteValue(TEXT("source"), TEXT("ue58_smooth_walking_public_reflection"));
+	Writer->WriteValue(TEXT("capture_phase"), TEXT("mover_on_post_finalize"));
+	Writer->WriteValue(
+		TEXT("step_parameter_semantics"),
+		TEXT("next_finalized_snapshot_assumed_used_during_completed_step"));
+	Writer->WriteValue(TEXT("missing_policy"), TEXT("reject_transition"));
+	Writer->WriteValue(TEXT("future_planner_availability"), TEXT("not_guaranteed_requires_causal_selector"));
+	Writer->WriteObjectEnd();
 	if (Request.TimedGateScenario.bIsPresent)
 	{
 		const FMotionWorldTimedGateConfig& Config =
@@ -185,6 +251,20 @@ FString SerializeTransition(
 	Writer->WriteValue(TEXT("end_simulation_time_s"), Transition.EndSimulationTimeSeconds);
 	Writer->WriteValue(TEXT("delta_time_s"), Transition.DeltaTimeSeconds);
 	WriteState(*Writer, TEXT("previous_state"), Transition.PreviousState);
+	Writer->WriteObjectStart(TEXT("nominal_context"));
+	WriteNominalContext(
+		*Writer,
+		TEXT("previous"),
+		Transition.PreviousNominalContext);
+	WriteSmoothWalkingParameters(
+		*Writer,
+		TEXT("parameters_observed_for_completed_step"),
+		Transition.ParametersObservedForCompletedStep);
+	WriteNominalContext(
+		*Writer,
+		TEXT("next"),
+		Transition.NextNominalContext);
+	Writer->WriteObjectEnd();
 	Writer->WriteObjectStart(TEXT("applied_action"));
 	Writer->WriteValue(TEXT("type"), TEXT("desired_velocity"));
 	Writer->WriteValue(TEXT("is_valid"), Transition.AppliedAction.bIsValid);
@@ -312,6 +392,44 @@ bool StatesShareEndpoint(
 			NumericTolerance);
 }
 
+bool ParametersEqual(
+	const FMotionWorldSmoothWalkingParameters& Left,
+	const FMotionWorldSmoothWalkingParameters& Right)
+{
+	return FMath::IsNearlyEqual(Left.AccelerationCmPerSecSquared, Right.AccelerationCmPerSecSquared, NumericTolerance)
+		&& FMath::IsNearlyEqual(Left.DecelerationCmPerSecSquared, Right.DecelerationCmPerSecSquared, NumericTolerance)
+		&& FMath::IsNearlyEqual(Left.DirectionalAccelerationFactor, Right.DirectionalAccelerationFactor, NumericTolerance)
+		&& FMath::IsNearlyEqual(Left.TurningStrength, Right.TurningStrength, NumericTolerance)
+		&& FMath::IsNearlyEqual(Left.AccelerationSmoothingTimeSeconds, Right.AccelerationSmoothingTimeSeconds, NumericTolerance)
+		&& FMath::IsNearlyEqual(Left.DecelerationSmoothingTimeSeconds, Right.DecelerationSmoothingTimeSeconds, NumericTolerance)
+		&& FMath::IsNearlyEqual(Left.AccelerationSmoothingCompensation, Right.AccelerationSmoothingCompensation, NumericTolerance)
+		&& FMath::IsNearlyEqual(Left.DecelerationSmoothingCompensation, Right.DecelerationSmoothingCompensation, NumericTolerance)
+		&& FMath::IsNearlyEqual(Left.VelocityDeadzoneCmPerSec, Right.VelocityDeadzoneCmPerSec, NumericTolerance)
+		&& FMath::IsNearlyEqual(Left.AccelerationDeadzoneCmPerSecSquared, Right.AccelerationDeadzoneCmPerSecSquared, NumericTolerance)
+		&& FMath::IsNearlyEqual(Left.OutsideInfluenceSmoothingTimeSeconds, Right.OutsideInfluenceSmoothingTimeSeconds, NumericTolerance)
+		&& FMath::IsNearlyEqual(Left.FacingSmoothingTimeSeconds, Right.FacingSmoothingTimeSeconds, NumericTolerance)
+		&& Left.bSmoothFacingWithDoubleSpring == Right.bSmoothFacingWithDoubleSpring
+		&& FMath::IsNearlyEqual(Left.FacingDeadzoneDegrees, Right.FacingDeadzoneDegrees, NumericTolerance)
+		&& FMath::IsNearlyEqual(Left.AngularVelocityDeadzoneDegreesPerSec, Right.AngularVelocityDeadzoneDegreesPerSec, NumericTolerance);
+}
+
+bool NominalContextsShareEndpoint(
+	const FMotionWorldNominalContextSample& Left,
+	const FMotionWorldNominalContextSample& Right)
+{
+	return Left.ProtocolVersion == Right.ProtocolVersion
+		&& Left.bIsValid == Right.bIsValid
+		&& Left.AuthoritativeStateSampleSequence == Right.AuthoritativeStateSampleSequence
+		&& Left.MovementModeName == Right.MovementModeName
+		&& Left.MovementModeClass == Right.MovementModeClass
+		&& ParametersEqual(Left.Parameters, Right.Parameters)
+		&& Left.InternalState.SpringVelocityWorldCmPerSec.Equals(Right.InternalState.SpringVelocityWorldCmPerSec, NumericTolerance)
+		&& Left.InternalState.SpringAccelerationWorldCmPerSecSquared.Equals(Right.InternalState.SpringAccelerationWorldCmPerSecSquared, NumericTolerance)
+		&& Left.InternalState.IntermediateVelocityWorldCmPerSec.Equals(Right.InternalState.IntermediateVelocityWorldCmPerSec, NumericTolerance)
+		&& Left.InternalState.IntermediateFacingWorld.Equals(Right.InternalState.IntermediateFacingWorld, NumericTolerance)
+		&& Left.InternalState.IntermediateAngularVelocityWorldRadPerSec.Equals(Right.InternalState.IntermediateAngularVelocityWorldRadPerSec, NumericTolerance);
+}
+
 bool IsTransitionReproducible(const FMotionWorldTransitionSample& Transition)
 {
 	if (!Transition.bIsValid
@@ -330,6 +448,8 @@ bool IsTransitionReproducible(const FMotionWorldTransitionSample& Transition)
 	Inputs.TransitionSequence = Transition.TransitionSequence;
 	Inputs.PreviousState = Transition.PreviousState;
 	Inputs.NextState = Transition.NextState;
+	Inputs.PreviousNominalContext = Transition.PreviousNominalContext;
+	Inputs.NextNominalContext = Transition.NextNominalContext;
 	Inputs.bAppliedInputWasVelocity = true;
 	Inputs.bWasMotionWorldAutomated =
 		Transition.AppliedAction.bWasMotionWorldAutomated;
@@ -339,6 +459,9 @@ bool IsTransitionReproducible(const FMotionWorldTransitionSample& Transition)
 	const FMotionWorldTransitionSample Rebuilt =
 		MotionWorld::BuildTransitionSample(Inputs);
 	return Rebuilt.bIsValid
+		&& ParametersEqual(
+			Rebuilt.ParametersObservedForCompletedStep,
+			Transition.ParametersObservedForCompletedStep)
 		&& Rebuilt.AppliedAction.VelocityLocalPlanarCmPerSec.Equals(
 			Transition.AppliedAction.VelocityLocalPlanarCmPerSec,
 			NumericTolerance)
@@ -548,9 +671,12 @@ FEpisodeExportOutcome ExportEpisodeJsonLines(
 		if (PreviousTransition
 			&& Transition.TransitionSequence
 				== PreviousTransition->TransitionSequence + 1
-			&& !StatesShareEndpoint(
-				PreviousTransition->NextState,
-				Transition.PreviousState))
+			&& (!StatesShareEndpoint(
+					PreviousTransition->NextState,
+					Transition.PreviousState)
+				|| !NominalContextsShareEndpoint(
+					PreviousTransition->NextNominalContext,
+					Transition.PreviousNominalContext)))
 		{
 			Outcome.Result = EEpisodeExportResult::InvalidTransition;
 			Outcome.Detail = FString::Printf(

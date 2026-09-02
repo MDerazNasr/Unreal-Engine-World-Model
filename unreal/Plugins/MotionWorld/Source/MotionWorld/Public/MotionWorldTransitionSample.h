@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "MotionWorldNominalContext.h"
 #include "MotionWorldStateSample.h"
 #include "MotionWorldTransitionSample.generated.h"
 
@@ -20,6 +21,10 @@ enum class EMotionWorldTransitionRejectionReason : uint8
 	InvalidPreviousState,
 	InvalidNextState,
 	UnsupportedStateProtocol,
+	InvalidPreviousNominalContext,
+	InvalidNextNominalContext,
+	UnsupportedNominalContextProtocol,
+	NominalContextStateMismatch,
 	Resimulation,
 	NonContiguousStateSequence,
 	NonContiguousMoverFrame,
@@ -60,7 +65,7 @@ struct MOTIONWORLD_API FMotionWorldTransitionSample
 	GENERATED_BODY()
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Transition")
-	int32 ProtocolVersion = 1;
+	int32 ProtocolVersion = 2;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Transition")
 	int64 EpisodeId = -1;
@@ -88,10 +93,23 @@ struct MOTIONWORLD_API FMotionWorldTransitionSample
 	FMotionWorldStateSample PreviousState;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Transition")
+	FMotionWorldNominalContextSample PreviousNominalContext;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Transition")
 	FMotionWorldAppliedVelocityAction AppliedAction;
+
+	/**
+	 * Runtime parameters observed at the next finalized boundary. They are assumed
+	 * to have governed the completed step; the episode schema states this timing.
+	 */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Transition")
+	FMotionWorldSmoothWalkingParameters ParametersObservedForCompletedStep;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Transition")
 	FMotionWorldStateSample NextState;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Transition")
+	FMotionWorldNominalContextSample NextNominalContext;
 };
 
 namespace MotionWorld
@@ -106,6 +124,8 @@ struct FTransitionSampleInputs
 	int64 TransitionSequence = -1;
 	FMotionWorldStateSample PreviousState;
 	FMotionWorldStateSample NextState;
+	FMotionWorldNominalContextSample PreviousNominalContext;
+	FMotionWorldNominalContextSample NextNominalContext;
 	bool bAppliedInputWasVelocity = false;
 	bool bWasMotionWorldAutomated = false;
 	FVector AppliedVelocityWorldCmPerSec = FVector::ZeroVector;
