@@ -537,7 +537,10 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [x] Include analytically revalidated timed-gate obstacle states.
 - [x] Include collision flag/count.
 - [ ] Include external impulse.
-- [ ] Include controller parameters.
+- [x] Include controller parameters with explicit post-step observation semantics.
+- [x] Include both endpoints of the five-field known Smooth Walking internal context.
+- [x] Reject missing, invalid, wrong-version, or state-misaligned nominal context.
+- [x] Preserve schema-v1/v2 reader compatibility without fabricating missing context.
 - [x] Include termination reason.
 - [x] Include state-source and schema-version labels.
 - [ ] Include animation-root/toe diagnostics in distinct optional fields.
@@ -562,6 +565,8 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [x] Reject non-finite states/actions.
 - [ ] Validate units and plausible ranges.
 - [x] Validate action/next-state temporal alignment.
+- [x] Validate nominal-context/state alignment and consecutive hidden endpoints.
+- [x] Validate duplicated completed-step parameters equal the next finalized snapshot.
 - [x] Validate one file has one episode identity and no row crosses its boundary.
 - [ ] Validate no window crosses episode termination.
 - [ ] Produce coverage histograms for speed, direction, turns, stops, contact, impulses, and parameters.

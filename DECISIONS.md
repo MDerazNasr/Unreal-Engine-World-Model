@@ -823,3 +823,48 @@ zero invalid count, bounded-cap behavior, automation disabled, and `model_input=
 evidence is preserved with SHA-256 `2bbeab64...02517cf`.
 
 Related config/commit/experiment: `NOM-DIAG-001`; session `FF6768704542`.
+
+## D-027 - Version nominal context separately and require endpoint alignment
+
+Status: accepted for collection and offline modelling; live schema-v3 episode still required
+
+Decision: Keep authoritative state protocol 1 unchanged. Add nominal-context protocol 1 containing
+the active Smooth Walking class/name, all 15 runtime parameter values, and the five audited internal
+state fields. Upgrade causal transitions to protocol 2 and episode files to schema 3. Each row stores
+previous and next context plus a completed-step parameter snapshot copied from the next finalized
+context. Reject missing, invalid, unsupported, or state-sequence/mode-misaligned context. Continue to
+read legacy schema-1 and schema-2 files, but never synthesize context for them.
+
+Why: Position and velocity alone do not determine Smooth Walking's next response because its spring
+memory persists between steps, and the live Blueprint changes parameters over time. Separating the
+context protocol avoids redefining gameplay state while still giving the faithful nominal model the
+known variables it needs. Explicit endpoint alignment prevents a plausible but scientifically fatal
+off-by-one join.
+
+Alternatives considered: enlarge authoritative state protocol 1; freeze one parameter regime; infer
+all controller memory from short history; attach context only to the next state; silently fill missing
+context with zeros; break old episode loading; treat the next observed parameter snapshot as guaranteed
+future planner information.
+
+Evidence: Strict isolated universal Mac Editor Development, Game Development, and Game Shipping
+builds passed. The actual universal Game Animation Sample Editor target passed. All ten filtered
+MotionWorld tests passed in the actual sample after one test fixture was corrected to move its context
+sequence together with its deliberately skipped state sequence. The pinned Python 3.12 environment
+passed 92 tests; focused schema tests cover v1/v2 compatibility, valid v3, wrong sequence, mismatched
+completed-step parameters, broken hidden endpoint continuity, and invalid quaternion state.
+
+Main assumption: Parameters read at the next `OnPostFinalize` boundary governed the step that just
+completed. This is recorded as an assumption in every v3 header. The data does not establish which
+future regime is causally knowable to MPC.
+
+How it could fail: Blueprint logic could mutate a parameter after move generation but before capture;
+non-Walking modes do not satisfy this contract; reflected names may change; filtering invalid contexts
+could bias the dataset; an online planner could accidentally consume recorded future regimes.
+
+How I tested it: Fail-closed C++ tests attack protocol, range, finite-state, quaternion, sequence,
+mode, seed, continuity, and atomic-export paths. Python independently rechecks exact keys, provenance,
+ranges, quaternion norm, endpoint alignment, parameter duplication, and cross-row hidden continuity.
+The first full actual-sample run exposed a mixed-purpose test fixture; the corrected run completed all
+ten MotionWorld tests with `Success`.
+
+Related config/commit/experiment: `NOM-CONTEXT-001`; commits `fbe8b38`, `5be47f0`.

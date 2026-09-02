@@ -730,3 +730,41 @@ Before each component is accepted, explain without looking:
 - one realistic failure.
 
 Add the explanation and any manual calculation to this file. Code is not complete until the explanation is owned.
+
+## 22. Nominal context and schema-v3 transition semantics
+
+The visible gameplay state is still `s_t`: finalized position, velocity, facing, angular velocity,
+movement mode, time, and identity. Smooth Walking also has known persistent controller state `z_t`:
+
+- spring velocity and spring acceleration;
+- intermediate velocity;
+- intermediate facing quaternion;
+- intermediate angular velocity.
+
+Let `theta_t` denote the active Smooth Walking parameters observed at the same finalized boundary.
+A schema-v3 row represents:
+
+`(s_t, z_t, a_t, theta_step, s_(t+1), z_(t+1))`
+
+where `a_t` is the desired-velocity input consumed during the completed movement step. The nominal
+transition will have the form:
+
+`(s_hat_(t+1), z_hat_(t+1)) = f_nominal(s_t, z_t, a_t, theta_step, delta_t)`
+
+The parameter timing needs care. The current Unreal seam reads the movement-mode object inside the
+`OnPostFinalize` callback. Therefore `theta_step` is copied from the next finalized context and means
+“the parameter snapshot observed after the step, assumed to have governed that completed step.” It is
+not proof that the same parameter regime is available before every imagined MPC step. Offline analysis
+may use this label; deployable planning needs a causal parameter selector or a fixed declared regime.
+
+Both endpoints are required because hidden memory also evolves. If row `k+1` is consecutive with row
+`k`, then both the visible endpoint and hidden endpoint must match exactly:
+
+`s_previous^(k+1) = s_next^k`
+
+`z_previous^(k+1) = z_next^k`
+
+Sequence alignment additionally requires the context attached to `s_t` to carry the same authoritative
+sample sequence and movement mode. Missing or invalid context rejects the transition rather than
+inventing zero spring state. Old schema-v1/v2 evidence remains readable as historical data, but it
+cannot be relabelled as schema v3 because it never recorded `z`.

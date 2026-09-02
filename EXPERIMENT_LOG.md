@@ -609,6 +609,42 @@ input. No reliable toe/contact telemetry was collected, so no foot-sliding claim
 compiled/saved the Blueprint, and closed Unreal. The installed sample is back in its default-off
 evidence state.
 
+## NOM-CONTEXT-001 - Versioned nominal-context recording boundary (2026-09-02)
+
+**Hypothesis:** Live Smooth Walking parameters and five known internal-state fields can be attached to
+causal episode transitions without redefining authoritative gameplay state or accepting off-by-one
+context joins.
+
+**Implementation:** Added nominal-context protocol 1, transition protocol 2, and episode schema 3.
+Recording now captures reflection data whenever an episode is active or reset verification is pending,
+even when diagnostic logging is disabled. Each transition requires aligned previous/next context and
+stores completed-step parameters from the next finalized snapshot. The atomic exporter writes explicit
+capture/timing/future-availability provenance. Python strictly reads schemas 1, 2, and 3.
+
+**Reviewer finding:** Reset verification can start a new episode during the same post-finalize callback.
+Capturing only while the recorder was already active would have missed that seed frame. Pending-reset
+frames now capture context too. The first full actual-sample automation run also exposed a test fixture
+that changed a state's sequence without changing its attached context; the new mismatch check correctly
+fired before the test's intended skipped-sequence assertion. The fixture now moves both labels together.
+
+**Validation:** Strict isolated universal Mac Editor Development, Game Development, and Game Shipping
+builds succeeded. The actual Game Animation Sample universal Editor build succeeded; its deployed dylib
+is arm64+x86_64. All ten filtered MotionWorld tests completed with `Success`. The startup log contains an
+unrelated UE `DataflowNodes` member-initialization error before the filtered suite; it is preserved and is
+not counted as a MotionWorld test result. The final raw log SHA-256 is
+`dc47130a2369bbc1ea15063938bdab4480d98506126704eebe4cd2159ba90b03` and the deployed dylib SHA-256 is
+`e74a812121728f29d2f63e345bf228205ac4634f517c189b98b7e56a62a756ab`.
+
+**Python result:** The pinned Python 3.12 environment passed 92 tests. Eighteen episode tests include
+legacy v1/v2 acceptance and adversarial v3 context cases. Focused Ruff checks and formatting pass.
+
+**Acceptance boundary:** The contract, exporter, and independent loader are accepted. We have not yet
+captured a live exported schema-v3 episode, measured a nominal prediction error, or implemented the
+faithful Smooth Walking predictor. `theta_step` remains an observed-after-step label until its mutation
+timing and causal future selector are established.
+
+**Commits:** `fbe8b38`, `5be47f0`.
+
 ## FEAS-001 branch-close audit (2026-09-01)
 
 **Claim under review:** The Day 1 engineering system is sufficiently reliable to begin offline

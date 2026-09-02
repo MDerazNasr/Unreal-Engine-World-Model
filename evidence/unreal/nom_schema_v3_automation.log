@@ -1,0 +1,41 @@
+# MotionWorld nominal-context / episode-schema-v3 closed-editor evidence
+# Captured: 2026-09-02 Europe/Copenhagen
+# Raw final log: GameAnimationSampleEditor/private/tmp/motionworld_schema_v3_actual_automation_final.log
+# Raw final log SHA-256: dc47130a2369bbc1ea15063938bdab4480d98506126704eebe4cd2159ba90b03
+# Deployed universal dylib SHA-256: e74a812121728f29d2f63e345bf228205ac4634f517c189b98b7e56a62a756ab
+
+Validation boundary
+- Strict isolated BuildPlugin succeeded for universal Mac Editor Development, Game Development,
+  and Game Shipping with strict includes, no PCH/shared PCH, and unity disabled.
+- The actual GameAnimationSampleEditor universal Mac target succeeded.
+- The deployed MotionWorld editor dylib contains x86_64 and arm64.
+- The pinned Python 3.12 environment passed 92 tests.
+- Focused Ruff lint/format checks passed for the changed episode loader/tests.
+- This validates the nominal-context contract, transition protocol 2, schema-v3 serializer, and
+  strict schema-v1/v2/v3 Python reader.
+- It does not prove a live schema-v3 episode, faithful nominal prediction, or future parameter
+  availability to MPC.
+
+First-run reviewer finding
+- The first full run had 9 successes and one CausalPairing failure.
+- The test deliberately changed next state sequence 41 -> 42 but left its context sequence at 41.
+- The new state/context mismatch guard correctly rejected the row before the intended chronology
+  assertion. The fixture was corrected to move both labels to 42; production logic was unchanged.
+
+Final actual-sample results
+[2026.09.02-09.44.00:307][282] Found 10 automation tests based on 'MotionWorld.'
+[2026.09.02-09.44.00:346][285] Success MotionWorld.Command.SanitizeWorldVelocity
+[2026.09.02-09.44.00:396][288] Success MotionWorld.Coordinates.PlanarVelocity
+[2026.09.02-09.44.00:446][291] Success MotionWorld.Data.NominalContext
+[2026.09.02-09.44.00:496][294] Success MotionWorld.Diagnostics.SmoothWalking
+[2026.09.02-09.44.00:546][297] Success MotionWorld.Episode.AtomicJsonLinesExporter
+[2026.09.02-09.44.00:596][300] Success MotionWorld.Episode.InMemoryRecorder
+[2026.09.02-09.44.00:652][303] Success MotionWorld.Gate.DeterministicScheduleAndEvents
+[2026.09.02-09.44.00:680][305] Success MotionWorld.Reset.FinalizedVerifier
+[2026.09.02-09.44.00:729][308] Success MotionWorld.State.AuthoritativeSample
+[2026.09.02-09.44.00:779][311] Success MotionWorld.Transition.CausalPairing
+
+Unrelated startup diagnostic
+- Before the filtered suite, UE logged an existing DataflowNodes member-initialization error for
+  FDataflowToolNodeSnapshot::Date. It is outside MotionWorld and no selected test inherited it.
+- The error is disclosed here rather than silently removed from the raw-log interpretation.

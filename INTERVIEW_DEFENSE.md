@@ -134,6 +134,30 @@ and 1702 without an accepted cross-reset transition.
 
 NavMesh provides global/static routing. MotionWorld addresses short-horizon local control under timing, perturbation, and model mismatch. They are complementary layers.
 
+### Why is Smooth Walking context separate from authoritative state?
+
+Authoritative state answers what physically happened after collision resolution: position, velocity,
+facing, angular velocity, mode, and time. Smooth Walking's spring variables are controller memory used
+to explain how that state evolves. I version them separately so I do not redefine the gameplay state or
+pretend private controller internals are universally observable. A transition is accepted only when the
+context sequence and movement mode match its state endpoint.
+
+### Are you leaking future parameters into the planner?
+
+Not in the deployable claim. Schema v3 records the parameter object observed at the next finalized
+boundary and labels it as assumed to have governed the completed step. That is useful for reconstructing
+past Unreal transitions. It is privileged for a future rollout unless a causal selector can determine
+the same regime before planning, so the header explicitly says future availability is not guaranteed.
+The initial faithful predictor can be evaluated within fixed observed regimes; online regime selection
+is a separate experiment.
+
+### Why not fill missing hidden context with zeros?
+
+Zero is a real controller state, not a neutral missing value. Substituting it would convert capture
+failures into false physical evidence and teach the residual to compensate for a data-pipeline bug.
+Missing, wrong-version, non-finite, or misaligned context therefore rejects the seed or transition and
+increments an explicit rejection counter.
+
 ## 5. Examiner checklist
 
 Before marking a component finished, answer aloud:
