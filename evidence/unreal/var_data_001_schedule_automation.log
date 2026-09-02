@@ -1,0 +1,32 @@
+# VAR-DATA-001 deterministic varied-action schedule closed-editor evidence
+
+Date: 2026-09-02
+Engine/project: Unreal Engine 5.8.2 / Game Animation Sample
+
+## Build
+
+- Deployed repository `unreal/Plugins/MotionWorld` into the closed sample project.
+- Built `GameAnimationSampleEditor Mac Development -architecture=arm64+x86_64`.
+- Result: Succeeded; 60/60 actions; universal MotionWorld dylib produced.
+
+## Automation
+
+- Command filter: `Automation RunTests MotionWorld.`
+- Tests discovered: 12.
+- Final result: 12 Success, 0 Fail.
+- New test: `MotionWorld.Collection.VariedActionSchedule` — Success.
+- Raw Unreal log: `motionworld_varied_schedule_automation_fixed.log` under the local Unreal log tree.
+
+## Reviewer finding preserved
+
+The first headless run had 11 successes and one failure in the new schedule test. Repeatedly adding
+0.8 and 0.4 seconds made the accumulated 4.8-second boundary differ from the independently written
+4.8 timestamp by one floating-point representation step. This could also disagree with the
+closed-form automatic-completion duration. The implementation now computes every phase boundary
+from explicit closed-form sums shared with the duration semantics. The rebuilt rerun passed all 12.
+
+## Scope
+
+This proves compilation, pure schedule semantics, fail-closed configuration, and regression safety.
+It does not prove live character behavior, episode export, action coverage, or schema-loader
+acceptance. Those remain the live episode 4101 gate.

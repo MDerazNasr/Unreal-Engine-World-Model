@@ -795,3 +795,35 @@ Sequence alignment additionally requires the context attached to `s_t` to carry 
 sample sequence and movement mode. Missing or invalid context rejects the transition rather than
 inventing zero spring state. Old schema-v1/v2 evidence remains readable as historical data, but it
 cannot be relabelled as schema v3 because it never recorded `z`.
+
+## 23. Deterministic varied-action schedule
+
+One straight trajectory cannot tell us how the controller accelerates in different directions,
+brakes, reverses, or turns. D-030 therefore defines a short coverage experiment as a function of
+elapsed episode simulation time:
+
+`(v_desired_world(t), facing_intent_world(t), phase(t)) = schedule(t)`
+
+The default phases are forward, stop, reverse, stop, right, left, diagonal, and final stop. Each
+interval is half-open: it includes its start and excludes its end. For example, forward owns
+`0 <= t < 0.8`, and the first stop owns `0.8 <= t < 1.2`. Therefore `t=0.8` belongs to exactly the
+stop phase. This eliminates both gaps and double ownership.
+
+The schedule uses absolute time measured from the verified episode start. It does not add one frame
+duration to a phase clock every tick, because those increments can accumulate rounding and frame-rate
+differences. Every boundary is computed from the same closed-form duration sums, and the automatic
+completion check uses the same 5.3-second total.
+
+For a nonzero planar command `v=(v_x,v_y,0)`, facing is derived as:
+
+`f = v / ||v||`
+
+and desired yaw is `atan2(f_y, f_x)`. At zero velocity, normalization is undefined, so the schedule
+holds the previous phase's facing. That stop behavior is meaningful: zero desired velocity does not
+erase the controller's rotation/spring memory. Although the script is written in world coordinates
+to make level coverage reproducible, each transition already stores both the echoed world command
+and its character-local representation relative to the previous authoritative facing.
+
+This is a coverage generator, not a claim that the final model has adequate data. A live episode
+must still prove every phase occurred, the reset and export completed, the strict loader accepted all
+rows, and the realized distributions actually contain braking, reversal, turning, and stopping.

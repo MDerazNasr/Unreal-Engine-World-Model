@@ -275,6 +275,34 @@ bool UMotionWorldBridgeComponent::StartEpisodeRecording(const int64 EpisodeId)
 			ResetStatus.RequestedEpisodeId);
 		return false;
 	}
+	if (bEnableTimedGateScenario && bEnableVariedActionSchedule)
+	{
+		UE_LOG(
+			LogMotionWorldBridge,
+			Error,
+			TEXT("MotionWorld episode %lld cannot combine the timed gate and varied action schedule; use separate episodes so scenario termination cannot truncate coverage."),
+			EpisodeId);
+		return false;
+	}
+	if (bEnableVariedActionSchedule
+		&& !MotionWorld::IsVariedActionScheduleConfigValid(VariedActionScheduleConfig))
+	{
+		UE_LOG(
+			LogMotionWorldBridge,
+			Error,
+			TEXT("MotionWorld episode %lld rejected an invalid varied action schedule."),
+			EpisodeId);
+		return false;
+	}
+	if (bEnableVariedActionSchedule && !LastAuthoritativeState.bIsValid)
+	{
+		UE_LOG(
+			LogMotionWorldBridge,
+			Error,
+			TEXT("MotionWorld varied-action episode %lld cannot start before a finalized seed state exists."),
+			EpisodeId);
+		return false;
+	}
 	if (bEnableTimedGateScenario
 		&& (!IsValid(ArenaManager)
 			|| !ArenaManager->GetArenaStatus().bIsActive
@@ -296,6 +324,15 @@ bool UMotionWorldBridgeComponent::StartEpisodeRecording(const int64 EpisodeId)
 		bCurrentEpisodeHasTimedGateScenario
 			? LastAuthoritativeState.SimulationTimeSeconds
 			: 0.0;
+	bCurrentEpisodeHasVariedActionSchedule = bStarted
+		&& bEnableVariedActionSchedule
+		&& LastAuthoritativeState.bIsValid;
+	CurrentEpisodeActionScheduleStartSimulationTimeSeconds =
+		bCurrentEpisodeHasVariedActionSchedule
+			? LastAuthoritativeState.SimulationTimeSeconds
+			: 0.0;
+	LastVariedActionScheduleSample = FMotionWorldVariedActionScheduleSample();
+	LastLoggedVariedActionPhase = EMotionWorldVariedActionPhase::Invalid;
 	LastRecordedTransition = FMotionWorldTransitionSample();
 	LastRecorderObservationResult =
 		EMotionWorldRecorderObservationResult::IgnoredNotRecording;
@@ -311,6 +348,16 @@ bool UMotionWorldBridgeComponent::StartEpisodeRecording(const int64 EpisodeId)
 			TEXT("MotionWorld episode started: episode=%lld capacity=%d; awaiting seed state."),
 			EpisodeId,
 			MaxRecordedTransitions);
+		if (bCurrentEpisodeHasVariedActionSchedule)
+		{
+			UE_LOG(
+				LogMotionWorldBridge,
+				Display,
+				TEXT("MotionWorld varied action schedule started: episode=%lld start_sim_time_s=%.6f duration_s=%.6f frame=world facing_policy=velocity_direction_then_hold."),
+				EpisodeId,
+				CurrentEpisodeActionScheduleStartSimulationTimeSeconds,
+				MotionWorld::GetVariedActionScheduleDurationSeconds(VariedActionScheduleConfig));
+		}
 	}
 	else
 	{
@@ -352,6 +399,8 @@ void UMotionWorldBridgeComponent::StopEpisodeRecording()
 	}
 	bCurrentEpisodeHasTimedGateScenario = false;
 	CurrentEpisodeScenarioStartSimulationTimeSeconds = 0.0;
+	bCurrentEpisodeHasVariedActionSchedule = false;
+	CurrentEpisodeActionScheduleStartSimulationTimeSeconds = 0.0;
 }
 
 void UMotionWorldBridgeComponent::ExportCurrentEpisode(
@@ -799,6 +848,41 @@ void UMotionWorldBridgeComponent::ProcessTimedArenaObservation()
 	}
 }
 
+void UMotionWorldBridgeComponent::ProcessVariedActionScheduleCompletion()
+{
+	if (!bCurrentEpisodeHasVariedActionSchedule
+		|| !EpisodeRecorder.GetStats().bIsRecording
+		|| !LastAuthoritativeState.bIsValid)
+	{
+		return;
+	}
+
+	const double DurationSeconds =
+		MotionWorld::GetVariedActionScheduleDurationSeconds(VariedActionScheduleConfig);
+	const double ElapsedSeconds = LastAuthoritativeState.SimulationTimeSeconds
+		- CurrentEpisodeActionScheduleStartSimulationTimeSeconds;
+	if (DurationSeconds <= 0.0 || ElapsedSeconds < DurationSeconds)
+	{
+		return;
+	}
+
+	const int64 EpisodeId = EpisodeRecorder.GetStats().EpisodeId;
+	MotionWorld::ApplyZeroVelocitySafeStop(
+		DesiredVelocityLocalCmPerSec,
+		DesiredVelocityWorldCmPerSec);
+	++CommandRevision;
+	bLastCommandEchoMatched = false;
+	LastEchoedVelocityWorldCmPerSec = FVector::ZeroVector;
+	UE_LOG(
+		LogMotionWorldBridge,
+		Display,
+		TEXT("MotionWorld varied action schedule complete: episode=%lld elapsed_s=%.6f duration_s=%.6f; zero command issued and episode will export."),
+		EpisodeId,
+		ElapsedSeconds,
+		DurationSeconds);
+	StopEpisodeRecording();
+}
+
 void UMotionWorldBridgeComponent::CaptureAnimationDiagnosticIfEnabled()
 {
 	if (!bLogAnimationRootDiagnostics)
@@ -1038,11 +1122,58 @@ void UMotionWorldBridgeComponent::ProduceInput_Implementation(
 	}
 
 	FVector RequestedVelocityWorldCmPerSec = DesiredVelocityWorldCmPerSec;
+	FVector ScheduledOrientationIntentWorld = FVector::ZeroVector;
+	bool bUsingVariedActionSchedule = false;
 	LastRequestedVelocityInCommandFrameCmPerSec = DesiredVelocityWorldCmPerSec;
 	LastResolvedFacingYawDegrees = 0.0;
 	bLastCommandFrameResolved = true;
 
-	if (VelocityCommandFrame == EMotionWorldVelocityCommandFrame::CharacterLocal)
+	if (bCurrentEpisodeHasVariedActionSchedule && LastAuthoritativeState.bIsValid)
+	{
+		const double ElapsedSeconds = FMath::Max(
+			0.0,
+			LastAuthoritativeState.SimulationTimeSeconds
+				- CurrentEpisodeActionScheduleStartSimulationTimeSeconds);
+		LastVariedActionScheduleSample = MotionWorld::EvaluateVariedActionSchedule(
+			VariedActionScheduleConfig,
+			ElapsedSeconds);
+		if (LastVariedActionScheduleSample.bIsValid)
+		{
+			bUsingVariedActionSchedule = true;
+			RequestedVelocityWorldCmPerSec =
+				LastVariedActionScheduleSample.DesiredVelocityWorldCmPerSec;
+			ScheduledOrientationIntentWorld =
+				LastVariedActionScheduleSample.OrientationIntentWorld;
+			LastRequestedVelocityInCommandFrameCmPerSec = RequestedVelocityWorldCmPerSec;
+			LastResolvedFacingYawDegrees = FMath::RadiansToDegrees(FMath::Atan2(
+				ScheduledOrientationIntentWorld.Y,
+				ScheduledOrientationIntentWorld.X));
+			if (LastVariedActionScheduleSample.Phase != LastLoggedVariedActionPhase)
+			{
+				LastLoggedVariedActionPhase = LastVariedActionScheduleSample.Phase;
+				++CommandRevision;
+				UE_LOG(
+					LogMotionWorldBridge,
+					Display,
+					TEXT("MotionWorld varied action phase: episode=%lld phase=%d elapsed_s=%.6f velocity_world_cm_per_sec=(%.2f, %.2f, %.2f) orientation_intent_world=(%.6f, %.6f, %.6f)."),
+					EpisodeRecorder.GetStats().EpisodeId,
+					static_cast<int32>(LastVariedActionScheduleSample.Phase),
+					ElapsedSeconds,
+					RequestedVelocityWorldCmPerSec.X,
+					RequestedVelocityWorldCmPerSec.Y,
+					RequestedVelocityWorldCmPerSec.Z,
+					ScheduledOrientationIntentWorld.X,
+					ScheduledOrientationIntentWorld.Y,
+					ScheduledOrientationIntentWorld.Z);
+			}
+		}
+		else
+		{
+			RequestedVelocityWorldCmPerSec = FVector::ZeroVector;
+			bLastCommandFrameResolved = false;
+		}
+	}
+	else if (VelocityCommandFrame == EMotionWorldVelocityCommandFrame::CharacterLocal)
 	{
 		LastRequestedVelocityInCommandFrameCmPerSec = DesiredVelocityLocalCmPerSec;
 		const FMoverDefaultSyncState* CurrentState = MoverComponent
@@ -1081,12 +1212,14 @@ void UMotionWorldBridgeComponent::ProduceInput_Implementation(
 	// the velocity-only policy deterministic instead of inheriting camera/controller state.
 	Inputs.OrientationIntent = ResetStatus.bIsPending
 		? ResetAnchor.OrientationWorldDegrees.Vector()
-		: (LastAuthoritativeState.bIsValid
-			? FVector(
-				LastAuthoritativeState.FacingUnitWorld.X,
-				LastAuthoritativeState.FacingUnitWorld.Y,
-				0.0)
-			: Inputs.GetOrientationIntentDir_WorldSpace());
+		: (bUsingVariedActionSchedule
+			? ScheduledOrientationIntentWorld
+			: (LastAuthoritativeState.bIsValid
+				? FVector(
+					LastAuthoritativeState.FacingUnitWorld.X,
+					LastAuthoritativeState.FacingUnitWorld.Y,
+					0.0)
+				: Inputs.GetOrientationIntentDir_WorldSpace()));
 	Inputs.SetMoveInput(EMoveInputType::Velocity, Sanitized.WorldVelocityCmPerSec);
 
 	// Read back the value stored by SetMoveInput because Mover quantizes it to 0.01 cm/s.
@@ -1455,6 +1588,7 @@ void UMotionWorldBridgeComponent::HandlePostFinalize(
 	}
 
 	ProcessTimedArenaObservation();
+	ProcessVariedActionScheduleCompletion();
 
 	if (!bAutomationEnabled || !MoverComponent)
 	{

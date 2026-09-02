@@ -49,6 +49,7 @@ Artifacts and reproduction command:
 | FEAS-001 | Can Unreal accept desired velocity, expose post-movement state, reset, and log deterministically? | Day 1 | Planned |
 | NOM-001 | Does the nominal implementation pass hand-calculated and timestep tests? | Day 2 | Planned |
 | NOM-002 | Is meaningful, systematic residual error present in Unreal rollouts? | Day 2 | Planned |
+| VAR-DATA-001 | Does the deterministic schedule produce valid stop/reverse/turn coverage? | Day 2 | Running |
 | RES-001 | Does residual learning improve held-out recursive prediction over nominal? | Day 3 | Planned |
 | RES-002 | Does four-step history improve post-perturbation prediction over no history? | Day 3 | Planned |
 | CEM-001 | Does fixed-seed CEM recover known optima in toy costs deterministically? | Day 4 | Planned |
@@ -901,3 +902,35 @@ Episode 4001 is uniquely identified and may serve as interface/evaluation eviden
 training dataset: one straight trajectory and one terminal contact provide no turn, stop, reverse,
 push, or repeated-contact coverage. Next define an explicit facing/turn action before varied
 collection, then evaluate recursive 0.5/1.0/1.5-second rollouts.
+
+## VAR-DATA-001 deterministic varied-action schedule — closed-editor gate (2026-09-02)
+
+**Question:** Can one reset-bounded episode deterministically request forward, stop, reverse,
+lateral, diagonal, and turning behavior while recording complete schema-v4 causal inputs?
+
+**Hypothesis:** An absolute-time, piecewise-constant world-velocity schedule with velocity-derived
+facing will create reproducible action strata without camera/controller leakage, then stop and export
+automatically.
+
+**Configuration:** Default-off schedule; 0.8-second motion phases, 0.4-second intermediate stops,
+0.5-second final stop; speeds 200 forward, 150 reverse, 140 lateral, and 100/100 diagonal cm/s;
+timed gate prohibited; total duration 5.3 seconds. Live episode 4101 is pending.
+
+**Closed-editor result:** The actual universal `GameAnimationSampleEditor` build passed for arm64 and
+x86_64. The headless run found 12 tests and all 12 succeeded. The first run correctly failed the new
+boundary test at the 4.8-second transition because repeated floating-point accumulation placed the
+boundary one representable value away from the closed-form timestamp. Production and tests now use
+the same explicit sums, and the rerun passed.
+
+**Reviewer findings:** An accidental reset-path edit was removed before compilation. Start rejects
+an invalid schedule, timed-gate overlap, or missing finalized seed. Completion occurs only after the
+current finalized transition is recorded, preserving causal ownership of the last applied action.
+This does not yet prove live movement, coverage proportions, collision-free execution, file export,
+or loader acceptance.
+
+**Decision/next action:** Accept the pure schedule and lifecycle integration for a live episode 4101.
+After capture, audit phase/action diversity, orientation semantics, stop/reversal dynamics, reset,
+row counts, and schema-v4 validity before crediting any Section 7 collection item.
+
+**Artifacts:** `evidence/unreal/var_data_001_schedule_automation.log`; Unreal source and tests under
+`unreal/Plugins/MotionWorld`.

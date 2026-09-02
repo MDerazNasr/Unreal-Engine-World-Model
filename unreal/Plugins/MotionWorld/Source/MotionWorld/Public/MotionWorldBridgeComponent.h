@@ -8,6 +8,7 @@
 #include "MotionWorldReset.h"
 #include "MotionWorldSmoothWalkingDiagnostic.h"
 #include "MotionWorldStateSample.h"
+#include "MotionWorldVariedActionSchedule.h"
 #include "MotionWorldBridgeComponent.generated.h"
 
 class UMoverComponent;
@@ -147,6 +148,12 @@ public:
 		return ArenaManager
 			? ArenaManager->GetGateState()
 			: FMotionWorldTimedGateState();
+	}
+
+	UFUNCTION(BlueprintPure, Category = "MotionWorld|Collection")
+	FMotionWorldVariedActionScheduleSample GetLastVariedActionScheduleSample() const
+	{
+		return LastVariedActionScheduleSample;
 	}
 
 protected:
@@ -313,6 +320,16 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Arena", meta = (ClampMin = "0.1"))
 	double TimedGateTimeoutSeconds = 8.0;
 
+	/** Default-off deterministic coverage episode; mutually exclusive with the timed gate. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Collection")
+	bool bEnableVariedActionSchedule = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Collection", meta = (EditCondition = "bEnableVariedActionSchedule"))
+	FMotionWorldVariedActionScheduleConfig VariedActionScheduleConfig;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "MotionWorld|Collection")
+	FMotionWorldVariedActionScheduleSample LastVariedActionScheduleSample;
+
 private:
 	void ExportCurrentEpisode(const FMotionWorldEpisodeRecorderStats& CompletedStats);
 
@@ -332,6 +349,7 @@ private:
 	void CaptureSmoothWalkingContextIfNeeded(const FMoverSyncState& SyncState);
 	void ApplyArenaTerminalSafeStop(
 		EMotionWorldScenarioTerminationReason TerminationReason);
+	void ProcessVariedActionScheduleCompletion();
 
 	UPROPERTY(Transient)
 	TObjectPtr<UMoverComponent> MoverComponent;
@@ -366,6 +384,10 @@ private:
 	bool bArenaTerminalSafeStopIssued = false;
 	bool bCurrentEpisodeHasTimedGateScenario = false;
 	double CurrentEpisodeScenarioStartSimulationTimeSeconds = 0.0;
+	bool bCurrentEpisodeHasVariedActionSchedule = false;
+	double CurrentEpisodeActionScheduleStartSimulationTimeSeconds = 0.0;
+	EMotionWorldVariedActionPhase LastLoggedVariedActionPhase =
+		EMotionWorldVariedActionPhase::Invalid;
 	FString AnimationDiagnosticSessionId;
 	int64 ValidAnimationDiagnosticSampleCount = 0;
 	int64 InvalidAnimationDiagnosticSampleCount = 0;

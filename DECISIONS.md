@@ -970,3 +970,46 @@ transitions with no rejection or loss, and exported a complete 107-line schema-v
 transition protocol 3 and context protocol 2, records max speed 165 from `mode_override`, orientation
 intent `[1,0,0]`, desired facing 0 degrees, and no zero-intent fallback. The strict Python loader
 accepts the file. This proves the straight fixed-facing path only; it does not provide turn coverage.
+
+## D-030 - Absolute-time varied-action coverage with derived facing
+
+Status: closed-editor implementation accepted; live episode and coverage audit pending
+
+Decision: Add a default-off, deterministic world-frame coverage schedule with forward, stop,
+reverse, stop, right, left, diagonal, and final-stop phases. Evaluate it from absolute episode
+simulation time using half-open intervals. During nonzero motion, set orientation intent to the
+requested velocity direction; during stops, hold the preceding scheduled direction. Keep the timed
+gate and coverage schedule mutually exclusive. Automatically issue zero and atomically stop/export
+after 5.3 seconds. The eventual planner action remains two-dimensional desired velocity: facing is
+a declared deterministic preprocessing policy, not an extra learned action dimension.
+
+Why: Episode 4001 proves only straight fixed-facing behavior. Learning and recursive validation need
+acceleration, braking, reversal, lateral motion, turning, and zero-input memory. Absolute time avoids
+frame-count drift, while a derived-facing policy makes every causal input reproducible from the
+schedule instead of inheriting camera state.
+
+Alternatives considered: manual keyboard collection; random actions before deterministic coverage;
+fixed facing during all direction changes; a separate yaw action; frame-count phase boundaries;
+combining collection with the moving gate; continuing to record after the schedule ends.
+
+Evidence: The actual universal Game Animation Sample Editor build passed for arm64 and x86_64. The
+headless sample discovered 12 MotionWorld tests and all 12 passed. The new pure test covers every
+half-open boundary, exact velocity/facing outputs, completion, unit facing, invalid timing/speeds,
+negative time, and non-finite time.
+
+Main assumption: World-frame scripted coverage can exercise the relevant turn dynamics while the
+saved row's independently derived character-local action remains the learning/planning
+representation. Stops retain useful orientation memory by design.
+
+How it could fail: Animation/controller logic may react differently to abrupt facing changes; world
+directions may encounter level geometry unevenly; a phase boundary could disagree with automatic
+completion; a reset could start before a valid seed; the schedule could silently overlap a timed
+gate; one short episode cannot establish broad dataset coverage.
+
+How I tested it: Reviewer inspection found two issues before live use: an accidental integration
+edit in reset code was removed, and repeated floating-point boundary accumulation disagreed with the
+closed-form 4.8-second boundary. Production now derives every boundary from the same formula as total
+duration. The component rejects conflicting scenarios, invalid configs, and missing finalized seed
+state. Universal compilation and the complete 12-test headless suite pass.
+
+Related config/commit/experiment: `VAR-DATA-001`; default schedule; live episode 4101 pending.
