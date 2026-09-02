@@ -1352,3 +1352,22 @@ parameter-change row: 3/3 position, 3/3 velocity, 12/12 yaw, and 16/16 yaw-rate 
 off-change violations. Held-parameter recursive p95 position error is 18.504/28.875/28.914 cm at
 0.5/1.0/1.5 seconds. Accept 5104 into train; validation and test remain unused. Evidence:
 `evidence/unreal/res_collection_live_episode_5104.log`.
+
+### Training episode 5105 — accepted
+
+Episode 5105 uses the final frozen training schedule: 0.65-second motion phases, 0.45-second
+intermediate stops, a 0.30-second final stop, and 100/155/130/85 cm/s
+forward/reverse/lateral/diagonal-component speeds. Reset passed exactly on its first attempt. The
+4.467-second run recorded 159/159 schema-v5 transitions with no rejection, capacity loss, external
+event, or movement-mode change. It yields 159 no-history and 156 four-history examples, bringing the
+complete five-episode training split to 740 and 725 respectively. Raw SHA-256 is
+`d9e352128462909effb1b4ad45398a0db0a70aaeaef60f0ef874f09a063c2152`.
+
+The retrospective maximum position/velocity/yaw/yaw-rate errors are `4.405e-7 cm`,
+`6.135e-6 cm/s`, 0.031467 degrees, and 1.08507 deg/s. Causal maxima are 0.059764 cm,
+2.134424 cm/s, 6.977431 degrees, and 227.335427 deg/s. Every material error remains confined to a
+parameter-change row: 3/3 position, 3/3 velocity, 13/13 yaw, and 17/17 yaw-rate rows, with zero
+off-change violations. Held-parameter recursive p95 position error is 12.166/30.904/31.817 cm at
+0.5/1.0/1.5 seconds. Accept 5105 into train. The complete training split is now frozen; validation
+5201-5202 and test 5301-5302 remain unused. Evidence:
+`evidence/unreal/res_collection_live_episode_5105.log`.
