@@ -283,6 +283,12 @@ Branches: `feature/nominal-dynamics`, then `feature/data-pipeline`
 
 Do not train a residual unless nominal error is reproducible, systematic, and large enough in decision-relevant scenarios. If error is negligible, preserve the result and revise the research question instead of weakening the baseline.
 
+Current checkpoint (2026-09-02): the faithful one-step controller matches 118 non-collision rows to
+micro-numerical tolerance and shows a 15.03 cm/s error on the single collision row. This proves the
+free-space equation boundary but does **not** pass the residual-training gate: contact coverage,
+turn/stop/push coverage, unique episode identities, runtime effective-max-speed capture, recorded
+orientation intent, recursive horizons, and episode-level splits remain required.
+
 ### Suggested commits
 
 - `Add tested coordinate and normalization contracts`

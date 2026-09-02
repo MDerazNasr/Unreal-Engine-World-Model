@@ -873,3 +873,46 @@ Live acceptance addendum: one 119-transition schema-v3 episode passed the indepe
 full-context audit with zero rejected rows. Its episode ID reused `1902` instead of the intended
 unique `2701`, so it is interface evidence only and must not enter a split manifest under a duplicated
 episode identity. See `evidence/unreal/nom_schema_v3_live_episode_1902.log`.
+
+## D-028 - Keep known input preparation outside the learned residual
+
+Status: equation and retrospective one-step evidence accepted; runtime max-speed capture and
+orientation-input contract remain open
+
+Decision: Treat `SimpleWalkingMode` velocity preparation as part of the nominal baseline. Clamp the
+recorded velocity-input packet by an explicit effective max speed before calling the tested Smooth
+Walking transition. Never infer that limit silently inside the model or let the residual receive
+credit for correcting a known clamp. Keep desired facing explicit until automation makes it a
+deterministic recorded input.
+
+Why: `FCharacterDefaultInputs` records the 200 cm/s request, while `SimpleWalkingMode` can clamp it
+before `GenerateWalkMove`. An initial all-row evaluation matched transitions 0-9 nearly exactly but
+began systematic divergence at transition 10, exactly when the engine's intermediate velocity
+reached 165 cm/s. This was a missing known transformation, not evidence for learning.
+
+Alternatives considered: train the residual on the clamp error; cap actions at an inferred plateau
+without declaring it; weaken the nominal acceleration; record only the post-clamp target; ignore
+facing because the accepted run is straight.
+
+Evidence: With an explicitly supplied 165 cm/s limit, all 118 non-collision rows in the accepted
+schema-v3 episode have maximum one-step planar position error `4.68e-7 cm` and maximum planar
+velocity error `3.12e-6 cm/s`. The one recorded collision row has `0.421 cm` position error and
+`15.033 cm/s` velocity error, while the internal spring state still matches, correctly separating
+controller proposal from environmental execution. A dedicated norm-clamp module has rest, below-
+limit, vector-direction, zero-limit, shape, finite, and invalid-limit tests.
+
+Main assumption: The explicit 165 cm/s evaluation value is the effective shared setting for this
+run. Its behavior is strongly identified by the transition boundary, but schema v3 does not record
+the setting and therefore does not make it planner-available.
+
+How it could fail: Max speed may change with gait or shared settings; `MaxSpeedOverride` can replace
+the shared value; an orientation intent preserved from another input producer can affect facing;
+contact/ramp behavior remains outside the free-space transition; retrospective completed-step
+parameters may not be knowable for a future rollout.
+
+How I tested it: Ran the strict schema loader, evaluated all 119 rows from real previous state and
+hidden context, preserved an invalid first evaluation as a reviewer finding, required the max speed
+as a command-line argument, reran 174 Python tests, and generated CSV/JSON/PNG artifacts. Episode
+1902 remains quarantined from training because its ID was reused.
+
+Related config/commit/experiment: `NOM-001`; `artifacts/nominal/episode_1902/`.

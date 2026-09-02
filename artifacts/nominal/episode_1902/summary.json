@@ -1,0 +1,186 @@
+{
+  "episode_file": "episode_1902_20260902T095709Z_D4626AD19F4A.jsonl",
+  "episode_sha256": "65b6ba374d556cc0e69f729b65489cee6dc3e7dfa60d5e9a4b1c2128d2efe30a",
+  "evaluation": "retrospective_one_step",
+  "desired_facing_assumption": "hold_previous_authoritative_facing",
+  "parameter_source": "parameters_observed_for_completed_step",
+  "effective_max_speed_cm_s": 165.0,
+  "effective_max_speed_source": "required_explicit_evaluator_input",
+  "transition_count": 119,
+  "collision_step_count": 1,
+  "metrics": {
+    "position_error_cm": {
+      "mean": 0.0035374275795158425,
+      "median": 1.4260410807764856e-07,
+      "p95": 3.1529806392427413e-07,
+      "max": 0.4209347326281212
+    },
+    "planar_position_error_cm": {
+      "mean": 0.003537427579167897,
+      "median": 1.4260410807764856e-07,
+      "p95": 3.1529806392427413e-07,
+      "max": 0.42093473258671565
+    },
+    "velocity_error_cm_s": {
+      "mean": 0.12633119702243903,
+      "median": 0.0,
+      "p95": 2.786729422155076e-06,
+      "max": 15.033387935643361
+    },
+    "planar_velocity_error_cm_s": {
+      "mean": 0.12633119702243903,
+      "median": 0.0,
+      "p95": 2.786729422155076e-06,
+      "max": 15.033387935643361
+    },
+    "yaw_error_deg": {
+      "mean": 0.0,
+      "median": 0.0,
+      "p95": 0.0,
+      "max": 0.0
+    },
+    "angular_velocity_yaw_error_deg_s": {
+      "mean": 0.0,
+      "median": 0.0,
+      "p95": 0.0,
+      "max": 0.0
+    },
+    "spring_velocity_error_cm_s": {
+      "mean": 2.0596659708490627e-07,
+      "median": 0.0,
+      "p95": 2.1042111253421993e-06,
+      "max": 3.1151011228303105e-06
+    },
+    "spring_acceleration_error_cm_s2": {
+      "mean": 1.8452708020139808e-06,
+      "median": 0.0,
+      "p95": 1.2827085754452121e-05,
+      "max": 3.806557094776508e-05
+    },
+    "intermediate_velocity_error_cm_s": {
+      "mean": 3.25571593139666e-08,
+      "median": 0.0,
+      "p95": 1.12503712124123e-07,
+      "max": 1.087784767150879e-06
+    }
+  },
+  "non_collision_metrics": {
+    "position_error_cm": {
+      "mean": 1.622824937631946e-07,
+      "median": 1.4260410807764856e-07,
+      "p95": 3.1471251702441807e-07,
+      "max": 4.6711716095160227e-07
+    },
+    "planar_position_error_cm": {
+      "mean": 1.622824937631946e-07,
+      "median": 1.4260410807764856e-07,
+      "p95": 3.1471251702441807e-07,
+      "max": 4.6711716095160227e-07
+    },
+    "velocity_error_cm_s": {
+      "mean": 2.0771209223423364e-07,
+      "median": 0.0,
+      "p95": 2.141826696888665e-06,
+      "max": 3.115102586548346e-06
+    },
+    "planar_velocity_error_cm_s": {
+      "mean": 2.0771209223423364e-07,
+      "median": 0.0,
+      "p95": 2.141826696888665e-06,
+      "max": 3.115102586548346e-06
+    },
+    "yaw_error_deg": {
+      "mean": 0.0,
+      "median": 0.0,
+      "p95": 0.0,
+      "max": 0.0
+    },
+    "angular_velocity_yaw_error_deg_s": {
+      "mean": 0.0,
+      "median": 0.0,
+      "p95": 0.0,
+      "max": 0.0
+    },
+    "spring_velocity_error_cm_s": {
+      "mean": 2.0771207672121903e-07,
+      "median": 0.0,
+      "p95": 2.1418263029815357e-06,
+      "max": 3.1151011228303105e-06
+    },
+    "spring_acceleration_error_cm_s2": {
+      "mean": 1.8609086901666417e-06,
+      "median": 0.0,
+      "p95": 1.2880315210850304e-05,
+      "max": 3.806557094776508e-05
+    },
+    "intermediate_velocity_error_cm_s": {
+      "mean": 3.2833067443745975e-08,
+      "median": 0.0,
+      "p95": 1.1660153687031923e-07,
+      "max": 1.087784767150879e-06
+    }
+  },
+  "claim_boundary": [
+    "one-step evaluation re-seeds observable and internal state from every real transition",
+    "completed-step parameters are retrospective and are not automatically planner-available",
+    "schema v3 does not record orientation intent; this straight episode uses held facing",
+    "schema v3 does not record SimpleWalking effective max speed; evaluator input is explicit",
+    "episode 1902 is interface evidence and is quarantined from training due duplicate ID"
+  ],
+  "collision_metrics": {
+    "position_error_cm": {
+      "mean": 0.4209347326281212,
+      "median": 0.4209347326281212,
+      "p95": 0.4209347326281212,
+      "max": 0.4209347326281212
+    },
+    "planar_position_error_cm": {
+      "mean": 0.42093473258671565,
+      "median": 0.42093473258671565,
+      "p95": 0.42093473258671565,
+      "max": 0.42093473258671565
+    },
+    "velocity_error_cm_s": {
+      "mean": 15.033387935643361,
+      "median": 15.033387935643361,
+      "p95": 15.033387935643361,
+      "max": 15.033387935643361
+    },
+    "planar_velocity_error_cm_s": {
+      "mean": 15.033387935643361,
+      "median": 15.033387935643361,
+      "p95": 15.033387935643361,
+      "max": 15.033387935643361
+    },
+    "yaw_error_deg": {
+      "mean": 0.0,
+      "median": 0.0,
+      "p95": 0.0,
+      "max": 0.0
+    },
+    "angular_velocity_yaw_error_deg_s": {
+      "mean": 0.0,
+      "median": 0.0,
+      "p95": 0.0,
+      "max": 0.0
+    },
+    "spring_velocity_error_cm_s": {
+      "mean": 0.0,
+      "median": 0.0,
+      "p95": 0.0,
+      "max": 0.0
+    },
+    "spring_acceleration_error_cm_s2": {
+      "mean": 0.0,
+      "median": 0.0,
+      "p95": 0.0,
+      "max": 0.0
+    },
+    "intermediate_velocity_error_cm_s": {
+      "mean": 0.0,
+      "median": 0.0,
+      "p95": 0.0,
+      "max": 0.0
+    }
+  }
+}

@@ -812,3 +812,36 @@ episode/protocol schema, then port the nominal equations to accept explicit para
 The 162-line bounded raw excerpt is 137,200 bytes with SHA-256
 `2bbeab642a571b87b141b3bd6161ac73625fb4c6ccd5bab567a34ec1302517cf`; see
 `evidence/unreal/nom_smooth_walking_live_session_FF6768704542.log`.
+
+## NOM-001 faithful one-step Smooth Walking evaluation (2026-09-02)
+
+**Hypothesis:** A source-faithful port supplied with the real previous observable state, all five
+known spring fields, completed-step parameter snapshot, actual timestep, and known input preparation
+will reproduce non-contact Unreal steps, while a physical collision will create a decision-relevant
+finalized-state mismatch.
+
+**Configuration:** Accepted schema-v3 interface episode 1902; 119 transitions; retrospective
+one-step evaluation; explicit effective max speed 165 cm/s; desired facing held at previous facing
+because schema v3 does not record orientation intent; float64 Python equations using UE 5.8's
+`InvExpApprox`; episode SHA-256 `65b6ba37...d2efe30a`. This file is excluded from training because
+episode ID 1902 was reused.
+
+**Reviewer finding:** The first evaluation used the recorded 200 cm/s packet directly. Rows 0-9
+matched, then error began exactly when the engine's intermediate velocity reached 165 cm/s. Source
+re-audit confirmed `SimpleWalkingMode` clamps velocity input by `MaxSpeedOverride` or shared
+`UCommonLegacyMovementSettings::MaxSpeed` before Smooth Walking. That known transform was added as
+an explicit tested module; the evaluator refuses to choose the missing setting implicitly.
+
+**Result:** All 174 Python tests pass. Across 118 non-collision rows, maximum planar one-step
+position error is `4.68e-7 cm` and maximum planar velocity error is `3.12e-6 cm/s`. At the one gate-
+collision row, position error is `0.420935 cm` and velocity error is `15.033388 cm/s`. Spring
+velocity, spring acceleration, and intermediate velocity still match at that row because those
+fields describe the generated controller proposal, while authoritative movement records collision-
+resolved execution. Yaw/angular error is zero in this straight episode.
+
+**Interpretation:** Accept the translational equation port and the proposal-versus-execution
+boundary for this narrow run. Meaningful residual error exists at contact, but a single terminal
+collision is not enough data to train or claim systematic generalization. Before varied collection,
+capture effective max speed in the versioned context and eliminate the unrecorded orientation
+intent. The plot, row metrics, and machine-readable summary are in
+`artifacts/nominal/episode_1902/`.

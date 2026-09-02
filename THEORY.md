@@ -137,6 +137,19 @@ integration: free-space Walking Mode applies the newly proposed linear velocity 
 finalized execution. The faithful port must also reproduce Unreal's rational `InvExpApprox` spring
 kernel rather than silently substituting the mathematical exponential.
 
+There is also a known transformation between the recorded velocity request and Smooth Walking's
+actual target. `SimpleWalkingMode` clamps a velocity input to its effective maximum movement speed:
+
+`v_desired = clamp_norm(v_recorded, max_speed_effective)`
+
+`max_speed_effective` comes from a non-negative `MaxSpeedOverride`; otherwise it comes from the
+active shared `UCommonLegacyMovementSettings`. This value is part of the known nominal context, not
+a residual. The first all-row evaluation exposed this boundary cleanly: equations matched until the
+intermediate target reached 165 cm/s, then diverged if the recorded 200 cm/s request was used
+directly. Supplying an explicit 165 cm/s limit restored non-contact one-step velocity agreement to a
+maximum error of about `3.12e-6 cm/s`. The current schema does not yet record that limit, so 165 is
+labelled evaluator input rather than deployable evidence.
+
 The nominal internal state is now version-bounded and typed as:
 
 `z = [spring_velocity_world(3), spring_acceleration_world(3),`
@@ -156,6 +169,7 @@ Questions to master:
 - What does directional acceleration change during a turn?
 - Why can a velocity spring require intermediate state?
 - Why must an external push update both visible and spring state?
+- Why is the recorded request not necessarily Smooth Walking's desired velocity?
 - What error appears if 100 ms is evaluated as one large step?
 
 ## 5. Residual dynamics
