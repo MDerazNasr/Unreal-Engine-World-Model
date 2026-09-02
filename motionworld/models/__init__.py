@@ -28,6 +28,13 @@ from motionworld.models.residual_mlp import (
     make_four_history_residual_mlp,
     make_no_history_residual_mlp,
 )
+from motionworld.models.residual_normalization import (
+    DEFAULT_SCALE_FLOOR,
+    RESIDUAL_NORMALIZATION_SCHEMA_VERSION,
+    ResidualNormalization,
+    feature_names_for_history,
+    fit_residual_normalization,
+)
 
 __all__ = [
     "ResidualCorrection",
@@ -50,4 +57,9 @@ __all__ = [
     "ResidualMLP",
     "make_four_history_residual_mlp",
     "make_no_history_residual_mlp",
+    "DEFAULT_SCALE_FLOOR",
+    "RESIDUAL_NORMALIZATION_SCHEMA_VERSION",
+    "ResidualNormalization",
+    "feature_names_for_history",
+    "fit_residual_normalization",
 ]

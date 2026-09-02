@@ -317,6 +317,20 @@ Weighted recursive objective:
 
 The state components require explicit scales so centimeters do not dominate normalized facing or angular velocity.
 
+For MotionWorld, input features use training-set mean and population standard deviation:
+
+`x_normalized = (x - mean_train) / scale_train`.
+
+Residual targets deliberately use scale only:
+
+`delta_normalized = delta / scale_train`.
+
+We do **not** subtract the target mean. Otherwise a zero network output would decode to the learned
+mean residual instead of physical zero, breaking the exact guarantee that disabling learning returns
+the nominal model. Constant input or target dimensions receive unit scale and are recorded explicitly.
+The fitter requires the observed episode IDs to equal the declared training IDs, so accidentally
+passing validation examples fails before any statistic is computed.
+
 ## 8. Cross-Entropy Method
 
 For each planning update:

@@ -613,7 +613,8 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [ ] Reviewer checks temporal alignment and normalization leakage.
 - [ ] Candidate explains why adjacent-transition splitting is invalid.
 - [x] Dataset-audit regeneration command is documented without embedding a private absolute path.
-- [ ] Commit schema, validators, manifests, and coverage report without raw licensed/private data.
+- [x] Commit schema, validators, manifests, and coverage report without raw licensed/private data
+  as `311ea7b`.
 
 ## 8. Residual model
 
@@ -645,7 +646,8 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
   event labels.
 - [ ] Mask or reject incomplete horizons consistently.
 - [x] Test the 28-value step and 112-value history order against a frozen schema.
-- [ ] Test normalization/denormalization round trip.
+- [x] Test feature and target normalization/denormalization round trips and exact zero-target
+  preservation.
 
 ### 8.3 Model implementation
 

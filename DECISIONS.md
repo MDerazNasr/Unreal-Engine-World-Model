@@ -1412,3 +1412,34 @@ action mismatch. The real audit reloaded all seven accepted files, reproduced 74
 Related implementation/evidence: `motionworld/data/residual_manifest.py`,
 `motionworld/data/residual_coverage.py`, `scripts/audit_residual_dataset.py`, and
 `artifacts/residual/dataset_audit/`.
+
+## D-040 - Center inputs but only scale residual targets
+
+Status: implementation and round-trip contract accepted; real train-only statistics pending
+
+Decision: Standardize features with training-only mean and population standard deviation. Normalize
+each residual target component by its training-only standard deviation without subtracting a target
+mean. Give constant dimensions unit scale and record their masks.
+
+Why: Feature centering improves conditioning across mixed physical units. Target scale equalizes the
+six losses, but target centering would make normalized output zero decode to a nonzero correction and
+destroy the exact nominal fallback invariant.
+
+Alternatives considered: no normalization; center both inputs and targets; fixed hand-chosen physical
+scales; include validation when estimating more stable statistics.
+
+Evidence: Ten tests cover feature/target round trips, exact zero preservation, declared training-ID
+enforcement, constant-dimension handling, schema serialization, and both supported history widths.
+
+Main assumption: Population standard deviation from five short training episodes is adequate for a
+bounded first model. Highly sparse residual components may still make standard deviation sensitive to
+the few regime-change rows.
+
+How it could fail: A very small nonconstant scale can amplify numerical noise; a validation schedule
+can sit outside the training feature range; scale-only targets leave any residual bias for the output
+bias to learn.
+
+How I tested it: Exact arrays survive normalize/denormalize round trips within `1e-12`; normalized
+zero targets decode bit-exactly to zero; a tuple containing an undeclared episode ID fails closed.
+
+Related implementation: `motionworld/models/residual_normalization.py`.
