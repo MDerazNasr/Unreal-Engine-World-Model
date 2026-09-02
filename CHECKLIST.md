@@ -721,7 +721,8 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [x] Expand knots to 100 ms planning/action steps; dynamics substeps are a separate contract.
 - [x] Clamp/project actions into the legal planar speed ball, including a literal floating-point
   boundary guarantee.
-- [ ] Batch rollout all candidates.
+- [x] Batch rollout all candidates, with independent cloned hidden state per candidate and three
+  nominal/residual dynamics substeps per 100 ms planning step.
 - [x] Select lowest-cost elites.
 - [x] Update mean and population variance.
 - [x] Apply variance floor before and during optimization.
@@ -755,31 +756,33 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [x] Include capsule/obstacle geometry and safety margin explicitly.
 - [x] Test each term's sign and units.
 - [x] Test zero-cost or known-cost hand cases.
-- [ ] Plot each component for representative trajectories.
-- [ ] Record initial weights as hypotheses, not truths.
-- [ ] Never tune cost weights on final test seeds.
+- [x] Plot each component for representative trajectories.
+- [x] Record initial weights as provisional dimensional hypotheses, not truths.
+- [x] Keep final test episodes 5301/5302 sealed while freezing the offline pilot weights.
 
 ### 9.5 Fair nominal/residual MPC
 
 - [ ] Reactive controller exists only as visual context.
-- [ ] Nominal and residual MPC use identical initial state.
-- [ ] Use identical candidate action tensor/random noise.
-- [ ] Use identical horizon, knots, candidates, elites, and iterations.
-- [ ] Use identical cost implementation and weights.
-- [ ] Use identical obstacle information and propagation.
-- [ ] Use identical action constraints and compute policy.
-- [ ] Only character transition model differs.
-- [ ] Assert fairness-critical config equality in code/tests.
+- [x] Nominal and residual MPC use identical initial state.
+- [x] Use identical random noise and identical physical candidates on iteration one; record that
+  later adaptive candidate batches diverge after model-specific elite selection.
+- [x] Use identical horizon, knots, candidate count, elite count, and iterations.
+- [x] Use identical cost implementation and weights.
+- [x] Use identical obstacle information and propagation.
+- [x] Use identical action constraints and compute policy.
+- [x] Only character transition model differs.
+- [x] Assert fairness-critical config equality in code/tests.
 
 ### 9.6 Planner gate
 
 - [x] Deterministic CEM tests pass.
-- [ ] Cost component tests pass.
-- [ ] Nominal and residual controllers consume the same candidate tensor.
+- [x] Cost component tests pass.
+- [x] Nominal and residual controllers consume the same first-iteration candidate tensor.
 - [ ] Both remain stable in obstacle-free control.
-- [ ] Reviewer searches for exploitation through bounds, costs, and model error.
+- [x] Reviewer searches for exploitation through bounds, costs, and model error; OFFPLAN-001 finds
+  severe cross-model disagreement and therefore blocks any control-success claim before Unreal.
 - [ ] Candidate performs blank-page CEM explanation.
-- [ ] Commit CEM, costs, fairness assertions, plots, and docs.
+- [x] Commit CEM, costs, fairness assertions, and the reproducible OFFPLAN-001 plot/artifact.
 
 ## 10. Live Unreal MPC integration
 

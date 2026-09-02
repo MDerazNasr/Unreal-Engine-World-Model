@@ -1,0 +1,175 @@
+{
+  "cem_config": {
+    "action_dim": 2,
+    "include_mean_candidate": true,
+    "initial_std_cm_s": 110.0,
+    "max_action_speed_cm_s": 165.0,
+    "minimum_std_cm_s": 5.0,
+    "momentum": 0.1,
+    "num_candidates": 256,
+    "num_elites": 32,
+    "num_iterations": 3,
+    "num_knots": 5,
+    "num_plan_steps": 15
+  },
+  "checkpoint_sha256": "d979549b30bd01b3a304697074c295caf6c7fa16a4a8e25a08c15eec1da7a4f6",
+  "claim_boundary": "model-based counterfactual integration evidence; not Unreal control evidence",
+  "common_noise_sha256": "20bd9b1287bf7423163c9042920c341720d2833e610ac5ba84553ec40dbdcaf6",
+  "configuration_status": "frozen_after_exploratory_offline_pilot",
+  "dataset_manifest_sha256": "4c5d921194d339ba0617c930ce1ae41497ac5e04b14280c9ea8610bc3cc4d770",
+  "fairness_verified": true,
+  "first_iteration_candidates_identical": true,
+  "geometry": {
+    "agent_radius_cm": 42.0,
+    "gate_amplitude_cm": 200.0,
+    "gate_half_extent_x_cm": 30.0,
+    "gate_half_extent_y_cm": 150.0,
+    "gate_period_s": 4.0,
+    "gate_phase_offset_rad": 0.0,
+    "gate_x_cm": 0.0,
+    "gate_y_origin_cm": 0.0,
+    "safety_margin_cm": 20.0
+  },
+  "geometry_provenance": "Unreal gate defaults; agent radius is a provisional hypothesis pending live capture",
+  "git_commit": "5d02bbcddd93f8fe9f5c044fe4976984080522cd",
+  "horizon_s": 1.5,
+  "later_candidate_batches_identical": false,
+  "later_candidate_batches_may_diverge_by_design": true,
+  "nominal": {
+    "best_cost_as_ranked": 106.47591067061745,
+    "best_cost_reevaluated": {
+      "action_change_squared_cm2_s2": 9096.883893603492,
+      "action_second_difference_squared_cm2_s2": 18193.767787206983,
+      "clearance_deficit_squared_cm2": 0.0,
+      "collision_indicator": 0.0,
+      "terminal_goal_distance_cm": 102.83715711317606,
+      "total": 106.47591067061745
+    },
+    "evaluated_action_sha256": [
+      "6dd143328c884f45d0cc92f979d8a260463dc1a9b1e2f25f9a1ddd96c90c03cc",
+      "19727cbd7a99874bf7e964aa0d16fb1a034a35e615355a99e76f14da0204a78e",
+      "4a3b2f408d067b8d1ee0ef8077e08c7fa5b793e148166c3e6b60d2f31c023f14"
+    ],
+    "first_action_local_cm_s": [
+      40.191712579378816,
+      -139.87240341458457
+    ],
+    "iteration_best_cost": [
+      106.47591067061745,
+      106.8042768570643,
+      114.76386580039959
+    ],
+    "predicted_terminal_position_world_cm": [
+      31.23663467191618,
+      -76.46620476966629
+    ],
+    "selected_cost_reproduction_error": 0.0
+  },
+  "query": {
+    "counterfactual_start_world_cm": [
+      -100.0,
+      0.0
+    ],
+    "goal_world_cm": [
+      100.0,
+      0.0
+    ],
+    "initial_mean_action_local_cm_s": [
+      130.0,
+      0.0
+    ],
+    "initial_scenario_time_s": 0.0,
+    "previous_action_local_cm_s": [
+      0.0,
+      0.0
+    ],
+    "previous_previous_action_local_cm_s": [
+      0.0,
+      0.0
+    ]
+  },
+  "residual": {
+    "best_cost_as_ranked": 86.08109497286577,
+    "best_cost_reevaluated": {
+      "action_change_squared_cm2_s2": 7202.131002908371,
+      "action_second_difference_squared_cm2_s2": 14404.262005816741,
+      "clearance_deficit_squared_cm2": 13.645644436558927,
+      "collision_indicator": 0.0,
+      "terminal_goal_distance_cm": 82.51796911739544,
+      "total": 86.08110374038672
+    },
+    "evaluated_action_sha256": [
+      "6dd143328c884f45d0cc92f979d8a260463dc1a9b1e2f25f9a1ddd96c90c03cc",
+      "8c0d97b7e4c5b2091b802dde9f435b5ce46ce8f30c5ca5d96b8d0858b3cf188b",
+      "1a196025a5fb3467c4a5dd83f8c58e4e69b7eedd03e863fe60e53811d536ec53"
+    ],
+    "first_action_local_cm_s": [
+      23.419774979886355,
+      -102.09038201786595
+    ],
+    "iteration_best_cost": [
+      125.30745935411916,
+      86.08109497286577,
+      110.38978636678824
+    ],
+    "predicted_terminal_position_world_cm": [
+      38.8785749735745,
+      -55.43813335600752
+    ],
+    "selected_cost_reproduction_error": 8.767520952801533e-06
+  },
+  "rollout_config": {
+    "dynamics_substeps_per_plan_step": 3,
+    "plan_step_s": 0.1
+  },
+  "schema_name": "motionworld_offline_paired_planner_result",
+  "schema_version": 1,
+  "seed": 20260903,
+  "selected_plan_cross_evaluation": {
+    "nominal_plan_nominal_model": {
+      "action_change_squared_cm2_s2": 9096.883893603492,
+      "action_second_difference_squared_cm2_s2": 18193.767787206983,
+      "clearance_deficit_squared_cm2": 0.0,
+      "collision_indicator": 0.0,
+      "terminal_goal_distance_cm": 102.83715711317606,
+      "total": 106.47591067061745
+    },
+    "nominal_plan_residual_model": {
+      "action_change_squared_cm2_s2": 9096.883893603492,
+      "action_second_difference_squared_cm2_s2": 18193.767787206983,
+      "clearance_deficit_squared_cm2": 276.6772532120097,
+      "collision_indicator": 1.0,
+      "terminal_goal_distance_cm": 53.23863219296408,
+      "total": 10070.711248411008
+    },
+    "residual_plan_nominal_model": {
+      "action_change_squared_cm2_s2": 7202.131002908371,
+      "action_second_difference_squared_cm2_s2": 14404.262005816741,
+      "clearance_deficit_squared_cm2": 0.0,
+      "collision_indicator": 0.0,
+      "terminal_goal_distance_cm": 213.47905760442515,
+      "total": 216.3599100055885
+    },
+    "residual_plan_residual_model": {
+      "action_change_squared_cm2_s2": 7202.131002908371,
+      "action_second_difference_squared_cm2_s2": 14404.262005816741,
+      "clearance_deficit_squared_cm2": 13.645644436558927,
+      "collision_indicator": 0.0,
+      "terminal_goal_distance_cm": 82.51796911739544,
+      "total": 86.08110374038672
+    }
+  },
+  "source_raw_sha256": "34c3df8e3dbe893e7d89fdba001b8afd244af93dad2c2b3758b965feb5934ba1",
+  "source_transition_index": 0,
+  "source_validation_episode_id": 5202,
+  "test_files_opened": 0,
+  "timing_policy": "wall time printed only; excluded from deterministic artifact and not RUNTIME-001",
+  "weights": {
+    "action_change_per_cm2_s2": 0.0002,
+    "action_second_difference_per_cm2_s2": 0.0001,
+    "clearance_per_cm2": 0.05,
+    "collision": 10000.0,
+    "terminal_goal_per_cm": 1.0
+  },
+  "weights_provenance": "provisional dimensional hypotheses; not tuned on final test seeds"
+}

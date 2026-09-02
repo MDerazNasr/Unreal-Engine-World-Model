@@ -386,3 +386,40 @@ the angular gain is much larger, and planner rankings depend on the task cost an
 The next causal test holds candidates, cost, seeds, and compute fixed between nominal and residual
 MPC, then asks whether changed predictions cause changed actions and better Unreal outcomes. If they
 do not, the correct conclusion is better prediction without demonstrated control benefit.
+
+## 9. Day 4 planner defense
+
+### Did both controllers evaluate the same candidates?
+
+They evaluate the exact same 256 physical action sequences in the first CEM iteration, and the
+artifact records their common hash. After scoring them, each model can choose different elites, so
+its next Gaussian distribution and later physical candidates legitimately differ. The controllers
+still have the same seed, noise schedule, state, horizon, knots, candidate and elite counts, bounds,
+obstacle trajectory, cost, and iteration budget. Forcing identical later candidates would stop CEM
+from adapting to the different model rankings.
+
+### Why does the residual planner's lower predicted cost not prove success?
+
+Because a planner minimizes its model's cost, not measured Unreal cost. OFFPLAN-001 exposes severe
+disagreement: the residual model predicts a collision for the nominal-selected plan, while the
+nominal model predicts poor progress for the residual-selected plan. This proves the residual affects
+decisions, but one model may be wrong and CEM may exploit its error. I need same-seed live Unreal
+rollouts to determine actual collision, clearance, and goal progress before claiming better control.
+
+### Why is a roughly ten-second planner useful if MPC has a 100 ms deadline?
+
+It is a correctness-first offline reference implementation. It proves the tensor contracts,
+recursive model integration, common-random-number comparison, cost decomposition, and deterministic
+artifact generation. It fails the runtime gate by about two orders of magnitude, so I would not
+present it as deployable. The next engineering step is profiling and then reducing Python overhead,
+vectorizing or compiling model rollout, using inference mode, and testing smaller budgets against
+solution quality. I must report median and p95 latency for one controller on the target hardware;
+the current whole-pair wall time is not that benchmark.
+
+### What does the cross-evaluation matrix tell you?
+
+Its diagonal entries show how each selected plan looks to the model that optimized it. Its
+off-diagonal entries show whether the other model agrees. Large disagreement is a risk signal, not
+ground truth. It motivates live validation, error inspection near the selected paths, and possibly
+an uncertainty or model-disagreement penalty. It cannot tell me by itself which model is physically
+correct.

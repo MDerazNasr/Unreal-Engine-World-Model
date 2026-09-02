@@ -1536,7 +1536,8 @@ Related artifacts: `artifacts/residual/training_001/` and
 
 ## D-043 - Use bounded five-knot CEM with reusable common random numbers
 
-Status: core optimizer and synthetic oracle accepted; dynamics/cost integration pending
+Status: core optimizer, synthetic oracle, and offline nominal/residual integration accepted;
+live-control and runtime gates pending
 
 Decision: At each 10 Hz planning update, represent the 1.5-second action plan with five planar
 velocity knots expanded piecewise-constantly across 15 planning steps, with three internal dynamics
@@ -1578,7 +1579,8 @@ Related implementation/evidence: `motionworld/planning/cem.py`, `configs/cem_pla
 
 ## D-044 - Keep timed-gate geometry and every planning-cost term explicit
 
-Status: independent cost kernels accepted; provisional weights and integrated plot pending
+Status: independent cost kernels and integrated plot accepted; geometry/weights remain provisional
+until live verification
 
 Decision: Rank trajectories with five separately returned quantities: terminal Euclidean goal
 distance, any swept gate collision, mean squared clearance deficit, mean squared action first
@@ -1616,3 +1618,48 @@ was corrected without weakening the collision implementation.
 
 Related implementation: `motionworld/planning/cost.py` and
 `tests/unit/test_planning_cost.py` (`8c22ae9`).
+
+## D-045 - Treat offline paired planning as an integration and model-risk test
+
+Status: accepted as OFFPLAN-001; explicitly not accepted as Unreal control evidence
+
+Decision: Integrate the frozen no-history checkpoint and faithful nominal transition into the same
+batched CEM/cost pipeline using one accepted validation snapshot, common first-iteration actions,
+and the same compute configuration. Cross-evaluate each selected action sequence under both models.
+Do not call the lower within-model cost a controller win; require execution in Unreal before making
+that claim.
+
+Why: A planner optimizes what its model predicts, not what the real system will necessarily do.
+Cross-evaluation makes disagreement visible: if a plan is safe only under the model that selected
+it, that may be real learned information or model exploitation. Unreal execution is the adjudicator.
+
+Alternatives considered: compare only each controller's reported best cost; force identical
+physical candidates at every adaptive CEM iteration; open final test episodes now; describe the
+residual plan's lower predicted cost as improved control.
+
+Evidence: Starting from validation episode 5202 transition 0 relocated to `[-100, 0]` cm, nominal
+and residual receive the same 256 first-iteration candidates (identical SHA-256) and select first
+actions `[40.192, -139.872]` and `[23.420, -102.090]` cm/s. Their own predicted costs are 106.476
+and 86.081, both collision-free. Cross-evaluation is sharply inconsistent: the nominal-selected
+plan is predicted to collide by the residual model (cost 10070.711), while the residual-selected
+plan has cost 216.360 under the nominal model. This is evidence that the model changes planner
+rankings, not evidence that either prediction is physically right. Test files opened remains zero.
+
+Main assumption: The counterfactual relocation is valid because absolute position is excluded from
+the residual input and the motion equations are translation invariant; gate geometry, capsule
+radius, and cost weights are still provisional hypotheses.
+
+How it could fail: The residual was trained only on free-space scripted data and can extrapolate
+badly under candidate actions. CEM can exploit those errors. The assumed 42 cm capsule radius may
+not match the live pawn. The pure Python paired call takes about 10 seconds, far above the 100 ms
+deadline. Neither offline model is ground truth.
+
+How I tested it: Fifty-eight focused planning tests and 350 total tests pass with Ruff. A clean
+rerun byte-matches the JSON, CSV, PNG, README, and artifact hashes. The residual batch-versus-single
+inference cost differs by only `8.77e-6`, which is recorded rather than mistaken for nondeterminism.
+The plot and cross-model cost matrix were visually reviewed. Final episodes 5301/5302 were not
+opened.
+
+Related implementation/evidence: `motionworld/planning/planner_rollout.py`,
+`motionworld/planning/mpc.py`, `scripts/run_offline_paired_planner.py`,
+`configs/offline_planner.yaml`, and `artifacts/planning/offplan_001/`.

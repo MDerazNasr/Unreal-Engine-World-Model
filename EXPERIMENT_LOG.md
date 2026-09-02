@@ -61,6 +61,7 @@ Artifacts and reproduction command:
 | RES-001 | Does residual learning improve held-out recursive prediction over nominal? | Day 3 | Completed: no-history gate passed |
 | RES-002 | Does four-step history improve post-perturbation prediction over no history? | Day 3 | Completed: bounded negative result |
 | CEM-001 | Does fixed-seed CEM recover known optima in toy costs deterministically? | Day 4 | Completed: core optimizer accepted |
+| OFFPLAN-001 | Does the frozen residual change fair CEM rankings, and what model-risk does that reveal? | Day 4 | Completed: offline integration accepted; live claim blocked |
 | CTRL-001 | Does residual MPC improve the paired timed-gate outcome over nominal MPC? | Day 5 | Planned |
 | CTRL-002 | Does history improve paired post-push recovery? | Day 5 | Planned |
 | OOD-001 | Where does performance degrade under held-out movement parameters? | Day 5 | Planned |
@@ -1574,3 +1575,41 @@ Limitations: The swept test linearly interpolates relative motion between analyt
 positions; continuous sinusoidal curvature is not exact inside the interval. Actual sample capsule
 geometry and provisional weights must be frozen before integrated controller evidence. No claim
 about CEM task success is made. Implementation: `motionworld/planning/cost.py`; commit `8c22ae9`.
+
+## OFFPLAN-001 — paired offline nominal/residual planner integration
+
+Question: With every fairness-critical input held fixed, does the frozen residual model change CEM
+candidate rankings and chosen actions, and does cross-evaluation expose model-risk before live use?
+
+Configuration: Accepted validation episode 5202 transition 0 supplies the complete observable,
+nominal hidden state, parameters, and effective 165 cm/s bound. Only world X/Y is counterfactually
+relocated to `[-100, 0]` cm; the goal is `[100, 0]` cm. The analytic gate uses the Unreal defaults
+X=0 cm, Y amplitude=200 cm, period=4 s, half extents 30x150 cm, plus a provisional 42 cm agent
+radius and 20 cm safety margin. CEM uses seed 20260903, 256 candidates, 32 elites, three iterations,
+five knots, 15 planning steps, and three dynamics substeps per step. Weights were frozen after one
+exploratory pilot and before opening final test episodes. They are provisional dimensional
+hypotheses, not learned truths.
+
+Result: Integration and fairness gate passed. Both controllers consume byte-identical physical
+candidates in iteration one, the shared noise hash is
+`20bd9b1287bf7423163c9042920c341720d2833e610ac5ba84553ec40dbdcaf6`, and later batches diverge
+only after model-specific elite updates. Nominal chooses `[40.192, -139.872]` cm/s with predicted
+cost 106.476; residual chooses `[23.420, -102.090]` cm/s with predicted cost 86.081. Both models
+classify their own selected path as collision-free.
+
+Reviewer finding: The result is not a control win. Under the residual model, the nominal plan is a
+collision with cost 10070.711. Under the nominal model, the residual plan has cost 216.360. This
+large cross-model disagreement means CEM is acting on decision-relevant model differences, but it
+also creates a serious model-exploitation risk. Only same-seed Unreal execution can determine which
+prediction is closer to reality.
+
+Reproducibility/runtime: Fifty-eight focused tests, 350 total tests, and Ruff pass. A second clean
+run byte-matches every artifact file. The correctness-first Python paired call takes approximately
+10 seconds, so the 100 ms online deadline currently fails by roughly two orders of magnitude. This
+measurement is invocation-level diagnostic timing, not the formal RUNTIME-001 latency benchmark.
+The float32 residual's batch-256 versus batch-1 re-evaluation differs by `8.77e-6` cost units and is
+recorded within an explicit tolerance. Test files opened: zero.
+
+Artifacts: `artifacts/planning/offplan_001/{summary.json,cross_evaluated_paths.csv,
+offline_paired_planner.png,README.md,artifact_hashes.json}`. The four-panel plot was visually
+checked. Commit provenance: `5d02bbc`.

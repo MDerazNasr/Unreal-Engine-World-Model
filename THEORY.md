@@ -1005,7 +1005,56 @@ This is a coverage generator, not a claim that the final model has adequate data
 must still prove every phase occurred, the reset and export completed, the strict loader accepted all
 rows, and the realized distributions actually contain braking, reversal, turning, and stopping.
 
-### Controlled disturbance: velocity kick versus physical impulse
+## 24. Fair CEM comparison and cross-model evaluation
+
+At one MPC update, CEM samples complete candidate action sequences. Here the tensor has shape
+
+`[256 candidates, 15 planning steps, 2 local velocity components]`.
+
+Five sampled knots are expanded piecewise-constantly across the 15 steps. Each 100 ms planning
+step contains three nominal/residual dynamics updates of about 33.3 ms. This distinction matters:
+15 is the number of decisions scored along the horizon, while 45 is the number of transition-model
+applications used to predict one candidate.
+
+For a fair first comparison, nominal and residual planning receive the same initial state, common
+standard-normal noise `epsilon`, action mean `mu`, and standard deviation `sigma`:
+
+`a_i = project(mu + sigma * epsilon_i)`.
+
+They therefore evaluate the same physical candidates in the first iteration. Each model assigns
+different costs, selects different elites, and updates its distribution as
+
+`mu_new = alpha * mu_old + (1-alpha) * mean(elites)`
+
+`var_new = alpha * var_old + (1-alpha) * population_variance(elites)`.
+
+Consequently, later candidate tensors should usually differ. Forcing them to remain identical would
+prevent CEM from adapting to each model's predictions. Fairness means identical rules, resources,
+random numbers, initial candidates, and costs—not identical learned search trajectories after the
+models produce different rankings.
+
+Cross-model evaluation then scores both selected plans under both transition models:
+
+| Selected action sequence | Nominal prediction | Residual prediction |
+|---|---:|---:|
+| Nominal plan | 106.476 | 10070.711, collision |
+| Residual plan | 216.360 | 86.081 |
+
+The diagonal cells answer, “How good does each plan look to the model that selected it?” The
+off-diagonal cells ask, “Does the other model agree?” OFFPLAN-001 shows strong disagreement. This
+proves the learned residual is decision-relevant because it changes rankings and actions. It does
+not prove the residual plan is better: either model may be wrong, and an optimizer actively searches
+for places where model errors look advantageous. That is called model exploitation. The remedy is
+not to choose the nicer predicted number; it is to execute paired trials in Unreal, inspect failure
+cases, and add uncertainty or conservative penalties if exploitation appears.
+
+One selected residual trajectory costs `86.08109497` when evaluated inside a batch of 256 and
+`86.08110374` when re-evaluated alone. The `8.77e-6` difference comes from float32 neural-network
+arithmetic using different batch shapes. Floating-point addition is not perfectly associative, so
+tiny changes do not imply stochasticity. The implementation records the reproduction error and
+uses a declared small tolerance instead of demanding misleading bitwise equality across shapes.
+
+## 25. Controlled disturbance: velocity kick versus physical impulse
 
 The controlled push uses Mover's public additive-velocity effect. If the synchronized velocity just
 before the event is `v_t` and the requested kick is `Delta v`, the API requests:
