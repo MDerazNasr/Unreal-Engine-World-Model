@@ -1371,3 +1371,21 @@ off-change violations. Held-parameter recursive p95 position error is 12.166/30.
 0.5/1.0/1.5 seconds. Accept 5105 into train. The complete training split is now frozen; validation
 5201-5202 and test 5301-5302 remain unused. Evidence:
 `evidence/unreal/res_collection_live_episode_5105.log`.
+
+### Validation episode 5201 — accepted
+
+The correct validation run uses its frozen 0.50-second motion phases, 0.30-second intermediate
+stops, 0.45-second final stop, and 135/105/80/95 cm/s forward/reverse/lateral/diagonal-component
+speeds. This distinguishes it from the earlier technically valid but quarantined 5201 file, whose
+80/130/70/55 schedule belonged to training episode 5102. The new run reset exactly on its first
+attempt and recorded 117/117 schema-v5 transitions without rejection, capacity loss, external event,
+or movement-mode change. It yields 117 no-history and 114 four-history validation examples. Raw
+SHA-256 is `7ef1cc4756e2e49a0f94a15b61fc553e4f595dffebad85dd5ca86855d22336aa`.
+
+Retrospective maximum position/velocity/yaw/yaw-rate errors are `3.086e-7 cm`, `7.556e-6 cm/s`,
+0.071295 degrees, and 1.48532 deg/s. Causal maxima are 0.097029 cm, 3.032150 cm/s, 5.739069
+degrees, and 212.558112 deg/s. Every material error is confined to a parameter-change row: 3/3
+position, 3/3 velocity, 13/13 yaw, and 17/17 yaw-rate rows, with zero off-change violations.
+Held-parameter recursive p95 position error is 16.836/23.585/17.724 cm at 0.5/1.0/1.5 seconds.
+Accept this new artifact into validation only; do not train on it. Evidence:
+`evidence/unreal/res_collection_live_validation_5201.log`.
