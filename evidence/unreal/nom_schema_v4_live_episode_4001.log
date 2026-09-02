@@ -1,0 +1,35 @@
+# MotionWorld live schema-v4 episode 4001 acceptance
+# Captured: 2026-09-02 Europe/Copenhagen
+# Raw episode: GameAnimationSample/Saved/MotionWorld/Episodes/episode_4001_20260902T120707Z_3EE0903A8546.jsonl
+# Episode SHA-256: 1f36a132e55954b9ea541b80e865ec85c8249f6c805334b7a90aca9ea76f04f6
+
+Runtime chronology
+- Bridge automation enabled; local request `(200,0,0)` cm/s; max bridge request 600 cm/s.
+- Reset episode 4001 queued after warmup and verified on attempt one.
+- Finalized reset errors: position 0 cm, facing 0 deg, linear speed 0 cm/s, angular speed 0 deg/s.
+- Recorder: observed 106, attempted 105, recorded 105, rejected 0, rejected seeds 0,
+  capacity drops 0.
+- Terminal event: one gate collision at scenario time 3.486473 s; gate frozen with collision retained;
+  both request frames cleared.
+- Export: schema 4, 105 transitions, 18.834 ms, 558302 bytes, 107 JSONL records.
+
+Independent contract audit
+- Strict Python loader: `valid=true`, episode 4001, 105 transitions.
+- Transition protocol values: `[3]`; nominal-context protocol values: `[2]`.
+- Completed-step max speed values: `[165]`; sources: `[mode_override]`; has-max values: `[true]`.
+- Orientation intent values: `[[1,0,0]]`; desired-facing yaw values: `[0]`; fallback values: `[false]`.
+- Footer complete true; footer transition count 105.
+
+Recorded-field nominal replay
+- No manual max-speed or facing argument was supplied.
+- 104 non-collision rows: maximum planar position error `5.753338e-7 cm`; maximum planar velocity
+  error `6.924541e-6 cm/s`.
+- Collision row: planar position error `2.374047 cm`; planar velocity error `74.188969 cm/s`.
+- Collision-row spring velocity, spring acceleration, and intermediate velocity errors: exactly zero.
+- Plot: `artifacts/nominal/episode_4001_schema_v4/one_step_error.png`, SHA-256
+  `b6647a5903bc1c042c12b76a70ece27ec79814b9e9aad97f6f035a5769b23310`.
+
+Claim boundary
+- Accepted as a live causal-contract and straight one-step equation-parity episode.
+- Not accepted as sufficient training coverage or evidence for turns, stops, reversals, pushes,
+  recursive accuracy, learned residual generalization, or improved control.

@@ -870,3 +870,34 @@ Python independently rejects mismatched speed/facing fields and keeps valid v1-v
 capture until a uniquely identified episode shows `effective_max_speed_cm_per_s=165`, recorded facing
 intent, zero recorder rejections, and strict Python acceptance. Fixed-facing automation also means a
 separate explicit turning-action design is required before collecting turning coverage.
+
+### Live episode 4001 — accepted (2026-09-02)
+
+**Configuration:** Unique episode 4001; automated character-local `(200,0,0)` cm/s request; fixed
+recorded facing; verified warmup reset; timed-gate seed 1901; diagnostics off; schema-v4 export on.
+
+**Result:** Reset passed on attempt one with zero position, facing, linear-speed, and angular-speed
+error. The recorder accepted 105/105 transitions with zero rejected rows, rejected seeds, or capacity
+drops. One gate collision terminated the run at scenario time 3.486473 s. The complete export has 107
+JSONL records, 558302 bytes, and SHA-256 `1f36a132...a76f04f6`; the independent loader returns
+`valid=true`. Every transition is protocol 3, every context is protocol 2, and every completed-step
+preparation records max speed 165 cm/s from `mode_override`. Every action records orientation
+`[1,0,0]`, desired yaw 0 degrees, and fallback false.
+
+**Reviewer correction:** The earlier schema-v3 evaluation correctly identified the effective numeric
+limit from behavior but called the shared setting its main assumption. Schema v4 proves that this
+Blueprint supplies 165 through the movement mode override. The value was right; its provenance was
+previously unknowable and is now corrected.
+
+**Equation replay:** The evaluator was run with no manual max-speed or facing arguments. Across 104
+non-collision rows, maximum planar position error is `5.75e-7 cm` and maximum planar velocity error is
+`6.93e-6 cm/s`. The collision row has `2.374 cm` position error and `74.189 cm/s` velocity error while
+all three translational internal-state errors are exactly zero. The visually inspected plot contains
+one visible spike aligned with the recorded collision. Artifacts are under
+`artifacts/nominal/episode_4001_schema_v4/`; plot SHA-256 begins `b6647a59`.
+
+**Interpretation:** Accept the live causal-input contract and straight non-contact nominal parity.
+Episode 4001 is uniquely identified and may serve as interface/evaluation evidence, but it is not a
+training dataset: one straight trajectory and one terminal contact provide no turn, stop, reverse,
+push, or repeated-contact coverage. Next define an explicit facing/turn action before varied
+collection, then evaluate recursive 0.5/1.0/1.5-second rollouts.

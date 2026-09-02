@@ -1,0 +1,189 @@
+{
+  "episode_file": "episode_4001_20260902T120707Z_3EE0903A8546.jsonl",
+  "episode_sha256": "1f36a132e55954b9ea541b80e865ec85c8249f6c805334b7a90aca9ea76f04f6",
+  "evaluation": "retrospective_one_step",
+  "desired_facing_source": "recorded_applied_action",
+  "parameter_source": "parameters_observed_for_completed_step",
+  "effective_max_speed_cm_s": [
+    165.0
+  ],
+  "effective_max_speed_source": [
+    "mode_override"
+  ],
+  "transition_count": 105,
+  "collision_step_count": 1,
+  "metrics": {
+    "position_error_cm": {
+      "mean": 0.022610142738782778,
+      "median": 1.9669528228405397e-07,
+      "p95": 3.5896903227694565e-07,
+      "max": 2.374046870679715
+    },
+    "planar_position_error_cm": {
+      "mean": 0.022610142738712858,
+      "median": 1.9669528228405397e-07,
+      "p95": 3.5896903227694565e-07,
+      "max": 2.374046870672373
+    },
+    "velocity_error_cm_s": {
+      "mean": 0.7065618759246651,
+      "median": 0.0,
+      "p95": 1.3764761291668028e-06,
+      "max": 74.18896902180326
+    },
+    "planar_velocity_error_cm_s": {
+      "mean": 0.7065618759246651,
+      "median": 0.0,
+      "p95": 1.3764761291668028e-06,
+      "max": 74.18896902180326
+    },
+    "yaw_error_deg": {
+      "mean": 0.0,
+      "median": 0.0,
+      "p95": 0.0,
+      "max": 0.0
+    },
+    "angular_velocity_yaw_error_deg_s": {
+      "mean": 0.0,
+      "median": 0.0,
+      "p95": 0.0,
+      "max": 0.0
+    },
+    "spring_velocity_error_cm_s": {
+      "mean": 2.661932007813881e-07,
+      "median": 0.0,
+      "p95": 1.0819826620434013e-06,
+      "max": 6.924542603314876e-06
+    },
+    "spring_acceleration_error_cm_s2": {
+      "mean": 3.1273227243832366e-06,
+      "median": 0.0,
+      "p95": 2.39319299055296e-05,
+      "max": 6.213724674353216e-05
+    },
+    "intermediate_velocity_error_cm_s": {
+      "mean": 5.0876821265974505e-08,
+      "median": 0.0,
+      "p95": 5.960464335430515e-07,
+      "max": 7.599592066753758e-07
+    }
+  },
+  "non_collision_metrics": {
+    "position_error_cm": {
+      "mean": 1.7420088920079462e-07,
+      "median": 1.9669528228405397e-07,
+      "p95": 3.5896901522392e-07,
+      "max": 5.75333842789405e-07
+    },
+    "planar_position_error_cm": {
+      "mean": 1.7420088920079462e-07,
+      "median": 1.9669528228405397e-07,
+      "p95": 3.5896901522392e-07,
+      "max": 5.75333842789405e-07
+    },
+    "velocity_error_cm_s": {
+      "mean": 2.687527555372399e-07,
+      "median": 0.0,
+      "p95": 1.0828141857821548e-06,
+      "max": 6.924541239072823e-06
+    },
+    "planar_velocity_error_cm_s": {
+      "mean": 2.687527555372399e-07,
+      "median": 0.0,
+      "p95": 1.0828141857821548e-06,
+      "max": 6.924541239072823e-06
+    },
+    "yaw_error_deg": {
+      "mean": 0.0,
+      "median": 0.0,
+      "p95": 0.0,
+      "max": 0.0
+    },
+    "angular_velocity_yaw_error_deg_s": {
+      "mean": 0.0,
+      "median": 0.0,
+      "p95": 0.0,
+      "max": 0.0
+    },
+    "spring_velocity_error_cm_s": {
+      "mean": 2.6875275078890144e-07,
+      "median": 0.0,
+      "p95": 1.0828135684093354e-06,
+      "max": 6.924542603314876e-06
+    },
+    "spring_acceleration_error_cm_s2": {
+      "mean": 3.1573931351946137e-06,
+      "median": 0.0,
+      "p95": 2.4160314210064345e-05,
+      "max": 6.213724674353216e-05
+    },
+    "intermediate_velocity_error_cm_s": {
+      "mean": 5.1366021470455024e-08,
+      "median": 0.0,
+      "p95": 5.960464335430515e-07,
+      "max": 7.599592066753758e-07
+    }
+  },
+  "claim_boundary": [
+    "one-step evaluation re-seeds observable and internal state from every real transition",
+    "completed-step parameters are retrospective and are not automatically planner-available",
+    "schema v4 supplies recorded facing and SimpleWalking input preparation",
+    "dataset eligibility and split membership are decided outside this evaluator"
+  ],
+  "collision_metrics": {
+    "position_error_cm": {
+      "mean": 2.374046870679715,
+      "median": 2.374046870679715,
+      "p95": 2.374046870679715,
+      "max": 2.374046870679715
+    },
+    "planar_position_error_cm": {
+      "mean": 2.374046870672373,
+      "median": 2.374046870672373,
+      "p95": 2.374046870672373,
+      "max": 2.374046870672373
+    },
+    "velocity_error_cm_s": {
+      "mean": 74.18896902180326,
+      "median": 74.18896902180326,
+      "p95": 74.18896902180326,
+      "max": 74.18896902180326
+    },
+    "planar_velocity_error_cm_s": {
+      "mean": 74.18896902180326,
+      "median": 74.18896902180326,
+      "p95": 74.18896902180326,
+      "max": 74.18896902180326
+    },
+    "yaw_error_deg": {
+      "mean": 0.0,
+      "median": 0.0,
+      "p95": 0.0,
+      "max": 0.0
+    },
+    "angular_velocity_yaw_error_deg_s": {
+      "mean": 0.0,
+      "median": 0.0,
+      "p95": 0.0,
+      "max": 0.0
+    },
+    "spring_velocity_error_cm_s": {
+      "mean": 0.0,
+      "median": 0.0,
+      "p95": 0.0,
+      "max": 0.0
+    },
+    "spring_acceleration_error_cm_s2": {
+      "mean": 0.0,
+      "median": 0.0,
+      "p95": 0.0,
+      "max": 0.0
+    },
+    "intermediate_velocity_error_cm_s": {
+      "mean": 0.0,
+      "median": 0.0,
+      "p95": 0.0,
+      "max": 0.0
+    }
+  }
+}

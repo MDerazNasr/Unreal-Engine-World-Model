@@ -479,26 +479,26 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 
 ### 6.3 Implement nominal transition
 
-- [ ] Implement acceleration/deceleration branch.
-- [ ] Implement directional acceleration.
-- [ ] Implement turn response.
-- [ ] Implement intermediate target velocity.
-- [ ] Implement velocity spring update.
-- [ ] Implement facing/rotation update.
-- [ ] Integrate position using declared convention.
-- [ ] Normalize or wrap orientation consistently.
+- [x] Implement acceleration/deceleration branch.
+- [x] Implement directional acceleration.
+- [x] Implement turn response.
+- [x] Implement intermediate target velocity.
+- [x] Implement velocity spring update.
+- [x] Implement facing/rotation update.
+- [x] Integrate position using declared convention.
+- [x] Normalize or wrap orientation consistently.
 - [ ] Compose six verified substeps for one 100 ms macro step.
 - [ ] Support batched candidate/horizon dimensions without changing scalar semantics.
 
 ### 6.4 Nominal unit tests
 
-- [ ] Zero state plus zero action remains stationary.
-- [ ] Forward acceleration matches hand/reference calculation.
-- [ ] Deceleration approaches stop without unstable overshoot.
-- [ ] Reverse command uses the intended branch.
-- [ ] Ninety-degree desired direction turns with correct sign.
-- [ ] Speed limit is respected.
-- [ ] Facing remains valid.
+- [x] Zero state plus zero action remains stationary.
+- [x] Forward acceleration matches hand/reference calculation.
+- [x] Deceleration approaches stop without unstable overshoot.
+- [x] Reverse command uses the intended branch.
+- [x] Ninety-degree desired direction turns with correct sign.
+- [x] Speed limit is respected.
+- [x] Facing remains valid.
 - [ ] Scalar and batch-one outputs match.
 - [ ] Six substeps match six repeated scalar calls.
 - [ ] One 100 ms step is compared against six substeps and the difference is documented.
@@ -508,12 +508,12 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 ### 6.5 Nominal empirical validation
 
 - [x] Align action at time `t` with correct next state at `t+1`; live episode 1601 accepted all 922 adjacent pairs with zero rejection.
-- [ ] Compare nominal and Unreal one-step transitions.
+- [x] Compare nominal and Unreal one-step transitions; schema-v4 episode 4001 reproduces 104 non-collision rows to micro-numerical tolerance without manual facing/max-speed inputs.
 - [ ] Compare recursive errors at 0.5, 1.0, and 1.5 s.
 - [ ] Stratify free motion, acceleration, stopping, reversing, turning, contact, and post-push.
 - [ ] Plot position, velocity, facing, and angular-velocity error separately.
 - [ ] Inspect systematic bias rather than only aggregate mean.
-- [ ] Enter `NOM-001` hand/reference validation.
+- [x] Enter `NOM-001` hand/reference validation.
 - [ ] Enter `NOM-002` real Unreal mismatch study.
 
 ### 6.6 Nominal gate
@@ -532,7 +532,7 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [x] Include episode, scenario, seed, timestamp, and step index.
 - [x] Include authoritative character state.
 - [x] Include next authoritative state.
-- [x] Include applied action, not merely requested pre-clamp action.
+- [x] Include the exact echoed requested velocity and orientation inputs plus Simple Walking's versioned max-speed preparation.
 - [ ] Include target state.
 - [x] Include analytically revalidated timed-gate obstacle states.
 - [x] Include collision flag/count.
@@ -542,6 +542,7 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [x] Reject missing, invalid, wrong-version, or state-misaligned nominal context.
 - [x] Preserve schema-v1/v2 reader compatibility without fabricating missing context.
 - [x] Validate one live Unreal schema-v3 episode end to end in the independent Python loader.
+- [x] Validate one uniquely identified live schema-v4 episode, including max-speed source/value and facing intent, end to end.
 - [ ] Enforce or manifest-check globally unique episode identity across files.
 - [x] Include termination reason.
 - [x] Include state-source and schema-version labels.
@@ -569,6 +570,7 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [x] Validate action/next-state temporal alignment.
 - [x] Validate nominal-context/state alignment and consecutive hidden endpoints.
 - [x] Validate duplicated completed-step parameters equal the next finalized snapshot.
+- [x] Validate duplicated completed-step input preparation equals the next snapshot and facing target matches orientation intent.
 - [x] Validate one file has one episode identity and no row crosses its boundary.
 - [ ] Validate no window crosses episode termination.
 - [ ] Produce coverage histograms for speed, direction, turns, stops, contact, impulses, and parameters.

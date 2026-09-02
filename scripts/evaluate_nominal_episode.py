@@ -120,6 +120,7 @@ def _summary(
     *,
     effective_max_speed_cm_s: float | None,
     schema_version: int,
+    recorded_input_preparations: list[dict[str, object]],
 ) -> dict[str, object]:
     def stats(field: str, selected_rows: list[RowMetrics]) -> dict[str, float]:
         values = np.asarray([getattr(row, field) for row in selected_rows])
@@ -154,9 +155,18 @@ def _summary(
             else "legacy_hold_previous_authoritative_facing_assumption"
         ),
         "parameter_source": "parameters_observed_for_completed_step",
-        "effective_max_speed_cm_s": effective_max_speed_cm_s,
+        "effective_max_speed_cm_s": (
+            sorted(
+                {
+                    float(item["effective_max_speed_cm_per_s"])
+                    for item in recorded_input_preparations
+                }
+            )
+            if schema_version >= 4
+            else effective_max_speed_cm_s
+        ),
         "effective_max_speed_source": (
-            "recorded_per_transition"
+            sorted({str(item["max_speed_source"]) for item in recorded_input_preparations})
             if schema_version >= 4
             else "required_explicit_evaluator_input"
         ),
@@ -175,7 +185,7 @@ def _summary(
                 if schema_version >= 4
                 else "schema v3 omits orientation and max speed; explicit legacy assumptions apply"
             ),
-            "episode 1902 is interface evidence and is quarantined from training due duplicate ID",
+            "dataset eligibility and split membership are decided outside this evaluator",
         ],
     }
     if collision_rows:
@@ -247,6 +257,12 @@ def main() -> None:
         rows,
         effective_max_speed_cm_s=args.effective_max_speed_cm_s,
         schema_version=schema_version,
+        recorded_input_preparations=[
+            transition["nominal_context"]["input_preparation_observed_for_completed_step"]
+            for transition in episode.transitions
+        ]
+        if schema_version >= 4
+        else [],
     )
     summary_path = args.output_dir / "summary.json"
     summary_path.write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")

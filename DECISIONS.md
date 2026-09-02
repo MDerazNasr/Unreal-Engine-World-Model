@@ -876,8 +876,8 @@ episode identity. See `evidence/unreal/nom_schema_v3_live_episode_1902.log`.
 
 ## D-028 - Keep known input preparation outside the learned residual
 
-Status: equation and retrospective one-step evidence accepted; runtime max-speed capture and
-orientation-input contract remain open
+Status: equation, runtime input capture, and retrospective one-step evidence accepted; varied
+turning/contact collection remains open
 
 Decision: Treat `SimpleWalkingMode` velocity preparation as part of the nominal baseline. Clamp the
 recorded velocity-input packet by an explicit effective max speed before calling the tested Smooth
@@ -917,10 +917,14 @@ as a command-line argument, reran 174 Python tests, and generated CSV/JSON/PNG a
 
 Related config/commit/experiment: `NOM-001`; `artifacts/nominal/episode_1902/`.
 
+Live correction addendum: unique schema-v4 episode 4001 proves the 165 cm/s value came from the
+Blueprint mode's `MaxSpeedOverride`, not shared legacy settings. The v3 behavior identified the value
+but could not identify its source. Re-evaluation using only recorded v4 fields reproduces all 104
+non-collision rows to maximum `6.93e-6 cm/s` velocity error; no manual 165/facing arguments are used.
+
 ## D-029 - Version every causal Simple Walking input in episode schema 4
 
-Status: implementation, actual-project compilation, and automated contract verification accepted;
-live schema-v4 episode still required
+Status: accepted through unique live schema-v4 capture and independent evaluation
 
 Decision: Upgrade Smooth Walking diagnostics and nominal context to protocol 2, transitions to
 protocol 3, and episode files to schema 4. Record whether Simple Walking has an effective max speed,
@@ -960,3 +964,9 @@ completed-step duplication, endpoint continuity, and legacy compatibility. Live 
 not yet credited.
 
 Related config/commit/experiment: `NOM-CONTRACT-002`; schema 4 closed-editor gate.
+
+Live acceptance addendum: episode 4001 reset with zero measured error, recorded 105/105 attempted
+transitions with no rejection or loss, and exported a complete 107-line schema-v4 file. Every row uses
+transition protocol 3 and context protocol 2, records max speed 165 from `mode_override`, orientation
+intent `[1,0,0]`, desired facing 0 degrees, and no zero-intent fallback. The strict Python loader
+accepts the file. This proves the straight fixed-facing path only; it does not provide turn coverage.
