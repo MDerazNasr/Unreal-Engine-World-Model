@@ -9,11 +9,16 @@ from typing import Any
 import numpy as np
 
 from motionworld.dynamics.nominal_episode import (
+    current_snapshot_nominal_inputs,
     observable_from_state_record,
     retrospective_nominal_inputs,
 )
+from motionworld.dynamics.smooth_walking_input import prepare_velocity_input
 from motionworld.dynamics.smooth_walking_math import find_delta_angle_radians
-from motionworld.dynamics.smooth_walking_nominal import smooth_walking_nominal_step
+from motionworld.dynamics.smooth_walking_nominal import (
+    SmoothWalkingAction,
+    smooth_walking_nominal_step,
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -46,6 +51,7 @@ def evaluate_recursive_nominal_rollouts(
     transitions: list[dict[str, Any]],
     *,
     horizons_s: tuple[float, ...] = (0.5, 1.0, 1.5),
+    parameter_policy: str = "retrospective",
 ) -> tuple[RecursiveRolloutMetrics, ...]:
     """Evaluate open-loop recorded actions without intermediate state re-seeding.
 
@@ -53,10 +59,11 @@ def evaluate_recursive_nominal_rollouts(
     duration. Consequently ``actual_horizon_s`` is reported explicitly and can
     exceed the requested duration by at most one recorded step.
 
-    Schema-v4/v5 rows supply action preprocessing and desired facing. The completed-
-    step parameter snapshots are retrospective; this function is an offline
-    equation/compounding diagnostic, not proof that future parameters are online-
-    planner inputs.
+    ``retrospective`` uses each completed-step parameter snapshot as an equation-
+    parity oracle. ``hold-current`` reads parameters and max-speed preparation only
+    from the rollout's initial finalized state, then holds them throughout that
+    imagined future. The latter is causal but deliberately simple until a separate
+    parameter selector is justified.
     """
 
     if not transitions:
@@ -66,6 +73,8 @@ def evaluate_recursive_nominal_rollouts(
         raise ValueError("horizons_s must contain distinct values")
     if any(not math.isfinite(value) or value <= 0.0 for value in horizons):
         raise ValueError("horizons_s must contain positive finite values")
+    if parameter_policy not in {"retrospective", "hold-current"}:
+        raise ValueError("parameter_policy must be 'retrospective' or 'hold-current'")
     episode_duration_s = sum(float(row["delta_time_s"]) for row in transitions)
     if horizons[-1] > episode_duration_s + 1.0e-12:
         raise ValueError(
@@ -84,9 +93,19 @@ def evaluate_recursive_nominal_rollouts(
 
     results: list[RecursiveRolloutMetrics] = []
     for start_index, first_transition in enumerate(transitions):
-        initial = retrospective_nominal_inputs(first_transition)
+        initial = (
+            current_snapshot_nominal_inputs(first_transition)
+            if parameter_policy == "hold-current"
+            else retrospective_nominal_inputs(first_transition)
+        )
         predicted_observable = initial.observable
         predicted_internal = initial.internal
+        held_parameters = initial.parameters
+        held_preparation = first_transition["nominal_context"]["previous"].get(
+            "input_preparation"
+        )
+        if parameter_policy == "hold-current" and held_preparation is None:
+            raise ValueError("hold-current policy requires schema-v4+ input preparation")
         elapsed_s = 0.0
         next_horizon_index = 0
         action_change_count = 0
@@ -96,7 +115,35 @@ def evaluate_recursive_nominal_rollouts(
 
         for end_index in range(start_index, len(transitions)):
             transition = transitions[end_index]
-            inputs = retrospective_nominal_inputs(transition)
+            if parameter_policy == "hold-current":
+                action_record = transition["applied_action"]
+                if "desired_facing_yaw_deg" not in action_record:
+                    raise ValueError("hold-current policy requires schema-v4+ desired facing")
+                requested_velocity = np.asarray(
+                    action_record["velocity_world_cm_per_s"], dtype=np.float64
+                )
+                effective_max_speed = (
+                    float(held_preparation["effective_max_speed_cm_per_s"])
+                    if held_preparation["has_max_move_speed"]
+                    else float(np.linalg.norm(requested_velocity[:2]))
+                )
+                prepared = prepare_velocity_input(
+                    requested_velocity,
+                    effective_max_speed_cm_s=effective_max_speed,
+                )
+                action = SmoothWalkingAction(
+                    desired_velocity_world_cm_s=prepared.desired_velocity_world_cm_s,
+                    desired_facing_yaw_rad=math.radians(
+                        float(action_record["desired_facing_yaw_deg"])
+                    ),
+                )
+                parameters = held_parameters
+                dt_s = float(transition["delta_time_s"])
+            else:
+                inputs = retrospective_nominal_inputs(transition)
+                action = inputs.action
+                parameters = inputs.parameters
+                dt_s = inputs.dt_s
             current_action_key = _action_key(transition)
             if previous_action_key is not None and current_action_key != previous_action_key:
                 action_change_count += 1
@@ -111,13 +158,13 @@ def evaluate_recursive_nominal_rollouts(
             prediction = smooth_walking_nominal_step(
                 predicted_observable,
                 predicted_internal,
-                inputs.action,
-                parameters=inputs.parameters,
-                dt_s=inputs.dt_s,
+                action,
+                parameters=parameters,
+                dt_s=dt_s,
             )
             predicted_observable = prediction.observable_next
             predicted_internal = prediction.internal_next
-            elapsed_s += inputs.dt_s
+            elapsed_s += dt_s
 
             while (
                 next_horizon_index < len(horizons)

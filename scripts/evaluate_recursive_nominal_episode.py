@@ -35,7 +35,11 @@ def _stats(values: np.ndarray) -> dict[str, float]:
     }
 
 
-def _summary(rows: tuple[object, ...], horizons: tuple[float, ...]) -> dict[str, object]:
+def _summary(
+    rows: tuple[object, ...],
+    horizons: tuple[float, ...],
+    parameter_policy: str,
+) -> dict[str, object]:
     by_horizon: dict[str, object] = {}
     for horizon in horizons:
         selected = [row for row in rows if row.requested_horizon_s == horizon]
@@ -53,9 +57,12 @@ def _summary(rows: tuple[object, ...], horizons: tuple[float, ...]) -> dict[str,
         }
     result = {
         "evaluation": "recursive_open_loop_recorded_actions",
+        "parameter_policy": parameter_policy,
         "requested_horizons_s": list(horizons),
         "parameter_semantics": (
-            "retrospective_completed_step_snapshots_not_proven_planner_available"
+            "initial_current_snapshot_held_through_each_imagined_future"
+            if parameter_policy == "hold-current"
+            else "retrospective_completed_step_snapshots_not_proven_planner_available"
         ),
         "state_reseeding": "initial_endpoint_only_no_intermediate_observation_reseeding",
         "endpoint_policy": "first_recorded_boundary_at_or_after_requested_horizon",
@@ -73,11 +80,23 @@ def _summary(rows: tuple[object, ...], horizons: tuple[float, ...]) -> dict[str,
         for relation in relations
         if (selected := [row for row in rows if row.perturbation_relation == relation])
     }
-    result["claim_boundary"] = [
-        "event-crossing windows contain an unforeseeable evaluation-only intervention",
-        "post-event windows re-seed from an observed post-event state only at their start",
-        "event-crossing and non-crossing windows must not be averaged into one causal claim",
-    ]
+    result["claim_boundary"] = []
+    if "event_crossing" in result["perturbation_relation_metrics"]:
+        result["claim_boundary"].extend(
+            [
+                "event-crossing windows contain an unforeseeable evaluation-only intervention",
+                "post-event windows re-seed from an observed post-event state only at their start",
+                "event-crossing and non-crossing windows must not be averaged into one "
+                "causal claim",
+            ]
+        )
+    if parameter_policy == "hold-current":
+        result["claim_boundary"].extend(
+            [
+                "no parameter or input-preparation snapshot after the rollout start is read",
+                "holding current parameters is a causal baseline, not a learned regime selector",
+            ]
+        )
     return result
 
 
@@ -172,6 +191,11 @@ def main() -> None:
     parser.add_argument("episode", type=Path)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--horizons", nargs="+", type=float, default=[0.5, 1.0, 1.5])
+    parser.add_argument(
+        "--parameter-policy",
+        choices=("retrospective", "hold-current"),
+        default="retrospective",
+    )
     args = parser.parse_args()
 
     episode = load_episode(args.episode)
@@ -181,8 +205,9 @@ def main() -> None:
     rows = evaluate_recursive_nominal_rollouts(
         episode.transitions,
         horizons_s=horizons,
+        parameter_policy=args.parameter_policy,
     )
-    summary = _summary(rows, tuple(sorted(horizons)))
+    summary = _summary(rows, tuple(sorted(horizons)), args.parameter_policy)
     args.output_dir.mkdir(parents=True, exist_ok=True)
     with (args.output_dir / "recursive_rollouts.csv").open(
         "w", encoding="utf-8", newline=""

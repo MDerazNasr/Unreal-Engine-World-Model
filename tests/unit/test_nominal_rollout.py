@@ -41,6 +41,11 @@ def _context(sequence: int) -> dict[str, object]:
     return {
         "authoritative_state_sample_sequence": sequence,
         "parameters": _parameters(),
+        "input_preparation": {
+            "has_max_move_speed": True,
+            "effective_max_speed_cm_per_s": 165.0,
+            "max_speed_source": "mode_override",
+        },
         "internal_state": {
             "spring_velocity_world_cm_per_s": [0.0, 0.0, 0.0],
             "spring_acceleration_world_cm_per_s2": [0.0, 0.0, 0.0],
@@ -138,6 +143,38 @@ def test_rollout_does_not_reseed_from_intermediate_real_state() -> None:
     assert from_first.planar_position_error_cm == 0.0
 
 
+def test_hold_current_policy_never_reads_future_parameter_snapshots() -> None:
+    transitions = _stationary_transitions(4)
+    for transition in transitions:
+        transition["applied_action"]["velocity_world_cm_per_s"] = [100.0, 0.0, 0.0]
+    transitions[0]["nominal_context"]["previous"]["parameters"][
+        "acceleration_cm_per_s2"
+    ] = 10.0
+    changed = copy.deepcopy(transitions)
+    for transition in changed[1:]:
+        transition["nominal_context"]["previous"]["parameters"][
+            "acceleration_cm_per_s2"
+        ] = 9999.0
+        transition["nominal_context"]["input_preparation_observed_for_completed_step"][
+            "effective_max_speed_cm_per_s"
+        ] = 1.0
+
+    original_rows = evaluate_recursive_nominal_rollouts(
+        transitions,
+        horizons_s=(0.3,),
+        parameter_policy="hold-current",
+    )
+    changed_rows = evaluate_recursive_nominal_rollouts(
+        changed,
+        horizons_s=(0.3,),
+        parameter_policy="hold-current",
+    )
+
+    original_from_first = next(row for row in original_rows if row.start_transition_sequence == 0)
+    changed_from_first = next(row for row in changed_rows if row.start_transition_sequence == 0)
+    assert changed_from_first == original_from_first
+
+
 @pytest.mark.parametrize(
     "horizons",
     [(), (0.0,), (-0.1,), (math.nan,), (math.inf,), (0.5, 0.5)],
@@ -153,6 +190,14 @@ def test_invalid_horizons_fail_closed(horizons: tuple[float, ...]) -> None:
 def test_empty_transitions_fail_closed() -> None:
     with pytest.raises(ValueError, match="transitions"):
         evaluate_recursive_nominal_rollouts([])
+
+
+def test_unknown_parameter_policy_fails_closed() -> None:
+    with pytest.raises(ValueError, match="parameter_policy"):
+        evaluate_recursive_nominal_rollouts(
+            _stationary_transitions(),
+            parameter_policy="future-oracle",
+        )
 
 
 def test_horizon_longer_than_episode_fails_with_clear_error() -> None:
