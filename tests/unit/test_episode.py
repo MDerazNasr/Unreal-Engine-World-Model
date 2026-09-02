@@ -256,6 +256,57 @@ def _v4_records() -> list[dict[str, object]]:
     return records
 
 
+def _empty_external_perturbation() -> dict[str, object]:
+    return {
+        "protocol_version": 1,
+        "is_valid": True,
+        "type": "none",
+        "was_motionworld_scheduled": False,
+        "requested_velocity_delta_world_cm_per_s": [0.0, 0.0, 0.0],
+        "queued_after_state_sample_sequence": -1,
+        "queued_after_mover_step_server_frame": -1,
+    }
+
+
+def _v5_records(*, with_perturbation: bool = False) -> list[dict[str, object]]:
+    records = _v4_records()
+    records[0]["schema_version"] = 5
+    records[0]["external_perturbation_contract"] = {
+        "protocol_version": 1,
+        "semantics": "evaluation_only_event_label_not_model_input",
+        "application": "mover_one_tick_additive_velocity",
+        "alignment": "queued_after_previous_finalized_state_before_next_state",
+        "unit": "centimetres_per_second",
+    }
+    records[0]["external_perturbation_schedule"] = None
+    for row in records[1:-1]:
+        row["schema_version"] = 5
+        row["transition_protocol_version"] = 4
+        row["external_perturbation"] = _empty_external_perturbation()
+    records[-1]["schema_version"] = 5
+    if with_perturbation:
+        records[0]["scenario"] = None
+        for row in records[1:-1]:
+            row["scenario"] = None
+        records[-1]["scenario_summary"] = None
+        records[0]["external_perturbation_schedule"] = {
+            "warmup_duration_s": 0.05,
+            "post_perturbation_duration_s": 0.05,
+            "additive_velocity_world_cm_per_s": [0.0, 250.0, 0.0],
+            "schedule_start_simulation_time_s": 1.0,
+        }
+        records[2]["external_perturbation"] = {
+            "protocol_version": 1,
+            "is_valid": True,
+            "type": "additive_velocity",
+            "was_motionworld_scheduled": True,
+            "requested_velocity_delta_world_cm_per_s": [0.0, 250.0, 0.0],
+            "queued_after_state_sample_sequence": 11,
+            "queued_after_mover_step_server_frame": 21,
+        }
+    return records
+
+
 def _write(path: Path, records: list[dict[str, object]]) -> Path:
     path.write_text("".join(f"{json.dumps(record)}\n" for record in records), encoding="utf-8")
     return path
@@ -302,6 +353,61 @@ def test_valid_v4_episode_loads_complete_causal_contract(tmp_path: Path) -> None
         ]
         == 165.0
     )
+
+
+def test_valid_v5_character_episode_has_explicit_empty_event_labels(tmp_path: Path) -> None:
+    episode = load_episode(_write(tmp_path / "v5_character.jsonl", _v5_records()))
+
+    assert episode.header["schema_version"] == 5
+    assert episode.header["external_perturbation_schedule"] is None
+    assert episode.transitions[0]["transition_protocol_version"] == 4
+    assert episode.transitions[0]["external_perturbation"]["type"] == "none"
+
+
+def test_valid_v5_controlled_perturbation_is_source_aligned(tmp_path: Path) -> None:
+    episode = load_episode(
+        _write(tmp_path / "v5_perturbed.jsonl", _v5_records(with_perturbation=True))
+    )
+
+    event = episode.transitions[1]["external_perturbation"]
+    assert event["type"] == "additive_velocity"
+    assert event["queued_after_state_sample_sequence"] == 11
+
+
+def test_v5_perturbation_rejects_wrong_source_state(tmp_path: Path) -> None:
+    records = _v5_records(with_perturbation=True)
+    records[2]["external_perturbation"]["queued_after_state_sample_sequence"] = 10
+
+    with pytest.raises(EpisodeValidationError, match="wrong state sequence"):
+        load_episode(_write(tmp_path / "wrong_event_state.jsonl", records))
+
+
+def test_v5_schedule_requires_exactly_one_event(tmp_path: Path) -> None:
+    records = _v5_records(with_perturbation=True)
+    records[2]["external_perturbation"] = _empty_external_perturbation()
+
+    with pytest.raises(EpisodeValidationError, match="exactly one event row"):
+        load_episode(_write(tmp_path / "missing_event.jsonl", records))
+
+
+def test_v5_event_velocity_must_match_schedule(tmp_path: Path) -> None:
+    records = _v5_records(with_perturbation=True)
+    records[2]["external_perturbation"]["requested_velocity_delta_world_cm_per_s"] = [
+        0.0,
+        200.0,
+        0.0,
+    ]
+
+    with pytest.raises(EpisodeValidationError, match="does not match its schedule"):
+        load_episode(_write(tmp_path / "wrong_event_velocity.jsonl", records))
+
+
+def test_v5_event_label_is_not_declared_as_model_input(tmp_path: Path) -> None:
+    records = _v5_records()
+    records[0]["external_perturbation_contract"]["semantics"] = "model_input"
+
+    with pytest.raises(EpisodeValidationError, match="expected"):
+        load_episode(_write(tmp_path / "leaked_event_contract.jsonl", records))
 
 
 def test_v4_effective_speed_must_match_next_snapshot(tmp_path: Path) -> None:

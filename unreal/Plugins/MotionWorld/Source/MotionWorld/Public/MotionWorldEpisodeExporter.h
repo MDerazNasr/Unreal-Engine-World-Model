@@ -2,11 +2,12 @@
 
 #include "CoreMinimal.h"
 #include "MotionWorldEpisodeRecorder.h"
+#include "MotionWorldExternalPerturbationSchedule.h"
 #include "MotionWorldTimedGate.h"
 
 namespace MotionWorld
 {
-constexpr int32 EpisodeFileSchemaVersion = 4;
+constexpr int32 EpisodeFileSchemaVersion = 5;
 
 struct FTimedGateEpisodeMetadata
 {
@@ -17,6 +18,13 @@ struct FTimedGateEpisodeMetadata
 		EMotionWorldScenarioTerminationReason::None;
 	double TerminationScenarioTimeSeconds = 0.0;
 	int64 CollisionCount = 0;
+};
+
+struct FExternalPerturbationEpisodeMetadata
+{
+	bool bIsPresent = false;
+	FMotionWorldExternalPerturbationScheduleConfig Config;
+	double ScheduleStartSimulationTimeSeconds = 0.0;
 };
 
 enum class EEpisodeExportResult : uint8
@@ -42,6 +50,7 @@ struct FEpisodeExportRequest
 	FMotionWorldEpisodeRecorderStats Stats;
 	TConstArrayView<FMotionWorldTransitionSample> Transitions;
 	FTimedGateEpisodeMetadata TimedGateScenario;
+	FExternalPerturbationEpisodeMetadata ExternalPerturbationSchedule;
 };
 
 struct FEpisodeExportOutcome

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "MotionWorldExternalPerturbation.h"
 #include "MotionWorldNominalContext.h"
 #include "MotionWorldStateSample.h"
 #include "MotionWorldTransitionSample.generated.h"
@@ -34,7 +35,9 @@ enum class EMotionWorldTransitionRejectionReason : uint8
 	NonFiniteAction,
 	NonPlanarAction,
 	MissingOrientationIntent,
-	NonFiniteOrientationIntent
+	NonFiniteOrientationIntent,
+	InvalidExternalPerturbation,
+	ExternalPerturbationStateMismatch
 };
 
 /** Velocity input actually consumed by Mover for one finalized transition. */
@@ -78,7 +81,7 @@ struct MOTIONWORLD_API FMotionWorldTransitionSample
 	GENERATED_BODY()
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Transition")
-	int32 ProtocolVersion = 3;
+	int32 ProtocolVersion = 4;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Transition")
 	int64 EpisodeId = -1;
@@ -110,6 +113,10 @@ struct MOTIONWORLD_API FMotionWorldTransitionSample
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Transition")
 	FMotionWorldAppliedVelocityAction AppliedAction;
+
+	/** Evaluation-only event label; never part of the requested control action. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Transition")
+	FMotionWorldExternalPerturbation ExternalPerturbation;
 
 	/**
 	 * Runtime parameters observed at the next finalized boundary. They are assumed
@@ -147,6 +154,7 @@ struct FTransitionSampleInputs
 	FVector AppliedVelocityWorldCmPerSec = FVector::ZeroVector;
 	bool bHasAppliedOrientationIntent = false;
 	FVector AppliedOrientationIntentWorld = FVector::ZeroVector;
+	FMotionWorldExternalPerturbation ExternalPerturbation;
 };
 
 /** Builds a causal transition candidate or returns an explicit rejection reason. */

@@ -9,7 +9,7 @@
 
 namespace
 {
-constexpr int32 SupportedTransitionProtocolVersion = 3;
+constexpr int32 SupportedTransitionProtocolVersion = 4;
 constexpr int32 MaximumExportedTransitions = 100000;
 constexpr double NumericTolerance = 1.e-6;
 
@@ -31,6 +31,40 @@ void WriteVector2D(FCondensedWriter& Writer, const TCHAR* Name, const FVector2D&
 	Writer.WriteValue(Value.X);
 	Writer.WriteValue(Value.Y);
 	Writer.WriteArrayEnd();
+}
+
+const TCHAR* ExternalPerturbationTypeToString(
+	const EMotionWorldExternalPerturbationType Type)
+{
+	return Type == EMotionWorldExternalPerturbationType::AdditiveVelocity
+		? TEXT("additive_velocity")
+		: TEXT("none");
+}
+
+void WriteExternalPerturbation(
+	FCondensedWriter& Writer,
+	const FMotionWorldExternalPerturbation& Perturbation)
+{
+	Writer.WriteObjectStart(TEXT("external_perturbation"));
+	Writer.WriteValue(TEXT("protocol_version"), Perturbation.ProtocolVersion);
+	Writer.WriteValue(TEXT("is_valid"), Perturbation.bIsValid);
+	Writer.WriteValue(
+		TEXT("type"),
+		ExternalPerturbationTypeToString(Perturbation.Type));
+	Writer.WriteValue(
+		TEXT("was_motionworld_scheduled"),
+		Perturbation.bWasMotionWorldScheduled);
+	WriteVector(
+		Writer,
+		TEXT("requested_velocity_delta_world_cm_per_s"),
+		Perturbation.RequestedVelocityDeltaWorldCmPerSec);
+	Writer.WriteValue(
+		TEXT("queued_after_state_sample_sequence"),
+		Perturbation.QueuedAfterStateSampleSequence);
+	Writer.WriteValue(
+		TEXT("queued_after_mover_step_server_frame"),
+		Perturbation.QueuedAfterMoverStepServerFrame);
+	Writer.WriteObjectEnd();
 }
 
 void WriteQuaternion(FCondensedWriter& Writer, const TCHAR* Name, const FQuat& Value)
@@ -193,6 +227,44 @@ FString SerializeHeader(const MotionWorld::FEpisodeExportRequest& Request)
 	Writer->WriteValue(TEXT("orientation_intent_semantics"), TEXT("echoed_world_space_input_with_simple_walking_planar_fallback"));
 	Writer->WriteValue(TEXT("future_planner_availability"), TEXT("not_guaranteed_requires_causal_selector"));
 	Writer->WriteObjectEnd();
+	Writer->WriteObjectStart(TEXT("external_perturbation_contract"));
+	Writer->WriteValue(TEXT("protocol_version"), 1);
+	Writer->WriteValue(
+		TEXT("semantics"),
+		TEXT("evaluation_only_event_label_not_model_input"));
+	Writer->WriteValue(
+		TEXT("application"),
+		TEXT("mover_one_tick_additive_velocity"));
+	Writer->WriteValue(
+		TEXT("alignment"),
+		TEXT("queued_after_previous_finalized_state_before_next_state"));
+	Writer->WriteValue(TEXT("unit"), TEXT("centimetres_per_second"));
+	Writer->WriteObjectEnd();
+	if (Request.ExternalPerturbationSchedule.bIsPresent)
+	{
+		const FMotionWorldExternalPerturbationScheduleConfig& Config =
+			Request.ExternalPerturbationSchedule.Config;
+		Writer->WriteObjectStart(TEXT("external_perturbation_schedule"));
+		Writer->WriteValue(
+			TEXT("warmup_duration_s"),
+			Config.WarmupDurationSeconds);
+		Writer->WriteValue(
+			TEXT("post_perturbation_duration_s"),
+			Config.PostPerturbationDurationSeconds);
+		WriteVector(
+			*Writer,
+			TEXT("additive_velocity_world_cm_per_s"),
+			Config.AdditiveVelocityWorldCmPerSec);
+		Writer->WriteValue(
+			TEXT("schedule_start_simulation_time_s"),
+			Request.ExternalPerturbationSchedule
+				.ScheduleStartSimulationTimeSeconds);
+		Writer->WriteObjectEnd();
+	}
+	else
+	{
+		Writer->WriteNull(TEXT("external_perturbation_schedule"));
+	}
 	if (Request.TimedGateScenario.bIsPresent)
 	{
 		const FMotionWorldTimedGateConfig& Config =
@@ -324,6 +396,7 @@ FString SerializeTransition(
 		TEXT("used_previous_facing_for_zero_orientation_intent"),
 		Transition.AppliedAction.bUsedPreviousFacingForZeroOrientationIntent);
 	Writer->WriteObjectEnd();
+	WriteExternalPerturbation(*Writer, Transition.ExternalPerturbation);
 	WriteState(*Writer, TEXT("next_state"), Transition.NextState);
 	if (Request.TimedGateScenario.bIsPresent)
 	{
@@ -515,6 +588,7 @@ bool IsTransitionReproducible(const FMotionWorldTransitionSample& Transition)
 	Inputs.bHasAppliedOrientationIntent = true;
 	Inputs.AppliedOrientationIntentWorld =
 		Transition.AppliedAction.OrientationIntentWorld;
+	Inputs.ExternalPerturbation = Transition.ExternalPerturbation;
 
 	const FMotionWorldTransitionSample Rebuilt =
 		MotionWorld::BuildTransitionSample(Inputs);
@@ -537,6 +611,21 @@ bool IsTransitionReproducible(const FMotionWorldTransitionSample& Transition)
 			NumericTolerance)
 		&& Rebuilt.AppliedAction.bUsedPreviousFacingForZeroOrientationIntent
 			== Transition.AppliedAction.bUsedPreviousFacingForZeroOrientationIntent
+		&& Rebuilt.ExternalPerturbation.ProtocolVersion
+			== Transition.ExternalPerturbation.ProtocolVersion
+		&& Rebuilt.ExternalPerturbation.bIsValid
+			== Transition.ExternalPerturbation.bIsValid
+		&& Rebuilt.ExternalPerturbation.Type
+			== Transition.ExternalPerturbation.Type
+		&& Rebuilt.ExternalPerturbation.bWasMotionWorldScheduled
+			== Transition.ExternalPerturbation.bWasMotionWorldScheduled
+		&& Rebuilt.ExternalPerturbation.RequestedVelocityDeltaWorldCmPerSec.Equals(
+			Transition.ExternalPerturbation.RequestedVelocityDeltaWorldCmPerSec,
+			NumericTolerance)
+		&& Rebuilt.ExternalPerturbation.QueuedAfterStateSampleSequence
+			== Transition.ExternalPerturbation.QueuedAfterStateSampleSequence
+		&& Rebuilt.ExternalPerturbation.QueuedAfterMoverStepServerFrame
+			== Transition.ExternalPerturbation.QueuedAfterMoverStepServerFrame
 		&& FMath::IsNearlyEqual(
 			Rebuilt.StartSimulationTimeSeconds,
 			Transition.StartSimulationTimeSeconds,
@@ -634,6 +723,54 @@ bool IsTimedGateMetadataValid(
 	}
 	return true;
 }
+
+bool IsExternalPerturbationMetadataValid(
+	const MotionWorld::FExternalPerturbationEpisodeMetadata& Metadata,
+	const TConstArrayView<FMotionWorldTransitionSample> Transitions)
+{
+	int32 PerturbationCount = 0;
+	const FMotionWorldTransitionSample* PerturbedTransition = nullptr;
+	for (const FMotionWorldTransitionSample& Transition : Transitions)
+	{
+		if (Transition.ExternalPerturbation.Type
+			== EMotionWorldExternalPerturbationType::AdditiveVelocity)
+		{
+			++PerturbationCount;
+			PerturbedTransition = &Transition;
+		}
+	}
+
+	if (!Metadata.bIsPresent)
+	{
+		return PerturbationCount == 0;
+	}
+	if (!MotionWorld::IsExternalPerturbationScheduleConfigValid(Metadata.Config)
+		|| !FMath::IsFinite(Metadata.ScheduleStartSimulationTimeSeconds)
+		|| Metadata.ScheduleStartSimulationTimeSeconds < 0.0
+		|| PerturbationCount != 1
+		|| !PerturbedTransition)
+	{
+		return false;
+	}
+
+	const FMotionWorldExternalPerturbation& Perturbation =
+		PerturbedTransition->ExternalPerturbation;
+	const double QueueElapsedSeconds =
+		PerturbedTransition->PreviousState.SimulationTimeSeconds
+		- Metadata.ScheduleStartSimulationTimeSeconds;
+	const double FinalElapsedSeconds =
+		Transitions.Last().NextState.SimulationTimeSeconds
+		- Metadata.ScheduleStartSimulationTimeSeconds;
+	return Perturbation.bWasMotionWorldScheduled
+		&& Perturbation.RequestedVelocityDeltaWorldCmPerSec.Equals(
+			Metadata.Config.AdditiveVelocityWorldCmPerSec,
+			NumericTolerance)
+		&& QueueElapsedSeconds + NumericTolerance
+			>= Metadata.Config.WarmupDurationSeconds
+		&& FinalElapsedSeconds + NumericTolerance
+			>= MotionWorld::GetExternalPerturbationScheduleDurationSeconds(
+				Metadata.Config);
+}
 } // namespace
 
 namespace MotionWorld
@@ -722,6 +859,17 @@ FEpisodeExportOutcome ExportEpisodeJsonLines(
 	{
 		Outcome.Result = EEpisodeExportResult::InvalidStats;
 		Outcome.Detail = TEXT("timed-gate scenario metadata is inconsistent");
+		return Outcome;
+	}
+	if ((Request.TimedGateScenario.bIsPresent
+			&& Request.ExternalPerturbationSchedule.bIsPresent)
+		|| !IsExternalPerturbationMetadataValid(
+			Request.ExternalPerturbationSchedule,
+			Request.Transitions))
+	{
+		Outcome.Result = EEpisodeExportResult::InvalidStats;
+		Outcome.Detail =
+			TEXT("external-perturbation metadata is inconsistent or conflicts with the timed gate");
 		return Outcome;
 	}
 

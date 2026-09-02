@@ -210,6 +210,26 @@ FMotionWorldTransitionSample BuildTransitionSample(
 		return Result;
 	}
 
+	if (!IsExternalPerturbationValid(Inputs.ExternalPerturbation))
+	{
+		Result.RejectionReason =
+			EMotionWorldTransitionRejectionReason::InvalidExternalPerturbation;
+		return Result;
+	}
+
+	if (Inputs.ExternalPerturbation.Type
+		== EMotionWorldExternalPerturbationType::AdditiveVelocity
+		&& (Inputs.ExternalPerturbation.QueuedAfterStateSampleSequence
+				!= Inputs.PreviousState.SampleSequence
+			|| Inputs.ExternalPerturbation.QueuedAfterMoverStepServerFrame
+				!= Inputs.PreviousState.MoverStepServerFrame))
+	{
+		Result.RejectionReason =
+			EMotionWorldTransitionRejectionReason::ExternalPerturbationStateMismatch;
+		return Result;
+	}
+	Result.ExternalPerturbation = Inputs.ExternalPerturbation;
+
 	if (!Inputs.bAppliedInputWasVelocity)
 	{
 		Result.RejectionReason =

@@ -1121,7 +1121,7 @@ preserved as known preprocessing residue, not a learned residual target.
 
 ## D-033 - Treat a controlled push as a labeled velocity intervention
 
-Status: pure schedule accepted; causal transition/schema integration pending
+Status: pure schedule and causal schema-v5 contract accepted; runtime application pending
 
 Decision: Implement the controlled external perturbation with Mover's public one-tick additive
 velocity effect. Describe and store the intervention as a world-space velocity delta in cm/s, not as
@@ -1158,4 +1158,17 @@ still requests an unqueued event; queued events are never requested twice; inval
 zero, oversized, and non-finite configurations fail closed. Runtime application and exact label
 alignment remain uncredited until the next protocol slice passes.
 
-Related config/commit/experiment: `PERT-SCHEDULE-001`; runtime/schema work pending.
+Related config/commit/experiment: `PERT-SCHEDULE-001`; runtime application pending.
+
+Schema-v5 addendum: transition protocol 4 now stores a separate evaluation-only event packet with
+the requested velocity delta and the exact finalized state sequence/Mover frame after which it was
+queued. `none` rows require exact empty placeholders. Additive-velocity rows fail closed on invalid
+numerics, nonplanarity, zero/excessive magnitude, or source-endpoint mismatch. The header explicitly
+states that the label is not a model input and stores the schedule separately. Export revalidation
+requires exactly one event, matching schedule/vector/timing, adequate post-event duration, and no
+timed-gate coexistence. Schemas 1-4 remain readable without fabricated event fields.
+
+The actual universal sample build succeeded in 126.84 seconds. All 13 MotionWorld automation tests
+and all 196 Python tests passed. The independent Python tests reject wrong source identity, missing
+or duplicated schedule events, mismatched velocity, and a contract that falsely declares the event
+as a model input. Runtime queuing and a live schema-v5 episode remain uncredited.

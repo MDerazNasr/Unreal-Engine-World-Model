@@ -76,7 +76,7 @@ bool FMotionWorldTransitionSampleTest::RunTest(const FString& Parameters)
 	const FMotionWorldTransitionSample Valid =
 		MotionWorld::BuildTransitionSample(Inputs);
 	TestTrue(TEXT("Adjacent causal data produces a valid transition"), Valid.bIsValid);
-	TestEqual(TEXT("Transition protocol is explicit"), Valid.ProtocolVersion, 3);
+	TestEqual(TEXT("Transition protocol is explicit"), Valid.ProtocolVersion, 4);
 	TestEqual(TEXT("Episode identity is retained"), Valid.EpisodeId, int64(7));
 	TestEqual(TEXT("Transition sequence is retained"), Valid.TransitionSequence, int64(12));
 	TestEqual(
@@ -114,6 +114,54 @@ bool FMotionWorldTransitionSampleTest::RunTest(const FString& Parameters)
 		TEXT("Completed-step input preparation comes from the next context"),
 		Valid.InputPreparationObservedForCompletedStep.EffectiveMaxSpeedCmPerSec,
 		165.0);
+	TestEqual(
+		TEXT("Ordinary rows explicitly carry no external perturbation"),
+		Valid.ExternalPerturbation.Type,
+		EMotionWorldExternalPerturbationType::None);
+
+	MotionWorld::FTransitionSampleInputs PerturbedInputs = Inputs;
+	PerturbedInputs.ExternalPerturbation =
+		MotionWorld::MakeAdditiveVelocityPerturbation(
+			FVector(0.0, 250.0, 0.0),
+			40,
+			100,
+			true);
+	const FMotionWorldTransitionSample Perturbed =
+		MotionWorld::BuildTransitionSample(PerturbedInputs);
+	TestTrue(TEXT("A source-aligned velocity kick is retained"), Perturbed.bIsValid);
+	TestEqual(
+		TEXT("The velocity-kick type remains distinct from the planner action"),
+		Perturbed.ExternalPerturbation.Type,
+		EMotionWorldExternalPerturbationType::AdditiveVelocity);
+	TestTrue(
+		TEXT("The requested world-space kick is exact"),
+		Perturbed.ExternalPerturbation.RequestedVelocityDeltaWorldCmPerSec.Equals(
+			FVector(0.0, 250.0, 0.0)));
+
+	PerturbedInputs.ExternalPerturbation.QueuedAfterStateSampleSequence = 39;
+	TestEqual(
+		TEXT("A kick attached to the wrong state is rejected"),
+		MotionWorld::BuildTransitionSample(PerturbedInputs).RejectionReason,
+		EMotionWorldTransitionRejectionReason::ExternalPerturbationStateMismatch);
+	PerturbedInputs.ExternalPerturbation.QueuedAfterStateSampleSequence = 40;
+	PerturbedInputs.ExternalPerturbation.QueuedAfterMoverStepServerFrame = 99;
+	TestEqual(
+		TEXT("A kick attached to the wrong Mover frame is rejected"),
+		MotionWorld::BuildTransitionSample(PerturbedInputs).RejectionReason,
+		EMotionWorldTransitionRejectionReason::ExternalPerturbationStateMismatch);
+	PerturbedInputs.ExternalPerturbation =
+		MotionWorld::MakeAdditiveVelocityPerturbation(
+			FVector(
+				std::numeric_limits<double>::quiet_NaN(),
+				0.0,
+				0.0),
+			40,
+			100,
+			true);
+	TestEqual(
+		TEXT("An invalid kick fails the whole causal row closed"),
+		MotionWorld::BuildTransitionSample(PerturbedInputs).RejectionReason,
+		EMotionWorldTransitionRejectionReason::InvalidExternalPerturbation);
 
 	MotionWorld::FTransitionSampleInputs Failure = Inputs;
 	Failure.EpisodeId = -1;

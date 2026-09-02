@@ -1,0 +1,46 @@
+# External-perturbation schema-v5 closed-editor evidence
+
+Date: 2026-09-02
+Engine/project: Unreal Engine 5.8.2 / Game Animation Sample
+
+## Contract
+
+- Episode schema: 5.
+- Transition protocol: 4.
+- External-perturbation protocol: 1.
+- Event label is separate from the desired-velocity planner action.
+- Event label is explicitly evaluation-only and not a residual-model input.
+- A velocity kick stores its exact requested world-space delta plus the finalized state sequence and
+  Mover frame after which it was queued.
+- `none` rows use exact empty placeholders.
+- Schemas 1-4 remain readable without synthesized event information.
+
+## Closed-editor validation
+
+- Actual target: `GameAnimationSampleEditor Mac Development -architecture=arm64+x86_64`.
+- Universal build: succeeded in 126.84 seconds.
+- Full headless filter: `MotionWorld.`.
+- Tests found: 13.
+- Result: 13 succeeded, 0 failed.
+- Python: 196 passed.
+- Changed Python files pass Ruff lint and format checks.
+- Repo/sample source parity: exact.
+- Raw automation log SHA-256:
+  `76e75e6a8a5dd586c4ba706f6f22223316c3425b452a727e39510b04f6c19d69`
+- Deployed universal dylib SHA-256:
+  `11e9247ff0363f5e1f057d9dbc1a3c5dfa00bb57403e2f02172639ecd8049d2d`
+
+## Reviewer cases
+
+- Reject invalid/non-finite/vertical/zero/excessive event vectors.
+- Reject an event keyed to the wrong previous state or Mover frame.
+- Reject event data without matching schedule metadata.
+- Reject a schedule with zero or multiple event rows.
+- Reject event velocity that disagrees with the schedule.
+- Reject timed-gate and perturbation schedules in the same episode.
+- Reject any contract that declares the future event label as a model input.
+
+## Claim boundary
+
+This accepts the pure causal storage and validation contract. Runtime queuing, exact once-only label
+consumption, live schema-v5 export, and measured recovery error remain pending.

@@ -74,7 +74,9 @@ public:
 		bool bWasMotionWorldAutomated,
 		const FVector& AppliedVelocityWorldCmPerSec,
 		bool bHasAppliedOrientationIntent,
-		const FVector& AppliedOrientationIntentWorld);
+		const FVector& AppliedOrientationIntentWorld,
+		const FMotionWorldExternalPerturbation& ExternalPerturbation =
+			FMotionWorldExternalPerturbation());
 
 	const FMotionWorldEpisodeRecorderStats& GetStats() const { return Stats; }
 	const TArray<FMotionWorldTransitionSample>& GetTransitions() const { return Transitions; }

@@ -157,9 +157,9 @@ bool FMotionWorldEpisodeExporterTest::RunTest(const FString& Parameters)
 				static_cast<int64>(Header->GetNumberField(TEXT("episode_id"))),
 				int64(42));
 			TestEqual(
-				TEXT("Header declares schema version four"),
+				TEXT("Header declares schema version five"),
 				static_cast<int32>(Header->GetNumberField(TEXT("schema_version"))),
-				4);
+				5);
 			TestEqual(
 				TEXT("Context source contract is explicit"),
 				Header->GetObjectField(TEXT("nominal_context_contract"))->GetStringField(TEXT("source")),
@@ -185,6 +185,17 @@ bool FMotionWorldEpisodeExporterTest::RunTest(const FString& Parameters)
 				TEXT("Facing target is serialized with the action"),
 				FirstTransition->GetObjectField(TEXT("applied_action"))->GetNumberField(TEXT("desired_facing_yaw_deg")),
 				0.0);
+			TestEqual(
+				TEXT("External-event semantics are explicit"),
+				Header->GetObjectField(TEXT("external_perturbation_contract"))->GetStringField(TEXT("semantics")),
+				FString(TEXT("evaluation_only_event_label_not_model_input")));
+			TestTrue(
+				TEXT("Ordinary episodes declare no perturbation schedule"),
+				Header->HasTypedField<EJson::Null>(TEXT("external_perturbation_schedule")));
+			TestEqual(
+				TEXT("Ordinary transitions explicitly serialize no perturbation"),
+				FirstTransition->GetObjectField(TEXT("external_perturbation"))->GetStringField(TEXT("type")),
+				FString(TEXT("none")));
 			TestTrue(TEXT("Footer marks the file complete"), Footer->GetBoolField(TEXT("complete")));
 			TestEqual(
 				TEXT("Footer count matches the payload"),
@@ -252,6 +263,72 @@ bool FMotionWorldEpisodeExporterTest::RunTest(const FString& Parameters)
 				FString(TEXT("success")));
 		}
 	}
+
+	TArray<FMotionWorldTransitionSample> PerturbedTransitions =
+		Recorder.GetTransitions();
+	PerturbedTransitions[1].ExternalPerturbation =
+		MotionWorld::MakeAdditiveVelocityPerturbation(
+			FVector(0.0, 250.0, 0.0),
+			11,
+			21,
+			true);
+	MotionWorld::FEpisodeExportRequest PerturbationRequest = Request;
+	PerturbationRequest.OutputFilePath =
+		FPaths::Combine(TestDirectory, TEXT("episode_42_perturbed.jsonl"));
+	PerturbationRequest.Transitions = PerturbedTransitions;
+	PerturbationRequest.ExternalPerturbationSchedule.bIsPresent = true;
+	PerturbationRequest.ExternalPerturbationSchedule.Config.WarmupDurationSeconds =
+		0.05;
+	PerturbationRequest.ExternalPerturbationSchedule.Config.PostPerturbationDurationSeconds =
+		0.05;
+	PerturbationRequest.ExternalPerturbationSchedule.ScheduleStartSimulationTimeSeconds =
+		1.0;
+	const MotionWorld::FEpisodeExportOutcome PerturbationSuccess =
+		MotionWorld::ExportEpisodeJsonLines(PerturbationRequest);
+	TestTrue(
+		TEXT("A single source-aligned perturbation episode exports"),
+		PerturbationSuccess.Succeeded());
+	TArray<FString> PerturbationLines;
+	TestTrue(
+		TEXT("Perturbation JSON Lines file loads"),
+		FFileHelper::LoadFileToStringArray(
+			PerturbationLines,
+			*PerturbationRequest.OutputFilePath));
+	if (PerturbationLines.Num() == 4)
+	{
+		TSharedPtr<FJsonObject> PerturbationHeader;
+		TSharedPtr<FJsonObject> PerturbedTransition;
+		TestTrue(
+			TEXT("Perturbation header parses"),
+			ParseJsonLine(PerturbationLines[0], PerturbationHeader));
+		TestTrue(
+			TEXT("Perturbed transition parses"),
+			ParseJsonLine(PerturbationLines[2], PerturbedTransition));
+		if (PerturbationHeader && PerturbedTransition)
+		{
+			TestEqual(
+				TEXT("Schedule warmup is serialized"),
+				PerturbationHeader->GetObjectField(TEXT("external_perturbation_schedule"))->GetNumberField(TEXT("warmup_duration_s")),
+				0.05);
+			TestEqual(
+				TEXT("The event row is typed separately from the action"),
+				PerturbedTransition->GetObjectField(TEXT("external_perturbation"))->GetStringField(TEXT("type")),
+				FString(TEXT("additive_velocity")));
+			TestEqual(
+				TEXT("The event row points back to its exact source state"),
+				static_cast<int64>(PerturbedTransition->GetObjectField(TEXT("external_perturbation"))->GetNumberField(TEXT("queued_after_state_sample_sequence"))),
+				int64(11));
+		}
+	}
+
+	MotionWorld::FEpisodeExportRequest MissingMetadataRequest = Request;
+	MissingMetadataRequest.OutputFilePath =
+		FPaths::Combine(TestDirectory, TEXT("episode_42_unlabeled_schedule.jsonl"));
+	MissingMetadataRequest.Transitions = PerturbedTransitions;
+	TestEqual(
+		TEXT("An event without matching schedule metadata is rejected"),
+		MotionWorld::ExportEpisodeJsonLines(MissingMetadataRequest).Result,
+		MotionWorld::EEpisodeExportResult::InvalidStats);
 
 	MotionWorld::FEpisodeExportRequest EmptyRequest = Request;
 	EmptyRequest.OutputFilePath = FPaths::Combine(TestDirectory, TEXT("empty.jsonl"));

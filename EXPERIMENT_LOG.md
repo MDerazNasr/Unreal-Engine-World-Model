@@ -1075,8 +1075,16 @@ in 49.28 s; the final excessive-bound test rebuild took 14.98 s. The focused
 half-open boundaries, a nine-second late frame before queue confirmation, duplicate prevention,
 completion, and fail-closed timing/vector bounds.
 
-**Reviewer boundary:** This proves only the pure schedule. It does not prove that the effect is
-applied, that the event label is joined to the correct causal transition, or that recovery contains
-a learnable residual. Those remain required before the experiment can be completed.
+**Causal schema gate:** Schema 5 / transition protocol 4 adds a separate event label keyed to the
+previous finalized state sequence and Mover frame. The header declares evaluation-only semantics and
+stores the schedule; export and Python validation require exactly one matching event with sufficient
+post-event duration. Legacy schemas remain readable without synthesized labels. The actual universal
+sample build succeeded in 126.84 seconds; all 13 MotionWorld tests and 196 Python tests pass.
 
-**Artifact:** `evidence/unreal/pert_schedule_001_automation.log`.
+**Reviewer boundary:** This proves the schedule and its fail-closed storage contract. It does not
+yet prove that Mover applies the queued effect, that the live callback consumes the pending label
+exactly once, or that recovery contains a learnable residual. Those remain required before the
+experiment can be completed.
+
+**Artifacts:** `evidence/unreal/pert_schedule_001_automation.log` and
+`evidence/unreal/pert_schema_v5_automation.log`.

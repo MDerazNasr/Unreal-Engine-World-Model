@@ -120,7 +120,8 @@ FInMemoryEpisodeRecorder::ObserveFinalizedStep(
 	const bool bWasMotionWorldAutomated,
 	const FVector& AppliedVelocityWorldCmPerSec,
 	const bool bHasAppliedOrientationIntent,
-	const FVector& AppliedOrientationIntentWorld)
+	const FVector& AppliedOrientationIntentWorld,
+	const FMotionWorldExternalPerturbation& ExternalPerturbation)
 {
 	if (!Stats.bIsRecording)
 	{
@@ -156,6 +157,7 @@ FInMemoryEpisodeRecorder::ObserveFinalizedStep(
 	Inputs.AppliedVelocityWorldCmPerSec = AppliedVelocityWorldCmPerSec;
 	Inputs.bHasAppliedOrientationIntent = bHasAppliedOrientationIntent;
 	Inputs.AppliedOrientationIntentWorld = AppliedOrientationIntentWorld;
+	Inputs.ExternalPerturbation = ExternalPerturbation;
 
 	LastCandidate = BuildTransitionSample(Inputs);
 	bHasLastCandidate = true;

@@ -1,4 +1,4 @@
-"""Strict loader for MotionWorld Unreal episode files (v1-v4)."""
+"""Strict loader for MotionWorld Unreal episode files (v1-v5)."""
 
 from __future__ import annotations
 
@@ -9,8 +9,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-EPISODE_SCHEMA_VERSION = 4
-SUPPORTED_EPISODE_SCHEMA_VERSIONS = frozenset({1, 2, 3, 4})
+EPISODE_SCHEMA_VERSION = 5
+SUPPORTED_EPISODE_SCHEMA_VERSIONS = frozenset({1, 2, 3, 4, 5})
 STATE_PROTOCOL_VERSION = 1
 NOMINAL_CONTEXT_PROTOCOL_VERSION = 2
 MAX_TRANSITIONS = 100_000
@@ -51,6 +51,10 @@ _HEADER_KEYS = {
 _HEADER_V2_KEYS = _HEADER_KEYS | {"scenario"}
 _HEADER_V3_KEYS = _HEADER_V2_KEYS | {"nominal_context_contract"}
 _HEADER_V4_KEYS = _HEADER_V3_KEYS
+_HEADER_V5_KEYS = _HEADER_V4_KEYS | {
+    "external_perturbation_contract",
+    "external_perturbation_schedule",
+}
 _CONVENTION_KEYS = {
     "world_frame",
     "local_action_frame",
@@ -84,6 +88,7 @@ _TRANSITION_KEYS = {
 _TRANSITION_V2_KEYS = _TRANSITION_KEYS | {"scenario"}
 _TRANSITION_V3_KEYS = _TRANSITION_V2_KEYS | {"nominal_context"}
 _TRANSITION_V4_KEYS = _TRANSITION_V3_KEYS
+_TRANSITION_V5_KEYS = _TRANSITION_V4_KEYS | {"external_perturbation"}
 _STATE_KEYS = {
     "protocol_version",
     "sample_sequence",
@@ -123,6 +128,28 @@ _NOMINAL_CONTEXT_CONTRACT_KEYS = {
 _NOMINAL_CONTEXT_CONTRACT_V4_KEYS = _NOMINAL_CONTEXT_CONTRACT_KEYS | {
     "input_preparation_source",
     "orientation_intent_semantics",
+}
+_EXTERNAL_PERTURBATION_CONTRACT_KEYS = {
+    "protocol_version",
+    "semantics",
+    "application",
+    "alignment",
+    "unit",
+}
+_EXTERNAL_PERTURBATION_SCHEDULE_KEYS = {
+    "warmup_duration_s",
+    "post_perturbation_duration_s",
+    "additive_velocity_world_cm_per_s",
+    "schedule_start_simulation_time_s",
+}
+_EXTERNAL_PERTURBATION_KEYS = {
+    "protocol_version",
+    "is_valid",
+    "type",
+    "was_motionworld_scheduled",
+    "requested_velocity_delta_world_cm_per_s",
+    "queued_after_state_sample_sequence",
+    "queued_after_mover_step_server_frame",
 }
 _NOMINAL_TRANSITION_KEYS = {
     "previous",
@@ -387,6 +414,93 @@ def _validate_action(
             if not used_fallback or _wrapped_angle_error_degrees(desired_yaw, previous_yaw) > 1e-5:
                 _fail(context, "zero orientation intent must fall back to previous facing")
     return action
+
+
+def _validate_external_perturbation(
+    value: Any,
+    previous_state: dict[str, Any],
+    context: str,
+) -> dict[str, Any]:
+    perturbation = _object(value, context)
+    _exact_keys(perturbation, _EXTERNAL_PERTURBATION_KEYS, context)
+    if _integer(perturbation["protocol_version"], f"{context}.protocol_version") != 1:
+        _fail(context, "unsupported external-perturbation protocol version")
+    if not _boolean(perturbation["is_valid"], f"{context}.is_valid"):
+        _fail(context, "external perturbation is not marked valid")
+    perturbation_type = _string(perturbation["type"], f"{context}.type")
+    scheduled = _boolean(
+        perturbation["was_motionworld_scheduled"],
+        f"{context}.was_motionworld_scheduled",
+    )
+    velocity_delta = _vector(
+        perturbation["requested_velocity_delta_world_cm_per_s"],
+        3,
+        f"{context}.requested_velocity_delta_world_cm_per_s",
+    )
+    source_sequence = _integer(
+        perturbation["queued_after_state_sample_sequence"],
+        f"{context}.queued_after_state_sample_sequence",
+        minimum=-1,
+    )
+    source_frame = _integer(
+        perturbation["queued_after_mover_step_server_frame"],
+        f"{context}.queued_after_mover_step_server_frame",
+        minimum=-1,
+    )
+    if perturbation_type == "none":
+        if (
+            scheduled
+            or any(not _close(component, 0.0) for component in velocity_delta)
+            or source_sequence != -1
+            or source_frame != -1
+        ):
+            _fail(context, "none perturbation must use exact empty placeholders")
+        return perturbation
+    if perturbation_type != "additive_velocity":
+        _fail(context, "unknown external perturbation type")
+    if not _close(velocity_delta[2], 0.0):
+        _fail(context, "external velocity perturbation must be planar")
+    magnitude = math.hypot(velocity_delta[0], velocity_delta[1])
+    if magnitude <= _NUMERIC_TOLERANCE or magnitude > 1000.0 + _NUMERIC_TOLERANCE:
+        _fail(context, "external velocity perturbation is zero or exceeds its bound")
+    if source_sequence != previous_state["sample_sequence"]:
+        _fail(context, "external perturbation is attached to the wrong state sequence")
+    if source_frame != previous_state["mover_step_server_frame"]:
+        _fail(context, "external perturbation is attached to the wrong Mover frame")
+    return perturbation
+
+
+def _validate_external_perturbation_schedule(
+    value: Any,
+    context: str,
+) -> dict[str, Any] | None:
+    if value is None:
+        return None
+    schedule = _object(value, context)
+    _exact_keys(schedule, _EXTERNAL_PERTURBATION_SCHEDULE_KEYS, context)
+    _number(schedule["warmup_duration_s"], f"{context}.warmup_duration_s", positive=True)
+    _number(
+        schedule["post_perturbation_duration_s"],
+        f"{context}.post_perturbation_duration_s",
+        positive=True,
+    )
+    velocity_delta = _vector(
+        schedule["additive_velocity_world_cm_per_s"],
+        3,
+        f"{context}.additive_velocity_world_cm_per_s",
+    )
+    if not _close(velocity_delta[2], 0.0):
+        _fail(context, "scheduled external velocity perturbation must be planar")
+    magnitude = math.hypot(velocity_delta[0], velocity_delta[1])
+    if magnitude <= _NUMERIC_TOLERANCE or magnitude > 1000.0 + _NUMERIC_TOLERANCE:
+        _fail(context, "scheduled external velocity perturbation is zero or exceeds its bound")
+    start = _number(
+        schedule["schedule_start_simulation_time_s"],
+        f"{context}.schedule_start_simulation_time_s",
+    )
+    if start < 0.0:
+        _fail(context, "schedule start must be non-negative")
+    return schedule
 
 
 def _validate_smooth_walking_parameters(value: Any, context: str) -> dict[str, Any]:
@@ -675,15 +789,19 @@ def _validate_transition(
     episode_id: int,
     schema_version: int,
     scenario: dict[str, Any] | None,
+    external_perturbation_schedule: dict[str, Any] | None,
     context: str,
 ) -> dict[str, Any]:
     transition = _object(value, context)
-    # Schema v3 adds nominal context; v4 completes the causal input contract.
+    # Schema v3 adds nominal context, v4 completes the causal input contract,
+    # and v5 adds an evaluation-only external-event label.
     _exact_keys(
         transition,
         (
-            _TRANSITION_V4_KEYS
-            if schema_version >= 4
+            _TRANSITION_V5_KEYS
+            if schema_version >= 5
+            else _TRANSITION_V4_KEYS
+            if schema_version == 4
             else _TRANSITION_V3_KEYS
             if schema_version == 3
             else _TRANSITION_V2_KEYS
@@ -696,7 +814,9 @@ def _validate_transition(
     row_schema_version = _integer(transition["schema_version"], f"{context}.schema_version")
     if schema_version != row_schema_version:
         _fail(context, "transition schema does not match the header")
-    expected_transition_protocol = 3 if schema_version >= 4 else 2 if schema_version == 3 else 1
+    expected_transition_protocol = (
+        4 if schema_version >= 5 else 3 if schema_version == 4 else 2 if schema_version == 3 else 1
+    )
     if (
         _integer(
             transition["transition_protocol_version"],
@@ -719,6 +839,12 @@ def _validate_transition(
         f"{context}.applied_action",
     )
     next_state = _validate_state(transition["next_state"], f"{context}.next_state")
+    if schema_version >= 5:
+        _validate_external_perturbation(
+            transition["external_perturbation"],
+            previous_state,
+            f"{context}.external_perturbation",
+        )
     if schema_version >= 3:
         _validate_nominal_transition(
             transition["nominal_context"],
@@ -750,6 +876,12 @@ def _validate_transition(
             next_state,
             f"{context}.scenario",
         )
+    if (
+        schema_version >= 5
+        and external_perturbation_schedule is None
+        and transition["external_perturbation"]["type"] != "none"
+    ):
+        _fail(context, "external event requires matching schedule metadata")
     return transition
 
 
@@ -761,8 +893,10 @@ def _validate_header(value: Any) -> dict[str, Any]:
     _exact_keys(
         header,
         (
-            _HEADER_V4_KEYS
-            if schema_version >= 4
+            _HEADER_V5_KEYS
+            if schema_version >= 5
+            else _HEADER_V4_KEYS
+            if schema_version == 4
             else _HEADER_V3_KEYS
             if schema_version == 3
             else _HEADER_V2_KEYS
@@ -868,6 +1002,45 @@ def _validate_header(value: Any) -> dict[str, Any]:
                 "header.nominal_context_contract.orientation_intent_semantics",
                 expected="echoed_world_space_input_with_simple_walking_planar_fallback",
             )
+    if schema_version >= 5:
+        perturbation_contract = _object(
+            header["external_perturbation_contract"],
+            "header.external_perturbation_contract",
+        )
+        _exact_keys(
+            perturbation_contract,
+            _EXTERNAL_PERTURBATION_CONTRACT_KEYS,
+            "header.external_perturbation_contract",
+        )
+        if (
+            _integer(
+                perturbation_contract["protocol_version"],
+                "header.external_perturbation_contract.protocol_version",
+            )
+            != 1
+        ):
+            _fail(
+                "header.external_perturbation_contract",
+                "unsupported external-perturbation contract protocol",
+            )
+        expected_contract = {
+            "semantics": "evaluation_only_event_label_not_model_input",
+            "application": "mover_one_tick_additive_velocity",
+            "alignment": "queued_after_previous_finalized_state_before_next_state",
+            "unit": "centimetres_per_second",
+        }
+        for key, expected in expected_contract.items():
+            _string(
+                perturbation_contract[key],
+                f"header.external_perturbation_contract.{key}",
+                expected=expected,
+            )
+        header["external_perturbation_schedule"] = _validate_external_perturbation_schedule(
+            header["external_perturbation_schedule"],
+            "header.external_perturbation_schedule",
+        )
+        if header["scenario"] is not None and header["external_perturbation_schedule"] is not None:
+            _fail("header", "timed-gate and external-perturbation schedules are mutually exclusive")
     return header
 
 
@@ -951,6 +1124,9 @@ def load_episode(path: str | Path, *, max_transitions: int = MAX_TRANSITIONS) ->
     episode_id = int(header["episode_id"])
     schema_version = int(header["schema_version"])
     scenario = header.get("scenario") if schema_version >= 2 else None
+    external_perturbation_schedule = (
+        header.get("external_perturbation_schedule") if schema_version >= 5 else None
+    )
     footer = _validate_footer(records[-1], episode_id, schema_version, scenario)
     transitions = tuple(
         _validate_transition(
@@ -958,6 +1134,7 @@ def load_episode(path: str | Path, *, max_transitions: int = MAX_TRANSITIONS) ->
             episode_id,
             schema_version,
             scenario,
+            external_perturbation_schedule,
             f"transition line {index + 2}",
         )
         for index, record in enumerate(records[1:-1])
@@ -1040,4 +1217,44 @@ def load_episode(path: str | Path, *, max_transitions: int = MAX_TRANSITIONS) ->
                 _fail("episode", "success row does not cross the fixed plane forward")
         if final_reason == "timeout" and expected_terminal_time < float(scenario["timeout_s"]):
             _fail("episode", "timeout occurs before the declared deadline")
+    if schema_version >= 5:
+        perturbed = [
+            transition
+            for transition in transitions
+            if transition["external_perturbation"]["type"] == "additive_velocity"
+        ]
+        if external_perturbation_schedule is None:
+            if perturbed:
+                _fail("episode", "external event is present without schedule metadata")
+        else:
+            if len(perturbed) != 1:
+                _fail("episode", "external perturbation schedule requires exactly one event row")
+            event_row = perturbed[0]
+            event = event_row["external_perturbation"]
+            if not event["was_motionworld_scheduled"]:
+                _fail("episode", "controlled perturbation event must be MotionWorld-scheduled")
+            if any(
+                not _close(float(actual), float(expected))
+                for actual, expected in zip(
+                    event["requested_velocity_delta_world_cm_per_s"],
+                    external_perturbation_schedule["additive_velocity_world_cm_per_s"],
+                    strict=True,
+                )
+            ):
+                _fail("episode", "event velocity does not match its schedule")
+            schedule_start = float(
+                external_perturbation_schedule["schedule_start_simulation_time_s"]
+            )
+            queue_elapsed = float(event_row["previous_state"]["simulation_time_s"]) - schedule_start
+            warmup = float(external_perturbation_schedule["warmup_duration_s"])
+            if queue_elapsed + _NUMERIC_TOLERANCE < warmup:
+                _fail("episode", "external perturbation was queued before its trigger")
+            final_elapsed = (
+                float(transitions[-1]["next_state"]["simulation_time_s"]) - schedule_start
+            )
+            required_duration = warmup + float(
+                external_perturbation_schedule["post_perturbation_duration_s"]
+            )
+            if final_elapsed + _NUMERIC_TOLERANCE < required_duration:
+                _fail("episode", "episode ended before post-perturbation observation completed")
     return ValidatedEpisode(episode_path, header, transitions, footer)
