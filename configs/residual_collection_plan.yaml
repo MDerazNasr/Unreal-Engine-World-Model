@@ -1,0 +1,105 @@
+schema_name: motionworld_residual_collection_plan
+schema_version: 1
+created_date: '2026-09-02'
+frozen_before_training: true
+raw_data_policy: external_untracked
+common:
+  antipodal_facing_tie_break_deg: 0.5
+  timed_gate: false
+  external_perturbation: false
+  varied_action_schedule: true
+  reset_repeat_count: 1
+  schema_version_minimum: 4
+episodes:
+  - episode_id: 5101
+    split: train
+    status: accepted
+    motion_phase_duration_s: 0.55
+    intermediate_stop_duration_s: 0.25
+    final_stop_duration_s: 0.35
+    forward_speed_cm_s: 120.0
+    reverse_speed_cm_s: 90.0
+    lateral_speed_cm_s: 110.0
+    diagonal_component_speed_cm_s: 75.0
+    raw_file: episode_5101_20260902T203328Z_3ED1E0C50841.jsonl
+    raw_sha256: eb437123d88dcf0c7b96b7f4fa5e2d75f502c2b70bc08408094b154693c3eaae
+  - episode_id: 5102
+    split: train
+    status: pending
+    motion_phase_duration_s: 0.70
+    intermediate_stop_duration_s: 0.20
+    final_stop_duration_s: 0.40
+    forward_speed_cm_s: 80.0
+    reverse_speed_cm_s: 130.0
+    lateral_speed_cm_s: 70.0
+    diagonal_component_speed_cm_s: 55.0
+  - episode_id: 5103
+    split: train
+    status: pending
+    motion_phase_duration_s: 0.40
+    intermediate_stop_duration_s: 0.35
+    final_stop_duration_s: 0.25
+    forward_speed_cm_s: 160.0
+    reverse_speed_cm_s: 60.0
+    lateral_speed_cm_s: 145.0
+    diagonal_component_speed_cm_s: 100.0
+  - episode_id: 5104
+    split: train
+    status: pending
+    motion_phase_duration_s: 0.90
+    intermediate_stop_duration_s: 0.15
+    final_stop_duration_s: 0.50
+    forward_speed_cm_s: 145.0
+    reverse_speed_cm_s: 145.0
+    lateral_speed_cm_s: 95.0
+    diagonal_component_speed_cm_s: 60.0
+  - episode_id: 5105
+    split: train
+    status: pending
+    motion_phase_duration_s: 0.65
+    intermediate_stop_duration_s: 0.45
+    final_stop_duration_s: 0.30
+    forward_speed_cm_s: 100.0
+    reverse_speed_cm_s: 155.0
+    lateral_speed_cm_s: 130.0
+    diagonal_component_speed_cm_s: 85.0
+  - episode_id: 5201
+    split: validation
+    status: pending
+    motion_phase_duration_s: 0.50
+    intermediate_stop_duration_s: 0.30
+    final_stop_duration_s: 0.45
+    forward_speed_cm_s: 135.0
+    reverse_speed_cm_s: 105.0
+    lateral_speed_cm_s: 80.0
+    diagonal_component_speed_cm_s: 95.0
+  - episode_id: 5202
+    split: validation
+    status: pending
+    motion_phase_duration_s: 0.80
+    intermediate_stop_duration_s: 0.25
+    final_stop_duration_s: 0.20
+    forward_speed_cm_s: 70.0
+    reverse_speed_cm_s: 150.0
+    lateral_speed_cm_s: 120.0
+    diagonal_component_speed_cm_s: 65.0
+  - episode_id: 5301
+    split: test
+    status: pending
+    motion_phase_duration_s: 0.60
+    intermediate_stop_duration_s: 0.40
+    final_stop_duration_s: 0.35
+    forward_speed_cm_s: 155.0
+    reverse_speed_cm_s: 75.0
+    lateral_speed_cm_s: 100.0
+    diagonal_component_speed_cm_s: 105.0
+  - episode_id: 5302
+    split: test
+    status: pending
+    motion_phase_duration_s: 0.75
+    intermediate_stop_duration_s: 0.18
+    final_stop_duration_s: 0.55
+    forward_speed_cm_s: 90.0
+    reverse_speed_cm_s: 140.0
+    lateral_speed_cm_s: 150.0
+    diagonal_component_speed_cm_s: 70.0

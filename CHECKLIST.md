@@ -584,20 +584,22 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [x] Validate duplicated completed-step parameters equal the next finalized snapshot.
 - [x] Validate duplicated completed-step input preparation equals the next snapshot and facing target matches orientation intent.
 - [x] Validate one file has one episode identity and no row crosses its boundary.
-- [ ] Validate no window crosses episode termination.
+- [x] Validate no residual window crosses episode termination or joins two episodes.
 - [ ] Produce coverage histograms for speed, direction, turns, stops, contact, impulses, and parameters.
 
 ### 7.4 Split discipline
 
-- [ ] Define immutable train/validation/test manifests.
-- [ ] Split complete episodes, never individual transitions.
+- [x] Freeze pre-training train/validation/test episode IDs and schedule configurations in the tested
+  collection plan.
+- [ ] Finalize accepted-file manifests with every raw filename and hash.
+- [x] Split complete episodes, never individual transitions.
 - [ ] Separate scenario seeds.
 - [ ] Separate obstacle layouts.
 - [ ] Define represented/held-out movement regimes.
-- [ ] Freeze final test seeds before model selection.
+- [x] Freeze final test episode IDs/configurations before model selection: 5301 and 5302.
 - [ ] Fit normalization only on training data.
 - [ ] Store normalization with schema and checkpoint.
-- [ ] Add automated overlap/leakage test.
+- [ ] Add accepted-file identity/hash overlap and leakage tests after collection completes.
 - [ ] Hash manifests.
 
 ### 7.5 Dataset gate

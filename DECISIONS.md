@@ -1332,3 +1332,38 @@ How I tested it: Checked exact parameter counts and zero tensors, performed a gr
 step, repeated a complete step under the same seed, and exercised prefix batches and float64.
 
 Related experiment: `RES-MODEL-SMOKE-001`.
+
+## D-038 - Freeze episode-level collection assignments before residual training
+
+Status: accepted; one of nine planned episodes collected
+
+Decision: Preassign five distinct schedules to training IDs 5101-5105, two to validation IDs
+5201-5202, and two untouched schedules to test IDs 5301-5302. Change status and add filename/hash only
+after strict acceptance; do not move episodes between splits based on model results. Keep raw Epic
+episode files outside Git.
+
+Why: Adjacent transitions are highly correlated, so row-level random splitting would place nearly
+identical moments from one trajectory in training and test. Freezing test configurations before model
+selection prevents tuning to final outcomes. Explicit configuration provenance compensates for the
+current episode schema recording realized actions but not the editable schedule object in its header.
+
+Alternatives considered: random row split; assign splits after seeing model errors; reuse episodes
+4101/4201 as independent training and test; commit raw sample data; inspect test episodes during
+hyperparameter selection.
+
+Evidence: The YAML plan has three tests for unique IDs, split membership, distinct positive schedule
+values, and exact accepted 5101 hash. Episode 5101 passes 130/130 rows and independently reproduces
+the causal error/change alignment under a changed schedule.
+
+Main assumption: Nine short but distinct schedules provide enough variation for a bounded interview
+experiment; the result may still be data-limited.
+
+How it could fail: Fixed phase order may permit action-pattern shortcuts; fewer than roughly 1,000
+training transitions may overfit the 100K-parameter MLP; frame-timing variation may dominate; manual
+configuration could differ from the plan.
+
+How I tested it: Validated plan invariants automatically; required unique embedded ID, raw hash,
+strict loader acceptance, realized action counts, exact reset, and causal/oracle audits for 5101.
+
+Related experiment/evidence: `RES-COLLECTION-001`;
+`evidence/unreal/res_collection_live_episode_5101.log`.

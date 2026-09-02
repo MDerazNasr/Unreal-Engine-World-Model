@@ -1,0 +1,83 @@
+# RES-COLLECTION-001 live episode 5101 evidence
+
+Date: 2026-09-02
+Engine/project: Unreal Engine 5.8.2 / Game Animation Sample
+Accepted split: train
+
+## Frozen configuration
+
+- Episode ID: 5101 through `BeginPlayResetEpisodeId`.
+- Motion / intermediate-stop / final-stop durations: 0.55 / 0.25 / 0.35 s.
+- Forward / reverse / lateral / diagonal-component speeds: 120 / 90 / 110 / 75 cm/s.
+- Antipodal facing tie break: 0.5 degrees.
+- Varied schedule on; timed gate and external perturbation off; reset repeat count one.
+- The raw schema records the realized action sequence, not these editable schedule fields as a
+  named header object. The pre-training collection plan preserves the entered configuration.
+
+## Runtime evidence
+
+- Reset queued from 133.846 cm away and passed on attempt one.
+- Verified reset error: 0.000 cm position, 0.000 degrees facing, 0.000 cm/s linear speed, and
+  0.000 deg/s angular speed; movement mode `Walking`.
+- Schedule declared 3.600 s and completed at 3.620 s.
+- All eight phases were logged. Realized action counts over 130 transitions:
+  - `(120, 0)` forward: 20
+  - `(-90, 0)` reverse: 20
+  - `(0, 110)` right: 20
+  - `(0, -110)` left: 20
+  - `(75, 75)` diagonal: 19
+  - `(0, 0)` stops: 31
+- Recorder: observed 131, attempted 130, recorded 130, rejected 0, rejected seeds 0,
+  capacity drops 0.
+- Export: schema 5, 132 JSONL lines, 710746 bytes, 20.876 ms.
+- Strict independent loader: `valid=true episode=5101 transitions=130 attempted=130 rejected=0
+  capacity_drops=0`.
+- Raw file: `episode_5101_20260902T203328Z_3ED1E0C50841.jsonl`.
+- Raw SHA-256: `eb437123d88dcf0c7b96b7f4fa5e2d75f502c2b70bc08408094b154693c3eaae`.
+
+## Coverage audit
+
+- Actual timestep min / median / p95 / max: 0.021 / 0.028 / 0.031 / 0.037 s.
+- Maximum observed planar speed: 119.732 cm/s.
+- Observed yaw range: -178.343 to 177.923 degrees.
+- Movement mode: Walking on all 130 rows.
+- External-event type: none on all 130 rows.
+- Current-versus-completed parameter change rows: 23.
+- Residual builder output: 130 no-history examples and 127 complete four-history examples.
+
+## Nominal and causal audit
+
+The retrospective completed-step oracle remains near numerical precision:
+
+- maximum planar position error: `2.273e-7 cm`;
+- maximum planar velocity error: `4.906e-6 cm/s`;
+- maximum yaw error: `0.029629 degrees`;
+- maximum yaw-rate error: `1.05817 deg/s`.
+
+The deployable current-snapshot baseline exposes sparse parameter-regime mismatch:
+
+- maximum planar position error: `0.076833 cm`;
+- maximum planar velocity error: `2.561111 cm/s`;
+- maximum yaw error: `7.128842 degrees`;
+- maximum yaw-rate error: `254.601485 deg/s`.
+
+Every material error aligns with a current-to-completed parameter change:
+
+- position above 0.001 cm: 3/3 on change rows, 0 off-change;
+- velocity above 0.01 cm/s: 3/3 on change rows, 0 off-change;
+- yaw above 0.1 degrees: 13/13 on change rows, 0 off-change;
+- yaw rate above 1 deg/s: 17/17 on change rows, 0 off-change.
+
+Causal held-parameter recursive p95 position / velocity / yaw error:
+
+- 0.5 s: 14.820 cm / 50.331 cm/s / 45.806 degrees (113 windows);
+- 1.0 s: 19.986 cm / 41.720 cm/s / 47.438 degrees (95 windows);
+- 1.5 s: 12.784 cm / 42.777 cm/s / 38.858 degrees (77 windows).
+
+## Acceptance boundary
+
+Accept episode 5101 as the first training-split collection episode. It has unique identity/hash,
+strict row validity, exact reset, six realized actions, stop/turn/reversal coverage, no hidden event,
+and reproduces the causal parameter-schedule target under different speeds and durations. This one
+episode does not establish dataset coverage, train a model, prove generalization, or justify looking
+at the frozen test episodes during model selection.

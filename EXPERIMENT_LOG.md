@@ -57,6 +57,7 @@ Artifacts and reproduction command:
 | RES-CONTRACT-001 | Is the planar residual target causal, invertible, and exactly zero-identical? | Day 3 | Completed |
 | RES-DATASET-001 | Are residual examples consecutive, episode-safe, and free of future/event leakage? | Day 3 | Completed |
 | RES-MODEL-SMOKE-001 | Do matched MLPs satisfy size, fallback, shape, gradient, and seed invariants? | Day 3 | Completed |
+| RES-COLLECTION-001 | Does a distinct schedule reproduce valid causal residual structure? | Day 3 | Episode 5101 accepted; collection ongoing |
 | RES-001 | Does residual learning improve held-out recursive prediction over nominal? | Day 3 | Planned |
 | RES-002 | Does four-step history improve post-perturbation prediction over no history? | Day 3 | Planned |
 | CEM-001 | Does fixed-seed CEM recover known optima in toy costs deterministically? | Day 4 | Planned |
@@ -1251,3 +1252,41 @@ be interpreted with a size-controlled ablation if it is material.
 
 **Implementation:** `motionworld/models/residual_mlp.py` and
 `tests/unit/test_residual_mlp.py`.
+
+## RES-COLLECTION-001 frozen collection and live episode 5101 (2026-09-02)
+
+**Question:** Does a separately identified, shorter and lower-speed varied schedule pass the strict
+data boundary and reproduce the causal parameter-regime target rather than an equation or logging
+failure?
+
+**Pre-training split decision:** `configs/residual_collection_plan.yaml` freezes five train episodes
+(5101-5105), two validation episodes (5201-5202), and two untouched test episodes (5301-5302), each
+with a distinct configuration. Three tests enforce unique IDs, disjoint split labels, distinct valid
+schedules, and exact accepted-file provenance. Raw Epic data remains external and untracked.
+
+**Episode 5101 configuration:** 0.55 s motion phases, 0.25 s intermediate stops, 0.35 s final stop;
+120/90/110/75 cm/s forward/reverse/lateral/diagonal-component speeds; 0.5-degree reverse-facing tie
+break. The schedule is 3.6 s versus episode 4201's 5.3 s default schedule.
+
+**Integrity and coverage:** Reset passed on attempt one with zero position, facing, linear-speed, and
+angular-speed error. The run completed at 3.620 s, recorded 130/130 transitions without loss, exported
+schema 5, and passed the independent loader. Six realized actions contain 20 forward, 20 reverse, 20
+right, 20 left, 19 diagonal, and 31 zero rows. All rows are Walking and event-free. It yields 130
+no-history and 127 four-history examples. Raw SHA-256 is
+`eb437123d88dcf0c7b96b7f4fa5e2d75f502c2b70bc08408094b154693c3eaae`.
+
+**Scientific audit:** Retrospective maxima remain `2.273e-7 cm`, `4.906e-6 cm/s`, `0.029629 deg`,
+and `1.058 deg/s`, confirming equation fidelity. Causal current-snapshot maxima are 0.076833 cm,
+2.561111 cm/s, 7.128842 deg, and 254.601485 deg/s. All 3 position errors above 0.001 cm, all 3
+velocity errors above 0.01 cm/s, all 13 yaw errors above 0.1 deg, and all 17 yaw-rate errors above
+1 deg/s occur on parameter-change rows; none occur off-change. Held-parameter recursive p95 position
+error is 14.820/19.986/12.784 cm at 0.5/1.0/1.5 s.
+
+**Reviewer interpretation:** Accept 5101 into the training split. This reproduces the causal target
+under changed duration and action magnitudes, but one episode is not sufficient for training or a
+coverage claim. The schema stores realized actions rather than the editable schedule as a named
+header object, so the frozen plan/evidence preserves configuration provenance explicitly. Test
+episodes remain unavailable for model selection.
+
+**Evidence:** `evidence/unreal/res_collection_live_episode_5101.log` and
+`configs/residual_collection_plan.yaml`.
