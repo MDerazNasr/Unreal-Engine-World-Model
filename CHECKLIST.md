@@ -510,6 +510,8 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [x] Align action at time `t` with correct next state at `t+1`; live episode 1601 accepted all 922 adjacent pairs with zero rejection.
 - [x] Compare nominal and Unreal one-step transitions; schema-v4 episode 4001 reproduces 104 non-collision rows to micro-numerical tolerance without manual facing/max-speed inputs.
 - [x] Compare recursive errors at 0.5, 1.0, and 1.5 s.
+- [x] Compile and automation-test the explicit -179.5-degree antipodal facing tie-break.
+- [ ] Live-validate that the tie-break removes the isolated angular rollout spike.
 - [ ] Stratify free motion, acceleration, stopping, reversing, turning, contact, and post-push.
 - [x] Plot position, velocity, facing, and angular-velocity error separately.
 - [x] Inspect systematic bias rather than only aggregate mean.

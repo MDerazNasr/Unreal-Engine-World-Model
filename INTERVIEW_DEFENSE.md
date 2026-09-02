@@ -21,7 +21,8 @@ The failure is localized, not contradictory. Most episode-4101 windows avoid the
 turn and stay at numerical-noise angular error. Every window above one degree crosses one reverse
 boundary where Unreal temporarily represents the target as -179 degrees while the scalar nominal
 chooses the other equal 180-degree arc. Median describes typical windows; p95 exposes a rare but
-planner-dangerous edge. I report both and fix the known quaternion path before training a residual.
+planner-dangerous edge. I report both and define a deterministic -179.5-degree clockwise tie-break
+before training a residual; replacement live evidence must show the tail disappears.
 
 ### Why keep actor and animation state separate?
 

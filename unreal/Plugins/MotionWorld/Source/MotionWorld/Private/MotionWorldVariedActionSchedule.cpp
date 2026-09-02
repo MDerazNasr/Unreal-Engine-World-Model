@@ -6,6 +6,12 @@ bool IsFiniteNonNegative(const double Value)
 {
 	return FMath::IsFinite(Value) && Value >= 0.0;
 }
+
+FVector MakeReverseOrientationIntent(const double TieBreakDegrees)
+{
+	const double YawRadians = FMath::DegreesToRadians(-180.0 + TieBreakDegrees);
+	return FVector(FMath::Cos(YawRadians), FMath::Sin(YawRadians), 0.0);
+}
 }
 
 bool MotionWorld::IsVariedActionScheduleConfigValid(
@@ -19,6 +25,9 @@ bool MotionWorld::IsVariedActionScheduleConfigValid(
 		&& Config.FinalStopDurationSeconds > 0.0
 		&& IsFiniteNonNegative(Config.ForwardSpeedCmPerSec)
 		&& IsFiniteNonNegative(Config.ReverseSpeedCmPerSec)
+		&& FMath::IsFinite(Config.AntipodalFacingTieBreakDegrees)
+		&& Config.AntipodalFacingTieBreakDegrees >= 0.25
+		&& Config.AntipodalFacingTieBreakDegrees <= 5.0
 		&& IsFiniteNonNegative(Config.LateralSpeedCmPerSec)
 		&& IsFiniteNonNegative(Config.DiagonalComponentSpeedCmPerSec);
 }
@@ -77,12 +86,14 @@ FMotionWorldVariedActionScheduleSample MotionWorld::EvaluateVariedActionSchedule
 	{
 		Result.Phase = EMotionWorldVariedActionPhase::Reverse;
 		Result.DesiredVelocityWorldCmPerSec = FVector(-Config.ReverseSpeedCmPerSec, 0.0, 0.0);
-		Result.OrientationIntentWorld = -FVector::ForwardVector;
+		Result.OrientationIntentWorld = MakeReverseOrientationIntent(
+			Config.AntipodalFacingTieBreakDegrees);
 	}
 	else if (ElapsedSeconds < ReverseStopEnd)
 	{
 		Result.Phase = EMotionWorldVariedActionPhase::ReverseStop;
-		Result.OrientationIntentWorld = -FVector::ForwardVector;
+		Result.OrientationIntentWorld = MakeReverseOrientationIntent(
+			Config.AntipodalFacingTieBreakDegrees);
 	}
 	else if (ElapsedSeconds < RightEnd)
 	{

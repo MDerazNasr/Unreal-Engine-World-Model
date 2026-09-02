@@ -39,6 +39,16 @@ struct MOTIONWORLD_API FMotionWorldVariedActionScheduleConfig
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MotionWorld|Collection", meta = (ClampMin = "0.0"))
 	double ReverseSpeedCmPerSec = 150.0;
 
+	/**
+	 * Clockwise offset from the exactly antipodal world -X facing target.
+	 *
+	 * FQuat::FindBetween has two equally short answers at exactly 180 degrees.
+	 * Keeping this above the engine's opposite-vector branch threshold makes the
+	 * intended turn direction causal and reproducible without changing velocity.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MotionWorld|Collection", meta = (ClampMin = "0.25", ClampMax = "5.0"))
+	double AntipodalFacingTieBreakDegrees = 0.5;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MotionWorld|Collection", meta = (ClampMin = "0.0"))
 	double LateralSpeedCmPerSec = 140.0;
 

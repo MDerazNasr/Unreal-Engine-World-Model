@@ -1048,7 +1048,7 @@ Alternatives considered: teacher-force every step; use a fixed number of rows as
 constant; interpolate the authoritative endpoint; use recorded hidden state at every step; silently
 give MPC future Blueprint parameters; report only a mean across horizons.
 
-Evidence: Nine focused tests include stationary zero-error rollouts, invalid horizons, and a trap
+Evidence: Ten focused tests include stationary zero-error rollouts, invalid horizons, and a trap
 where an intermediate real state is deliberately corrupted while the start-to-end recursive result
 must remain unchanged. All 189 Python tests pass. Episode 4101 yields 173/154/136 valid windows at
 0.5/1.0/1.5 seconds. Translational errors remain below `8.35e-6 cm` position and `1.65e-5 cm/s`
@@ -1068,3 +1068,44 @@ degree crosses the already-identified transition 46; all non-crossing windows st
 `2.21e-5 deg` yaw error, localizing rather than averaging away the failure.
 
 Related config/commit/experiment: `NOM-ROLL-001`; episode 4101; horizons 0.5/1.0/1.5 seconds.
+
+## D-032 - Make the exact-antipodal facing tie explicit
+
+Status: closed-editor implementation accepted; replacement live episode pending
+
+Decision: Preserve the exact reverse velocity request, but offset its orientation intent clockwise
+from world -X by a configurable 0.5 degrees. Reject tie-break values below 0.25 degrees or above
+5 degrees. This policy applies to the deterministic coverage schedule; the eventual online action
+preprocessor must use the same declared rule whenever its desired world facing is exactly antipodal
+to Unreal's forward basis.
+
+Why: `FQuat::FindBetween(+X, -X)` sits on a mathematical tie: clockwise and counter-clockwise are
+equally short. Episode 4101 records a scalar -180-degree intent but a one-frame -179-degree internal
+target, after which the target becomes the equivalent +180-degree quaternion. That unobserved
+one-frame choice dominates recursive yaw tails. A small explicit offset makes the turn direction
+causal, unique, and reproducible without allowing a residual network to learn a known interface edge.
+
+Alternatives considered: drop the failing windows; train the residual on them; use the next hidden
+state as the current target; add yaw as a third planner action; change the requested reverse velocity;
+assume one of the two 180-degree arcs without live evidence.
+
+Evidence: Source inspection confirms UE 5.8 `SimpleWalkingMode` constructs facing with
+`FQuat::FindBetween(FVector::ForwardVector, DesiredFacingDir)` and its exact-opposite helper has a
+special branch. The unit cases require reverse velocity to remain exactly `(-150,0,0)`,
+facing to remain unit length, yaw to equal -179.5 degrees, and the clockwise side of the tie to be
+selected. The actual universal Game Animation Sample build succeeded in 158.65 seconds, and all 12
+MotionWorld automation tests passed. Live replacement evidence is still pending.
+
+Main assumption: A 0.5-degree facing-only deviation is negligible to the intended reverse-motion
+task while safely exceeding the engine helper's opposite-vector threshold.
+
+How it could fail: The Blueprint or runtime input pipeline could still transform the target; a
+planner could use a different preprocessing path; the offset could create a measurable animation
+artifact; a replacement episode might expose a different discontinuity.
+
+How I tested it: The actual universal sample compiled for arm64 and x86_64, source parity was exact,
+and the complete 12-test suite passed. Next collect a new unique varied episode. Require the first
+reverse row to record -179.5 degrees and the one-step/recursive angular spike to disappear before
+accepting the live policy.
+
+Related config/commit/experiment: `FACING-001`; replacement varied episode pending.

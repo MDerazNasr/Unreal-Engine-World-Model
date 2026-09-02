@@ -51,6 +51,7 @@ Artifacts and reproduction command:
 | NOM-002 | Is meaningful, systematic residual error present in Unreal rollouts? | Day 2 | Planned |
 | VAR-DATA-001 | Does the deterministic schedule produce valid stop/reverse/turn coverage? | Day 2 | Completed |
 | NOM-ROLL-001 | How does faithful nominal error compound over 0.5/1.0/1.5 s? | Day 2 | Completed |
+| FACING-001 | Does an explicit antipodal tie-break remove the known angular rollout spike? | Day 2 | In progress |
 | RES-001 | Does residual learning improve held-out recursive prediction over nominal? | Day 3 | Planned |
 | RES-002 | Does four-step history improve post-perturbation prediction over no history? | Day 3 | Planned |
 | CEM-001 | Does fixed-seed CEM recover known optima in toy costs deterministically? | Day 4 | Planned |
@@ -1000,9 +1001,40 @@ residual training. This episode alone supplies no systematic learnable free-spac
 not satisfy NOM-002 contact/push/generalization evidence. The result also demonstrates why median,
 p95, and failure localization must all be reported.
 
-**Validation:** Nine focused rollout tests and 189 full tests pass; Ruff passes on all Python source.
+**Validation:** Ten focused rollout tests and 190 full tests pass; Ruff passes on all Python source.
 The recursive-state trap proves no intermediate teacher forcing. Plot reviewed visually.
 
 **Artifacts:** `artifacts/nominal/episode_4101_varied/recursive_rollouts.csv`,
 `recursive_summary.json`, `recursive_error.png`, and
 `evidence/unreal/nom_roll_001_episode_4101.log`.
+
+## FACING-001 explicit antipodal tie-break — closed-editor accepted (2026-09-02)
+
+**Question:** Can the velocity-only facing policy remove the exact-180-degree ambiguity without
+changing the reverse velocity action or hiding the failure inside a learned residual?
+
+**Hypothesis:** Keeping reverse velocity at `(-150,0,0)` cm/s while setting orientation intent to a
+unit -179.5-degree vector will select one quaternion arc deterministically and remove transition-46-
+style angular tails in a replacement varied episode.
+
+**Prepared configuration:** Default tie-break 0.5 degrees clockwise; accepted range 0.25–5 degrees;
+all schedule timings and translational velocities unchanged. The schedule and reverse stop share the
+same target.
+
+**Closed-editor evidence:** UE 5.8 source uses an explicit opposite-vector branch inside
+`FQuat::FindBetween`; episode 4101 localizes every recursive yaw error above one degree to the exact
+opposite transition. C++ tests are prepared for velocity preservation, unit facing, exact -179.5
+degrees, clockwise sign, and invalid zero tie-break rejection. The actual universal sample build
+succeeded in 158.65 seconds, and all 12 MotionWorld tests passed. An isolated cold BuildPlugin run
+passed header/reflection generation, then was deliberately stopped without acceptance when Unreal
+reported 14.7/16 GB committed memory while compiling 62 universal actions. The lower-memory actual-
+sample incremental build used 12 actions and completed successfully.
+
+**Acceptance gate:** Actual universal sample build, complete MotionWorld automation suite, and one
+new unique live episode. The new first reverse row must record -179.5 degrees, and one-step/recursive
+angular evaluation must no longer show the episode-4101 spike.
+
+**Current decision:** Accept the closed-editor implementation and regression gate. Keep the
+experiment `In progress` until the new live episode and angular reevaluation pass.
+
+**Artifact:** `evidence/unreal/facing_001_antipodal_automation.log`.

@@ -1,0 +1,40 @@
+# FACING-001 antipodal facing policy closed-editor evidence
+
+Date: 2026-09-02
+Engine/project: Unreal Engine 5.8.2 / Game Animation Sample
+
+## Build
+
+- Repository source was deployed into the closed sample with exact directory parity.
+- Built `GameAnimationSampleEditor Mac Development -architecture=arm64+x86_64`.
+- Result: Succeeded in 158.65 seconds; 12/12 actions completed.
+- Output plugin is universal: x86_64 and arm64.
+- Deployed dylib SHA-256:
+  `1491d29dd114cb4ae2b3d645a44f49087d5c5b96fd55f32e98f8ce9111118288`
+
+## Automation
+
+- Command filter: `Automation RunTests MotionWorld.`
+- Tests discovered and completed: 12.
+- Result: 12 Success, 0 Fail.
+- New/changed test: `MotionWorld.Collection.VariedActionSchedule` — Success.
+- It verifies exact reverse velocity preservation, unit facing, clockwise tie selection,
+  desired yaw -179.5 degrees, and rejection of an ambiguous zero-degree tie-break.
+- Raw log SHA-256:
+  `f62e79e0c0bb0e2a4b0560100a00b4e53cdc6eb586d522aac71abf02982baf9a`
+- Raw local log:
+  `~/Library/Logs/Unreal Engine/GameAnimationSampleEditor/private/tmp/motionworld_facing_automation.log`
+
+## Resource note
+
+- A prior cold isolated BuildPlugin run passed Unreal Header Tool, then was deliberately
+  interrupted when UBA reported 14.7/16 GB committed memory for 62 queued actions.
+- The incremental actual-sample build used 12 actions and completed successfully.
+- The interrupted run is not counted as acceptance evidence.
+
+## Scope
+
+This accepts compilation, reflection, source parity, pure schedule semantics, and regression
+safety. It does not yet prove that the live Blueprint/runtime records -179.5 degrees or that the
+episode-4101 recursive angular tail disappears. A new uniquely identified live varied episode is
+still required.

@@ -840,6 +840,17 @@ erase the controller's rotation/spring memory. Although the script is written in
 to make level coverage reproducible, each transition already stores both the echoed world command
 and its character-local representation relative to the previous authoritative facing.
 
+There is one numerical exception to exact velocity alignment. World `-X` is exactly opposite the
+fixed `+X` basis used by Unreal's `FQuat::FindBetween`. At that point both turn directions have the
+same 180-degree length. The replacement schedule keeps velocity exactly `(-150,0,0)` but defines its
+facing as -179.5 degrees:
+
+`f_reverse = (cos(-179.5 degrees), sin(-179.5 degrees), 0)`
+
+This changes only the facing target by 0.5 degrees and deterministically selects the clockwise arc.
+It is a controller-interface rule, not learned physics. The value is large enough to avoid Unreal's
+exact-opposite branch and small enough not to alter the requested translational task materially.
+
 This is a coverage generator, not a claim that the final model has adequate data. A live episode
 must still prove every phase occurred, the reset and export completed, the strict loader accepted all
 rows, and the realized distributions actually contain braking, reversal, turning, and stopping.
@@ -851,7 +862,9 @@ reverse row, Unreal's reflected intermediate target represents -179 degrees, whi
 intent-derived scalar target is -180 degrees. A scalar shortest-angle function selected the other
 equal arc, producing a one-row angular mismatch. This is not evidence that the movement is random;
 it is evidence that exact-opposite quaternion construction/representation is part of the known
-nominal transformation and must be reproduced or explicitly declared unresolved.
+nominal transformation and must be reproduced or explicitly declared unresolved. D-032 resolves the
+input policy prospectively with the -179.5-degree tie-break; episode 4101 remains preserved as the
+failure that motivated it, not rewritten after the fact.
 
 The recursive result makes the difference between median and tail statistics concrete. Most rollout
 windows never cross the exact-opposite edge, so median yaw error is near zero. Every window with more
