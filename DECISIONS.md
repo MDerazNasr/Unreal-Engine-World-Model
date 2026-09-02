@@ -1539,7 +1539,8 @@ Related artifacts: `artifacts/residual/training_001/` and
 Status: core optimizer and synthetic oracle accepted; dynamics/cost integration pending
 
 Decision: At each 10 Hz planning update, represent the 1.5-second action plan with five planar
-velocity knots expanded piecewise-constantly across 15 model steps. Begin with 256 candidates,
+velocity knots expanded piecewise-constantly across 15 planning steps, with three internal dynamics
+substeps per planning step. Begin with 256 candidates,
 32 elites, three iterations, population-variance updates, 0.1 distribution momentum, a 5 cm/s
 standard-deviation floor, and a 165 cm/s L2 speed bound. Pre-generate the standard-normal noise so
 nominal and residual solvers can use common randomness.

@@ -29,7 +29,7 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def _read_config(path: Path) -> tuple[CEMConfig, int, float, float, np.ndarray]:
+def _read_config(path: Path) -> tuple[CEMConfig, int, float, float, int, np.ndarray]:
     raw = yaml.safe_load(path.read_text(encoding="utf-8"))
     if not isinstance(raw, dict):
         raise ValueError("CEM config must be a mapping")
@@ -39,6 +39,7 @@ def _read_config(path: Path) -> tuple[CEMConfig, int, float, float, np.ndarray]:
         "seed",
         "decision_interval_s",
         "horizon_s",
+        "dynamics_substeps_per_plan_step",
         "optimizer",
         "toy_oracle",
     }
@@ -62,11 +63,14 @@ def _read_config(path: Path) -> tuple[CEMConfig, int, float, float, np.ndarray]:
         or horizon_s <= 0.0
     ):
         raise ValueError("planner timing must be positive and finite")
-    expected_model_steps = round(horizon_s / decision_interval_s)
-    if config.num_model_steps != expected_model_steps:
-        raise ValueError("num_model_steps must equal horizon / decision interval")
-    if config.num_knots > config.num_model_steps:
-        raise ValueError("num_knots cannot exceed num_model_steps")
+    substeps = raw["dynamics_substeps_per_plan_step"]
+    if isinstance(substeps, bool) or not isinstance(substeps, int) or substeps <= 0:
+        raise ValueError("dynamics_substeps_per_plan_step must be a positive integer")
+    expected_plan_steps = round(horizon_s / decision_interval_s)
+    if config.num_plan_steps != expected_plan_steps:
+        raise ValueError("num_plan_steps must equal horizon / decision interval")
+    if config.num_knots > config.num_plan_steps:
+        raise ValueError("num_knots cannot exceed num_plan_steps")
     toy = raw["toy_oracle"]
     if not isinstance(toy, dict) or set(toy) != {"target_action_cm_s"}:
         raise ValueError("toy_oracle must contain only target_action_cm_s")
@@ -75,7 +79,7 @@ def _read_config(path: Path) -> tuple[CEMConfig, int, float, float, np.ndarray]:
         raise ValueError("toy target must contain two finite values")
     if np.linalg.norm(target) > config.max_action_speed_cm_s:
         raise ValueError("toy target must lie inside the legal speed ball")
-    return config, seed, decision_interval_s, horizon_s, target
+    return config, seed, decision_interval_s, horizon_s, substeps, target
 
 
 def _write_json(path: Path, value: Any) -> None:
@@ -137,10 +141,12 @@ def main() -> None:
     parser.add_argument("--git-commit", required=True)
     args = parser.parse_args()
 
-    planner_config, seed, decision_interval_s, horizon_s, target = _read_config(args.config)
+    planner_config, seed, decision_interval_s, horizon_s, substeps, target = _read_config(
+        args.config
+    )
     # The oracle isolates one two-dimensional CEM decision. The deployable planner retains the
     # same sample/elite/iteration/bound settings but optimizes five knots over fifteen steps.
-    config = replace(planner_config, num_knots=1, num_model_steps=1)
+    config = replace(planner_config, num_knots=1, num_plan_steps=1)
 
     def quadratic_cost(actions: np.ndarray) -> np.ndarray:
         return np.mean(np.sum(np.square(actions - target), axis=-1), axis=1)
@@ -165,6 +171,8 @@ def main() -> None:
         "seed": seed,
         "decision_interval_s": decision_interval_s,
         "horizon_s": horizon_s,
+        "dynamics_substeps_per_plan_step": substeps,
+        "dynamics_substep_s": decision_interval_s / substeps,
         "tensor_shapes": {
             "noise": list(config.noise_shape),
             "knot_candidates_per_iteration": [
@@ -174,7 +182,7 @@ def main() -> None:
             ],
             "expanded_actions_per_iteration": [
                 config.num_candidates,
-                config.num_model_steps,
+                config.num_plan_steps,
                 config.action_dim,
             ],
         },

@@ -718,7 +718,7 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 
 - [x] Define exact tensor shapes for candidates, knots, steps, and action dimensions.
 - [x] Sample from fixed-seed Gaussian distribution.
-- [x] Expand knots to model steps.
+- [x] Expand knots to 100 ms planning/action steps; dynamics substeps are a separate contract.
 - [x] Clamp/project actions into the legal planar speed ball, including a literal floating-point
   boundary guarantee.
 - [ ] Batch rollout all candidates.

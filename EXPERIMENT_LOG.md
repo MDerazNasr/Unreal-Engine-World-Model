@@ -1539,7 +1539,8 @@ Configuration: Synthetic quadratic target `[90, -55]` cm/s; 256 candidates; 32 e
 iterations; initial standard deviation 110 cm/s; variance floor 5 cm/s; population-variance momentum
 0.1; maximum L2 speed 165 cm/s; PCG64 seed 20260903. The oracle uses one knot/one step to isolate
 optimizer behavior. The separately frozen planned runtime shape is five knots expanded across 15
-100 ms model steps over 1.5 seconds.
+100 ms planning steps over 1.5 seconds, with three approximately 33.3 ms dynamics substeps per
+planning step.
 
 Result: Accepted for the optimizer only. The returned first action is
 `[88.565541, -55.906396]` cm/s, 1.696828 cm/s from the known optimum. Best cost changes

@@ -4,7 +4,7 @@ Tensor convention:
 
 * standard noise and knot candidates: ``[iteration, candidate, knot, action]``;
 * one iteration of knot candidates: ``[candidate, knot, action]``;
-* expanded model actions: ``[candidate, model_step, action]``;
+* expanded planning actions: ``[candidate, plan_step, action]``;
 * distribution mean and standard deviation: ``[knot, action]``.
 
 The optimizer is transition-model agnostic.  Its callback receives the complete
@@ -33,7 +33,7 @@ class CEMConfig:
     num_elites: int = 32
     num_iterations: int = 3
     num_knots: int = 15
-    num_model_steps: int = 45
+    num_plan_steps: int = 15
     action_dim: int = 2
     max_action_speed_cm_s: float = 165.0
     initial_std_cm_s: float = 110.0
@@ -47,7 +47,7 @@ class CEMConfig:
             self.num_elites,
             self.num_iterations,
             self.num_knots,
-            self.num_model_steps,
+            self.num_plan_steps,
             self.action_dim,
         )
         if any(
@@ -161,20 +161,22 @@ def project_velocity_actions(actions_cm_s: FloatArray, *, maximum_speed_cm_s: fl
     return projected * inward_scale
 
 
-def expand_action_knots(knots_cm_s: FloatArray, *, num_model_steps: int) -> FloatArray:
-    """Hold piecewise-constant knots across an exact number of model steps."""
+def expand_action_knots(knots_cm_s: FloatArray, *, num_plan_steps: int) -> FloatArray:
+    """Hold piecewise-constant knots across an exact number of planning steps."""
 
     knots = np.asarray(knots_cm_s, dtype=np.float64)
     if knots.ndim < 2:
         raise ValueError("knots must have at least knot and action dimensions")
     if not np.all(np.isfinite(knots)):
         raise ValueError("knots must be finite")
-    if isinstance(num_model_steps, bool) or num_model_steps <= 0:
-        raise ValueError("num_model_steps must be a positive integer")
+    if isinstance(num_plan_steps, bool) or not isinstance(num_plan_steps, int):
+        raise ValueError("num_plan_steps must be a positive integer")
+    if num_plan_steps <= 0:
+        raise ValueError("num_plan_steps must be a positive integer")
     num_knots = knots.shape[-2]
     if num_knots <= 0:
         raise ValueError("knots cannot be empty")
-    indices = np.floor(np.arange(num_model_steps) * num_knots / num_model_steps).astype(int)
+    indices = np.floor(np.arange(num_plan_steps) * num_knots / num_plan_steps).astype(int)
     return np.take(knots, indices, axis=-2)
 
 
@@ -249,7 +251,7 @@ def _safe_result(config: CEMConfig, state: CEMState, reason: str) -> CEMResult:
     return CEMResult(
         first_action_cm_s=knots[0].copy(),
         best_knots_cm_s=knots,
-        best_actions_cm_s=expand_action_knots(knots, num_model_steps=config.num_model_steps),
+        best_actions_cm_s=expand_action_knots(knots, num_plan_steps=config.num_plan_steps),
         best_cost=math.inf,
         final_state=state,
         iterations=(),
@@ -292,7 +294,7 @@ def optimize_cem(
                 candidates,
                 maximum_speed_cm_s=config.max_action_speed_cm_s,
             )
-        expanded = expand_action_knots(candidates, num_model_steps=config.num_model_steps)
+        expanded = expand_action_knots(candidates, num_plan_steps=config.num_plan_steps)
         costs = np.asarray(cost_function(expanded), dtype=np.float64)
         if costs.shape != (config.num_candidates,):
             raise ValueError(
@@ -331,7 +333,7 @@ def optimize_cem(
         return _safe_result(config, state, "no finite candidate was selected")
     best_actions = expand_action_knots(
         global_best_knots,
-        num_model_steps=config.num_model_steps,
+        num_plan_steps=config.num_plan_steps,
     )
     return CEMResult(
         first_action_cm_s=best_actions[0].copy(),

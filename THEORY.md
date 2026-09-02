@@ -377,7 +377,9 @@ With momentum `alpha`:
 `sigma_next^2 = alpha * sigma_old^2 + (1 - alpha) * sigma_elite^2`
 
 MotionWorld samples **five action knots**, each a two-dimensional local desired velocity, then holds
-those knots piecewise-constant over 15 model steps. Thus the deployed search space has 10 numbers,
+those knots piecewise-constant over 15 planning steps of 100 ms. Each planning step is evaluated by
+three internal nominal/residual dynamics substeps of approximately 33.3 ms, near the training-step
+distribution. Thus the deployed search space has 10 numbers,
 not 30 independent per-step numbers. Reducing dimensionality is necessary because a finite CEM
 budget becomes exponentially sparse as dimensions increase. The one-knot CEM-001 oracle isolates
 the optimizer math; it is not evidence that the full five-knot control problem is already solved.

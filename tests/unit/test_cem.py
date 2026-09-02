@@ -23,7 +23,7 @@ def test_fixed_seed_reproduces_noise_and_complete_solution() -> None:
         num_elites=8,
         num_iterations=3,
         num_knots=2,
-        num_model_steps=4,
+        num_plan_steps=4,
     )
 
     def cost(actions: np.ndarray) -> np.ndarray:
@@ -72,7 +72,7 @@ def test_quadratic_toy_optimum_is_recovered_within_sampling_tolerance() -> None:
         num_elites=64,
         num_iterations=6,
         num_knots=1,
-        num_model_steps=1,
+        num_plan_steps=1,
         initial_std_cm_s=100.0,
         minimum_std_cm_s=0.1,
         momentum=0.0,
@@ -102,7 +102,7 @@ def test_every_optimizer_candidate_respects_speed_ball() -> None:
         num_elites=4,
         num_iterations=3,
         num_knots=3,
-        num_model_steps=7,
+        num_plan_steps=7,
         max_action_speed_cm_s=20.0,
         initial_std_cm_s=1.0e6,
     )
@@ -120,7 +120,7 @@ def test_every_optimizer_candidate_respects_speed_ball() -> None:
 
 def test_expansion_uses_piecewise_constant_balanced_intervals() -> None:
     knots = np.array([[[1.0, 0.0], [2.0, 0.0], [3.0, 0.0]]])
-    expanded = expand_action_knots(knots, num_model_steps=8)
+    expanded = expand_action_knots(knots, num_plan_steps=8)
     np.testing.assert_array_equal(expanded[0, :, 0], [1, 1, 1, 2, 2, 2, 3, 3])
 
 
@@ -139,7 +139,7 @@ def test_lowest_cost_candidate_is_selected() -> None:
         num_elites=1,
         num_iterations=1,
         num_knots=1,
-        num_model_steps=1,
+        num_plan_steps=1,
         initial_std_cm_s=1.0,
         minimum_std_cm_s=0.0,
         momentum=0.0,
@@ -176,7 +176,7 @@ def test_reusable_noise_gives_identical_first_iteration_candidates() -> None:
         num_elites=4,
         num_iterations=2,
         num_knots=2,
-        num_model_steps=2,
+        num_plan_steps=2,
     )
     noise = sample_standard_normal_schedule(config, seed=44)
     first = optimize_cem(
@@ -217,7 +217,7 @@ def test_nonfinite_costs_are_ignored_or_trigger_safe_zero_fallback() -> None:
         num_elites=2,
         num_iterations=1,
         num_knots=1,
-        num_model_steps=1,
+        num_plan_steps=1,
     )
     partly_valid = optimize_cem(
         lambda _: np.array([math.nan, 2.0, 1.0, math.inf]),
