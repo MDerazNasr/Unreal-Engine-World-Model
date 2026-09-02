@@ -6,6 +6,7 @@ import pytest
 from motionworld.models.residual_dataset import ResidualExample
 from motionworld.models.residual_features import RESIDUAL_STEP_FEATURE_COUNT
 from motionworld.models.residual_normalization import (
+    ResidualNormalization,
     feature_names_for_history,
     fit_residual_normalization,
 )
@@ -119,6 +120,21 @@ def test_serialized_contract_names_train_only_policy_and_all_dimensions() -> Non
     assert len(record["feature_names"]) == 28
     assert len(feature_names_for_history(4)) == 112
     assert record["target_center"] == [0.0] * 6
+
+
+def test_saved_normalization_round_trip_preserves_all_statistics() -> None:
+    normalization = _normalization()
+    restored = ResidualNormalization.from_dict(normalization.as_dict())
+
+    assert restored.as_dict() == normalization.as_dict()
+
+
+def test_saved_normalization_rejects_nonzero_target_center() -> None:
+    record = _normalization().as_dict()
+    record["target_center"][0] = 1.0
+
+    with pytest.raises(ValueError, match="zero-residual"):
+        ResidualNormalization.from_dict(record)
 
 
 @pytest.mark.parametrize("history_length", [0, 2, 3, 5])

@@ -333,6 +333,8 @@ def main() -> None:
         checkpoint_path = variant_dir / "checkpoint.pt"
         torch.save(
             {
+                "schema_name": "motionworld_residual_checkpoint",
+                "schema_version": 1,
                 "state_dict": trained[name].model.state_dict(),
                 "history_length": history_length,
                 "input_width": trained[name].model.input_width,

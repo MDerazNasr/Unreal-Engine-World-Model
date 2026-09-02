@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import numpy as np
 import pytest
 import torch
@@ -10,6 +12,7 @@ from motionworld.models.residual_mlp import ResidualMLP
 from motionworld.models.residual_normalization import fit_residual_normalization
 from motionworld.models.residual_training import (
     ResidualOptimizerConfig,
+    load_residual_checkpoint,
     normalized_huber_loss,
     predict_physical_residuals,
     residual_training_loss,
@@ -172,6 +175,38 @@ def test_physical_summary_converts_angular_units_and_vector_norms() -> None:
     assert summary["state_error"]["planar_position_cm"]["mean"] == pytest.approx(5.0)
     assert summary["state_error"]["yaw_deg"]["mean"] == pytest.approx(90.0)
     assert summary["state_error"]["yaw_rate_deg_s"]["mean"] == pytest.approx(180.0)
+
+
+def test_checkpoint_loader_restores_model_and_normalization(tmp_path: Path) -> None:
+    normalization = _normalization()
+    model = ResidualMLP(RESIDUAL_STEP_FEATURE_COUNT, hidden_widths=(8,))
+    path = tmp_path / "checkpoint.pt"
+    torch.save(
+        {
+            "schema_name": "motionworld_residual_checkpoint",
+            "schema_version": 1,
+            "state_dict": model.state_dict(),
+            "history_length": 1,
+            "input_width": RESIDUAL_STEP_FEATURE_COUNT,
+            "hidden_widths": [8],
+            "seed": 123,
+            "git_commit": "abc1234",
+            "training_config_sha256": "a" * 64,
+            "dataset_manifest_sha256": "b" * 64,
+            "normalization": normalization.as_dict(),
+        },
+        path,
+    )
+
+    loaded = load_residual_checkpoint(str(path))
+
+    assert loaded.history_length == 1
+    assert loaded.seed == 123
+    assert loaded.normalization.as_dict() == normalization.as_dict()
+    assert all(
+        torch.equal(loaded.model.state_dict()[name], model.state_dict()[name])
+        for name in model.state_dict()
+    )
 
 
 @pytest.mark.parametrize(

@@ -61,6 +61,19 @@ class TrainedResidualModel:
     trace: tuple[TrainingTraceRow, ...]
 
 
+@dataclass(frozen=True, slots=True)
+class LoadedResidualCheckpoint:
+    """Inference-ready model, normalization, and immutable provenance metadata."""
+
+    model: ResidualMLP
+    normalization: ResidualNormalization
+    history_length: int
+    seed: int
+    git_commit: str
+    training_config_sha256: str
+    dataset_manifest_sha256: str
+
+
 def normalized_huber_loss(prediction: Tensor, target: Tensor, *, beta: float) -> Tensor:
     """Mean per-component Huber loss in normalized residual coordinates."""
 
@@ -196,6 +209,39 @@ def predict_physical_residuals(
     with torch.no_grad():
         prediction = model(tensor).cpu().numpy().astype(np.float64)
     return normalization.denormalize_targets(prediction)
+
+
+def load_residual_checkpoint(path: str) -> LoadedResidualCheckpoint:
+    """Load a trusted MotionWorld checkpoint and reject schema/shape drift."""
+
+    record = torch.load(path, map_location="cpu", weights_only=False)
+    if not isinstance(record, dict) or record.get("schema_name") != (
+        "motionworld_residual_checkpoint"
+    ):
+        raise ValueError("unexpected residual checkpoint schema")
+    if record.get("schema_version") != 1:
+        raise ValueError("unsupported residual checkpoint schema version")
+    history_length = int(record["history_length"])
+    input_width = int(record["input_width"])
+    hidden_widths = tuple(int(value) for value in record["hidden_widths"])
+    normalization = ResidualNormalization.from_dict(record["normalization"])
+    if history_length != normalization.history_length or input_width != normalization.feature_width:
+        raise ValueError("checkpoint model and normalization schemas differ")
+    model = ResidualMLP(
+        input_width,
+        hidden_widths=hidden_widths,
+        zero_initialize_output=False,
+    )
+    model.load_state_dict(record["state_dict"], strict=True)
+    return LoadedResidualCheckpoint(
+        model=model.eval(),
+        normalization=normalization,
+        history_length=history_length,
+        seed=int(record["seed"]),
+        git_commit=str(record["git_commit"]),
+        training_config_sha256=str(record["training_config_sha256"]),
+        dataset_manifest_sha256=str(record["dataset_manifest_sha256"]),
+    )
 
 
 def _distribution(values: NDArray[np.float64]) -> dict[str, float]:

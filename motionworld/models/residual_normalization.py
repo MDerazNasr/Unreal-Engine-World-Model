@@ -170,6 +170,33 @@ class ResidualNormalization:
             },
         }
 
+    @classmethod
+    def from_dict(cls, record: dict[str, object]) -> ResidualNormalization:
+        """Rebuild a saved normalization contract with exact schema/name checks."""
+
+        if record.get("schema_name") != "motionworld_residual_normalization":
+            raise ValueError("unexpected residual normalization schema")
+        if record.get("schema_version") != RESIDUAL_NORMALIZATION_SCHEMA_VERSION:
+            raise ValueError("unsupported residual normalization schema version")
+        history_length = int(record["history_length"])
+        if tuple(record["feature_names"]) != feature_names_for_history(history_length):
+            raise ValueError("saved normalization feature names do not match history schema")
+        if tuple(record["target_names"]) != RESIDUAL_OUTPUT_NAMES:
+            raise ValueError("saved normalization target names do not match output schema")
+        if list(record["target_center"]) != [0.0] * RESIDUAL_OUTPUT_COUNT:
+            raise ValueError("saved normalization would break zero-residual identity")
+        return cls(
+            history_length=history_length,
+            train_episode_ids=tuple(int(value) for value in record["train_episode_ids"]),
+            sample_count=int(record["sample_count"]),
+            feature_mean=np.asarray(record["feature_mean"], dtype=np.float64),
+            feature_scale=np.asarray(record["feature_scale"], dtype=np.float64),
+            constant_feature_mask=np.asarray(record["constant_feature_mask"], dtype=np.bool_),
+            target_scale=np.asarray(record["target_scale"], dtype=np.float64),
+            constant_target_mask=np.asarray(record["constant_target_mask"], dtype=np.bool_),
+            scale_floor=float(record["scale_floor"]),
+        )
+
 
 def fit_residual_normalization(
     examples: tuple[ResidualExample, ...],
