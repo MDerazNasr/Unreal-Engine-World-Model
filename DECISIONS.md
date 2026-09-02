@@ -1118,3 +1118,44 @@ One-step yaw error max is 0.024337 degrees. Recursive yaw maxima at 0.5/1.0/1.5 
 0.042917/0.042917/0.029078 degrees, versus 174.296/174.296/89.390 before the policy. A one-frame
 internal -179.0 versus recorded -179.5 target remains below the 0.1-degree facing deadzone and is
 preserved as known preprocessing residue, not a learned residual target.
+
+## D-033 - Treat a controlled push as a labeled velocity intervention
+
+Status: pure schedule accepted; causal transition/schema integration pending
+
+Decision: Implement the controlled external perturbation with Mover's public one-tick additive
+velocity effect. Describe and store the intervention as a world-space velocity delta in cm/s, not as
+a force or mass-based impulse. Use an absolute-time, one-shot schedule with pre- and post-event
+observation intervals. If a long frame passes the trigger before the event is queued, keep the event
+due rather than silently completing the schedule.
+
+Why: `FApplyVelocityEffect` adds a requested velocity to Mover's current synchronized velocity for
+one tick. Calling that value a physical impulse would invent mass semantics that the API does not
+provide. The event-causing transition is not predictable when the model is intentionally denied the
+future event; its purpose is to create a measured recovery trajectory and test whether observable
+post-event history contains persistent, predictable error.
+
+Alternatives considered: apply actor transform directly; call the value a force; inject the future
+event into residual-model inputs; rely on a frame counter; discard the event transition; train on
+terminal gate collisions without obstacle context.
+
+Evidence: UE 5.8 `FApplyVelocityEffect` source explicitly supports additive velocity, applies it for
+one tick, and takes cm/s. The pure schedule validates finite planar nonzero deltas bounded to
+1000 cm/s, exact trigger/completion boundaries, one-shot behavior, and a late-frame case that cannot
+skip an unqueued event. The actual universal Game Animation Sample target compiled in 49.28 seconds;
+the focused headless automation test passed. A final 14.98-second rebuild added the excessive-kick
+regression. Final raw log SHA-256 begins `a6296104`; deployed dylib SHA-256 begins `d21aff94`.
+
+Main assumption: A bounded one-tick velocity kick is a useful reproducible proxy for an external
+gameplay disturbance, even though it is not a rigid-body force simulation.
+
+How it could fail: Mover may modify the requested delta during the affected step; forcing or
+preserving the movement mode may change semantics; a callback gap or resimulation could misalign the
+label; recovery may be exactly explained by the faithful nominal model and yield a negative result.
+
+How I tested it: Boundary tests cover before, at, and after the trigger; a nine-second late sample
+still requests an unqueued event; queued events are never requested twice; invalid timing, vertical,
+zero, oversized, and non-finite configurations fail closed. Runtime application and exact label
+alignment remain uncredited until the next protocol slice passes.
+
+Related config/commit/experiment: `PERT-SCHEDULE-001`; runtime/schema work pending.

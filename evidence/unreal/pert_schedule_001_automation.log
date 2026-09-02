@@ -1,0 +1,37 @@
+# PERT-SCHEDULE-001 closed-editor automation evidence
+
+Date: 2026-09-02
+Engine/project: Unreal Engine 5.8.2 / Game Animation Sample
+
+## Contract
+
+- One absolute-time, one-shot additive velocity intervention.
+- Default warmup: 1.5 seconds.
+- Default requested world-space velocity delta: `(0,250,0)` cm/s.
+- Default post-event observation: 2.0 seconds.
+- The value is a velocity kick, not a force or mass-based impulse.
+- An elapsed-time jump cannot skip an event that has not been confirmed queued.
+
+## Build
+
+- Source deployed with exact repo/sample parity before compilation.
+- Target: `GameAnimationSampleEditor Mac Development -architecture=arm64+x86_64`.
+- New-source build: succeeded in 49.28 seconds.
+- Final regression-only rebuild: succeeded in 14.98 seconds.
+- Deployed universal dylib SHA-256:
+  `d21aff948e22e4a445c3cb193e32260a662b46ee317796c1f02fcf36554588a4`
+
+## Focused automation
+
+- Filter: `MotionWorld.Collection.ExternalPerturbationSchedule`.
+- Tests found: 1.
+- Result: 1 succeeded, 0 failed.
+- Coverage: exact trigger/completion boundaries, late-frame non-skipping, duplicate prevention,
+  planar/nonzero/bounded request, and invalid/non-finite rejection.
+- Raw automation log SHA-256:
+  `a62961048b3fccc39abb8c47d87c137c8babfe346b5ce1d1289d99e0aefb3b65`
+
+## Claim boundary
+
+This accepts only the deterministic pure schedule. Runtime Mover application, event-to-transition
+alignment, schema export, independent Python validation, and live recovery evidence are pending.

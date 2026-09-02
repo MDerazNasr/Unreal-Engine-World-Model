@@ -52,6 +52,7 @@ Artifacts and reproduction command:
 | VAR-DATA-001 | Does the deterministic schedule produce valid stop/reverse/turn coverage? | Day 2 | Completed |
 | NOM-ROLL-001 | How does faithful nominal error compound over 0.5/1.0/1.5 s? | Day 2 | Completed |
 | FACING-001 | Does an explicit antipodal tie-break remove the known angular rollout spike? | Day 2 | Completed |
+| PERT-SCHEDULE-001 | Can one controlled Mover velocity kick be scheduled without frame-skip or duplicate ambiguity? | Day 2 | In progress |
 | RES-001 | Does residual learning improve held-out recursive prediction over nominal? | Day 3 | Planned |
 | RES-002 | Does four-step history improve post-perturbation prediction over no history? | Day 3 | Planned |
 | CEM-001 | Does fixed-seed CEM recover known optima in toy costs deterministically? | Day 4 | Planned |
@@ -1058,3 +1059,24 @@ Episode 4201 still supplies no systematic free-space residual and no collision/p
 
 Artifacts: `artifacts/nominal/episode_4201_antipodal/` and
 `evidence/unreal/facing_001_live_episode_4201.log`.
+
+## PERT-SCHEDULE-001 deterministic external velocity intervention (2026-09-02)
+
+**Hypothesis:** An absolute-time state machine can request exactly one bounded planar velocity kick,
+even when a frame arrives late, while preserving explicit pre-event and recovery intervals.
+
+**Configuration:** 1.5 s warmup, one additive world-space `(0,250,0)` cm/s request, and 2.0 s
+post-event observation. The public type and evidence call this a velocity perturbation rather than a
+force or mass-based impulse.
+
+**Closed-editor result:** The actual universal Game Animation Sample target compiled the new source
+in 49.28 s; the final excessive-bound test rebuild took 14.98 s. The focused
+`MotionWorld.Collection.ExternalPerturbationSchedule` test passed. It covers exact
+half-open boundaries, a nine-second late frame before queue confirmation, duplicate prevention,
+completion, and fail-closed timing/vector bounds.
+
+**Reviewer boundary:** This proves only the pure schedule. It does not prove that the effect is
+applied, that the event label is joined to the correct causal transition, or that recovery contains
+a learnable residual. Those remain required before the experiment can be completed.
+
+**Artifact:** `evidence/unreal/pert_schedule_001_automation.log`.

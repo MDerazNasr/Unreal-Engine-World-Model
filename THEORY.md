@@ -861,6 +861,23 @@ This is a coverage generator, not a claim that the final model has adequate data
 must still prove every phase occurred, the reset and export completed, the strict loader accepted all
 rows, and the realized distributions actually contain braking, reversal, turning, and stopping.
 
+### Controlled disturbance: velocity kick versus physical impulse
+
+The controlled push uses Mover's public additive-velocity effect. If the synchronized velocity just
+before the event is `v_t` and the requested kick is `Delta v`, the API requests:
+
+`v_event = v_t + Delta v`.
+
+`Delta v` has units of cm/s. A mechanical impulse would instead satisfy `J = m Delta v` and have
+units of mass times velocity. Because this experiment neither supplies nor uses mass, calling
+`Delta v` an impulse would overstate the physics.
+
+The event transition is deliberately not a fair prediction target when the future kick is hidden
+from the model. It should be reported separately. The scientifically useful question begins after
+the first disturbed state is observed: does the faithful nominal model recover exactly, or does
+recent observable history explain a persistent mismatch? This distinction prevents a model from
+appearing accurate merely because evaluation leaked the future intervention into its inputs.
+
 Episode 4101 exposes why rotations cannot always be reduced to an ordinary scalar angle without a
 declared tie rule. A requested 180-degree turn has two equally short physical paths: clockwise and
 counter-clockwise. Quaternions also identify `q` and `-q` as the same orientation. On the first
