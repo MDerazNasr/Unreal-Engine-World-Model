@@ -7,7 +7,7 @@ import argparse
 import hashlib
 import json
 import math
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from pathlib import Path
 from typing import Any
 
@@ -62,9 +62,11 @@ def _read_config(path: Path) -> tuple[CEMConfig, int, float, float, np.ndarray]:
         or horizon_s <= 0.0
     ):
         raise ValueError("planner timing must be positive and finite")
-    expected_knots = round(horizon_s / decision_interval_s)
-    if config.num_knots != expected_knots:
-        raise ValueError("num_knots must equal horizon / decision interval")
+    expected_model_steps = round(horizon_s / decision_interval_s)
+    if config.num_model_steps != expected_model_steps:
+        raise ValueError("num_model_steps must equal horizon / decision interval")
+    if config.num_knots > config.num_model_steps:
+        raise ValueError("num_knots cannot exceed num_model_steps")
     toy = raw["toy_oracle"]
     if not isinstance(toy, dict) or set(toy) != {"target_action_cm_s"}:
         raise ValueError("toy_oracle must contain only target_action_cm_s")
@@ -135,7 +137,10 @@ def main() -> None:
     parser.add_argument("--git-commit", required=True)
     args = parser.parse_args()
 
-    config, seed, decision_interval_s, horizon_s, target = _read_config(args.config)
+    planner_config, seed, decision_interval_s, horizon_s, target = _read_config(args.config)
+    # The oracle isolates one two-dimensional CEM decision. The deployable planner retains the
+    # same sample/elite/iteration/bound settings but optimizes five knots over fifteen steps.
+    config = replace(planner_config, num_knots=1, num_model_steps=1)
 
     def quadratic_cost(actions: np.ndarray) -> np.ndarray:
         return np.mean(np.sum(np.square(actions - target), axis=-1), axis=1)
@@ -173,7 +178,8 @@ def main() -> None:
                 config.action_dim,
             ],
         },
-        "config": asdict(config),
+        "toy_optimizer_config": asdict(config),
+        "planned_runtime_config": asdict(planner_config),
         "target_action_cm_s": target.tolist(),
         "best_first_action_cm_s": result.first_action_cm_s.tolist(),
         "best_first_action_error_cm_s": float(np.linalg.norm(result.first_action_cm_s - target)),

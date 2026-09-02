@@ -7,8 +7,8 @@ optimizer:
   num_candidates: 256
   num_elites: 32
   num_iterations: 3
-  num_knots: 15
-  num_model_steps: 45
+  num_knots: 5
+  num_model_steps: 15
   action_dim: 2
   max_action_speed_cm_s: 165.0
   initial_std_cm_s: 110.0
