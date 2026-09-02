@@ -24,6 +24,14 @@ from motionworld.planning.cost import (
     swept_gate_collision_indicator,
     terminal_goal_distance,
 )
+from motionworld.planning.mpc import (
+    ModelPlan,
+    PairedPlan,
+    PlannerProblem,
+    PlannerQuery,
+    plan_model,
+    plan_paired_nominal_residual,
+)
 from motionworld.planning.planner_rollout import (
     PlannerRollout,
     PlannerRolloutConfig,
@@ -56,4 +64,10 @@ __all__ = [
     "PlannerRolloutConfig",
     "PlannerSnapshot",
     "rollout_action_candidates",
+    "ModelPlan",
+    "PairedPlan",
+    "PlannerProblem",
+    "PlannerQuery",
+    "plan_model",
+    "plan_paired_nominal_residual",
 ]
