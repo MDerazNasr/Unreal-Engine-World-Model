@@ -1013,3 +1013,18 @@ duration. The component rejects conflicting scenarios, invalid configs, and miss
 state. Universal compilation and the complete 12-test headless suite pass.
 
 Related config/commit/experiment: `VAR-DATA-001`; default schedule; live episode 4101 pending.
+
+Live acceptance addendum: episode 4101 reset with zero measured error, executed all eight phases in
+order, stopped at 5.302 seconds, recorded 191/191 transitions with no rejection/loss, and passed the
+strict schema-v4 loader. It contains 48 zero-action rows, 59 braking rows, two executed velocity-sign
+reversals, and 141 rows with more than 0.1 degrees of realized yaw change. The 191 rows span six
+distinct world-action vectors, both positive and negative local lateral components, and 18–84 ms
+timesteps. No collision occurred. This accepts the deterministic live coverage gate, not global
+dataset sufficiency.
+
+The first exact reverse row also refines the nominal claim. The recorded intent maps to -180 degrees,
+but Unreal's next reflected intermediate-facing quaternion is -179 degrees for one row before using
+the equivalent 180-degree representation. The scalar-yaw nominal takes the opposite equal-length arc,
+creating one 16.266-degree yaw error and 677.733 deg/s yaw-rate error while translation remains at
+micro-numerical parity. Treat this as a known 180-degree representation/preprocessing edge requiring
+source-faithful resolution, not automatically as a learnable residual.

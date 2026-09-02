@@ -49,7 +49,7 @@ Artifacts and reproduction command:
 | FEAS-001 | Can Unreal accept desired velocity, expose post-movement state, reset, and log deterministically? | Day 1 | Planned |
 | NOM-001 | Does the nominal implementation pass hand-calculated and timestep tests? | Day 2 | Planned |
 | NOM-002 | Is meaningful, systematic residual error present in Unreal rollouts? | Day 2 | Planned |
-| VAR-DATA-001 | Does the deterministic schedule produce valid stop/reverse/turn coverage? | Day 2 | Running |
+| VAR-DATA-001 | Does the deterministic schedule produce valid stop/reverse/turn coverage? | Day 2 | Completed |
 | RES-001 | Does residual learning improve held-out recursive prediction over nominal? | Day 3 | Planned |
 | RES-002 | Does four-step history improve post-perturbation prediction over no history? | Day 3 | Planned |
 | CEM-001 | Does fixed-seed CEM recover known optima in toy costs deterministically? | Day 4 | Planned |
@@ -934,3 +934,39 @@ row counts, and schema-v4 validity before crediting any Section 7 collection ite
 
 **Artifacts:** `evidence/unreal/var_data_001_schedule_automation.log`; Unreal source and tests under
 `unreal/Plugins/MotionWorld`.
+
+### Live episode 4101 — accepted (2026-09-02)
+
+**Configuration:** The accepted default D-030 schedule, verified warmup reset, unique episode ID
+4101, schema-v4 export, timed gate off, diagnostics off, and no manual input. Although the candidate
+believed they had accidentally entered 1702, the runtime start/reset/header/export all independently
+identify 4101; no 1702 file was produced.
+
+**Result:** Reset passed on its first verification with zero position, facing, linear-speed, and
+angular-speed error. All phases occurred in order at elapsed times 0.000, 0.807, 1.203, 2.014, 2.417,
+3.262, 4.025, and 4.823 seconds. Completion fired at 5.302 seconds. The recorder accepted 191/191
+transitions with zero rejected rows, rejected seeds, or capacity drops, and exported a complete file
+in 27.773 ms. The strict Python loader returned `valid=true`. File SHA-256 is
+`4fdd65f0...e09afb`.
+
+**Coverage:** Six distinct world-action vectors occurred: forward 31 rows, reverse 31, right 30,
+left 22, diagonal 29, and zero 48. Realized diagnostics count 59 braking rows, two velocity-sign
+reversal rows, and 141 rows with absolute yaw change above 0.1 degrees. Character-local actions span
+X `[-150,200]` and Y `[-149.819,141.140]` cm/s. Maximum realized speed is 164.983 cm/s; yaw spans
+-179.573 to 178.807 degrees; actual timesteps span 0.018–0.084 seconds. No collision occurred.
+
+**Nominal finding:** Retrospective one-step translation remains effectively exact: maximum planar
+position error is `5.17e-7 cm` and velocity error `5.30e-6 cm/s`. One exact-reverse boundary row has
+16.266 degrees yaw error and 677.733 deg/s yaw-rate error; all other yaw errors are at numerical-noise
+scale. The row records -180-degree intent, while the next internal quaternion represents -179 degrees
+for one step before changing to the equivalent 180-degree form. This is preserved as a known
+quaternion/preprocessing edge and is not yet credited as learned residual structure.
+
+**Decision/next action:** Accept live varied coverage and use it for recursive 0.5/1.0/1.5-second
+nominal evaluation. Resolve or explicitly model the exact-opposite quaternion edge before calling the
+nominal baseline fair for rotation. More episodes, complete episode-level splits, contact, and pushes
+are still required before residual training claims.
+
+**Artifacts:** `evidence/unreal/var_data_001_live_episode_4101.log` and
+`artifacts/nominal/episode_4101_varied/`. The raw Unreal episode remains outside Git; its content hash
+and provenance are committed.

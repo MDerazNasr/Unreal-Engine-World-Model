@@ -827,3 +827,12 @@ and its character-local representation relative to the previous authoritative fa
 This is a coverage generator, not a claim that the final model has adequate data. A live episode
 must still prove every phase occurred, the reset and export completed, the strict loader accepted all
 rows, and the realized distributions actually contain braking, reversal, turning, and stopping.
+
+Episode 4101 exposes why rotations cannot always be reduced to an ordinary scalar angle without a
+declared tie rule. A requested 180-degree turn has two equally short physical paths: clockwise and
+counter-clockwise. Quaternions also identify `q` and `-q` as the same orientation. On the first
+reverse row, Unreal's reflected intermediate target represents -179 degrees, while the recorded
+intent-derived scalar target is -180 degrees. A scalar shortest-angle function selected the other
+equal arc, producing a one-row angular mismatch. This is not evidence that the movement is random;
+it is evidence that exact-opposite quaternion construction/representation is part of the known
+nominal transformation and must be reproduced or explicitly declared unresolved.

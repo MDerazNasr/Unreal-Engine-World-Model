@@ -199,15 +199,23 @@ def _write_plot(rows: list[RowMetrics], path: Path) -> None:
     times = np.asarray([row.end_simulation_time_s for row in rows])
     position_errors = np.asarray([row.planar_position_error_cm for row in rows])
     velocity_errors = np.asarray([row.planar_velocity_error_cm_s for row in rows])
+    yaw_errors = np.asarray([row.yaw_error_deg for row in rows])
+    angular_velocity_errors = np.asarray(
+        [row.angular_velocity_yaw_error_deg_s for row in rows]
+    )
     collision_times = [row.end_simulation_time_s for row in rows if row.collision_this_step]
 
-    figure, axes = plt.subplots(2, 1, figsize=(9.0, 5.8), sharex=True, constrained_layout=True)
+    figure, axes = plt.subplots(4, 1, figsize=(9.0, 9.2), sharex=True, constrained_layout=True)
     axes[0].plot(times, position_errors, color="#3366aa", linewidth=1.8)
     axes[0].set_ylabel("Planar position error (cm)")
     axes[0].set_title("Faithful nominal model: retrospective one-step error")
     axes[1].plot(times, velocity_errors, color="#aa5533", linewidth=1.8)
     axes[1].set_ylabel("Planar velocity error (cm/s)")
-    axes[1].set_xlabel("Unreal simulation time (s)")
+    axes[2].plot(times, yaw_errors, color="#6b4c9a", linewidth=1.8)
+    axes[2].set_ylabel("Yaw error (deg)")
+    axes[3].plot(times, angular_velocity_errors, color="#2f7d61", linewidth=1.8)
+    axes[3].set_ylabel("Yaw-rate error\n(deg/s)")
+    axes[3].set_xlabel("Unreal simulation time (s)")
     for axis in axes:
         axis.grid(alpha=0.25, linewidth=0.7)
         for collision_time in collision_times:
@@ -219,6 +227,15 @@ def _write_plot(rows: list[RowMetrics], path: Path) -> None:
             xytext=(-8, -20),
             textcoords="offset points",
             ha="right",
+            fontsize=9,
+        )
+    largest_yaw_index = int(np.argmax(yaw_errors))
+    if yaw_errors[largest_yaw_index] > 1.0e-3:
+        axes[2].annotate(
+            f"max={yaw_errors[largest_yaw_index]:.3f}°",
+            xy=(times[largest_yaw_index], yaw_errors[largest_yaw_index]),
+            xytext=(8, -18),
+            textcoords="offset points",
             fontsize=9,
         )
     figure.savefig(path, dpi=180)

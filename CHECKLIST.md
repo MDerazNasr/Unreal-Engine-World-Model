@@ -551,11 +551,11 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 ### 7.2 Collection policy
 
 - [x] Implement and unit-test a default-off deterministic varied-action schedule.
-- [ ] Validate the schedule in live episode 4101 and audit realized action/facing coverage.
+- [x] Validate the schedule in live episode 4101 and audit realized action/facing coverage.
 - [ ] Implement goal-directed action generator.
 - [ ] Implement random piecewise-constant velocities.
 - [ ] Implement near-contact/boundary-following collection.
-- [ ] Implement stops, reversals, and rapid turns.
+- [x] Implement stops, reversals, and rapid turns.
 - [ ] Implement controlled external perturbations.
 - [ ] Record realized action-mixture proportions.
 - [ ] Ensure actions cover planner-relevant magnitudes and directions.

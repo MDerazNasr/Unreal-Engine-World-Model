@@ -1,0 +1,51 @@
+# VAR-DATA-001 live episode 4101 evidence
+
+Date: 2026-09-02
+Engine/project: Unreal Engine 5.8.2 / Game Animation Sample
+Episode: 4101
+Raw file: `episode_4101_20260902T130825Z_F76824A73B43.jsonl`
+Raw SHA-256: `4fdd65f02cdf83f9c4858f3b2ea423305f24b417c6171ed252b8bdfe50e09afb`
+
+## Lifecycle and integrity
+
+- Warmup reset verified on attempt 1 with 0 position error, 0 facing error, 0 linear speed, and 0 angular speed.
+- Schedule start simulation time: 1.030000 s; declared duration: 5.300000 s.
+- Phase elapsed times: 0.000, 0.807, 1.203, 2.014, 2.417, 3.262, 4.025, 4.823 s.
+- Completion: 5.302000 s; zero command issued before further control.
+- Observed 192 states; attempted/recorded 191/191 transitions.
+- Rejected transitions 0; rejected seeds 0; capacity drops 0.
+- Schema version 4; 191 transition rows; complete footer.
+- Independent command: `.venv/bin/python scripts/validate_episode.py <raw-file>`.
+- Independent result: `valid=true episode=4101 transitions=191 attempted=191 rejected=0 capacity_drops=0`.
+
+The candidate reported accidentally entering episode 1702, but runtime reset/start/export, header,
+all rows, footer, and filename consistently identify 4101. No new episode-1702 file exists.
+
+## Requested and realized coverage
+
+- World actions: `(200,0)` 31 rows; `(-150,0)` 31; `(0,140)` 30; `(0,-140)` 22;
+  `(100,100)` 29; `(0,0)` 48.
+- Character-local X range: -150.000 to 200.000 cm/s.
+- Character-local Y range: -149.819 to 141.140 cm/s.
+- Realized maximum planar speed: 164.983 cm/s.
+- Realized yaw range: -179.573 to 178.807 degrees.
+- Timestep range: 0.018000 to 0.084000 s.
+- Derived counts: 48 zero-action rows, 59 braking rows, 2 executed velocity-sign reversals,
+  and 141 rows with absolute yaw change greater than 0.1 degrees.
+- Recorded scenario/collision rows: 0; the timed gate was off.
+
+## Retrospective one-step nominal evaluation
+
+- Recorded max speed: 165 cm/s from `mode_override`; recorded facing used directly.
+- Maximum planar position error: `5.173683632619941e-7 cm`.
+- Maximum planar velocity error: `5.303127720033766e-6 cm/s`.
+- One row, transition 46, has yaw error `16.26558375338147 deg` and yaw-rate error
+  `677.7326561042671 deg/s`; other yaw rows are near numerical noise.
+- Transition 46 records desired yaw -180 degrees. Its next intermediate-facing quaternion is
+  `[0,0,-0.9999619231,0.0087265355]`, representing -179 degrees. Transition 47 uses the equivalent
+  180-degree quaternion representation.
+- Preserve this as an exact-opposite quaternion/preprocessing Reviewer finding. Do not count it as
+  learned residual until the known engine path and timing are resolved.
+
+Artifacts: `artifacts/nominal/episode_4101_varied/summary.json`, `one_step_errors.csv`, and the
+visually inspected four-panel `one_step_error.png`.
