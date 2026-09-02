@@ -107,6 +107,15 @@ Yaw is the shortest signed scalar correction, avoiding the plus/minus 180-degree
 zero output returns the exact nominal state; vertical motion is outside the P0 contract and fails
 closed rather than being silently ignored.
 
+### Why exclude absolute position, heading, goals, and the moving gate from model inputs?
+
+Free-space execution dynamics should not change when I translate or rotate the same motion in the
+world, so I encode velocities, actions, and nominal changes in the previous-facing local frame. The
+goal and analytically known gate belong in the planner cost, not character dynamics. Including them
+could lower validation error by memorizing scenario correlations without learning how an action
+changes the character. If contact errors later prove important, I would add contact context only as a
+declared ablation and compare it fairly.
+
 ### Why an MLP instead of a GRU or Transformer?
 
 The state is low-dimensional and mostly observed, and four observations cover the hypothesized controller lag. The MLP is faster and easier to debug. This is a falsifiable simplicity choice: if the history MLP fails while error signatures indicate longer hidden state, a recurrent model becomes justified.

@@ -620,11 +620,12 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [x] Choose a shortest-path scalar yaw correction in radians.
 - [x] Define `compose(nominal, residual)`.
 - [x] Prove zero residual returns the exact nominal state, including bit-for-bit scalar identity.
-- [ ] Exclude goal/target features from character dynamics for P0.
-- [ ] Exclude simple obstacle geometry unless a documented contact-context ablation justifies it.
-- [ ] Define what four history observations contain.
-- [ ] Define how imagined history advances recursively.
-- [ ] Remove, derive, or predict contact/timing features that cannot advance consistently.
+- [x] Exclude goal/target features from character dynamics for P0.
+- [x] Exclude simple obstacle geometry unless a documented contact-context ablation justifies it.
+- [x] Define each of four chronological observations as the same frozen 28-value causal step query.
+- [ ] Implement and test how imagined four-step history advances recursively.
+- [x] Exclude absolute position, absolute heading, episode time, contact labels, and other features that
+  cannot advance causally; retain only the known per-step `delta_time_s`.
 - [x] Define the causal baseline boundary: current finalized state/context/parameters plus candidate
   actions are available; later finalized states, parameter snapshots, and event labels are forbidden.
 
@@ -636,7 +637,7 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [ ] Prevent windows from crossing episodes.
 - [ ] Prevent features from including future actions or states.
 - [ ] Mask or reject incomplete horizons consistently.
-- [ ] Test feature order against a frozen schema.
+- [x] Test the 28-value step and 112-value history order against a frozen schema.
 - [ ] Test normalization/denormalization round trip.
 
 ### 8.3 Model implementation

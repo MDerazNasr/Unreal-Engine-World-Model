@@ -250,6 +250,21 @@ instead of being silently discarded. An exactly zero six-vector returns the nomi
 turning learning off is an exact baseline identity. Numeric normalization scales are not chosen yet:
 they must be fitted using training episodes only after episode-level splits are frozen.
 
+### Causal residual inputs
+
+Each residual query is a frozen 28-value vector. It contains current local velocity/yaw rate, the
+candidate local desired velocity/facing delta, the nominal model's local position/velocity/facing
+change and yaw rate, `delta_time_s`, and all 15 current Smooth Walking parameters. The no-history
+model receives one such vector. The history model receives exactly four consecutive vectors flattened
+oldest-to-current, for 112 inputs.
+
+Absolute world position and heading are omitted because free-space character dynamics should be
+translation- and rotation-invariant. Goal, gate geometry, episode time, future parameter snapshots,
+contact labels, and external-event labels are omitted because they either belong to planner cost or
+would let the model exploit scenario/timeline correlations. During a future recursive rollout, the
+predicted state and candidate action can create the next 28-value query; the four-query history then
+shifts forward. This advancement still requires a dedicated rollout test before it is complete.
+
 ### Retrospective oracle versus causal nominal
 
 There are now two deliberately different parameter policies:

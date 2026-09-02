@@ -1267,3 +1267,38 @@ computed differences back to the actual state; tested `+179` to `-179` as a `+2 
 and rejected vertical position, vertical velocity, time, and non-finite discrepancies.
 
 Related config/experiment: `RES-CONTRACT-001`.
+
+## D-036 - Freeze causal invariant residual inputs before constructing windows
+
+Status: accepted for feature schema version 1; recursive advancement remains pending
+
+Decision: Encode each query as 28 values: current local velocity/yaw rate, candidate local velocity
+and facing delta, the causal nominal model's local predicted change, timestep, and the 15 current
+Smooth Walking parameters. Omit absolute position/heading and all goal, obstacle, episode-time,
+future-snapshot, contact, and event fields. Define history as exactly four consecutive step-query
+vectors in oldest-to-current order.
+
+Why: Local features make the learned execution correction invariant to where the character is placed
+or which compass direction it faces. Scenario and timeline fields create shortcuts rather than a
+character dynamics model. A fixed schema catches silent reordering between training and runtime.
+
+Alternatives considered: pass every JSON field; include world position and yaw; include gate phase;
+include completed-step/future parameter snapshots; give history only raw states; use variable-length
+history or a recurrent model immediately.
+
+Evidence: Eleven focused tests freeze unique names/counts, verify previous-facing conversion with a
+90-degree example, prove translation and rotation invariance, reject temporal misalignment and wrong
+history widths, and preserve chronological order.
+
+Main assumption: The nominal predicted change is a sufficient summary of available internal Smooth
+Walking state for this small residual; four queries cover the short scheduler/controller context.
+
+How it could fail: Relevant animation/contact mode is omitted; four frames are too short; parameters
+do not expose the scheduler signal; the nominal summary discards useful internal state. These are
+ablation questions, not reasons to leak targets or future snapshots.
+
+How I tested it: Rotated an equivalent world-X motion to world-Y and translated the actor by a large
+offset; feature vectors remained equal. Tested schema size, order, read-only storage, timing alignment,
+history length, and oldest-to-current flattening.
+
+Related implementation: `motionworld/models/residual_features.py`.
