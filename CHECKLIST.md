@@ -716,32 +716,33 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 
 ### 9.2 CEM implementation
 
-- [ ] Define exact tensor shapes for candidates, knots, steps, and action dimensions.
-- [ ] Sample from fixed-seed Gaussian distribution.
-- [ ] Expand knots to model steps.
-- [ ] Clamp/project actions into legal velocity space.
+- [x] Define exact tensor shapes for candidates, knots, steps, and action dimensions.
+- [x] Sample from fixed-seed Gaussian distribution.
+- [x] Expand knots to model steps.
+- [x] Clamp/project actions into the legal planar speed ball, including a literal floating-point
+  boundary guarantee.
 - [ ] Batch rollout all candidates.
-- [ ] Select lowest-cost elites.
-- [ ] Update mean and variance.
-- [ ] Apply variance floor.
-- [ ] Apply configured momentum.
-- [ ] Repeat configured iterations.
-- [ ] Return first action and diagnostic best trajectory.
-- [ ] Shift previous solution for warm start.
-- [ ] Handle NaN/Inf with safe fallback.
+- [x] Select lowest-cost elites.
+- [x] Update mean and population variance.
+- [x] Apply variance floor before and during optimization.
+- [x] Apply configured momentum.
+- [x] Repeat configured iterations.
+- [x] Return first action and diagnostic best trajectory.
+- [x] Shift previous solution for warm start.
+- [x] Handle NaN/Inf with safe zero-action fallback.
 
 ### 9.3 CEM tests
 
-- [ ] Fixed seed produces identical candidates and output.
-- [ ] Hand-computed elite mean/variance test passes.
-- [ ] Known quadratic toy optimum is recovered.
-- [ ] Bounds are always respected.
-- [ ] Zero/small variance remains stable.
-- [ ] Warm-start shift is correct.
-- [ ] Lowest rather than highest cost is selected.
-- [ ] Batch and scalar cost ordering agree.
-- [ ] Visualize mean/candidate convergence by iteration.
-- [ ] Enter `CEM-001`.
+- [x] Fixed seed produces identical candidates and output.
+- [x] Hand-computed elite mean/variance test passes.
+- [x] Known quadratic toy optimum is recovered.
+- [x] Bounds are always respected.
+- [x] Zero/small variance remains stable.
+- [x] Warm-start shift is correct.
+- [x] Lowest rather than highest cost is selected.
+- [x] Batch and scalar cost ordering agree.
+- [x] Visualize mean/candidate convergence by iteration.
+- [x] Enter `CEM-001`.
 
 ### 9.4 Planning cost
 
@@ -772,7 +773,7 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 
 ### 9.6 Planner gate
 
-- [ ] Deterministic CEM tests pass.
+- [x] Deterministic CEM tests pass.
 - [ ] Cost component tests pass.
 - [ ] Nominal and residual controllers consume the same candidate tensor.
 - [ ] Both remain stable in obstacle-free control.

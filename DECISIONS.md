@@ -1533,3 +1533,44 @@ alter weights, data, or model selection.
 
 Related artifacts: `artifacts/residual/training_001/` and
 `artifacts/residual/recursive_001/`.
+
+## D-043 - Use bounded five-knot CEM with reusable common random numbers
+
+Status: core optimizer and synthetic oracle accepted; dynamics/cost integration pending
+
+Decision: At each 10 Hz planning update, represent the 1.5-second action plan with five planar
+velocity knots expanded piecewise-constantly across 15 model steps. Begin with 256 candidates,
+32 elites, three iterations, population-variance updates, 0.1 distribution momentum, a 5 cm/s
+standard-deviation floor, and a 165 cm/s L2 speed bound. Pre-generate the standard-normal noise so
+nominal and residual solvers can use common randomness.
+
+Why: CEM supports the coming discontinuous collision indicator without requiring differentiable
+dynamics. Five knots reduce the adaptive search from 30 to 10 dimensions while retaining temporal
+control. Common noise removes irrelevant random-seed variation without pretending adaptive candidate
+distributions must remain identical after their costs select different elites.
+
+Alternatives considered: 15 independent action knots; one constant action for the whole horizon;
+componentwise clipping; direct gradient optimization; require identical physical candidates at every
+adaptive iteration.
+
+Evidence: Twenty-three focused tests cover exact seed reproduction, a hand-computed elite update,
+quadratic recovery, L2 bounds, zero variance, warm shifting, minimization direction, batch/scalar
+ordering, common first-iteration candidates, invalid shapes/settings, and finite-cost fallback. In
+CEM-001, the frozen 256/32/3 budget returns `[88.5655, -55.9064]` cm/s for a known
+`[90, -55]` cm/s two-dimensional optimum: 1.69683 cm/s error. Best cost falls from 180.798 to
+5.12003 to 2.87923, and an exact rerun reproduces JSON and PNG bytes.
+
+Main assumption: Five knots are expressive enough for the timed gate while keeping the small sample
+budget useful. This is not yet established by the one-knot oracle.
+
+How it could fail: Coarse knots can miss a narrow timing maneuver; three iterations can be
+insufficient in the full 10-dimensional search; projecting a Gaussian onto a disk distorts its
+boundary distribution; a fixed variance floor can retain too much late exploration.
+
+How I tested it: The first attempted artifact applied the runtime 15-knot plan to the toy oracle and
+returned 88.275 cm/s first-action error. That failure exposed the dimensionality problem rather than
+being hidden. The accepted oracle isolates a single two-dimensional decision, while the runtime
+configuration separately declares five knots/15 steps and remains gated on integrated tests.
+
+Related implementation/evidence: `motionworld/planning/cem.py`, `configs/cem_planner.yaml`,
+`tests/unit/test_cem.py`, `scripts/run_cem_toy.py`, and `artifacts/planning/cem_001/`.

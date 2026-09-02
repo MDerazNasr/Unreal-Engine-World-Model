@@ -374,7 +374,25 @@ With momentum `alpha`:
 
 `mu_next = alpha * mu_old + (1 - alpha) * mu_elite`
 
-`sigma_next = alpha * sigma_old + (1 - alpha) * sigma_elite`
+`sigma_next^2 = alpha * sigma_old^2 + (1 - alpha) * sigma_elite^2`
+
+MotionWorld samples **five action knots**, each a two-dimensional local desired velocity, then holds
+those knots piecewise-constant over 15 model steps. Thus the deployed search space has 10 numbers,
+not 30 independent per-step numbers. Reducing dimensionality is necessary because a finite CEM
+budget becomes exponentially sparse as dimensions increase. The one-knot CEM-001 oracle isolates
+the optimizer math; it is not evidence that the full five-knot control problem is already solved.
+
+All action vectors are projected onto an L2 ball of radius 165 cm/s. This differs from clipping each
+coordinate: component clipping would permit a diagonal speed of `sqrt(2) * 165` cm/s. The projector
+also corrects one floating-point unit inward when norm rounding would otherwise produce a value just
+above the hard boundary.
+
+For a fair nominal/residual comparison, both solvers receive the same pre-generated standard-normal
+noise tensor. Their physical candidates are identical in iteration one when their initial
+distributions match. Later candidates may legitimately differ because model-dependent costs select
+different elites and therefore update the distributions differently. Claiming that every later
+physical candidate is identical would contradict adaptive CEM; common random numbers and identical
+optimizer configuration are the correct fairness contract.
 
 MPC executes only the first action because Unreal supplies a new observation after 100 ms, allowing replanning to correct prediction errors and perturbations.
 

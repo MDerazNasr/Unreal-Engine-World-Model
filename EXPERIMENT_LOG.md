@@ -57,10 +57,10 @@ Artifacts and reproduction command:
 | RES-CONTRACT-001 | Is the planar residual target causal, invertible, and exactly zero-identical? | Day 3 | Completed |
 | RES-DATASET-001 | Are residual examples consecutive, episode-safe, and free of future/event leakage? | Day 3 | Completed |
 | RES-MODEL-SMOKE-001 | Do matched MLPs satisfy size, fallback, shape, gradient, and seed invariants? | Day 3 | Completed |
-| RES-COLLECTION-001 | Does a distinct schedule reproduce valid causal residual structure? | Day 3 | Episode 5101 accepted; collection ongoing |
+| RES-COLLECTION-001 | Does a distinct schedule reproduce valid causal residual structure? | Day 3 | Completed: five train/two validation accepted |
 | RES-001 | Does residual learning improve held-out recursive prediction over nominal? | Day 3 | Completed: no-history gate passed |
 | RES-002 | Does four-step history improve post-perturbation prediction over no history? | Day 3 | Completed: bounded negative result |
-| CEM-001 | Does fixed-seed CEM recover known optima in toy costs deterministically? | Day 4 | Planned |
+| CEM-001 | Does fixed-seed CEM recover known optima in toy costs deterministically? | Day 4 | Completed: core optimizer accepted |
 | CTRL-001 | Does residual MPC improve the paired timed-gate outcome over nominal MPC? | Day 5 | Planned |
 | CTRL-002 | Does history improve paired post-push recovery? | Day 5 | Planned |
 | OOD-001 | Where does performance degrade under held-out movement parameters? | Day 5 | Planned |
@@ -1529,3 +1529,31 @@ contains contact or an external push, and improved prediction does not establish
 The first evaluator attempts exposed missing nominal stratum metadata and invalid empty-stratum
 aggregation; only reporting code changed, and the successful run retained the same checkpoints and
 data. Artifacts: `artifacts/residual/recursive_001/`. The final plot was visually checked.
+
+## CEM-001 — deterministic quadratic optimizer oracle
+
+Hypothesis: Fixed-seed bounded CEM selects low-cost elites, concentrates its distribution, respects
+the physical speed limit, and approaches a known two-dimensional optimum reproducibly.
+
+Configuration: Synthetic quadratic target `[90, -55]` cm/s; 256 candidates; 32 elites; three
+iterations; initial standard deviation 110 cm/s; variance floor 5 cm/s; population-variance momentum
+0.1; maximum L2 speed 165 cm/s; PCG64 seed 20260903. The oracle uses one knot/one step to isolate
+optimizer behavior. The separately frozen planned runtime shape is five knots expanded across 15
+100 ms model steps over 1.5 seconds.
+
+Result: Accepted for the optimizer only. The returned first action is
+`[88.565541, -55.906396]` cm/s, 1.696828 cm/s from the known optimum. Best cost changes
+`180.797693 -> 5.120032 -> 2.879227`; the first-knot distribution-mean distance changes
+`7.153812 -> 2.841872 -> 0.778799` cm/s. The maximum sampled norm is exactly 165 cm/s, and two
+runs reproduce the result exactly. A separate clean-directory rerun byte-matches the JSON, PNG, and
+README.
+
+Rejected attempt: Applying the original 15-knot runtime shape directly to the quadratic oracle
+returned 88.275 cm/s first-action error because the frozen budget was searching 30 dimensions. This
+motivated the explicit five-knot runtime design and the one-knot mathematical oracle. It is not
+accepted evidence and was overwritten before commit.
+
+Limitations: This proves sampling, bounds, elite updates, convergence direction, and determinism. It
+does not prove the five-knot optimizer solves the timed gate, meets latency, or improves Unreal
+control. Those remain the planning-cost and paired-controller gates. Artifacts:
+`artifacts/planning/cem_001/`; the convergence plot was visually inspected.

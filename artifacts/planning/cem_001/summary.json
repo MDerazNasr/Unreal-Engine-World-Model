@@ -1,0 +1,76 @@
+{
+  "best_cost": 2.879226609365374,
+  "best_first_action_cm_s": [
+    88.56554100463525,
+    -55.90639616061771
+  ],
+  "best_first_action_error_cm_s": 1.6968283971472702,
+  "claim_boundary": "synthetic quadratic oracle; not Unreal control evidence",
+  "decision_interval_s": 0.1,
+  "fixed_seed_exact_repeat": true,
+  "git_commit": "4fe3453",
+  "horizon_s": 1.5,
+  "iteration_best_costs": [
+    180.7976929691889,
+    5.12003235237996,
+    2.879226609365374
+  ],
+  "iteration_first_knot_mean_error_cm_s": [
+    7.153811534516688,
+    2.841872123600692,
+    0.7787992722155286
+  ],
+  "maximum_sampled_speed_cm_s": 165.0,
+  "planned_runtime_config": {
+    "action_dim": 2,
+    "include_mean_candidate": true,
+    "initial_std_cm_s": 110.0,
+    "max_action_speed_cm_s": 165.0,
+    "minimum_std_cm_s": 5.0,
+    "momentum": 0.1,
+    "num_candidates": 256,
+    "num_elites": 32,
+    "num_iterations": 3,
+    "num_knots": 5,
+    "num_model_steps": 15
+  },
+  "schema_name": "motionworld_cem_toy_result",
+  "schema_version": 1,
+  "seed": 20260903,
+  "target_action_cm_s": [
+    90.0,
+    -55.0
+  ],
+  "tensor_shapes": {
+    "expanded_actions_per_iteration": [
+      256,
+      1,
+      2
+    ],
+    "knot_candidates_per_iteration": [
+      256,
+      1,
+      2
+    ],
+    "noise": [
+      3,
+      256,
+      1,
+      2
+    ]
+  },
+  "toy_optimizer_config": {
+    "action_dim": 2,
+    "include_mean_candidate": true,
+    "initial_std_cm_s": 110.0,
+    "max_action_speed_cm_s": 165.0,
+    "minimum_std_cm_s": 5.0,
+    "momentum": 0.1,
+    "num_candidates": 256,
+    "num_elites": 32,
+    "num_iterations": 3,
+    "num_knots": 1,
+    "num_model_steps": 1
+  },
+  "used_safe_fallback": false
+}

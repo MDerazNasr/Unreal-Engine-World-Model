@@ -124,6 +124,23 @@ The state is low-dimensional and mostly observed, and four observations cover th
 
 CEM handles bounded actions and non-differentiable analytic collision costs, is simple to batch, and does not require differentiating the whole service. Its tradeoff is sample cost, addressed through action knots, warm starts, and latency measurement.
 
+### If CEM adapts, how can nominal and residual MPC use identical candidates?
+
+They use identical initial distributions and the same pre-generated standard-normal noise. Their
+first-iteration physical candidates are therefore identical. After costs are evaluated, different
+dynamics models may select different elites, so later means, variances, and physical candidates can
+legitimately diverge. Requiring identical later candidates would suppress part of the planner's
+causal response. The defensible fairness claim is common random numbers plus identical optimizer,
+bounds, horizon, cost, and compute—not identical adaptive trajectories after model-dependent costs.
+
+### Why five action knots rather than fifteen independent actions?
+
+With two velocity components, fifteen knots make a 30-dimensional search. The first bounded toy
+attempt showed that 256 candidates and three CEM iterations were too sparse in that space. Five
+knots reduce it to 10 dimensions and are held across 15 model steps. The one-knot quadratic test only
+proves the optimizer math; the integrated gate experiment must still show that five knots are
+expressive enough.
+
 ### Why not run Unreal itself for every candidate?
 
 At each 10 Hz decision, CEM evaluates hundreds of candidates over 12-15 steps and several iterations. Cloning and advancing that many full Unreal worlds is outside the real-time budget. The nominal-plus-residual model is the batched approximation whose accuracy is directly evaluated.
