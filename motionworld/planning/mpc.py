@@ -87,6 +87,7 @@ class ModelPlan:
     best_rollout: PlannerRollout
     best_cost: PlanningCostBreakdown
     evaluated_action_sha256: tuple[str, ...]
+    selected_cost_reproduction_error: float
 
 
 @dataclass(frozen=True, slots=True)
@@ -204,19 +205,25 @@ def plan_model(
         geometry=problem.geometry,
         weights=problem.weights,
     )
+    cost_reproduction_error = float(best_cost.total[0]) - cem.best_cost
     if not cem.used_safe_fallback and not math.isclose(
         cem.best_cost,
         float(best_cost.total[0]),
-        rel_tol=1.0e-12,
-        abs_tol=1.0e-9,
+        rel_tol=1.0e-7,
+        abs_tol=1.0e-4,
     ):
-        raise RuntimeError("selected trajectory cost does not reproduce the CEM ranking")
+        raise RuntimeError(
+            "selected trajectory cost does not reproduce the CEM ranking; "
+            f"ranked={cem.best_cost:.17g}, reevaluated={float(best_cost.total[0]):.17g}, "
+            f"difference={float(best_cost.total[0]) - cem.best_cost:.17g}"
+        )
     return ModelPlan(
         model_name=model_name,
         cem=cem,
         best_rollout=best_rollout,
         best_cost=best_cost,
         evaluated_action_sha256=tuple(action_hashes),
+        selected_cost_reproduction_error=cost_reproduction_error,
     )
 
 

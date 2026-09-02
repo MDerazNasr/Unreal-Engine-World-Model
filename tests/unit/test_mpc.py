@@ -84,6 +84,7 @@ def test_nominal_planner_returns_reproducible_forward_action_and_cost() -> None:
     assert first.cem.best_cost == second.cem.best_cost
     assert first.evaluated_action_sha256 == second.evaluated_action_sha256
     assert first.best_cost.total[0] == pytest.approx(first.cem.best_cost)
+    assert abs(first.selected_cost_reproduction_error) <= 1.0e-4
 
 
 def test_zero_residual_paired_plans_are_exactly_identical() -> None:
