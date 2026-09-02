@@ -66,14 +66,22 @@ def _summarize(rows: list[dict[str, object]]) -> dict[str, object]:
             "parameter_change_crossing": {
                 "window_count": len(crossing_rows),
                 "metrics": {
-                    metric: _distribution([float(row[metric]) for row in crossing_rows])
+                    metric: (
+                        _distribution([float(row[metric]) for row in crossing_rows])
+                        if crossing_rows
+                        else None
+                    )
                     for metric in metrics
                 },
             },
             "parameter_stable": {
                 "window_count": len(stable_rows),
                 "metrics": {
-                    metric: _distribution([float(row[metric]) for row in stable_rows])
+                    metric: (
+                        _distribution([float(row[metric]) for row in stable_rows])
+                        if stable_rows
+                        else None
+                    )
                     for metric in metrics
                 },
             },
@@ -115,9 +123,16 @@ def _write_plot(summary: dict[str, object], path: Path) -> None:
                 for horizon in horizons
             ]
             crossing_values = [
-                summary[model_name][str(horizon)]["parameter_change_crossing"]["metrics"][
-                    metric
-                ]["p95"]
+                (
+                    value["p95"]
+                    if (
+                        value := summary[model_name][str(horizon)][
+                            "parameter_change_crossing"
+                        ]["metrics"][metric]
+                    )
+                    is not None
+                    else np.nan
+                )
                 for horizon in horizons
             ]
             axis.plot(
@@ -218,6 +233,17 @@ def main() -> None:
     all_rows: dict[str, list[dict[str, object]]] = defaultdict(list)
     for audited in dataset.episodes_for_split("validation"):
         transitions = list(audited.episode.transitions)
+        parameter_change_by_sequence = {
+            int(row["transition_sequence"]): int(
+                row["nominal_context"]["previous"]["parameters"]
+                != row["nominal_context"]["parameters_observed_for_completed_step"]
+                or row["nominal_context"]["previous"]["input_preparation"]
+                != row["nominal_context"][
+                    "input_preparation_observed_for_completed_step"
+                ]
+            )
+            for row in transitions
+        }
         nominal = evaluate_recursive_nominal_rollouts(
             transitions,
             horizons_s=(0.5, 1.0, 1.5),
@@ -248,9 +274,33 @@ def main() -> None:
             if [_key(audited.episode_id, row) for row in rows] != expected_keys:
                 raise ValueError(f"{name} recursive rows do not share identical endpoints")
             for row in rows:
-                record = asdict(row)
-                record["model"] = name
-                record["episode_id"] = audited.episode_id
+                source = asdict(row)
+                parameter_change_count = source.get("parameter_change_count")
+                if parameter_change_count is None:
+                    parameter_change_count = sum(
+                        parameter_change_by_sequence[sequence]
+                        for sequence in range(
+                            row.start_transition_sequence,
+                            row.end_transition_sequence + 1,
+                        )
+                    )
+                record = {
+                    "episode_id": audited.episode_id,
+                    "model": name,
+                    "start_transition_sequence": row.start_transition_sequence,
+                    "end_transition_sequence": row.end_transition_sequence,
+                    "requested_horizon_s": row.requested_horizon_s,
+                    "actual_horizon_s": row.actual_horizon_s,
+                    "step_count": row.step_count,
+                    "action_change_count": row.action_change_count,
+                    "parameter_change_count": parameter_change_count,
+                    "planar_position_error_cm": row.planar_position_error_cm,
+                    "planar_velocity_error_cm_s": row.planar_velocity_error_cm_s,
+                    "yaw_error_deg": row.yaw_error_deg,
+                    "angular_velocity_yaw_error_deg_s": (
+                        row.angular_velocity_yaw_error_deg_s
+                    ),
+                }
                 all_rows[name].append(record)
 
     summary = {name: _summarize(rows) for name, rows in all_rows.items()}
