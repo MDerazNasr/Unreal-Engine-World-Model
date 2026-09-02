@@ -19,6 +19,7 @@ import matplotlib.pyplot as plt  # noqa: E402
 
 from motionworld.data import load_episode
 from motionworld.dynamics.nominal_episode import (
+    current_snapshot_nominal_inputs,
     internal_from_context_record,
     observable_from_state_record,
     retrospective_nominal_inputs,
@@ -54,17 +55,21 @@ def _metrics(
     *,
     effective_max_speed_cm_s: float | None,
     perturbation_phase: str,
+    parameter_source: str,
 ) -> RowMetrics:
     desired_facing = (
         None
         if "desired_facing_yaw_deg" in transition["applied_action"]
         else math.radians(float(transition["previous_state"]["facing_yaw_deg"]))
     )
-    inputs = retrospective_nominal_inputs(
-        transition,
-        desired_facing_yaw_rad=desired_facing,
-        effective_max_speed_cm_s=effective_max_speed_cm_s,
-    )
+    if parameter_source == "current-snapshot":
+        inputs = current_snapshot_nominal_inputs(transition)
+    else:
+        inputs = retrospective_nominal_inputs(
+            transition,
+            desired_facing_yaw_rad=desired_facing,
+            effective_max_speed_cm_s=effective_max_speed_cm_s,
+        )
     prediction = smooth_walking_nominal_step(
         inputs.observable,
         inputs.internal,
@@ -126,6 +131,7 @@ def _summary(
     recorded_input_preparations: list[dict[str, object]],
     header: dict[str, object],
     transitions: list[dict[str, object]],
+    parameter_source: str,
 ) -> dict[str, object]:
     def stats(field: str, selected_rows: list[RowMetrics]) -> dict[str, float]:
         values = np.asarray([getattr(row, field) for row in selected_rows])
@@ -153,13 +159,21 @@ def _summary(
     result: dict[str, object] = {
         "episode_file": path.name,
         "episode_sha256": file_hash,
-        "evaluation": "retrospective_one_step",
+        "evaluation": (
+            "causal_current_snapshot_one_step"
+            if parameter_source == "current-snapshot"
+            else "retrospective_one_step"
+        ),
         "desired_facing_source": (
             "recorded_applied_action"
             if schema_version >= 4
             else "legacy_hold_previous_authoritative_facing_assumption"
         ),
-        "parameter_source": "parameters_observed_for_completed_step",
+        "parameter_source": (
+            "previous_finalized_context"
+            if parameter_source == "current-snapshot"
+            else "parameters_observed_for_completed_step"
+        ),
         "effective_max_speed_cm_s": (
             sorted(
                 {
@@ -183,8 +197,12 @@ def _summary(
         },
         "claim_boundary": [
             "one-step evaluation re-seeds observable and internal state from every real transition",
-            "completed-step parameters are retrospective and are not automatically "
-            "planner-available",
+            (
+                "parameters and input preparation come only from the current finalized state"
+                if parameter_source == "current-snapshot"
+                else "completed-step parameters are retrospective and are not automatically "
+                "planner-available"
+            ),
             (
                 "schema v4+ supplies recorded facing and SimpleWalking input preparation"
                 if schema_version >= 4
@@ -329,6 +347,11 @@ def main() -> None:
     parser.add_argument("episode", type=Path)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--effective-max-speed-cm-s", type=float)
+    parser.add_argument(
+        "--parameter-source",
+        choices=("completed-step", "current-snapshot"),
+        default="completed-step",
+    )
     args = parser.parse_args()
 
     episode = load_episode(args.episode)
@@ -337,6 +360,8 @@ def main() -> None:
         raise ValueError("faithful nominal evaluation requires episode schema version 3, 4, or 5")
     if schema_version == 3 and args.effective_max_speed_cm_s is None:
         raise ValueError("schema-v3 evaluation requires --effective-max-speed-cm-s")
+    if args.parameter_source == "current-snapshot" and schema_version < 4:
+        raise ValueError("current-snapshot evaluation requires episode schema version 4 or 5")
     event_indices = [
         index
         for index, transition in enumerate(episode.transitions)
@@ -361,6 +386,7 @@ def main() -> None:
             transition,
             effective_max_speed_cm_s=args.effective_max_speed_cm_s,
             perturbation_phase=phase(index),
+            parameter_source=args.parameter_source,
         )
         for index, transition in enumerate(episode.transitions)
     ]
@@ -382,8 +408,15 @@ def main() -> None:
         schema_version=schema_version,
         header=episode.header,
         transitions=episode.transitions,
+        parameter_source=args.parameter_source,
         recorded_input_preparations=[
-            transition["nominal_context"]["input_preparation_observed_for_completed_step"]
+            (
+                transition["nominal_context"]["previous"]["input_preparation"]
+                if args.parameter_source == "current-snapshot"
+                else transition["nominal_context"][
+                    "input_preparation_observed_for_completed_step"
+                ]
+            )
             for transition in episode.transitions
         ]
         if schema_version >= 4

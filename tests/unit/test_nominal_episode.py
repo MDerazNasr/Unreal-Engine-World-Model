@@ -3,7 +3,10 @@ import math
 import numpy as np
 import pytest
 
-from motionworld.dynamics.nominal_episode import retrospective_nominal_inputs
+from motionworld.dynamics.nominal_episode import (
+    current_snapshot_nominal_inputs,
+    retrospective_nominal_inputs,
+)
 
 
 def _transition() -> dict[str, object]:
@@ -49,6 +52,11 @@ def _transition() -> dict[str, object]:
         "nominal_context": {
             "previous": {
                 "parameters": {**parameters, "acceleration_cm_per_s2": 999.0},
+                "input_preparation": {
+                    "has_max_move_speed": True,
+                    "effective_max_speed_cm_per_s": 120.0,
+                    "max_speed_source": "mode_override",
+                },
                 "internal_state": internal,
             },
             "parameters_observed_for_completed_step": parameters,
@@ -137,3 +145,29 @@ def test_adapter_infers_schema_v4_facing_and_speed_limit() -> None:
 def test_adapter_refuses_to_invent_missing_legacy_causal_fields() -> None:
     with pytest.raises(ValueError, match="desired_facing"):
         retrospective_nominal_inputs(_transition())
+
+
+def test_current_snapshot_adapter_uses_only_previous_aligned_context() -> None:
+    transition = _transition()
+    transition["applied_action"]["velocity_world_cm_per_s"] = [200.0, 0.0, 0.0]
+    transition["applied_action"]["desired_facing_yaw_deg"] = -35.0
+    transition["nominal_context"]["input_preparation_observed_for_completed_step"] = {
+        "has_max_move_speed": True,
+        "effective_max_speed_cm_per_s": 165.0,
+        "max_speed_source": "mode_override",
+    }
+
+    result = current_snapshot_nominal_inputs(transition)
+
+    assert result.parameters.acceleration_cm_s2 == 999.0
+    np.testing.assert_array_equal(result.action.desired_velocity_world_cm_s, [120.0, 0.0, 0.0])
+    assert result.action.desired_facing_yaw_rad == pytest.approx(math.radians(-35.0))
+
+
+def test_current_snapshot_adapter_rejects_missing_current_preparation() -> None:
+    transition = _transition()
+    transition["applied_action"]["desired_facing_yaw_deg"] = 0.0
+    del transition["nominal_context"]["previous"]["input_preparation"]
+
+    with pytest.raises(ValueError, match="current-snapshot"):
+        current_snapshot_nominal_inputs(transition)

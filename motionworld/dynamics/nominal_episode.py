@@ -24,7 +24,7 @@ from motionworld.dynamics.smooth_walking_velocity import (
 
 @dataclass(frozen=True, slots=True)
 class NominalTransitionInputs:
-    """Explicit inputs for retrospective one-step nominal evaluation."""
+    """Explicit inputs for one nominal transition under a declared availability policy."""
 
     observable: SmoothWalkingObservableState
     internal: SmoothWalkingInternalState
@@ -144,5 +144,47 @@ def retrospective_nominal_inputs(
         parameters=smooth_walking_parameters_from_record(
             nominal_context["parameters_observed_for_completed_step"]
         ),
+        dt_s=float(transition["delta_time_s"]),
+    )
+
+
+def current_snapshot_nominal_inputs(
+    transition: dict[str, Any],
+) -> NominalTransitionInputs:
+    """Build deployable one-step inputs using information available at ``s_t`` only.
+
+    The current finalized context is aligned with ``previous_state``. Unlike
+    :func:`retrospective_nominal_inputs`, this adapter never reads the parameter or
+    input-preparation snapshots observed after the completed transition. Schema-v4+
+    action records still supply the candidate desired velocity and facing intent.
+    """
+
+    nominal_context = transition["nominal_context"]
+    previous_context = nominal_context["previous"]
+    action_record = transition["applied_action"]
+    if "desired_facing_yaw_deg" not in action_record:
+        raise ValueError("current-snapshot inputs require schema-v4+ desired facing")
+    preparation = previous_context.get("input_preparation")
+    if preparation is None:
+        raise ValueError("current-snapshot inputs require schema-v4+ input preparation")
+    if preparation["has_max_move_speed"]:
+        effective_max_speed_cm_s = float(preparation["effective_max_speed_cm_per_s"])
+    else:
+        requested = np.asarray(action_record["velocity_world_cm_per_s"], dtype=np.float64)
+        effective_max_speed_cm_s = float(np.linalg.norm(requested[:2]))
+    prepared_input = prepare_velocity_input(
+        action_record["velocity_world_cm_per_s"],
+        effective_max_speed_cm_s=effective_max_speed_cm_s,
+    )
+    return NominalTransitionInputs(
+        observable=observable_from_state_record(transition["previous_state"]),
+        internal=internal_from_context_record(previous_context),
+        action=SmoothWalkingAction(
+            desired_velocity_world_cm_s=prepared_input.desired_velocity_world_cm_s,
+            desired_facing_yaw_rad=math.radians(
+                float(action_record["desired_facing_yaw_deg"])
+            ),
+        ),
+        parameters=smooth_walking_parameters_from_record(previous_context["parameters"]),
         dt_s=float(transition["delta_time_s"]),
     )
