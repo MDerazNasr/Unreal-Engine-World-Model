@@ -552,7 +552,7 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [x] Preserve schema-v1/v2 reader compatibility without fabricating missing context.
 - [x] Validate one live Unreal schema-v3 episode end to end in the independent Python loader.
 - [x] Validate one uniquely identified live schema-v4 episode, including max-speed source/value and facing intent, end to end.
-- [ ] Enforce or manifest-check globally unique episode identity across files.
+- [x] Enforce and manifest-check globally unique episode identity across accepted files.
 - [x] Include termination reason.
 - [x] Include state-source and schema-version labels.
 - [ ] Include animation-root/toe diagnostics in distinct optional fields.
@@ -567,8 +567,8 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [x] Implement stops, reversals, and rapid turns.
 - [x] Implement and live-validate a default-off controlled external velocity perturbation; episode
   4301 records the requested kick, realized next state, and 2.0-second recovery interval.
-- [ ] Record realized action-mixture proportions.
-- [ ] Ensure actions cover planner-relevant magnitudes and directions.
+- [x] Record realized action-mixture proportions for every accepted train/validation split.
+- [x] Verify bounded free-space actions cover stop, cardinal, diagonal, and 0-160 cm/s requests.
 - [ ] Ensure free-space data does not dominate all other strata.
 - [ ] Stop collection based on validation saturation rather than an arbitrary large count.
 
@@ -585,13 +585,16 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [x] Validate duplicated completed-step input preparation equals the next snapshot and facing target matches orientation intent.
 - [x] Validate one file has one episode identity and no row crosses its boundary.
 - [x] Validate no residual window crosses episode termination or joins two episodes.
-- [ ] Produce coverage histograms for speed, direction, turns, stops, contact, impulses, and parameters.
+- [x] Produce coverage counts/histograms for requested direction, requested/executed speed, turns,
+  stops, parameter signatures, contact, external perturbations, and variable timestep; report the
+  zero-contact/zero-perturbation gaps explicitly.
 
 ### 7.4 Split discipline
 
 - [x] Freeze pre-training train/validation/test episode IDs and schedule configurations in the tested
   collection plan.
-- [ ] Finalize accepted-file manifests with every raw filename and hash.
+- [x] Finalize train/validation accepted-file manifest with every raw filename and SHA-256; pending
+  test files remain unopened.
 - [x] Split complete episodes, never individual transitions.
 - [ ] Separate scenario seeds.
 - [ ] Separate obstacle layouts.
@@ -599,16 +602,17 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [x] Freeze final test episode IDs/configurations before model selection: 5301 and 5302.
 - [ ] Fit normalization only on training data.
 - [ ] Store normalization with schema and checkpoint.
-- [ ] Add accepted-file identity/hash overlap and leakage tests after collection completes.
-- [ ] Hash manifests.
+- [x] Add accepted-file identity/hash/rejected-attempt overlap and split-leakage tests after
+  collection completes.
+- [x] Hash manifest, coverage report, Markdown summary, and coverage plot.
 
 ### 7.5 Dataset gate
 
-- [ ] Coverage report is inspected manually.
-- [ ] Leakage/overlap tests pass.
+- [x] Coverage report and plot are inspected manually.
+- [x] Leakage/overlap tests pass, including a test proving pending test files are not opened.
 - [ ] Reviewer checks temporal alignment and normalization leakage.
 - [ ] Candidate explains why adjacent-transition splitting is invalid.
-- [ ] Dataset regeneration command is documented.
+- [x] Dataset-audit regeneration command is documented without embedding a private absolute path.
 - [ ] Commit schema, validators, manifests, and coverage report without raw licensed/private data.
 
 ## 8. Residual model

@@ -1335,7 +1335,7 @@ Related experiment: `RES-MODEL-SMOKE-001`.
 
 ## D-038 - Freeze episode-level collection assignments before residual training
 
-Status: accepted; one of nine planned episodes collected
+Status: accepted; train and validation collection complete, two final test episodes untouched
 
 Decision: Preassign five distinct schedules to training IDs 5101-5105, two to validation IDs
 5201-5202, and two untouched schedules to test IDs 5301-5302. Change status and add filename/hash only
@@ -1351,9 +1351,9 @@ Alternatives considered: random row split; assign splits after seeing model erro
 4101/4201 as independent training and test; commit raw sample data; inspect test episodes during
 hyperparameter selection.
 
-Evidence: The YAML plan has three tests for unique IDs, split membership, distinct positive schedule
-values, and exact accepted 5101 hash. Episode 5101 passes 130/130 rows and independently reproduces
-the causal error/change alignment under a changed schedule.
+Evidence: The YAML plan and accepted manifest bind five training and two validation episodes to
+unique IDs, filenames, exact schedules, and SHA-256 hashes. Training provides 740/725 and validation
+283/277 no-history/four-history examples. Episodes 5301/5302 remain pending and unopened.
 
 Main assumption: Nine short but distinct schedules provide enough variation for a bounded interview
 experiment; the result may still be data-limited.
@@ -1362,8 +1362,10 @@ How it could fail: Fixed phase order may permit action-pattern shortcuts; fewer 
 training transitions may overfit the 100K-parameter MLP; frame-timing variation may dominate; manual
 configuration could differ from the plan.
 
-How I tested it: Validated plan invariants automatically; required unique embedded ID, raw hash,
-strict loader acceptance, realized action counts, exact reset, and causal/oracle audits for 5101.
+How I tested it: Validated plan invariants automatically; required unique embedded IDs, raw hashes,
+strict loader acceptance, realized action sets matching every frozen configuration, unique global
+transition identities, and disjoint accepted/rejected artifacts. A regression records loader calls
+and proves the audit opens accepted train/validation filenames only.
 
 Related experiment/evidence: `RES-COLLECTION-001`;
 `evidence/unreal/res_collection_live_episode_5101.log`.
@@ -1373,3 +1375,40 @@ configuration. It is excluded from all splits rather than renamed or reassigned.
 embedded identity and the validation configuration frozen before training. Retry 5102 with only the
 reset episode ID corrected. SHA begins `4c5629c5`; see
 `evidence/unreal/res_collection_rejected_5201_wrong_config.log`.
+
+## D-039 - Fail closed at the accepted-file boundary before normalization
+
+Status: accepted for train/validation; final test remains sealed
+
+Decision: Build the learning dataset only through a machine-audited manifest derived from the frozen
+collection plan. Resolve explicit accepted filenames without directory globbing, verify each byte
+hash and embedded identity, run the strict episode loader, compare realized action values with the
+frozen configuration, and reject all filename/hash/identity overlap. Do not open pending test files.
+
+Why: A correct model experiment can still be invalid if a rejected run, duplicate identity, modified
+file, or test episode silently enters preprocessing. The manifest makes the exact bytes and split
+boundary independently reproducible while keeping Epic sample data outside Git.
+
+Alternatives considered: glob every JSONL file and filter afterward; trust evidence notes without
+rechecking bytes; copy raw files into the repository; inspect pending tests while building coverage.
+
+Evidence: `artifacts/residual/dataset_audit/manifest.json` binds seven accepted files to hashes and
+reports 740 train plus 283 validation transitions. `coverage.json` records directions, speeds,
+timesteps, turning, stops, parameter regimes, residual strata, and honest zero counts for contact and
+external events. `artifact_hashes.json` hashes the generated evidence.
+
+Main assumption: The external raw directory continues to contain the exact hashed files. Relocating
+the directory is safe because identity is filename plus SHA-256, not absolute path.
+
+How it could fail: A raw file can disappear; the collection plan can be edited after artifacts are
+generated; the fixed scripted phase order can still permit shortcut learning; free-space coverage
+does not support claims about collision dynamics.
+
+How I tested it: Seven focused tests cover accepted-only file access, split totals, pre-loader hash
+failure, embedded-ID mismatch, accepted/rejected overlap, pending-test metadata rejection, and frozen
+action mismatch. The real audit reloaded all seven accepted files, reproduced 740/725 train and
+283/277 validation examples, and reported `test_opened=0`. The complete suite passes 262 tests.
+
+Related implementation/evidence: `motionworld/data/residual_manifest.py`,
+`motionworld/data/residual_coverage.py`, `scripts/audit_residual_dataset.py`, and
+`artifacts/residual/dataset_audit/`.

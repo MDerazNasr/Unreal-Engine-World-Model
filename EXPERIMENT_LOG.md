@@ -1438,3 +1438,31 @@ Held-parameter recursive p95 position error is 14.897/30.779/31.242 cm at 0.5/1.
 Accept this artifact into validation only. The two validation episodes provide 283 no-history and
 277 four-history examples; training remains 740/725. Both test episodes remain untouched. Evidence:
 `evidence/unreal/res_collection_live_validation_5202.log`.
+
+### RES-DATASET-AUDIT-001 — accepted manifest and coverage gate
+
+Hypothesis: The seven accepted train/validation files can be reconstructed solely from the frozen
+plan while rejecting modified bytes, duplicate identity, rejected attempts, and accidental test
+access.
+
+Configuration: Resolve only entries marked `accepted`; require train/validation split membership,
+filename basenames, exact SHA-256, embedded episode ID, strict schema validation, unique global
+transition identity, realized action equality to the frozen speed configuration, and disjoint
+accepted/rejected filenames and hashes. Pending test entries must contain no observed file metadata
+and are never opened.
+
+Result: Valid. Five training episodes yield 740 transitions / 740 no-history / 725 four-history
+examples. Two validation episodes yield 283 / 283 / 277. The audit reports `test_opened=0`; both
+validation schedules are exact-configuration novel relative to training. Training contains 117/115/
+116/113/111/168 forward/reverse/right/left/diagonal/stop transitions; validation contains
+43/44/45/40/50/61. All rows are Walking. Train and validation contain 112 and 44 parameter-change
+transitions, respectively. Every material causal residual occurs in that stratum; parameter-stable
+rows have zero material violations.
+
+Limitations: These accepted learning splits contain no collision or external-perturbation rows and
+use one deterministic eight-phase family. This is a bounded free-space scheduler/context residual
+experiment, not a general collision model. Test episodes 5301/5302 remain uncollected and unopened.
+
+Artifacts: `artifacts/residual/dataset_audit/{manifest.json,coverage.json,coverage.png,README.md,
+artifact_hashes.json}`. The plot was visually checked for readable labels and honest train/validation
+comparisons. Seven focused and 262 total tests, Ruff, and diff checks pass.

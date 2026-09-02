@@ -1,0 +1,180 @@
+{
+  "checks": {
+    "accepted_episode_ids_unique": true,
+    "accepted_filenames_unique": true,
+    "accepted_files_disjoint_from_rejected_attempts": true,
+    "accepted_hashes_unique": true,
+    "episode_splits_disjoint": true,
+    "realized_actions_match_frozen_configuration": true,
+    "strict_episode_loader_passed": true,
+    "transition_identities_unique": true
+  },
+  "episodes": [
+    {
+      "configuration": {
+        "diagonal_component_speed_cm_s": 75.0,
+        "final_stop_duration_s": 0.35,
+        "forward_speed_cm_s": 120.0,
+        "intermediate_stop_duration_s": 0.25,
+        "lateral_speed_cm_s": 110.0,
+        "motion_phase_duration_s": 0.55,
+        "reverse_speed_cm_s": 90.0
+      },
+      "episode_id": 5101,
+      "four_history_example_count": 127,
+      "no_history_example_count": 130,
+      "raw_file": "episode_5101_20260902T203328Z_3ED1E0C50841.jsonl",
+      "raw_sha256": "eb437123d88dcf0c7b96b7f4fa5e2d75f502c2b70bc08408094b154693c3eaae",
+      "schema_version": 5,
+      "split": "train",
+      "transition_count": 130
+    },
+    {
+      "configuration": {
+        "diagonal_component_speed_cm_s": 55.0,
+        "final_stop_duration_s": 0.4,
+        "forward_speed_cm_s": 80.0,
+        "intermediate_stop_duration_s": 0.2,
+        "lateral_speed_cm_s": 70.0,
+        "motion_phase_duration_s": 0.7,
+        "reverse_speed_cm_s": 130.0
+      },
+      "episode_id": 5102,
+      "four_history_example_count": 153,
+      "no_history_example_count": 156,
+      "raw_file": "episode_5102_20260902T205700Z_941B611C954B.jsonl",
+      "raw_sha256": "a70492872c8b5d55cf669b500c44a703cba6d6e14d8bb21a057cd8efb67094b1",
+      "schema_version": 5,
+      "split": "train",
+      "transition_count": 156
+    },
+    {
+      "configuration": {
+        "diagonal_component_speed_cm_s": 100.0,
+        "final_stop_duration_s": 0.25,
+        "forward_speed_cm_s": 160.0,
+        "intermediate_stop_duration_s": 0.35,
+        "lateral_speed_cm_s": 145.0,
+        "motion_phase_duration_s": 0.4,
+        "reverse_speed_cm_s": 60.0
+      },
+      "episode_id": 5103,
+      "four_history_example_count": 102,
+      "no_history_example_count": 105,
+      "raw_file": "episode_5103_20260902T210855Z_6D0DE5726242.jsonl",
+      "raw_sha256": "59e4d5a2f0c6a2b2f4b3212d17335b8ead8a5d1f6ae947c86904e22f81626abf",
+      "schema_version": 5,
+      "split": "train",
+      "transition_count": 105
+    },
+    {
+      "configuration": {
+        "diagonal_component_speed_cm_s": 60.0,
+        "final_stop_duration_s": 0.5,
+        "forward_speed_cm_s": 145.0,
+        "intermediate_stop_duration_s": 0.15,
+        "lateral_speed_cm_s": 95.0,
+        "motion_phase_duration_s": 0.9,
+        "reverse_speed_cm_s": 145.0
+      },
+      "episode_id": 5104,
+      "four_history_example_count": 187,
+      "no_history_example_count": 190,
+      "raw_file": "episode_5104_20260902T212705Z_633B73409941.jsonl",
+      "raw_sha256": "3a67867880654362434c496c0f81a184bc77e4b3e0ac2237dfdfb6c0554b5427",
+      "schema_version": 5,
+      "split": "train",
+      "transition_count": 190
+    },
+    {
+      "configuration": {
+        "diagonal_component_speed_cm_s": 85.0,
+        "final_stop_duration_s": 0.3,
+        "forward_speed_cm_s": 100.0,
+        "intermediate_stop_duration_s": 0.45,
+        "lateral_speed_cm_s": 130.0,
+        "motion_phase_duration_s": 0.65,
+        "reverse_speed_cm_s": 155.0
+      },
+      "episode_id": 5105,
+      "four_history_example_count": 156,
+      "no_history_example_count": 159,
+      "raw_file": "episode_5105_20260902T215304Z_761D6EB9F04E.jsonl",
+      "raw_sha256": "d9e352128462909effb1b4ad45398a0db0a70aaeaef60f0ef874f09a063c2152",
+      "schema_version": 5,
+      "split": "train",
+      "transition_count": 159
+    },
+    {
+      "configuration": {
+        "diagonal_component_speed_cm_s": 95.0,
+        "final_stop_duration_s": 0.45,
+        "forward_speed_cm_s": 135.0,
+        "intermediate_stop_duration_s": 0.3,
+        "lateral_speed_cm_s": 80.0,
+        "motion_phase_duration_s": 0.5,
+        "reverse_speed_cm_s": 105.0
+      },
+      "episode_id": 5201,
+      "four_history_example_count": 114,
+      "no_history_example_count": 117,
+      "raw_file": "episode_5201_20260902T220337Z_DBA8A0798A4E.jsonl",
+      "raw_sha256": "7ef1cc4756e2e49a0f94a15b61fc553e4f595dffebad85dd5ca86855d22336aa",
+      "schema_version": 5,
+      "split": "validation",
+      "transition_count": 117
+    },
+    {
+      "configuration": {
+        "diagonal_component_speed_cm_s": 65.0,
+        "final_stop_duration_s": 0.2,
+        "forward_speed_cm_s": 70.0,
+        "intermediate_stop_duration_s": 0.25,
+        "lateral_speed_cm_s": 120.0,
+        "motion_phase_duration_s": 0.8,
+        "reverse_speed_cm_s": 150.0
+      },
+      "episode_id": 5202,
+      "four_history_example_count": 163,
+      "no_history_example_count": 166,
+      "raw_file": "episode_5202_20260902T223029Z_A40FEF66DB4C.jsonl",
+      "raw_sha256": "34c3df8e3dbe893e7d89fdba001b8afd244af93dad2c2b3758b965feb5934ba1",
+      "schema_version": 5,
+      "split": "validation",
+      "transition_count": 166
+    }
+  ],
+  "raw_data_policy": "external_untracked_files_verified_by_sha256",
+  "rejected_attempts": {
+    "count": 3,
+    "policy": "quarantined_and_not_opened",
+    "raw_files": [
+      "episode_5201_20260902T204916Z_14E3988C3842.jsonl",
+      "episode_5201_20260902T221949Z_5A5B5DB83C45.jsonl",
+      "episode_5202_20260902T222604Z_E31108FF2747.jsonl"
+    ],
+    "raw_sha256": [
+      "4c5629c510fdb9a2ca15646694dd90950687e4e0a4b1bb87cab4333bccf79305",
+      "f7b2b89cd629eb6ba43915c7ef6f80a148f142f82c215545d126681fb52460a0",
+      "e6468408acd2a5da27eba2686a9800273ede09acae34e3825727f6fe4ab53dfc"
+    ]
+  },
+  "schema_name": "motionworld_residual_dataset_manifest",
+  "schema_version": 1,
+  "source_plan_sha256": "ef33fb44af39c89e8ac396548dea7b6f1d9d0204531164c5faff42dcf85be367",
+  "split_totals": {
+    "train": {
+      "episode_count": 5,
+      "four_history_example_count": 725,
+      "no_history_example_count": 740,
+      "transition_count": 740
+    },
+    "validation": {
+      "episode_count": 2,
+      "four_history_example_count": 277,
+      "no_history_example_count": 283,
+      "transition_count": 283
+    }
+  },
+  "test_data_policy": "pending_test_entries_are_not_opened_by_this_audit"
+}

@@ -1,0 +1,652 @@
+{
+  "claim_boundary": [
+    "coverage describes seven accepted scripted free-space episodes, not all gameplay",
+    "zero contact/event counts are reported rather than hidden",
+    "validation schedules are episode-disjoint and exact-configuration novel",
+    "no validation value may fit normalization or model weights"
+  ],
+  "known_coverage_gaps": [
+    "accepted train/validation episodes contain no collision transitions",
+    "accepted train/validation episodes contain no external perturbation transitions",
+    "only one deterministic eight-phase action family is represented",
+    "final test episodes remain uncollected and unopened"
+  ],
+  "schema_name": "motionworld_residual_dataset_coverage",
+  "schema_version": 1,
+  "source_plan_sha256": "ef33fb44af39c89e8ac396548dea7b6f1d9d0204531164c5faff42dcf85be367",
+  "splits": {
+    "train": {
+      "action_direction_counts": {
+        "diagonal": 111,
+        "forward": 117,
+        "left": 113,
+        "other": 0,
+        "reverse": 115,
+        "right": 116,
+        "stop": 168
+      },
+      "action_speed_cm_s": {
+        "max": 160.0,
+        "median": 95.0,
+        "min": 0.0,
+        "p95": 145.0
+      },
+      "action_speed_histogram_cm_s": {
+        "bin_edges": [
+          0.0,
+          1.0,
+          50.0,
+          75.0,
+          100.0,
+          125.0,
+          150.0,
+          175.0,
+          250.0
+        ],
+        "counts": [
+          168,
+          0,
+          65,
+          165,
+          125,
+          181,
+          36,
+          0
+        ]
+      },
+      "actual_planar_speed_cm_s": {
+        "max": 154.84120115722737,
+        "median": 74.83416427241816,
+        "min": 0.025382550230732312,
+        "p95": 144.250458157673
+      },
+      "actual_speed_histogram_cm_s": {
+        "bin_edges": [
+          0.0,
+          1.0,
+          25.0,
+          50.0,
+          75.0,
+          100.0,
+          125.0,
+          150.0,
+          175.0
+        ],
+        "counts": [
+          16,
+          127,
+          84,
+          143,
+          183,
+          91,
+          88,
+          8
+        ]
+      },
+      "causal_parameter_signature_count": 60,
+      "causal_parameter_value_coverage": {
+        "acceleration_cm_per_s2": {
+          "unique_count": 1,
+          "unique_values": [
+            500.0
+          ]
+        },
+        "acceleration_deadzone_cm_per_s2": {
+          "unique_count": 1,
+          "unique_values": [
+            0.0010000000474974513
+          ]
+        },
+        "acceleration_smoothing_compensation": {
+          "unique_count": 1,
+          "unique_values": [
+            0.0
+          ]
+        },
+        "acceleration_smoothing_time_s": {
+          "unique_count": 1,
+          "unique_values": [
+            0.10000000149011612
+          ]
+        },
+        "angular_velocity_deadzone_deg_per_s": {
+          "unique_count": 1,
+          "unique_values": [
+            0.009999999776482582
+          ]
+        },
+        "deceleration_cm_per_s2": {
+          "unique_count": 2,
+          "unique_values": [
+            300.0,
+            1000.0
+          ]
+        },
+        "deceleration_smoothing_compensation": {
+          "unique_count": 1,
+          "unique_values": [
+            0.0
+          ]
+        },
+        "deceleration_smoothing_time_s": {
+          "unique_count": 1,
+          "unique_values": [
+            0.10000000149011612
+          ]
+        },
+        "directional_acceleration_factor": {
+          "unique_count": 1,
+          "unique_values": [
+            1.0
+          ]
+        },
+        "facing_deadzone_deg": {
+          "unique_count": 1,
+          "unique_values": [
+            0.10000000149011612
+          ]
+        },
+        "facing_smoothing_time_s": {
+          "unique_count": 59,
+          "unique_values": [
+            0.20000000298023224,
+            0.20054639875888824,
+            0.20697557926177979,
+            0.2079339623451233,
+            0.21659933030605316,
+            0.21992702782154083,
+            0.2256876677274704,
+            0.23649020493030548,
+            0.23785027861595154,
+            0.2381817251443863,
+            0.23929452896118164,
+            0.2507721483707428,
+            0.25480547547340393,
+            0.25949397683143616,
+            0.2601112425327301,
+            0.26852065324783325,
+            0.27609002590179443,
+            0.2768034338951111,
+            0.2773149907588959,
+            0.2892734110355377,
+            0.2897341549396515,
+            0.2931496500968933,
+            0.29346340894699097,
+            0.3066760301589966,
+            0.3072090446949005,
+            0.31007248163223267,
+            0.31934940814971924,
+            0.3213176727294922,
+            0.33383333683013916,
+            0.33922386169433594,
+            0.3405162990093231,
+            0.3414601981639862,
+            0.34205204248428345,
+            0.3445456624031067,
+            0.3448893427848816,
+            0.34800100326538086,
+            0.34885719418525696,
+            0.35041487216949463,
+            0.36417070031166077,
+            0.37014418840408325,
+            0.3706026077270508,
+            0.3741055428981781,
+            0.3815663754940033,
+            0.3826827108860016,
+            0.38388967514038086,
+            0.3839010000228882,
+            0.3857850730419159,
+            0.3863668143749237,
+            0.3880396783351898,
+            0.3907269835472107,
+            0.3911004662513733,
+            0.3926372826099396,
+            0.39311692118644714,
+            0.3947167992591858,
+            0.3948338031768799,
+            0.3975473940372467,
+            0.398534893989563,
+            0.39930981397628784,
+            0.4000000059604645
+          ]
+        },
+        "outside_influence_smoothing_time_s": {
+          "unique_count": 1,
+          "unique_values": [
+            0.05000000074505806
+          ]
+        },
+        "smooth_facing_with_double_spring": {
+          "unique_count": 1,
+          "unique_values": [
+            false
+          ]
+        },
+        "turning_strength": {
+          "unique_count": 1,
+          "unique_values": [
+            8.0
+          ]
+        },
+        "velocity_deadzone_cm_per_s": {
+          "unique_count": 1,
+          "unique_values": [
+            0.009999999776482582
+          ]
+        }
+      },
+      "collision_transition_count": 0,
+      "delta_time_histogram_ms": {
+        "bin_edges": [
+          0.0,
+          20.0,
+          25.0,
+          30.0,
+          35.0,
+          40.0,
+          50.0,
+          80.0,
+          200.0
+        ],
+        "counts": [
+          14,
+          102,
+          501,
+          99,
+          11,
+          4,
+          8,
+          1
+        ]
+      },
+      "delta_time_ms": {
+        "max": 95.00000000000064,
+        "median": 27.99999999999958,
+        "min": 16.99999999999946,
+        "p95": 32.049999999999976
+      },
+      "episode_count": 5,
+      "external_perturbation_transition_count": 0,
+      "four_history_example_count": 725,
+      "movement_mode_counts": {
+        "Walking": 740
+      },
+      "no_history_example_count": 740,
+      "parameter_change_transition_count": 112,
+      "residual_targets": {
+        "all": {
+          "absolute_component_p95": {
+            "position_local_x_cm": 1.7553728809612954e-07,
+            "position_local_y_cm": 1.1913048412843673e-07,
+            "velocity_local_x_cm_s": 3.6934725015546583e-06,
+            "velocity_local_y_cm_s": 3.1889882729065545e-06,
+            "yaw_rad": 0.009300391028869976,
+            "yaw_rate_rad_s": 0.31786312555298374
+          },
+          "count": 740,
+          "magnitude_p95": {
+            "planar_position_cm": 2.0353452079303463e-07,
+            "planar_velocity_cm_s": 4.112183657776939e-06,
+            "yaw_deg": 0.532873153775583,
+            "yaw_rate_deg_s": 18.212215557022958
+          },
+          "material_count": {
+            "planar_position_gt_0_001_cm": 15,
+            "planar_velocity_gt_0_01_cm_s": 15,
+            "yaw_gt_0_1_deg": 64,
+            "yaw_rate_gt_1_deg_s": 85
+          }
+        },
+        "parameter_change": {
+          "absolute_component_p95": {
+            "position_local_x_cm": 0.06334821075214382,
+            "position_local_y_cm": 0.008685247054068384,
+            "velocity_local_x_cm_s": 2.2249056777972123,
+            "velocity_local_y_cm_s": 0.3281350044536023,
+            "yaw_rad": 0.09931754009386112,
+            "yaw_rate_rad_s": 3.913083889948621
+          },
+          "count": 112,
+          "magnitude_p95": {
+            "planar_position_cm": 0.06343626710491312,
+            "planar_velocity_cm_s": 2.2279421108768074,
+            "yaw_deg": 5.690475878999581,
+            "yaw_rate_deg_s": 224.20319177469068
+          },
+          "material_count": {
+            "planar_position_gt_0_001_cm": 15,
+            "planar_velocity_gt_0_01_cm_s": 15,
+            "yaw_gt_0_1_deg": 64,
+            "yaw_rate_gt_1_deg_s": 85
+          }
+        },
+        "parameter_stable": {
+          "absolute_component_p95": {
+            "position_local_x_cm": 1.5867223055465728e-07,
+            "position_local_y_cm": 1.0245530827627411e-07,
+            "velocity_local_x_cm_s": 3.187353657756615e-06,
+            "velocity_local_y_cm_s": 2.458650809757378e-06,
+            "yaw_rad": 1.0760275137577935e-08,
+            "yaw_rate_rad_s": 4.908818456367241e-07
+          },
+          "count": 628,
+          "magnitude_p95": {
+            "planar_position_cm": 1.7342877640658115e-07,
+            "planar_velocity_cm_s": 3.451839343383162e-06,
+            "yaw_deg": 6.165183517827669e-07,
+            "yaw_rate_deg_s": 2.8125457994576657e-05
+          },
+          "material_count": {
+            "planar_position_gt_0_001_cm": 0,
+            "planar_velocity_gt_0_01_cm_s": 0,
+            "yaw_gt_0_1_deg": 0,
+            "yaw_rate_gt_1_deg_s": 0
+          }
+        }
+      },
+      "transition_count": 740,
+      "turning_transition_count_yaw_delta_gt_0_1_deg": 568
+    },
+    "validation": {
+      "action_direction_counts": {
+        "diagonal": 50,
+        "forward": 43,
+        "left": 40,
+        "other": 0,
+        "reverse": 44,
+        "right": 45,
+        "stop": 61
+      },
+      "action_speed_cm_s": {
+        "max": 150.0,
+        "median": 91.92388155425118,
+        "min": 0.0,
+        "p95": 150.0
+      },
+      "action_speed_histogram_cm_s": {
+        "bin_edges": [
+          0.0,
+          1.0,
+          50.0,
+          75.0,
+          100.0,
+          125.0,
+          150.0,
+          175.0,
+          250.0
+        ],
+        "counts": [
+          61,
+          0,
+          29,
+          64,
+          67,
+          33,
+          29,
+          0
+        ]
+      },
+      "actual_planar_speed_cm_s": {
+        "max": 149.98786245064315,
+        "median": 75.54706194010562,
+        "min": 0.193073824312446,
+        "p95": 143.1335851431272
+      },
+      "actual_speed_histogram_cm_s": {
+        "bin_edges": [
+          0.0,
+          1.0,
+          25.0,
+          50.0,
+          75.0,
+          100.0,
+          125.0,
+          150.0,
+          175.0
+        ],
+        "counts": [
+          3,
+          45,
+          35,
+          58,
+          55,
+          57,
+          30,
+          0
+        ]
+      },
+      "causal_parameter_signature_count": 25,
+      "causal_parameter_value_coverage": {
+        "acceleration_cm_per_s2": {
+          "unique_count": 1,
+          "unique_values": [
+            500.0
+          ]
+        },
+        "acceleration_deadzone_cm_per_s2": {
+          "unique_count": 1,
+          "unique_values": [
+            0.0010000000474974513
+          ]
+        },
+        "acceleration_smoothing_compensation": {
+          "unique_count": 1,
+          "unique_values": [
+            0.0
+          ]
+        },
+        "acceleration_smoothing_time_s": {
+          "unique_count": 1,
+          "unique_values": [
+            0.10000000149011612
+          ]
+        },
+        "angular_velocity_deadzone_deg_per_s": {
+          "unique_count": 1,
+          "unique_values": [
+            0.009999999776482582
+          ]
+        },
+        "deceleration_cm_per_s2": {
+          "unique_count": 2,
+          "unique_values": [
+            300.0,
+            1000.0
+          ]
+        },
+        "deceleration_smoothing_compensation": {
+          "unique_count": 1,
+          "unique_values": [
+            0.0
+          ]
+        },
+        "deceleration_smoothing_time_s": {
+          "unique_count": 1,
+          "unique_values": [
+            0.10000000149011612
+          ]
+        },
+        "directional_acceleration_factor": {
+          "unique_count": 1,
+          "unique_values": [
+            1.0
+          ]
+        },
+        "facing_deadzone_deg": {
+          "unique_count": 1,
+          "unique_values": [
+            0.10000000149011612
+          ]
+        },
+        "facing_smoothing_time_s": {
+          "unique_count": 24,
+          "unique_values": [
+            0.20000000298023224,
+            0.2299659550189972,
+            0.23206929862499237,
+            0.25208595395088196,
+            0.27037668228149414,
+            0.2749946117401123,
+            0.27593493461608887,
+            0.29552730917930603,
+            0.30851614475250244,
+            0.3147278130054474,
+            0.3372832238674164,
+            0.33980271220207214,
+            0.3495648205280304,
+            0.3534547686576843,
+            0.3577507734298706,
+            0.3704618811607361,
+            0.38242286443710327,
+            0.3885793387889862,
+            0.3903065025806427,
+            0.39237910509109497,
+            0.39551815390586853,
+            0.39906394481658936,
+            0.39988863468170166,
+            0.4000000059604645
+          ]
+        },
+        "outside_influence_smoothing_time_s": {
+          "unique_count": 1,
+          "unique_values": [
+            0.05000000074505806
+          ]
+        },
+        "smooth_facing_with_double_spring": {
+          "unique_count": 1,
+          "unique_values": [
+            false
+          ]
+        },
+        "turning_strength": {
+          "unique_count": 1,
+          "unique_values": [
+            8.0
+          ]
+        },
+        "velocity_deadzone_cm_per_s": {
+          "unique_count": 1,
+          "unique_values": [
+            0.009999999776482582
+          ]
+        }
+      },
+      "collision_transition_count": 0,
+      "delta_time_histogram_ms": {
+        "bin_edges": [
+          0.0,
+          20.0,
+          25.0,
+          30.0,
+          35.0,
+          40.0,
+          50.0,
+          80.0,
+          200.0
+        ],
+        "counts": [
+          12,
+          48,
+          148,
+          45,
+          12,
+          9,
+          7,
+          2
+        ]
+      },
+      "delta_time_ms": {
+        "max": 96.00000000000009,
+        "median": 27.000000000000135,
+        "min": 16.000000000000014,
+        "p95": 40.89999999999992
+      },
+      "episode_count": 2,
+      "external_perturbation_transition_count": 0,
+      "four_history_example_count": 277,
+      "movement_mode_counts": {
+        "Walking": 283
+      },
+      "no_history_example_count": 283,
+      "parameter_change_transition_count": 44,
+      "residual_targets": {
+        "all": {
+          "absolute_component_p95": {
+            "position_local_x_cm": 2.1954651478936333e-07,
+            "position_local_y_cm": 1.5231585136966078e-07,
+            "velocity_local_x_cm_s": 4.360491618235216e-06,
+            "velocity_local_y_cm_s": 3.128062114000435e-06,
+            "yaw_rad": 0.007464033679629033,
+            "yaw_rate_rad_s": 0.280812475703533
+          },
+          "count": 283,
+          "magnitude_p95": {
+            "planar_position_cm": 2.3984417794054027e-07,
+            "planar_velocity_cm_s": 4.779239841923292e-06,
+            "yaw_deg": 0.4276576279862456,
+            "yaw_rate_deg_s": 16.089369692432413
+          },
+          "material_count": {
+            "planar_position_gt_0_001_cm": 6,
+            "planar_velocity_gt_0_01_cm_s": 6,
+            "yaw_gt_0_1_deg": 24,
+            "yaw_rate_gt_1_deg_s": 32
+          }
+        },
+        "parameter_change": {
+          "absolute_component_p95": {
+            "position_local_x_cm": 0.05171191652774436,
+            "position_local_y_cm": 0.009250596756412693,
+            "velocity_local_x_cm_s": 1.9152598822765818,
+            "velocity_local_y_cm_s": 0.30228335561560726,
+            "yaw_rad": 0.0627904803413785,
+            "yaw_rate_rad_s": 3.226607459429653
+          },
+          "count": 44,
+          "magnitude_p95": {
+            "planar_position_cm": 0.0523151618998288,
+            "planar_velocity_cm_s": 1.9376021018460825,
+            "yaw_deg": 3.5976295171601533,
+            "yaw_rate_deg_s": 184.8709895707481
+          },
+          "material_count": {
+            "planar_position_gt_0_001_cm": 6,
+            "planar_velocity_gt_0_01_cm_s": 6,
+            "yaw_gt_0_1_deg": 24,
+            "yaw_rate_gt_1_deg_s": 32
+          }
+        },
+        "parameter_stable": {
+          "absolute_component_p95": {
+            "position_local_x_cm": 1.9971420787944055e-07,
+            "position_local_y_cm": 1.236025905431337e-07,
+            "velocity_local_x_cm_s": 4.022880263702503e-06,
+            "velocity_local_y_cm_s": 2.7384131421694747e-06,
+            "yaw_rad": 9.889455654388255e-09,
+            "yaw_rate_rad_s": 4.931920253719275e-07
+          },
+          "count": 239,
+          "magnitude_p95": {
+            "planar_position_cm": 2.2450387930917083e-07,
+            "planar_velocity_cm_s": 4.1869375025174384e-06,
+            "yaw_deg": 5.666240706782347e-07,
+            "yaw_rate_deg_s": 2.825782154332046e-05
+          },
+          "material_count": {
+            "planar_position_gt_0_001_cm": 0,
+            "planar_velocity_gt_0_01_cm_s": 0,
+            "yaw_gt_0_1_deg": 0,
+            "yaw_rate_gt_1_deg_s": 0
+          }
+        }
+      },
+      "transition_count": 283,
+      "turning_transition_count_yaw_delta_gt_0_1_deg": 222
+    }
+  },
+  "validation_configuration_is_not_exact_train_duplicate": {
+    "5201": true,
+    "5202": true
+  }
+}
