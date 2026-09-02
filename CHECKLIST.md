@@ -631,11 +631,12 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 
 ### 8.2 Window construction
 
-- [ ] Create current/no-history examples.
-- [ ] Create four-observation-history examples.
+- [x] Create current/no-history examples.
+- [x] Create four-observation-history examples.
 - [ ] Create 1.2-1.5 second target horizons.
-- [ ] Prevent windows from crossing episodes.
-- [ ] Prevent features from including future actions or states.
+- [x] Prevent windows from crossing episodes and reject duplicate episode IDs.
+- [x] Prevent features from including future actions, states, completed-step parameters, or hidden
+  event labels.
 - [ ] Mask or reject incomplete horizons consistently.
 - [x] Test the 28-value step and 112-value history order against a frozen schema.
 - [ ] Test normalization/denormalization round trip.

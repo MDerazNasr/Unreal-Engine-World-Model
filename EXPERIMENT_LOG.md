@@ -55,6 +55,7 @@ Artifacts and reproduction command:
 | FACING-001 | Does an explicit antipodal tie-break remove the known angular rollout spike? | Day 2 | Completed |
 | PERT-SCHEDULE-001 | Can one controlled Mover velocity kick be scheduled without frame-skip or duplicate ambiguity? | Day 2 | Completed |
 | RES-CONTRACT-001 | Is the planar residual target causal, invertible, and exactly zero-identical? | Day 3 | Completed |
+| RES-DATASET-001 | Are residual examples consecutive, episode-safe, and free of future/event leakage? | Day 3 | Completed |
 | RES-001 | Does residual learning improve held-out recursive prediction over nominal? | Day 3 | Planned |
 | RES-002 | Does four-step history improve post-perturbation prediction over no history? | Day 3 | Planned |
 | CEM-001 | Does fixed-seed CEM recover known optima in toy costs deterministically? | Day 4 | Planned |
@@ -1204,3 +1205,27 @@ must be fitted from training episodes only after episode-level splits are frozen
 
 **Implementation:** `motionworld/models/residual_contract.py` and
 `tests/unit/test_residual_contract.py`.
+
+## RES-DATASET-001 episode-safe example construction (2026-09-02)
+
+**Question:** Can no-history and four-history learning examples be built without crossing resets,
+mixing episodes, reading completed-step future parameters, or treating the hidden kick as predictable?
+
+**Method:** Build each episode independently from the causal current-snapshot nominal. Require
+adjacent state samples and consecutive transition sequences. A no-history example contains one
+28-value query; a four-history example contains four consecutive queries flattened oldest-to-current.
+Never construct a target for a row carrying the evaluation-only hidden external event. Reject
+duplicate episode IDs when combining episodes.
+
+**Result:** Fourteen focused tests pass. Mutating a completed-step parameter snapshot does not change
+features or targets. A six-transition synthetic episode produces six no-history and three complete
+four-history examples. Two four-transition episodes produce two independent history examples—not a
+spurious cross-episode window. The accepted live episode 4201 loads into 193 no-history and 190
+four-history examples with shapes 28/6 and 112/6 respectively. The full suite has 238 passing tests.
+
+**Reviewer interpretation:** This proves construction and leakage invariants, not dataset diversity.
+Episodes 4101 and 4201 remain near-duplicate schedules, so train/validation/test manifests and
+normalization are still blocked on collecting independent action schedules.
+
+**Implementation:** `motionworld/models/residual_dataset.py` and
+`tests/unit/test_residual_dataset.py`.

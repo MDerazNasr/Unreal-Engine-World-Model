@@ -6,6 +6,11 @@ from motionworld.models.residual_contract import (
     residual_difference,
     zero_residual,
 )
+from motionworld.models.residual_dataset import (
+    ResidualExample,
+    build_residual_dataset,
+    build_residual_examples,
+)
 from motionworld.models.residual_features import (
     RESIDUAL_FEATURE_SCHEMA_VERSION,
     RESIDUAL_HISTORY_FEATURE_COUNT,
@@ -21,6 +26,9 @@ __all__ = [
     "compose_residual",
     "residual_difference",
     "zero_residual",
+    "ResidualExample",
+    "build_residual_dataset",
+    "build_residual_examples",
     "RESIDUAL_FEATURE_SCHEMA_VERSION",
     "RESIDUAL_HISTORY_FEATURE_COUNT",
     "RESIDUAL_HISTORY_LENGTH",
