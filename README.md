@@ -92,7 +92,7 @@ only finalized state with aligned hidden Smooth Walking context, schedules one o
 sequence before an exclusive monotonic 100 ms deadline, holds after misses one and two, and commands
 zero on miss three. Strict universal plugin builds and the actual Game Animation Sample's two focused
 `MotionWorld.Network` automation tests pass. This is lifecycle/safety evidence only: no live
-Unreal-to-Python-to-Unreal echo run or MPC result is claimed yet.
+MPC result is claimed yet; the later R2.3 slice now includes a bounded live echo proof.
 
 R2.3's code layer adds a stateless fixed-command echo controller and a goal-directed reactive
 controller. Both clamp against the lower of the configured ceiling and Unreal's observed effective
@@ -101,8 +101,9 @@ character frame using authoritative facing. The Unreal component can now publish
 planner-only target, which remains absent by default and never enters dynamics features. Controller
 unit tests, strict universal builds, and actual-sample automation pass. Network enablement now
 rejects the bridge's competing varied-action schedule so one producer unambiguously owns the
-command. Live PIE direction,
-sequence, and reset evidence is still required before R2.3 is complete.
+command. Live PIE direction and nonzero-yaw evidence is still required before R2.3 is complete. A
+live safe-zero session has already proven current observation/action identity and clean
+action/history clearing across two verified resets.
 
 No positive result is assumed. A reproducible negative result with a clear diagnosis is a valid research outcome.
 

@@ -517,6 +517,26 @@ final independent finite/planar/magnitude clamp after converting back to world s
 
 Examiner assessment: Awaiting unaided answer after the R2.3 live proof.
 
+### Q17 - Why is a stale reply a successful safety result rather than an applied action? (awaiting candidate answer)
+
+Question: In live episode 7211, Unreal emitted observation 8 and then observation 9 before Python's
+reply to 8 arrived. Why is rejecting reply 8 correct, why must it not be relabelled as action 9, and
+what evidence proves it did not affect episode 7212?
+
+Candidate answer: Pending.
+
+Teacher reference answer: Observation 8 describes an older finalized state, so its command was
+computed for conditions that are no longer the current control decision. Relabelling it as action 9
+would fabricate causality: the payload was never computed from observation 9. Unreal therefore
+keeps one outstanding identity, rejects the superseded reply as stale, and accepts only a reply
+whose episode and source sequence match the current outstanding observation before its deadline.
+At the reset boundary, it clears outstanding/action state; episode 7212 then starts at observation
+zero with `previous_action_present=false` and `previous_action_source=-1`. The live log contains no
+7211 action accepted under episode 7212.
+
+Examiner assessment: Awaiting candidate answer. Live evidence is
+`evidence/unreal/r2_live_echo_stop_sequence_reset.log`.
+
 ## 7. Day 1 closeout answers to practise
 
 These are study answers, not passed candidate teach-backs yet.

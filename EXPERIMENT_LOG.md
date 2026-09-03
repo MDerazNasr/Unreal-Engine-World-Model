@@ -1965,3 +1965,14 @@ source deployed into the actual Game Animation Sample builds for universal Edito
 automation finds exactly two `MotionWorld.Network` tests; both pass, including true/false
 single-owner assertions. Full Python remains 530/530 and Ruff passes. Evidence:
 `evidence/unreal/r2_action_owner_guard_automation.log`. A clean live retry still remains required.
+
+Live attempt 2 result: accepted for the stop, applied-identity, and cross-reset non-reuse claims.
+Session `02334940284C` emitted 269 observations and accepted 267 exact-zero echo actions across
+episodes 7211/7212. Every accepted source had been emitted, and every acceptance reports current
+identity plus arrival before the exclusive deadline. Latency was 23.495/39.852/87.524 ms
+min/median/max. Both episode-zero observations explicitly omit previous action. The 7211 reset
+boundary cleared outstanding/action state before 7212 restarted at observation zero. One response
+to superseded 7211 observation 8 was rejected stale; it was never applied. The final emitted 7212
+observation was followed immediately by teardown. There were no misses, holds, safe stops,
+malformed messages, or evidence drops. Exact lines and audit are preserved in
+`evidence/unreal/r2_live_echo_stop_sequence_reset.log`. Direction/bound and nonzero-yaw proof remain.

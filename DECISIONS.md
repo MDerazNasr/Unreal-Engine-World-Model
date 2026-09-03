@@ -2208,3 +2208,10 @@ schedule is active; a pure automation assertion covers both the valid single-own
 and the rejected dual-owner configuration. A timed gate remains valid because it changes the
 environment, and the separately declared perturbation remains a labelled disturbance rather than
 an action producer.
+
+The corrected safe-zero live run accepts the identity and reset portions of R2.3. An accepted action
+must name an observation that Unreal actually emitted and still considers current; a superseded
+response is counted and rejected rather than reassigned. Reset clears the outstanding identity and
+prior action before the next episode begins at control sequence zero with no previous action. This
+permits ordinary same-episode staleness as a safe rejected outcome while forbidding any stale action
+from being applied or carried across the reset.

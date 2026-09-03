@@ -1,0 +1,50 @@
+MotionWorld R2.3 live echo stop/sequence/reset evidence
+Date: 2026-09-03
+Source: local Game Animation Sample Editor log, PIE 17:33:01-17:33:31 UTC
+Session: 02334940284C
+Controller: Python schema-v2 echo, configured local velocity (0, 0) cm/s
+
+Acceptance decision: PASS for applied source identity and reset non-reuse. This is also the live
+stop case, but the aggregate direction/bound checklist item remains open until every case passes.
+
+Independent audit:
+- observations=269; actions accepted=267; episodes=[7211, 7212]
+- every accepted source identity refers to an emitted observation
+- every accepted command is exactly local (0, 0) cm/s
+- every accepted line reports current_identity_match=true and before_deadline=true
+- Unreal end-to-end latency: min=23.495 ms, median=39.852 ms, max=87.524 ms
+- both episode-first observations have previous_action_present=false and previous_action_source=-1
+- one response to episode 7211 observation 8 was rejected stale after observation 9 superseded it
+- episode 7212 observation 254 was emitted immediately before PIE teardown and was never applied
+- final stats: rejected=1, stale=1, malformed=0, missed=0, held=0, safe_stops=0,
+  evidence_written=540, evidence_dropped=0
+
+Selected exact source lines:
+[2026.09.03-17.33.01:693][252]LogMotionWorldNetwork: Display: MotionWorld network control enabled: controller=echo local_port=52580 remote_port=52581 interval_ms=100 deadline_ms=100; waiting for a verified reset episode.
+[2026.09.03-17.33.01:693][252]LogMotionWorldNetwork: Display: MotionWorld network evidence started: session=02334940284C controller=echo max_lines=2048 endpoints=127.0.0.1:52580->127.0.0.1:52581.
+[2026.09.03-17.33.04:022][281]LogMotionWorldNetwork: Display: MotionWorld network reset boundary: session=02334940284C old_episode=-1 outstanding_observation=-1 action_state_cleared=true.
+[2026.09.03-17.33.04:065][282]LogMotionWorldNetwork: Display: MotionWorld network episode started: session=02334940284C episode=7211 first_observation_sequence=0 applied_local_cm_per_sec=(0.00, 0.00) prior_state_cleared=true.
+[2026.09.03-17.33.04:065][282]LogMotionWorldBridge: Display: MotionWorld reset verified: episode=7211 attempts=1 state_sequence=30 mover_frame=31 position_world_cm=(-800.00, 0.00, 90.00) yaw_deg=0.00 mode=Walking position_error_cm=0.000 facing_error_deg=0.000 linear_speed_cm_per_sec=0.000 angular_speed_deg_per_sec=0.000; new episode may seed this state.
+[2026.09.03-17.33.04:066][282]LogMotionWorldNetwork: Display: MotionWorld network observation sent: session=02334940284C episode=7211 observation=0 state_sequence=30 simulation_time_s=1.422000 facing_yaw_deg=0.000000 previous_action_present=false previous_action_source=-1.
+[2026.09.03-17.33.04:110][283]LogMotionWorldNetwork: Display: MotionWorld network action accepted: session=02334940284C episode=7211 source_observation=0 desired_local_cm_per_sec=(0.000000, 0.000000) unreal_end_to_end_latency_ms=43.783959 current_identity_match=true before_deadline=true.
+[2026.09.03-17.33.04:108][283]LogMotionWorldBridge: Display: MotionWorld command echo: revision=6 frame=character_local resolved=true facing_yaw_deg=0.00 finite=true requested_frame=(0.00, 0.00, 0.00) submitted_world=(0.00, 0.00, 0.00) echoed_world=(0.00, 0.00, 0.00) match=true
+[2026.09.03-17.33.05:013][300]LogMotionWorldNetwork: Display: MotionWorld network observation sent: session=02334940284C episode=7211 observation=8 state_sequence=48 simulation_time_s=2.281000 facing_yaw_deg=0.000000 previous_action_present=true previous_action_source=7.
+[2026.09.03-17.33.05:051][301]LogMotionWorldNetwork: Display: MotionWorld network observation sent: session=02334940284C episode=7211 observation=9 state_sequence=49 simulation_time_s=2.350000 facing_yaw_deg=0.000000 previous_action_present=true previous_action_source=7.
+[2026.09.03-17.33.05:114][302]LogMotionWorldNetwork: Display: MotionWorld network action accepted: session=02334940284C episode=7211 source_observation=9 desired_local_cm_per_sec=(0.000000, 0.000000) unreal_end_to_end_latency_ms=63.224081 current_identity_match=true before_deadline=true.
+[2026.09.03-17.33.05:536][313]LogMotionWorldBridge: Display: MotionWorld episode stopped: episode=7211 observed=31 attempted=30 recorded=30 rejected=0 rejected_seeds=0 capacity_drops=0.
+[2026.09.03-17.33.05:536][313]LogMotionWorldNetwork: Display: MotionWorld network reset boundary: session=02334940284C old_episode=7211 outstanding_observation=13 action_state_cleared=true.
+[2026.09.03-17.33.05:589][314]LogMotionWorldNetwork: Display: MotionWorld network episode started: session=02334940284C episode=7212 first_observation_sequence=0 applied_local_cm_per_sec=(0.00, 0.00) prior_state_cleared=true.
+[2026.09.03-17.33.05:589][314]LogMotionWorldBridge: Display: MotionWorld reset verified: episode=7212 attempts=1 state_sequence=62 mover_frame=63 position_world_cm=(-800.00, 0.00, 90.00) yaw_deg=0.00 mode=Walking position_error_cm=0.000 facing_error_deg=0.000 linear_speed_cm_per_sec=0.000 angular_speed_deg_per_sec=0.000; new episode may seed this state.
+[2026.09.03-17.33.05:589][314]LogMotionWorldNetwork: Display: MotionWorld network observation sent: session=02334940284C episode=7212 observation=0 state_sequence=62 simulation_time_s=2.882000 facing_yaw_deg=0.000000 previous_action_present=false previous_action_source=-1.
+[2026.09.03-17.33.05:624][315]LogMotionWorldNetwork: Display: MotionWorld network action accepted: session=02334940284C episode=7212 source_observation=0 desired_local_cm_per_sec=(0.000000, 0.000000) unreal_end_to_end_latency_ms=34.978542 current_identity_match=true before_deadline=true.
+[2026.09.03-17.33.05:623][315]LogMotionWorldBridge: Display: MotionWorld command echo: revision=24 frame=character_local resolved=true facing_yaw_deg=0.00 finite=true requested_frame=(0.00, 0.00, 0.00) submitted_world=(0.00, 0.00, 0.00) echoed_world=(0.00, 0.00, 0.00) match=true
+[2026.09.03-17.33.31:129][948]LogMotionWorldNetwork: Display: MotionWorld network evidence stopped: session=02334940284C observations_sent=269 actions_accepted=267 rejected=1 stale=1 malformed=0 missed=0 held=0 safe_stops=0 evidence_written=540 evidence_dropped=0.
+
+Interpretation:
+The stale response is not an applied mismatch. Observation 9 replaced outstanding observation 8;
+the old reply was rejected, and only source 9 was accepted. This is the intended newest-only safety
+behavior. At the reset, the runtime explicitly cleared outstanding/action state, restarted control
+sequence numbering at zero, and published no previous action in episode 7212. No action from 7211
+was accepted in 7212.
+
+Final-test episodes 5301/5302 opened: zero.
