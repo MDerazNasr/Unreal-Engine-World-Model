@@ -133,6 +133,26 @@ def test_service_config_loads_relative_frozen_contracts() -> None:
 
 
 @pytest.mark.parametrize(
+    ("name", "expected_velocity"),
+    [
+        ("control_service_echo_forward.yaml", (100.0, 0.0)),
+        ("control_service_echo_right.yaml", (0.0, 100.0)),
+        ("control_service_echo_diagonal.yaml", (100.0, 100.0)),
+        ("control_service_echo_reverse.yaml", (-100.0, 0.0)),
+        ("control_service_echo_speed_bound.yaml", (1000.0, 1000.0)),
+    ],
+)
+def test_live_echo_case_configs_are_strict_and_named(
+    name: str, expected_velocity: tuple[float, float]
+) -> None:
+    config = load_control_service_config(REPOSITORY_ROOT / "configs" / name)
+    assert config.controller_mode == "echo"
+    assert config.controller.echo_velocity_local_cm_per_s == expected_velocity
+    assert config.controller.max_command_speed_cm_per_s == 600.0
+    assert config.transport.python_endpoint == UdpEndpoint("127.0.0.1", 52581)
+
+
+@pytest.mark.parametrize(
     ("mutation", "message"),
     [
         (lambda raw: raw.update(extra=True), "keys must be exactly"),

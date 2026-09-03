@@ -61,6 +61,13 @@ controller and its bounded parameters come from the same strict config. Echo def
 safe start; reactive requires an explicit planner target from Unreal. Neither mode makes an MPC
 claim.
 
+R2.3 live echo trials use named configs rather than editing the safe-zero default:
+`control_service_echo_forward.yaml`, `control_service_echo_right.yaml`,
+`control_service_echo_diagonal.yaml`, `control_service_echo_reverse.yaml`, and
+`control_service_echo_speed_bound.yaml`. The first four request explicit character-local axes. The
+speed-bound case deliberately requests `(1000, 1000)` cm/s so the controller must L2-clamp it to the
+lower of its configured ceiling and Unreal's observed effective movement limit.
+
 ## Candidate study material
 
 - [D-011 Unreal bridge theory](output/pdf/D011_UNREAL_BRIDGE_THEORY.pdf) - compiled five-page

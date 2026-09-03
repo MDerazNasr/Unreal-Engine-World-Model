@@ -1976,3 +1976,9 @@ to superseded 7211 observation 8 was rejected stale; it was never applied. The f
 observation was followed immediately by teardown. There were no misses, holds, safe stops,
 malformed messages, or evidence drops. Exact lines and audit are preserved in
 `evidence/unreal/r2_live_echo_stop_sequence_reset.log`. Direction/bound and nonzero-yaw proof remain.
+
+Direction-trial preparation: freeze five named schema-v2 service configs for forward `(100,0)`,
+right `(0,100)`, diagonal `(100,100)`, reverse `(-100,0)`, and deliberately oversized
+`(1000,1000)` local cm/s. The default `control_service.yaml` remains safe-zero. Unit tests load every
+named file and bind its label to the intended vector and localhost endpoint. This removes manual
+Python-config editing as a source of trial drift; each live run still receives fresh episode IDs.

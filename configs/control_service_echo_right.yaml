@@ -1,0 +1,17 @@
+schema_name: motionworld_control_service_config
+schema_version: 2
+transport_config: control_transport.yaml
+runtime_config: control_runtime.yaml
+controller_mode: echo
+controller:
+  max_command_speed_cm_per_s: 600.0
+  echo_velocity_local_cm_per_s: [0.0, 100.0]
+  reactive_cruise_speed_cm_per_s: 160.0
+  reactive_arrival_radius_cm: 25.0
+event_loop:
+  poll_interval_ms: 5
+  planner_shutdown_timeout_ms: 1000
+  max_tracked_episodes: 16
+diagnostics:
+  max_recent_rejections: 16
+  max_error_utf8_bytes: 256
