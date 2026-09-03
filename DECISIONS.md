@@ -1703,3 +1703,39 @@ p95 with 0 misses; residual records `149.655/169.401 ms` with 30 misses. Test fi
 
 Related implementation/evidence: `motionworld/planning/vectorized_rollout.py`,
 `scripts/benchmark_planner_runtime.py`, and `artifacts/planning/runtime_001/`.
+
+## D-047 - Reject reduced CEM budgets that buy speed by violating the frozen quality gate
+
+Status: CEM-BUDGET-001 completed; no budget accepted
+
+Decision: Keep 256 candidates/32 elites/three iterations as the planning-quality reference. Do not
+deploy any tested reduced budget because none satisfies both 100 ms p95 and the prospectively frozen
+10% p95 positive predicted-cost-regret threshold across both models.
+
+Why: Runtime is a constraint, not the only objective. A fast optimizer that materially worsens the
+cost it was designed to minimize can change the experiment for convenience and obscure whether
+control differences come from the world model or unequal search quality.
+
+Alternatives considered: accept 192/24/2 because its residual p95 is 92.209 ms; accept 256/32/2
+because residual quality is close; relax the 10% threshold after seeing the plot; evaluate only the
+residual controller; use final test episodes to choose a budget.
+
+Evidence: Every 64-192 candidate/two-iteration budget meets runtime but has 43.47-68.97% worst-model
+p95 positive regret. The 256/32/2 budget has 7.31% residual regret but 32.48% nominal regret and
+also misses residual runtime at 104.632 ms. None creates a new model-predicted collision, yet none
+passes the complete quality rule. Test files opened is zero.
+
+Main assumption: Full-budget model-predicted cost is the appropriate validation-only reference for
+search-quality preservation. It is not ground truth and does not replace Unreal evaluation.
+
+How it could fail: The full stochastic optimizer can itself miss better actions; ten validation
+snapshots are small; predicted cost can reward model exploitation. The gate only prevents a large
+known optimization regression before live testing.
+
+How I tested it: Counts and validation indices were committed before execution. Reduced budgets use
+nested common random numbers, retain the elite fraction, and are scored under identical dynamics,
+cost, geometry, bounds, and starting states. The plot was visually inspected and the test counter
+remained zero.
+
+Related evidence: `configs/cem_budget_sweep.yaml` and
+`artifacts/planning/budget_sweep_001/`.

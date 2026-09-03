@@ -414,8 +414,10 @@ artifact generation. Profiling then showed about 71,000 scalar transition calls.
 vectorized backend reduced one representative paired solve to 0.244 seconds without changing either
 first action. The formal single-controller benchmark is nominal 70.709/81.549 ms median/p95 and
 residual 149.655/169.401 ms. Nominal passes the bounded offline compute gate; residual misses all
-30 deadlines and is not deployable at 10 Hz yet. The next step is a budget/quality or compiled-
-inference study, followed by transport-inclusive measurement—not hiding the miss.
+30 deadlines and is not deployable at 10 Hz yet. A prospective budget sweep then rejected all eight
+smaller configurations: the fast ones exceeded the 10% p95 predicted-cost-regret gate. I therefore
+did not trade away planning quality or relax the threshold after seeing the outcome. The next step
+is model/inference optimization, followed by transport-inclusive measurement—not hiding the miss.
 
 ### What does the cross-evaluation matrix tell you?
 

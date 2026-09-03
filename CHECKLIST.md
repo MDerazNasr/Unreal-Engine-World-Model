@@ -925,6 +925,8 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [x] Report p95.
 - [x] Report missed 100 ms deadlines.
 - [x] Report exact candidates, elites, iterations, knots, horizon, device, and threading.
+- [x] Run a prospectively frozen validation-only budget/quality sweep; retain the negative result
+  that no reduced budget passes both 100 ms p95 and the 10% predicted-cost-regret gate.
 - [ ] Preserve cold-start latency separately rather than hiding it.
 
 ### 12.6 Paired statistics

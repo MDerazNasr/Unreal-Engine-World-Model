@@ -62,6 +62,7 @@ Artifacts and reproduction command:
 | RES-002 | Does four-step history improve post-perturbation prediction over no history? | Day 3 | Completed: bounded negative result |
 | CEM-001 | Does fixed-seed CEM recover known optima in toy costs deterministically? | Day 4 | Completed: core optimizer accepted |
 | OFFPLAN-001 | Does the frozen residual change fair CEM rankings, and what model-risk does that reveal? | Day 4 | Completed: offline integration accepted; live claim blocked |
+| CEM-BUDGET-001 | Can a smaller CEM budget meet 100 ms without exceeding the frozen validation-quality loss? | Day 4/6 | Completed: no budget eligible |
 | CTRL-001 | Does residual MPC improve the paired timed-gate outcome over nominal MPC? | Day 5 | Planned |
 | CTRL-002 | Does history improve paired post-push recovery? | Day 5 | Planned |
 | OOD-001 | Where does performance degrade under held-out movement parameters? | Day 5 | Planned |
@@ -1644,3 +1645,29 @@ planner into a 100 ms loop would create stale actions.
 
 Artifacts: `artifacts/planning/runtime_001/`. Full raw passing suite after vectorization: 358 tests.
 Runtime implementation commit: `314b603`; deadline-count addition: `041b28b`.
+
+## CEM-BUDGET-001 — validation-only runtime/quality trade-off
+
+Question: Can we reduce CEM candidates or iterations enough for both controllers to meet 100 ms p95
+without exceeding 10% p95 positive predicted-cost regret or introducing a newly predicted collision?
+
+Prospective configuration: Freeze eight budgets before execution, preserve the 1/8 elite fraction,
+use prefixes of the full reference's random tensor, and compare against 256 candidates/32 elites/
+three iterations. Evaluate both models on ten predeclared snapshots—five each from validation
+episodes 5201 and 5202. Runtime uses 20 alternating calls per controller after two warm-ups on the
+canonical first validation query. Final test episodes remain sealed.
+
+Result: No budget is eligible. Five two-iteration budgets from 64 to 192 candidates pass runtime,
+with residual p95 increasing from 63.142 to 92.209 ms, but worst-model p95 positive cost regret is
+43.47-68.97%, far above 10%. The 256-candidate/two-iteration budget nearly reaches runtime at
+104.632 ms and gives residual regret 7.31%, but nominal regret remains 32.48%. Three-iteration
+128/192-candidate variants miss runtime and fail quality. No budget introduces a newly predicted
+collision, but that alone is insufficient.
+
+Interpretation: Iteration three is decision-relevant, and simply reducing the search budget trades
+away too much model-predicted solution quality under the predeclared gate. The threshold is not
+relaxed after seeing the result. Preserve the full 256/32/3 budget and optimize residual inference
+or model size next. Predicted cost is still not realized Unreal return.
+
+Artifacts: `artifacts/planning/budget_sweep_001/`; the runtime/quality plot was visually reviewed.
+Sweep implementation/freeze commit: `7d2de6f`. Test files opened: zero.

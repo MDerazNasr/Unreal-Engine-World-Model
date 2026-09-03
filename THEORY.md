@@ -1131,3 +1131,18 @@ RUNTIME-001 finds nominal median/p95 `70.709/81.549 ms`, but residual
 failure for the learned controller. Both statements can be true. The benchmark also excludes Unreal
 transport and application, so passing 100 ms offline would be necessary but not sufficient for the
 live loop.
+
+### Runtime-quality Pareto gate
+
+A reduced optimizer budget is useful only if it is both fast enough and sufficiently faithful to
+the reference search. For each validation query and model, define positive relative regret as
+
+`max(0, (J_reduced - J_reference) / max(abs(J_reference), 1))`.
+
+Negative regret is clipped to zero because occasionally a smaller stochastic search finds a better
+candidate; that is not a quality failure. CEM-BUDGET-001 requires p95 positive regret at most 10%,
+zero newly predicted collisions, and p95 latency at most 100 ms for both controllers. No tested
+budget passes all three. This is a Pareto problem: some options are fast, and others preserve more
+quality, but none lies in the acceptable region. Changing the threshold afterward would be
+post-hoc tuning, so the correct action is to retain the negative result and optimize a different
+part of the system.
