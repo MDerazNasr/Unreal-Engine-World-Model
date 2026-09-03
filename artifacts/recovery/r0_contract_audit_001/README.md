@@ -80,5 +80,5 @@ Unreal execution exists.
 
 ## Gate result
 
-The contract is ready for the final repository-wide validation and pre-runtime commit. Final-test
-bytes opened: zero. Gate R0 remains incomplete until that commit exists.
+Passed. The reconciled pre-runtime contract is commit `9e9c269`. Final-test bytes opened: zero.
+No R1 protocol implementation began before this commit.

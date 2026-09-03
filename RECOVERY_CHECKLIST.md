@@ -155,7 +155,7 @@ Objective: establish one internally consistent target before changing runtime or
 - [x] Prediction-test and control-test identities are separate and frozen in draft manifests.
 - [x] No final-test bytes have been opened.
 - [x] Reviewer finds no future information, unit ambiguity, or contradictory acceptance rule.
-- [ ] Commit the reconciled contract before implementing the live runtime.
+- [x] Commit the reconciled contract before implementing the live runtime (`9e9c269`).
 
 Required artifacts:
 
