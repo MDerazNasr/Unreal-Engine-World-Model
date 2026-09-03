@@ -557,6 +557,26 @@ Mover execution. Together those facts establish fail-safe behavior and exclude s
 
 Examiner assessment: Awaiting unaided candidate answer after the service-absent trial.
 
+### Q19 - What exactly happens after the Python service dies during motion? (teacher answer supplied)
+
+Question: If Python dies while the last validated command is forward, why does the pawn not stop on
+the first missed response, and what proves that the third-miss stop was actually executed?
+
+Candidate answer: The candidate supplied the operational observations `moving` before the service
+was killed and `stopped` afterward, but did not yet supply a conceptual explanation.
+
+Teacher reference answer: A single missed response may be transient jitter, so the runtime retains
+the last fully validated action for the first and second consecutive misses. At the third miss it
+replaces that action with exact local zero and continues selecting zero while responses remain
+absent. In episode 7293, action 85 was the last accepted `(100,0)` command. Two subsequent command
+cycles still echoed `(100,0)`; the next echoed `(0,0)`, and all later echoes remained zero. The
+authoritative finalized velocity then changed from `(100,0,0)` to `(0,0,0)`, and later samples kept
+the same position. That chain proves the fallback reached Mover execution; the candidate's visual
+confirmation independently agrees with it.
+
+Examiner assessment: Not passed. The operational observation is valid evidence, but the candidate
+must explain the policy and evidence chain unaided in a later teach-back.
+
 ## 7. Day 1 closeout answers to practise
 
 These are study answers, not passed candidate teach-backs yet.

@@ -2062,3 +2062,26 @@ but PIE ended before the service termination could affect the runtime. The final
 run does not prove stop-after-service-loss behavior and earns no checklist credit. Preserve
 `evidence/unreal/r2_service_kill_attempt_1_invalid.log`; retry with fresh episode 7292 and keep PIE
 running until Python is terminated and the pawn visibly stops.
+
+Service-kill attempt 2: rejected session `42029F5CB14C`, episode 7292. The candidate accidentally
+pressed Play and Stop before the coordinated service kill. Runtime accepted zero actions and ended
+with 124 misses, two initial-zero holds, and 122 safe stops, so this is another stationary
+service-unavailable trace rather than kill-during-motion evidence. No checklist credit. Preserve
+`evidence/unreal/r2_service_kill_attempt_2_invalid.log`; retry with a clean service as episode 7293.
+
+Service-kill result: accepted session `603489EFD049`, episode 7293. The candidate first confirmed
+forward motion, Python was then terminated while PIE remained active, and the candidate subsequently
+confirmed that the pawn stopped before ending PIE. The deliberate-loss window ended with accepted
+observation 85 at local `(100,0)` and 48.895 ms latency. The next two missed-response command cycles
+retained `(100,0)`; the third selected exact zero, after which every retained command remained exact
+zero through EndPlay. A finalized state sample changed from world velocity `(100,0,0)` before the
+kill to `(0,0,0)` after it; position then remained fixed at `(-214.48,0,88.27)` across every later
+sample. Final counters were 584 observations, 55 accepted actions, 529 misses, four holds, 525 safe
+stops, 31 stale rejections, no malformed packet, and no evidence drop.
+
+The four aggregate holds represent two loss windows: an earlier editor/service scheduling stall
+caused two holds, safe zero, 31 stale rejections, and valid recovery; the later coordinated kill
+caused the two holds and third-miss stop credited here. Aggregate counters therefore are not
+misreported as if all four holds followed the kill. The earlier incidental recovery does not satisfy
+the separate explicit service-restart trial. Evidence:
+`evidence/unreal/r2_service_kill_safe_stop.log`.

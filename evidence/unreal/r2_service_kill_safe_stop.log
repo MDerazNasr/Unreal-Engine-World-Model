@@ -1,0 +1,52 @@
+MotionWorld R2.4 service-kill safe-stop evidence
+Date: 2026-09-04 Europe/Copenhagen (PIE log 2026-09-03 22:18-22:20 UTC)
+Source: local Game Animation Sample Editor log
+Session: 603489EFD049
+Episode: 7293
+Python controller: configs/control_service_echo_forward.yaml
+Candidate visual observations: `moving` before termination; `stopped` after termination
+
+Acceptance decision: PASS for "kill the service during motion and verify one-hold/three-stop
+behavior." The policy's precise meaning is: retain the last validated command on response misses
+one and two, then select exact zero on miss three and every later miss.
+
+Independent audit:
+- reset verified on attempt 1 at position (-800, 0, 90), yaw 0, and zero linear/angular speed
+- observation zero had no previous action/source; action zero was accepted as local (100, 0)
+- observation 85 was the final accepted action: local (100, 0), current, before its 100 ms deadline
+- after that acceptance, the next two missed-response command cycles retained exact (100, 0)
+- the third missed-response cycle changed the requested, submitted, and echoed command to exact zero
+- all subsequent retained command echoes remained exact zero through EndPlay
+- sampled world velocity was (100, 0, 0) before termination and (0, 0, 0) afterward
+- every periodic post-stop state kept position (-214.48, 0, 88.27) and zero velocity
+- candidate independently saw motion before the kill and a stop while PIE remained active
+- final stats: observations=584, accepted=55, missed=529, held=4, safe_stops=525,
+  rejected/stale=31/31, malformed=0, evidence_written=641, evidence_dropped=0
+
+Aggregate-counter qualification:
+An earlier scheduling stall produced a separate two-hold/safe-stop/recovery window and 31 stale
+rejections. It accounts for two of the four aggregate holds. Only the isolated later window after
+accepted observation 85 is attributed to the deliberate kill. The incidental earlier recovery does
+not satisfy the separate explicit service-restart checklist item.
+
+Selected exact source lines:
+[2026.09.03-22.18.11:310][ 59]LogMotionWorldNetwork: Display: MotionWorld network evidence started: session=603489EFD049 controller=echo max_lines=2048 endpoints=127.0.0.1:52580->127.0.0.1:52581.
+[2026.09.03-22.18.12:949][ 89]LogMotionWorldBridge: Display: MotionWorld reset verified: episode=7293 attempts=1 state_sequence=30 mover_frame=31 position_world_cm=(-800.00, 0.00, 90.00) yaw_deg=0.00 mode=Walking position_error_cm=0.000 facing_error_deg=0.000 linear_speed_cm_per_sec=0.000 angular_speed_deg_per_sec=0.000; new episode may seed this state.
+[2026.09.03-22.18.12:950][ 89]LogMotionWorldNetwork: Display: MotionWorld network observation sent: session=603489EFD049 episode=7293 observation=0 state_sequence=30 simulation_time_s=1.258000 facing_yaw_deg=0.000000 previous_action_present=false previous_action_source=-1.
+[2026.09.03-22.18.12:983][ 90]LogMotionWorldNetwork: Display: MotionWorld network action accepted: session=603489EFD049 episode=7293 source_observation=0 desired_local_cm_per_sec=(100.000000, 0.000000) unreal_end_to_end_latency_ms=33.178624 current_identity_match=true before_deadline=true.
+[2026.09.03-22.18.27:793][239]LogMotionWorldBridge: Display: MotionWorld state sample: protocol=1 sequence=180 valid=true mover_step_frame=181 sim_time_s=8.862000 step_s=0.042000 resim=false mode=Walking position_world_cm=(-356.50, 0.00, 88.27) velocity_world_cm_per_sec=(100.00, 0.00, 0.00) velocity_local_planar_cm_per_sec=(100.00, 0.00, 0.00) facing_yaw_deg=0.00 facing_unit_world=(1.000000, 0.000000) angular_velocity_world_deg_per_sec=(0.00, 0.00, 0.00)
+[2026.09.03-22.18.28:789][264]LogMotionWorldNetwork: Display: MotionWorld network action accepted: session=603489EFD049 episode=7293 source_observation=85 desired_local_cm_per_sec=(100.000000, 0.000000) unreal_end_to_end_latency_ms=48.894417 current_identity_match=true before_deadline=true.
+[2026.09.03-22.18.28:894][267]LogMotionWorldBridge: Display: MotionWorld command echo: revision=93 frame=character_local resolved=true facing_yaw_deg=0.00 finite=true requested_frame=(100.00, 0.00, 0.00) submitted_world=(100.00, 0.00, 0.00) echoed_world=(100.00, 0.00, 0.00) match=true
+[2026.09.03-22.18.29:020][270]LogMotionWorldBridge: Display: MotionWorld command echo: revision=94 frame=character_local resolved=true facing_yaw_deg=0.00 finite=true requested_frame=(100.00, 0.00, 0.00) submitted_world=(100.00, 0.00, 0.00) echoed_world=(100.00, 0.00, 0.00) match=true
+[2026.09.03-22.18.29:195][274]LogMotionWorldBridge: Display: MotionWorld command echo: revision=96 frame=character_local resolved=true facing_yaw_deg=0.00 finite=true requested_frame=(0.00, 0.00, 0.00) submitted_world=(0.00, 0.00, 0.00) echoed_world=(0.00, 0.00, 0.00) match=true
+[2026.09.03-22.18.30:125][299]LogMotionWorldBridge: Display: MotionWorld state sample: protocol=1 sequence=240 valid=true mover_step_frame=241 sim_time_s=11.197000 step_s=0.037000 resim=false mode=Walking position_world_cm=(-214.48, 0.00, 88.27) velocity_world_cm_per_sec=(0.00, 0.00, 0.00) velocity_local_planar_cm_per_sec=(0.00, 0.00, 0.00) facing_yaw_deg=0.00 facing_unit_world=(1.000000, 0.000000) angular_velocity_world_deg_per_sec=(0.00, 0.00, 0.00)
+[2026.09.03-22.20.13:643][ 83]LogMotionWorldBridge: Display: MotionWorld state sample: protocol=1 sequence=1020 valid=true mover_step_frame=1021 sim_time_s=57.491000 step_s=0.037000 resim=false mode=Walking position_world_cm=(-214.48, 0.00, 88.27) velocity_world_cm_per_sec=(0.00, 0.00, 0.00) velocity_local_planar_cm_per_sec=(0.00, 0.00, 0.00) facing_yaw_deg=0.00 facing_unit_world=(1.000000, 0.000000) angular_velocity_world_deg_per_sec=(0.00, 0.00, 0.00)
+[2026.09.03-22.20.16:179][129]LogMotionWorldNetwork: Display: MotionWorld network evidence stopped: session=603489EFD049 observations_sent=584 actions_accepted=55 rejected=31 stale=31 malformed=0 missed=529 held=4 safe_stops=525 evidence_written=641 evidence_dropped=0.
+
+Interpretation:
+The last validated forward action was tolerated across two isolated response misses, limiting
+sensitivity to one-packet jitter. The third miss forced exact local zero through the authoritative
+bridge, after which measured motion stopped and could not run away. The independent command echo,
+finalized state, aggregate counters, and candidate observation form the full causal evidence chain.
+
+Final-test episodes 5301/5302 opened: zero.

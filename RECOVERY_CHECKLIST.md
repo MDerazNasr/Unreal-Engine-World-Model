@@ -266,7 +266,7 @@ Objective: prove the complete round trip before integrating CEM or retraining mo
 ### 3.4 Failure injection
 
 - [x] Start Unreal with the Python service absent and verify safe stop.
-- [ ] Kill the service during motion and verify one-hold/three-stop behavior.
+- [x] Kill the service during motion and verify one-hold/three-stop behavior.
 - [ ] Restart the service and verify explicit recovery without stale state.
 - [ ] Delay a valid action until it is stale and verify rejection.
 - [ ] Deliver an old-episode action after reset and verify rejection.

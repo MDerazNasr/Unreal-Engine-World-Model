@@ -2253,3 +2253,27 @@ degrees before network start. Every accepted local `(100,0)` command resolved an
 `(0,100)` with authoritative yaw 90; executed state kept X fixed while Y increased 1141.76 cm. The
 candidate observed the reset rotation and facing-relative forward motion. Evidence:
 `evidence/unreal/r2_live_echo_nonzero_yaw.log`.
+
+## D-061 - Accept service-kill safety only from the isolated post-kill window
+
+Status: accepted through live PIE evidence
+
+Decision: Credit the service-kill failure-injection item from episode 7293 because Python was
+terminated only after accepted forward control and visual motion were established, and the exact
+post-kill command sequence retained the validated action for two missed responses before selecting
+zero on the third. Keep the separate service-restart item open.
+
+Why: End-of-run aggregates combine every response-loss window. This run also contained an earlier
+transient scheduling stall that recovered and contributed two additional holds plus stale
+rejections. Treating all four aggregate holds as consequences of the deliberate kill would destroy
+temporal attribution. The post-kill observation/command sequence, independent bridge echoes,
+authoritative velocity, and candidate observation identify the intended failure and its effect.
+
+How it is tested: In session `603489EFD049`, episode 7293, observation 85 was the final accepted
+forward action. The following bridge echoes retained local/world `(100,0)` for two missed-response
+cycles, then changed to exact `(0,0)` on the third and remained zero. State sequence 180 reports
+world velocity `(100,0,0)` before the kill; state sequence 240 and every later periodic state sample
+report zero velocity, with position fixed at `(-214.48,0,88.27)`. EndPlay reports 584 observations,
+55 accepted actions, 529 misses, four holds, 525 safe stops, 31 stale rejections, zero malformed
+packets, and zero evidence drops. The candidate confirmed both motion before termination and stop
+after termination. Raw evidence: `evidence/unreal/r2_service_kill_safe_stop.log`.

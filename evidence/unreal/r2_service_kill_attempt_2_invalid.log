@@ -1,0 +1,22 @@
+MotionWorld R2.4 service-kill attempt 2 — rejected
+Date: 2026-09-04 Europe/Copenhagen (PIE log 2026-09-03 22:15 UTC)
+Session: 42029F5CB14C
+Episode: 7292
+
+Acceptance decision: REJECTED. No checklist credit.
+
+The candidate reported accidentally pressing Play and Stop before the coordinated service kill.
+The runtime summary independently confirms that the episode ended without the intended fault:
+observations_sent=124, actions_accepted=0, missed=124, held=2, safe_stops=122. Because no validated
+forward action was applied before shutdown and Python was not terminated during active PIE, this
+is effectively another service-unavailable stationary run, not a kill-during-motion test.
+
+Exact final lines:
+[2026.09.03-22.15.32:984][188]LogMotionWorldBridge: Display: MotionWorld episode stopped: episode=7292 observed=346 attempted=345 recorded=345 rejected=0 rejected_seeds=0 capacity_drops=0.
+[2026.09.03-22.15.32:984][188]LogMotionWorldNetwork: Display: MotionWorld network evidence stopped: session=42029F5CB14C observations_sent=124 actions_accepted=0 rejected=0 stale=0 malformed=0 missed=124 held=2 safe_stops=122 evidence_written=126 evidence_dropped=0.
+
+Correction: restart the forward service cleanly and use fresh episode 7293. Keep PIE active after
+confirming authoritative forward motion; stop only after the service has been killed and the pawn
+has visibly stopped.
+
+Final-test episodes 5301/5302 opened: zero.
