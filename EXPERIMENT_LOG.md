@@ -1999,3 +1999,12 @@ superseded response caused one declared miss/hold of the prior validated command
 min/median/p95/max was 13.518/20.951/34.418/55.351 ms. Sampled Y moved 1208.07 cm with zero X range
 and yaw held at zero. There was no malformed message, safe stop, or evidence drop. Evidence:
 `evidence/unreal/r2_live_echo_right.log`. Aggregate direction/bound remains open.
+
+Diagonal result: accepted session `66346D64E244`, episode 7241. The candidate observed
+forward-right diagonal travel but may not have perceived the brief logged pause. All 124 accepted
+actions were exact `(100,100)`, current, and before deadline; p95 latency was 58.229 ms. Sampled
+displacement was balanced at +1205.24 cm on both X and Y. Thirteen superseded responses produced
+twelve holds and one three-miss safe stop, visible in three exact-zero matching bridge echoes; valid
+control then resumed. No malformed packet or evidence drop occurred. Evidence:
+`evidence/unreal/r2_live_echo_diagonal.log`. This incidental fallback does not replace the deliberate
+failure-injection gate. Aggregate direction/bound remains open.

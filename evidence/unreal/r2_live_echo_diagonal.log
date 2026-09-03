@@ -1,0 +1,37 @@
+MotionWorld R2.3 live echo diagonal evidence
+Date: 2026-09-03
+Source: local Game Animation Sample Editor log, PIE 20:45 UTC
+Session: 66346D64E244
+Episode: 7241
+Controller config: configs/control_service_echo_diagonal.yaml
+Candidate visual observation: pawn moved diagonally forward-right; candidate may not have perceived
+the brief logged safe stop
+
+Acceptance decision: PASS for the diagonal case. Aggregate direction/bound remains open.
+
+Independent audit:
+- observations sent=138; actions accepted=124
+- every accepted action is exactly local (100, 100) cm/s, current-identity, and before deadline
+- latency min/median/p95/max=16.671/43.385/58.229/62.793 ms
+- sampled displacement is exactly balanced: dx=1205.24 cm and dy=1205.24 cm
+- maximum sampled finalized velocity is (100, 100) cm/s
+- bridge echoes: 137 matching `(100,100)` and 3 matching `(0,0)` safe-stop commands
+- thirteen superseded responses caused thirteen misses: twelve holds and one three-miss safe stop;
+  later valid actions resumed diagonal control
+- final stats: rejected=13, stale=13, malformed=0, missed=13, held=12, safe_stops=1,
+  evidence_written=264, evidence_dropped=0
+
+Selected exact source lines:
+[2026.09.03-20.45.32:514][561]LogMotionWorldBridge: Display: MotionWorld command echo: revision=63 frame=character_local resolved=true facing_yaw_deg=0.00 finite=true requested_frame=(100.00, 100.00, 0.00) submitted_world=(100.00, 100.00, 0.00) echoed_world=(100.00, 100.00, 0.00) match=true
+[2026.09.03-20.45.32:568][562]LogMotionWorldNetwork: Display: MotionWorld network action accepted: session=66346D64E244 episode=7241 source_observation=57 desired_local_cm_per_sec=(100.000000, 100.000000) unreal_end_to_end_latency_ms=53.849749 current_identity_match=true before_deadline=true.
+[2026.09.03-20.45.34:263][591]LogMotionWorldBridge: Display: MotionWorld state sample: protocol=1 sequence=180 valid=true mover_step_frame=181 sim_time_s=8.514000 step_s=0.039000 resim=false mode=Walking position_world_cm=(-113.66, 686.34, 88.27) velocity_world_cm_per_sec=(100.00, 100.00, 0.00) velocity_local_planar_cm_per_sec=(100.00, 100.00, 0.00) facing_yaw_deg=0.00 facing_unit_world=(1.000000, 0.000000) angular_velocity_world_deg_per_sec=(0.00, 0.00, 0.00)
+[2026.09.03-20.45.39:462][711]LogMotionWorldBridge: Display: MotionWorld state sample: protocol=1 sequence=300 valid=true mover_step_frame=301 sim_time_s=13.703000 step_s=0.044000 resim=false mode=Walking position_world_cm=(405.24, 1205.24, 88.27) velocity_world_cm_per_sec=(100.00, 100.00, 0.00) velocity_local_planar_cm_per_sec=(100.00, 100.00, 0.00) facing_yaw_deg=0.00 facing_unit_world=(1.000000, 0.000000) angular_velocity_world_deg_per_sec=(0.00, 0.00, 0.00)
+[2026.09.03-20.45.41:155][747]LogMotionWorldNetwork: Display: MotionWorld network evidence stopped: session=66346D64E244 observations_sent=138 actions_accepted=124 rejected=13 stale=13 malformed=0 missed=13 held=12 safe_stops=1 evidence_written=264 evidence_dropped=0.
+
+Interpretation:
+Equal positive X/Y requests, echoes, finalized velocity, and displacement establish forward-right
+diagonal motion. The candidate confirms the visible direction but does not claim to have perceived
+the short safe stop. The runtime counters and three exact-zero echoes establish that safety event.
+This is useful incidental fallback evidence but does not replace deliberate failure injection.
+
+Final-test episodes 5301/5302 opened: zero.
