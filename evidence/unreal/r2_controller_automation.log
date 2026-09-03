@@ -1869,8 +1869,8 @@ LogConfig: CVar [[QualityLevelMapping:high]] deferred - dummy variable created
 [2026.09.03-15.39.31:827][  0]LogSlate: InvalidateAllWidgets triggered.  All widgets were invalidated
 [2026.09.03-15.39.31:860][  0]LogAudio: Display: Audio Device unregistered from world 'Untitled'.
 [2026.09.03-15.39.31:866][  0]LogUObjectHash: Compacting FUObjectHashTables data took   0.81ms
-[2026.09.03-15.39.41:818][  0]LogAsyncCompilation: Display: BEWARE: AssetCompile memory estimate is greater than available, but we're running it [SkinnedAsset] anyway! RequiredMemory = 0.000 MiB + 4608.000 MiB, MemoryLimit = 2658.390625 MiB 
-[2026.09.03-15.39.41:819][  0]LogAsyncCompilation: Display: BEWARE: AssetCompile memory estimate is greater than available, but we're running it [SkinnedAsset] anyway! RequiredMemory = 0.000 MiB + 4608.000 MiB, MemoryLimit = 2658.46875 MiB 
+[2026.09.03-15.39.41:818][  0]LogAsyncCompilation: Display: BEWARE: AssetCompile memory estimate is greater than available, but we're running it [SkinnedAsset] anyway! RequiredMemory = 0.000 MiB + 4608.000 MiB, MemoryLimit = 2658.390625 MiB
+[2026.09.03-15.39.41:819][  0]LogAsyncCompilation: Display: BEWARE: AssetCompile memory estimate is greater than available, but we're running it [SkinnedAsset] anyway! RequiredMemory = 0.000 MiB + 4608.000 MiB, MemoryLimit = 2658.46875 MiB
 [2026.09.03-15.39.41:945][  0]LogAudioMixer: Display: Registering submix SoundSubmix /Game/Audio/Mix/SM_Foley.SM_Foley.
 [2026.09.03-15.39.41:945][  0]LogAudioMixer: Display: Registering submix SoundSubmix /Game/Audio/Mix/SM_Final.SM_Final.
 [2026.09.03-15.39.41:947][  0]LogAudioMixer: Display: Registering submix SoundSubmix /Game/Audio/Mix/SM_Ambient.SM_Ambient.
