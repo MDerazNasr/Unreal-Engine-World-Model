@@ -49,6 +49,7 @@ def _statistics(milliseconds: list[float], deadline_ms: float) -> dict[str, Any]
         "minimum_ms": float(np.min(values)),
         "maximum_ms": float(np.max(values)),
         "deadline_ms": deadline_ms,
+        "missed_deadline_count": int(np.count_nonzero(values > deadline_ms)),
         "median_meets_deadline": bool(np.median(values) <= deadline_ms),
         "p95_meets_deadline": bool(np.percentile(values, 95) <= deadline_ms),
         "latencies_ms": milliseconds,

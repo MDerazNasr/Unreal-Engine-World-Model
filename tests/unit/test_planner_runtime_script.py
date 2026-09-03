@@ -12,6 +12,7 @@ def test_runtime_statistics_preserve_samples_and_deadline_result() -> None:
     assert result["sample_count"] == 4
     assert result["median_ms"] == 55.0
     assert result["p95_ms"] == pytest.approx(68.5)
+    assert result["missed_deadline_count"] == 1
     assert result["median_meets_deadline"] is True
     assert result["p95_meets_deadline"] is False
     assert result["latencies_ms"] == [40.0, 50.0, 60.0, 70.0]
