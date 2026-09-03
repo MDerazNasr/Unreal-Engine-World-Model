@@ -640,6 +640,25 @@ Examiner assessment: Not passed. The operational observation agrees with the acc
 candidate must still explain the difference between a reset request, elapsed time, and an
 authoritative verified reset boundary unaided.
 
+### Q23 - Why separate invalid packets with valid recovery actions?
+
+Question: Why does the malformed/non-finite probe establish valid motion first and place a valid
+matching action between its two invalid packets?
+
+Candidate answer: Awaiting the live exercise and candidate teach-back.
+
+Teacher reference answer: The test has two claims to isolate. First, malformed syntax and non-finite
+values must fail structural parsing before they can reach action admission or Mover. Second, their
+absence must enter the already-declared bounded missed-response policy. Starting with valid forward
+actions proves the faults occur during real control. Separating them with a valid current action
+resets the consecutive-miss count, so each fault causes only one hold of the last validated bounded
+command rather than combining into an unrelated multi-miss safe stop. A valid response after each
+fault proves recovery; exact malformed counters, no invalid acceptance, bounded command echoes, and
+authoritative state prove safety.
+
+Examiner assessment: Not yet attempted. Require the candidate to distinguish structural rejection,
+temporal admission, and missed-response fallback after the live run.
+
 ## 7. Day 1 closeout answers to practise
 
 These are study answers, not passed candidate teach-backs yet.

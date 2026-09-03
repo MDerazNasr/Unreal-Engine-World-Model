@@ -2145,3 +2145,14 @@ accepted/malformed actions, 230 observations, 207 misses, two initial-zero holds
 and no evidence loss. All 233 bridge echoes were exact zero/matching and all nine sampled finalized
 states remained at `(-800,0,90)` with zero velocity. The candidate observed the pawn remain stopped.
 Evidence: `evidence/unreal/r2_old_episode_action_rejection.log`.
+
+Invalid-action probe pre-live gate: accepted at the code layer. The standalone
+`motionworld-invalid-action-probe` requires one exact episode and a contiguous observation stream.
+It sends at least three normal bounded forward actions before replacing one response with truncated
+JSON, sends a normal recovery action before replacing a later response's command with `1e309`, then
+sends at least one more valid recovery action before exiting. The ordinary validated encoder cannot
+create either invalid packet; mutation occurs only in this isolated transport probe. Six focused
+tests cover identity/timeout bounds, minimum pre-fault motion, mandatory recovery separation, exact
+malformed and non-finite payloads, valid forward actions around both faults, and no extra datagram.
+Full Python passes 554/554, Ruff, lock verification, installed CLI help, and diff integrity pass. No
+live parser-safety claim is made yet; episode 7298 remains required.

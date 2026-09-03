@@ -2363,3 +2363,27 @@ observation triggered the probe's single retained 468-byte 7296/0 send. Unreal r
 accepted actions and exactly one rejected/stale action. All 233 command echoes were exact zero and
 all nine sampled states remained stationary, matching the candidate's observation. Raw evidence:
 `evidence/unreal/r2_old_episode_action_rejection.log`.
+
+## D-065 - Isolate malformed and non-finite packets between valid motion responses
+
+Status: accepted code layer; live PIE evidence remains required
+
+Decision: Use a bounded synchronous probe that requires a contiguous exact-episode observation
+stream, establishes motion with at least three ordinary validated forward actions, substitutes one
+truncated-JSON response, proves valid recovery, substitutes one finite-schema-shaped action whose
+command token is changed to `1e309`, proves valid recovery again, and exits. Keep all packet mutation
+outside the production encoder and service.
+
+Why: Testing bad bytes while the pawn is already stopped would prove parsing but not safe behavior
+during control. Sending the two faults consecutively would also confound parser rejection with the
+three-miss stop policy. Valid actions before, between, and after the faults isolate each malformed
+response as one miss: the last validated bounded forward action may be held once, then current valid
+control must recover without accepting, clamping, or propagating invalid values.
+
+How it is tested: Six focused tests reject an early first fault, adjacent faults, missing post-fault
+recovery, negative identity, and excessive timeout. The localhost UDP test checks all eight exact
+responses: six schema-valid `(100,0)` actions, one byte `{`, and one otherwise normal packet with
+`1e309` in its command. Python's strict decoder rejects the latter as non-finite and no ninth packet
+exists. Full Python passes 554/554; Ruff, lock verification, installed CLI help, and diff integrity
+pass. Live episode 7298 must still establish movement, report exactly two malformed rejections and
+no stale acceptance, recover after each fault, and remain bounded.
