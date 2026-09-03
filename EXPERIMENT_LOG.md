@@ -2099,3 +2099,14 @@ stale rejections/misses, 45 holds, and 656 safe stops. Those late packets were r
 relabeled or applied. Therefore `without stale state` is accepted as lifecycle isolation across the
 restart, not misrepresented as a zero-staleness or steady-control result; the latter remains for
 Gate R2. Evidence: `evidence/unreal/r2_service_restart_recovery.log`.
+
+Delayed-action probe pre-live gate: accepted at the code layer. The standalone
+`motionworld-delayed-action-probe` binds the existing loopback-only Python endpoint, validates every
+received observation, waits for one explicitly configured episode/observation identity, builds and
+schema-validates exactly one ordinary bounded controller action, delays transport by a strictly
+greater-than-deadline bounded duration, sends once, and exits. It is intentionally separate from
+the production latest-only service, which continues to cancel/suppress obsolete results. Six
+focused tests prove strict delay/timeout/identity bounds and an actual localhost UDP action that is
+structurally valid, embeds sub-deadline planner timing, arrives only after the 100 ms wall deadline,
+and is sent exactly once. The installed locked-environment CLI help check passes. No live stale-
+rejection claim is made yet; episode 7295 with a 250 ms delay remains required.

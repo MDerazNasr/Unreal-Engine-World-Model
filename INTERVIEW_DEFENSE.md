@@ -598,6 +598,24 @@ Examiner assessment: Not passed. The visual observation supports the runtime evi
 candidate must later distinguish cross-lifecycle stale-state exclusion from same-episode late-packet
 performance unaided.
 
+### Q21 - How can a valid action still be unsafe to apply? (awaiting candidate answer)
+
+Question: The delayed-action probe creates a correctly encoded, finite, bounded action with the
+right episode/source identity and a short embedded Python planner duration. Why must Unreal still
+reject it after the 250 ms transport delay?
+
+Candidate answer: Pending.
+
+Teacher reference answer: Structural validity says the packet has the correct schema, values, and
+declared identity; it does not establish that the described observation is still the current control
+decision. The 100 ms deadline is measured from Unreal's own monotonic send time to its own receive
+time. After 250 ms, the deadline has expired and usually a newer observation is outstanding, so the
+action was computed for obsolete world state. Python's embedded planner duration excludes the
+injected transport hold and is not trusted for admission. Applying or relabelling the packet would
+fabricate causality. Unreal must count it stale, leave it unapplied, and follow the bounded fallback.
+
+Examiner assessment: Awaiting unaided candidate answer after the live delayed-action trial.
+
 ## 7. Day 1 closeout answers to practise
 
 These are study answers, not passed candidate teach-backs yet.

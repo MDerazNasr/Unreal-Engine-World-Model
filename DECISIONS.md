@@ -2301,3 +2301,27 @@ fresh episode-7294 action zero as local `(100,0)` at 34.767 ms, accepted 165 mor
 moved authoritative X from -800.00 to 1263.86 cm; the candidate observed motion. Its 701 late
 same-episode packets were counted stale and rejected, not applied. Raw evidence:
 `evidence/unreal/r2_service_restart_recovery.log`.
+
+## D-063 - Inject one transport delay without weakening the production service
+
+Status: accepted at the code layer; live episode 7295 remains required
+
+Decision: Use a separate bounded one-shot probe for the delayed-valid-action test. It must target an
+explicit episode and observation sequence, accept only a strictly greater-than-runtime-deadline
+delay, construct and structurally validate the normal bounded controller action before waiting,
+send exactly one datagram, and exit. Do not add a mode that makes the production latest-only service
+publish obsolete planner work.
+
+Why: The production service correctly cancels old planning and suppresses a completion after a newer
+observation arrives. Sleeping inside its controller would therefore test Python cancellation, not
+Unreal stale-action rejection. Delaying an already valid packet at the isolated transport probe
+tests the intended trust boundary: Unreal must use its own receive clock and current outstanding
+identity rather than trusting the packet's Python-reported planner duration.
+
+How it is tested: Six focused tests cover negative identity, non-late delay, upper delay/timeout
+bounds, and a real localhost UDP exchange. The integration test receives the selected observation,
+creates a valid `(100,0)` echo action whose embedded planner duration is below 100 ms, waits at least
+125 ms, sends one packet, and verifies there is no second datagram. `uv lock --check`, the installed
+locked-environment CLI help check, Ruff, and diff integrity pass. Live acceptance still requires
+episode 7295 to report zero accepted actions, at least one stale rejection, safe-zero gameplay, and
+the probe's measured 250 ms send delay.
