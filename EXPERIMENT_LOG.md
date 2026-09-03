@@ -2055,3 +2055,10 @@ explicitly had no previous action/source, excluding reuse from episode 7271. Exa
 the initial zero command and 199 subsequent misses applied safe stop; all 203 bridge echoes were
 zero/matching. Ten sampled finalized states retained exact position (-800,0,90), zero velocity, and
 yaw zero. Evidence: `evidence/unreal/r2_service_absent_safe_stop.log`.
+
+Service-kill attempt 1: rejected session `934DB2FED747`, episode 7291. Forward control was active,
+but PIE ended before the service termination could affect the runtime. The final summary records
+209 observations, 198 accepted actions, eleven incidental holds, and `safe_stops=0`. Therefore the
+run does not prove stop-after-service-loss behavior and earns no checklist credit. Preserve
+`evidence/unreal/r2_service_kill_attempt_1_invalid.log`; retry with fresh episode 7292 and keep PIE
+running until Python is terminated and the pawn visibly stops.

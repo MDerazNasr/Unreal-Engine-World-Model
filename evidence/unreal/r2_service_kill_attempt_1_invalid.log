@@ -1,0 +1,28 @@
+MotionWorld R2.4 service-kill attempt 1 — rejected
+Date: 2026-09-04 Europe/Copenhagen (PIE log 2026-09-03 22:07 UTC)
+Source: local Game Animation Sample Editor log
+Session: 934DB2FED747
+Episode: 7291
+
+Acceptance decision: REJECTED. No R2.4 checklist credit.
+
+Reason:
+- The candidate confirmed forward motion, but the PIE episode ended before the service termination
+  could affect the active runtime.
+- EndPlay summary: observations_sent=209, actions_accepted=198, missed=11, held=11,
+  safe_stops=0.
+- Because no safe stop occurred after service loss, this run cannot prove one-hold/three-stop
+  behavior or a visible stop caused by terminating Python.
+
+Selected exact source lines:
+[2026.09.03-22.07.18:905][629]LogMotionWorldNetwork: Display: MotionWorld network action accepted: session=934DB2FED747 episode=7291 source_observation=208 desired_local_cm_per_sec=(100.000000, 0.000000) unreal_end_to_end_latency_ms=42.800624 current_identity_match=true before_deadline=true.
+[2026.09.03-22.07.19:127][632]LogMotionWorldBridge: Display: MotionWorld episode stopped: episode=7291 observed=540 attempted=539 recorded=539 rejected=0 rejected_seeds=0 capacity_drops=0.
+[2026.09.03-22.07.19:127][632]LogMotionWorldNetwork: Display: MotionWorld network evidence stopped: session=934DB2FED747 observations_sent=209 actions_accepted=198 rejected=11 stale=11 malformed=0 missed=11 held=11 safe_stops=0 evidence_written=409 evidence_dropped=0.
+
+Correction for attempt 2:
+- Use fresh episode 7292.
+- Start the forward service and PIE.
+- Candidate replies `moving` without stopping PIE.
+- Terminate Python while PIE is confirmed active, wait for visible stop, then stop PIE and audit.
+
+Final-test episodes 5301/5302 opened: zero.
