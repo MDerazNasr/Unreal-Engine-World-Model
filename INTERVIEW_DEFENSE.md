@@ -427,7 +427,7 @@ without notes after completing Gate R1.
 Question: Why are Python-only and Unreal-only parser tests insufficient? What does a shared golden
 fixture prove, and what important behavior does it still not prove?
 
-Candidate answer: Pending.
+Candidate answer: "I don't know."
 
 Teacher reference answer: Each side can be internally correct while disagreeing about field names,
 types, numeric limits, optional values, or identity semantics. Feeding the same declared bytes across
@@ -534,8 +534,8 @@ At the reset boundary, it clears outstanding/action state; episode 7212 then sta
 zero with `previous_action_present=false` and `previous_action_source=-1`. The live log contains no
 7211 action accepted under episode 7212.
 
-Examiner assessment: Awaiting candidate answer. Live evidence is
-`evidence/unreal/r2_live_echo_stop_sequence_reset.log`.
+Examiner assessment: Not passed. The teacher answer was supplied at the candidate's request. Retry
+later without notes. Live evidence is `evidence/unreal/r2_live_echo_stop_sequence_reset.log`.
 
 ## 7. Day 1 closeout answers to practise
 
