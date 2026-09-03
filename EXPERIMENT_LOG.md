@@ -1982,3 +1982,12 @@ right `(0,100)`, diagonal `(100,100)`, reverse `(-100,0)`, and deliberately over
 `(1000,1000)` local cm/s. The default `control_service.yaml` remains safe-zero. Unit tests load every
 named file and bind its label to the intended vector and localhost endpoint. This removes manual
 Python-config editing as a source of trial drift; each live run still receives fresh episode IDs.
+
+Forward result: accepted session `31E1BBC5684B`, episode 7221. The candidate observed steady
+straight-forward motion. Unreal accepted 224/224 current, before-deadline actions and the bridge
+independently retained 224 exact local `(100,0)` to world `(100,0)` Mover echoes with `match=true`
+at zero yaw. Latency min/median/p95/max was 14.714/19.813/27.873/51.494 ms. Sampled X moved from
+-800.00 to 1352.09 cm with zero sampled Y range and 100.00 cm/s maximum sampled X velocity. No
+rejection, stale packet, malformed packet, miss, hold, safe stop, or evidence drop occurred.
+Evidence: `evidence/unreal/r2_live_echo_forward.log`. Aggregate direction/bound and nonzero-yaw
+items remain open.
