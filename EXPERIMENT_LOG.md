@@ -1869,3 +1869,23 @@ neither file references the bridge, Mover, or an application function. Thus R1 c
 gameplay, even from a valid packet. Evidence:
 `evidence/unreal/r1_actual_sample_protocol_automation.log`. The complete isolated protocol slice is
 committed as `d85eeaf`. Gate R1 passes 6/6; Section 2 is 41/41. Final-test episode bytes opened: zero.
+
+## R2-SVC-001 — bounded latest-only Python service lifecycle
+
+Question: Can the Python side start cleanly, receive only configured loopback observations, validate
+before planner dispatch, abandon obsolete work, expose bounded status, and release all I/O without
+depending on notebook/import history?
+
+Decision: Add a strict service config, installed/module entry points, one nonblocking UDP owner, a
+bounded episode/sequence state machine, and a latest-only daemon planner worker. Supersession signals
+cooperative cancellation and replaces pending work; completion identity is rechecked before strict
+action serialization. Health diagnostics expose only bounded labels/counters. CLI execution uses an
+honestly labelled zero safe-fallback planner until R2.3.
+
+Result: Fourteen focused lifecycle tests pass. They include actual loopback datagrams, a blocked
+planner superseded by a newer observation, proof that only the new identity is transmitted, active
+shutdown cancellation, socket rebinding, bounded identity memory, and a subprocess configuration
+load. The installed `motionworld-control-service --check-config` command returns `config_valid` from a
+frozen clean environment. Two first-run test races were corrected by waiting for the worker callback
+and receiver readability; neither required a service-semantic change. Final-test episode bytes
+opened: zero.

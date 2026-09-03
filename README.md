@@ -50,6 +50,15 @@ uv run python scripts/verify_interview_package.py
 Unit-test oracles run on CPU by default for deterministic comparison. MPS availability is reported
 separately and may be used for measured training experiments once numerical behavior is validated.
 
+Validate the standalone control-service configuration from a clean process with:
+
+```bash
+uv run motionworld-control-service --config configs/control_service.yaml --check-config
+```
+
+Omit `--check-config` to run the bounded localhost service. Until the echo/reactive controller gate,
+its command-line planner returns only an explicit zero safe fallback; it makes no MPC claim.
+
 ## Candidate study material
 
 - [D-011 Unreal bridge theory](output/pdf/D011_UNREAL_BRIDGE_THEORY.pdf) - compiled five-page

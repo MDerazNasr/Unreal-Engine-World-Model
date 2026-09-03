@@ -438,13 +438,13 @@ end-to-end runtime tests in the actual sample.
 
 Examiner assessment: Awaiting unaided answer.
 
-### Q13 - Why test the protocol inside the actual Unreal sample? (awaiting candidate answer)
+### Q13 - Why test the protocol inside the actual Unreal sample? (teacher answer supplied)
 
 Question: If the isolated plugin already compiles and its automation passes, what additional claim
 does building and testing it inside the actual Game Animation Sample support? What does it still not
 prove?
 
-Candidate answer: Pending.
+Candidate answer: "I don't know."
 
 Teacher reference answer: The actual-sample run checks integration assumptions that an artificial
 host cannot: the real enabled-plugin set, module/dependency graph, target rules, platform binary,
@@ -452,6 +452,25 @@ resource discovery, and test execution environment. It shows that the protocol s
 with the project we will demo. Because R1 deliberately has no bridge connection, it still does not
 prove live observation timing, action deadlines/fallback, coordinate conversion, or gameplay
 control; those belong to the R2 vertical slice.
+
+Examiner assessment: Not passed. The teacher answer was supplied at the candidate's request. Retry
+without notes after completing the first live vertical slice.
+
+### Q14 - Can Python forcibly cancel an obsolete planner thread? (awaiting candidate answer)
+
+Question: When observation 13 arrives while Python is still planning for observation 12, why is it
+not enough merely to ignore action 12 after planning finishes? Can Python safely kill that planning
+thread, and what guarantees does the service actually provide?
+
+Candidate answer: Pending.
+
+Teacher reference answer: Ignoring the late result protects correctness but can still let obsolete
+work consume the only worker and delay observation 13. Python cannot safely kill an arbitrary
+thread. The service therefore sets a cooperative cancellation event, retains at most one newest
+pending observation, and never publishes a result unless its episode/sequence is still current.
+Planners must check the event at bounded internal boundaries. Even if a planner ignores it, the old
+result cannot be sent as current; the bounded shutdown timeout faults diagnostics rather than
+blocking socket release or process exit indefinitely.
 
 Examiner assessment: Awaiting unaided answer.
 

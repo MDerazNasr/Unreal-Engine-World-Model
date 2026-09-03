@@ -1,0 +1,12 @@
+schema_name: motionworld_control_service_config
+schema_version: 1
+transport_config: control_transport.yaml
+runtime_config: control_runtime.yaml
+controller_mode: echo
+event_loop:
+  poll_interval_ms: 5
+  planner_shutdown_timeout_ms: 1000
+  max_tracked_episodes: 16
+diagnostics:
+  max_recent_rejections: 16
+  max_error_utf8_bytes: 256

@@ -96,6 +96,14 @@ Better prediction alone is not evidence of better control. Better control relati
   messages are discarded before gameplay mutation. UDP loss is not retransmitted. Duplicate and
   reordered actions are rejected by episode/current-observation admission, and an absent valid
   response reaches the existing deadline/fallback policy.
+- The standalone Python service loads `configs/control_service.yaml` plus relative runtime/transport
+  contracts, binds only the declared loopback endpoint, validates every observation before planner
+  dispatch, and exposes bounded in-process health/readiness/counter diagnostics without packet
+  contents. It tracks a bounded set of episode identities and only the newest observation request.
+  A newer valid observation cooperatively cancels active work, replaces queued work, and makes every
+  older completion ineligible for transmission. Shutdown closes the socket first, cancels pending
+  work, and waits only the configured bounded interval. The R2.1 command-line default emits an
+  explicit zero `planner_error` fallback; it is not presented as the later echo or MPC controller.
 - The first valid `OnPostFinalize` state after reset defines control slot zero. Thereafter Unreal
   emits the first valid finalized state at or after each fixed 100 ms simulation-time boundary. If
   multiple boundaries elapse, it emits only the latest slot and never sends a catch-up burst.

@@ -1236,3 +1236,28 @@ question: did compression preserve the behavior of the already-selected model? I
 RESIDUAL-COMPRESS-001, 128/128/64 preserved all recursive p95 metrics within 8.43% but failed this
 planner test severely. That is a concrete example of why an ML component must be evaluated inside
 the decision system that consumes it.
+
+## 27. Latest-only service work and cooperative cancellation
+
+At 10 Hz, observation `o_(t+1)` makes unfinished planning for `o_t` obsolete. Correctness therefore
+requires more than a FIFO queue: a queue can accumulate work faster than it is consumed and return
+actions for states Unreal has already left. MotionWorld stores one active request and at most one
+pending newest request. When a newer valid identity arrives it sets the active request's cancellation
+event and replaces any pending request.
+
+Python threads cannot be safely killed from outside. Cancellation is cooperative: the planner must
+inspect the event at bounded points such as between CEM iterations or rollout batches. The external
+safety invariant does not depend on cooperation, however. A completion is serialized and sent only
+when its `(episode_id, observation_sequence)` still equals the service's current identity. Unreal
+independently repeats that admission check at the authoritative application boundary.
+
+This yields two separate guarantees:
+
+1. Identity gating prevents an obsolete result from becoming an action, even if computation ignores
+   cancellation.
+2. Cooperative cancellation prevents obsolete computation from consuming the worker and causing the
+   next plan to miss its deadline.
+
+Service shutdown closes UDP first, signals cancellation, drops pending work, and waits only a fixed
+configured interval. A non-cooperative worker changes health to `faulted`; because it is a daemon it
+cannot make the standalone process depend indefinitely on hidden interpreter or notebook state.

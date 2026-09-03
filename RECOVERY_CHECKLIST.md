@@ -233,14 +233,14 @@ Objective: prove the complete round trip before integrating CEM or retraining mo
 
 ### 3.1 Python service lifecycle
 
-- [ ] Add a stable service entry point and configuration loader.
-- [ ] Bind only to the configured localhost interface and port.
-- [ ] Validate every observation before dispatch.
-- [ ] Maintain state keyed by episode and sequence.
-- [ ] Drop superseded planning work when a newer observation arrives.
-- [ ] Expose health, readiness, controller mode, and bounded diagnostics.
-- [ ] Shut down cleanly and release the socket.
-- [ ] Start from a clean process without requiring imported notebook state.
+- [x] Add a stable service entry point and configuration loader.
+- [x] Bind only to the configured localhost interface and port.
+- [x] Validate every observation before dispatch.
+- [x] Maintain state keyed by episode and sequence.
+- [x] Drop superseded planning work when a newer observation arrives.
+- [x] Expose health, readiness, controller mode, and bounded diagnostics.
+- [x] Shut down cleanly and release the socket.
+- [x] Start from a clean process without requiring imported notebook state.
 
 ### 3.2 Unreal runtime lifecycle
 

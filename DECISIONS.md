@@ -2093,3 +2093,30 @@ repository, the actual Game Animation Sample universal Editor target builds, and
 `MotionWorld.Protocol` tests pass there with exit code zero. Actual-sample evidence is preserved in
 `evidence/unreal/r1_actual_sample_protocol_automation.log`. The independent protocol implementation
 commit is `d85eeaf`; Gate R1 is accepted without making a live-control claim.
+
+## D-057 - Make the Python service latest-only with cooperative planner cancellation
+
+Status: accepted Python lifecycle seam; Unreal round trip and real controllers remain R2 work
+
+Decision: Provide the installed `motionworld-control-service` entry point backed by the exact
+`configs/control_service.yaml` schema. Resolve runtime/transport files only beneath that config's
+directory, bind the declared IPv4 loopback endpoint, validate before dispatch, and maintain bounded
+episode/sequence plus diagnostic state. Use one daemon planning worker with one active and at most one
+pending newest observation. A newer observation cancels active/pending work cooperatively and makes
+all older results ineligible for sending.
+
+Close the UDP socket before bounded worker shutdown. Expose health/readiness/controller and counters
+as a bounded snapshot containing no packet data. The temporary CLI planner returns an explicit zero
+`planner_error` safe fallback; do not call it echo, reactive, nominal MPC, or residual MPC behavior.
+
+Why: FIFO work becomes stale under planner overload, while forcibly terminating Python threads is
+unsafe. Cooperative cancellation protects compute freshness; episode/sequence revalidation protects
+command correctness even when cancellation is ignored. Bounded identity/diagnostic storage prevents
+a long-running service from accumulating episode or attacker-controlled payload state.
+
+How it is tested: Configuration tests reject unknown keys, unsupported modes, absolute/traversing
+paths, and invalid bounds. Real loopback tests cover configured binding, validation-before-dispatch,
+bounded non-payload diagnostics, duplicate/old-episode rejection, bounded episode tracking, active
+planner cancellation, newest-only action output, mode mismatch, cooperative shutdown/socket release,
+and a clean-process module entry point. The installed console entry point also validates successfully
+after a frozen environment refresh.
