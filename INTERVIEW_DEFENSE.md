@@ -406,15 +406,16 @@ nominal model predicts poor progress for the residual-selected plan. This proves
 decisions, but one model may be wrong and CEM may exploit its error. I need same-seed live Unreal
 rollouts to determine actual collision, clearance, and goal progress before claiming better control.
 
-### Why is a roughly ten-second planner useful if MPC has a 100 ms deadline?
+### Why was a roughly ten-second planner useful if MPC has a 100 ms deadline?
 
-It is a correctness-first offline reference implementation. It proves the tensor contracts,
+It was a correctness-first offline reference implementation. It proved the tensor contracts,
 recursive model integration, common-random-number comparison, cost decomposition, and deterministic
-artifact generation. It fails the runtime gate by about two orders of magnitude, so I would not
-present it as deployable. The next engineering step is profiling and then reducing Python overhead,
-vectorizing or compiling model rollout, using inference mode, and testing smaller budgets against
-solution quality. I must report median and p95 latency for one controller on the target hardware;
-the current whole-pair wall time is not that benchmark.
+artifact generation. Profiling then showed about 71,000 scalar transition calls. A parity-tested
+vectorized backend reduced one representative paired solve to 0.244 seconds without changing either
+first action. The formal single-controller benchmark is nominal 70.709/81.549 ms median/p95 and
+residual 149.655/169.401 ms. Nominal passes the bounded offline compute gate; residual misses all
+30 deadlines and is not deployable at 10 Hz yet. The next step is a budget/quality or compiled-
+inference study, followed by transport-inclusive measurement—not hiding the miss.
 
 ### What does the cross-evaluation matrix tell you?
 

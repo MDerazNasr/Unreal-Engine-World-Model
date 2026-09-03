@@ -66,7 +66,7 @@ Artifacts and reproduction command:
 | CTRL-002 | Does history improve paired post-push recovery? | Day 5 | Planned |
 | OOD-001 | Where does performance degrade under held-out movement parameters? | Day 5 | Planned |
 | EXPLOIT-001 | Is selected-plan predicted return more optimistic than realized return? | Day 5 | Planned |
-| RUNTIME-001 | Does the exact final planner meet median/p95/deadline requirements? | Day 6 | Planned |
+| RUNTIME-001 | Does the exact frozen offline planner meet the 100 ms compute deadline? | Day 4/6 | Completed: nominal passes; residual fails |
 
 ## Artifact manifest
 
@@ -1613,3 +1613,34 @@ recorded within an explicit tolerance. Test files opened: zero.
 Artifacts: `artifacts/planning/offplan_001/{summary.json,cross_evaluated_paths.csv,
 offline_paired_planner.png,README.md,artifact_hashes.json}`. The four-panel plot was visually
 checked. Commit provenance: `5d02bbc`.
+
+## RUNTIME-001 — complete offline planner latency
+
+Question: After a parity-checked vectorization, does one complete nominal or residual MPC call fit
+inside the 100 ms compute deadline on the development machine?
+
+Configuration: Apple arm64 Mac, Python 3.12.13, PyTorch 2.13.0 CPU, one Torch thread. Use the frozen
+OFFPLAN-001 query and 256/32/3 CEM budget, five knots, 15 planning steps, and three dynamics
+substeps per step. Warm up three complete calls per controller, then time 30 per controller in
+alternating order. Dataset loading, Unreal transport, rendering, and action application are outside
+the measured region. Test files remain sealed.
+
+Result: Nominal median/p95 is `70.709/81.549 ms`, with 0/30 missed 100 ms deadlines. Residual
+median/p95 is `149.655/169.401 ms`, with 30/30 misses. Therefore the nominal Python compute path
+passes this bounded offline deadline and the residual path fails. This is not end-to-end Unreal
+latency and cold-start latency remains unmeasured.
+
+Optimization evidence: The original correctness-first scalar rollout took about 1.99 seconds for
+one 256-candidate residual batch. The vectorized backend takes about 0.044 seconds for the same
+batch, a 45x pilot speedup, with maximum differences of `9.77e-14 cm` position and `3.55e-15 rad`
+yaw. The integrated paired solve falls from roughly 10 seconds to 0.244 seconds and retains the
+same selected first actions. Randomized parity tests cover turns, stops, nonzero hidden state,
+single/double facing springs, and nonzero learned corrections.
+
+Interpretation: Vectorization removed the accidental Python-per-candidate bottleneck, but the
+learned controller still cannot honestly run at 10 Hz with this budget. The next experiment must
+trade candidate/iteration budget or compiled inference against solution quality; wiring a 150 ms
+planner into a 100 ms loop would create stale actions.
+
+Artifacts: `artifacts/planning/runtime_001/`. Full raw passing suite after vectorization: 358 tests.
+Runtime implementation commit: `314b603`; deadline-count addition: `041b28b`.

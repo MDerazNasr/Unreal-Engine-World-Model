@@ -918,12 +918,13 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 
 ### 12.5 Runtime metrics
 
-- [ ] Warm up final runtime path.
-- [ ] Measure end-to-end planning latency, not model-only latency.
-- [ ] Report median.
-- [ ] Report p95.
-- [ ] Report missed 100 ms deadlines.
-- [ ] Report exact candidates, elites, iterations, knots, horizon, batch shape, device, and threading.
+- [x] Warm up the vectorized offline runtime path with three calls per controller.
+- [x] Measure the complete offline planning call, not model-only latency; Unreal transport and
+  application remain outside this bounded benchmark.
+- [x] Report median.
+- [x] Report p95.
+- [x] Report missed 100 ms deadlines.
+- [x] Report exact candidates, elites, iterations, knots, horizon, device, and threading.
 - [ ] Preserve cold-start latency separately rather than hiding it.
 
 ### 12.6 Paired statistics

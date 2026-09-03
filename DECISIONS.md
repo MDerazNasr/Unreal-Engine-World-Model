@@ -1663,3 +1663,43 @@ opened.
 Related implementation/evidence: `motionworld/planning/planner_rollout.py`,
 `motionworld/planning/mpc.py`, `scripts/run_offline_paired_planner.py`,
 `configs/offline_planner.yaml`, and `artifacts/planning/offplan_001/`.
+
+## D-046 - Keep a scalar dynamics oracle and deploy only a parity-checked vectorized backend
+
+Status: vectorized backend accepted; residual 100 ms runtime gate failed
+
+Decision: Preserve the scalar Smooth Walking rollout as the readable mathematical reference, while
+using a NumPy batch-state implementation for CEM. Select the backend explicitly in
+`PlannerProblem`, fail closed on unknown values, and require randomized state/action/residual parity
+tests before the vectorized path may become the default.
+
+Why: Profiling showed that the earlier “batch” wrapper still invoked the scalar transition about
+71,000 times during one paired plan. That is interpreter overhead, not necessary model complexity.
+Vectorizing candidates evaluates the same equations over arrays while keeping the oracle available
+to detect optimization drift.
+
+Alternatives considered: reduce the CEM budget before locating the bottleneck; delete the scalar
+implementation; accept approximate visual agreement; wire the 10-second reference into Unreal;
+claim that a faster rollout automatically meets the controller deadline.
+
+Evidence: For one 256-candidate, 15-step, three-substep residual rollout, the pilot changes from
+1.992 seconds to 0.044 seconds (45.3x). Maximum scalar/vectorized disagreement is `9.77e-14 cm`
+position and `3.55e-15 rad` yaw. The full paired solve retains identical first actions and falls to
+0.244 seconds. Three parity tests include randomized bounded/unbounded commands, stop, turn,
+nonzero hidden memory, both facing-spring modes, and nonzero residual composition.
+
+Main assumption: NumPy's array operations preserve every relevant scalar branch within declared
+float64 tolerances. The scalar oracle and live Unreal evidence remain authoritative if edge cases
+disagree.
+
+How it could fail: Uncovered threshold-adjacent values could choose a different branch. Small
+floating-point changes could change elite ordering when candidate costs nearly tie. Transport and
+Unreal work add latency not present here. Most importantly, formal RUNTIME-001 measures residual
+median/p95 at `149.655/169.401 ms`, so it misses all 30 100 ms deadlines despite vectorization.
+
+How I tested it: 358 tests and Ruff pass. Complete per-controller calls were warmed three times and
+measured 30 times in alternating order on one CPU thread. Nominal records `70.709/81.549 ms` median/
+p95 with 0 misses; residual records `149.655/169.401 ms` with 30 misses. Test files opened is zero.
+
+Related implementation/evidence: `motionworld/planning/vectorized_rollout.py`,
+`scripts/benchmark_planner_runtime.py`, and `artifacts/planning/runtime_001/`.

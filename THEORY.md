@@ -1105,3 +1105,29 @@ windows never cross the exact-opposite edge, so median yaw error is near zero. E
 than one degree of yaw error crosses that single row, so p95 and maximum error are large. Reporting
 only the median would hide a planner-dangerous failure; reporting only the maximum would falsely
 suggest every trajectory fails.
+
+## 26. Vectorization and the runtime deadline
+
+Scalar code processes one candidate after another. Vectorized code stores the same field from all
+256 candidates in one array and applies an equation to the full array at once. For example, instead
+of 256 Python calls for position integration, it computes
+
+`P_next = P + V_next * delta_t`
+
+where `P` and `V_next` have shape `[256, 3]`. This does not change the model or reduce the search
+budget; it removes interpreter overhead and lets optimized numeric kernels do the repeated work.
+The risk is that branch conditions and floating-point operation order can drift, so the scalar
+implementation remains the oracle and randomized parity tests compare observable and hidden state.
+
+Runtime must time the whole planner call: sample/project candidates, recursively roll dynamics,
+compute costs, select elites, update CEM, and re-evaluate the winner. Timing only the MLP would omit
+most of the system. Warm-ups prevent one-time initialization from contaminating steady-state
+results. Median describes a typical call; p95 asks for a latency below which 95% of calls fall.
+For a 100 ms control interval, p95 is especially important because occasional late actions become
+stale even when the median passes.
+
+RUNTIME-001 finds nominal median/p95 `70.709/81.549 ms`, but residual
+`149.655/169.401 ms`. Thus vectorization is a large engineering success and still a deployment-gate
+failure for the learned controller. Both statements can be true. The benchmark also excludes Unreal
+transport and application, so passing 100 ms offline would be necessary but not sufficient for the
+live loop.
