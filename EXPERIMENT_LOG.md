@@ -1951,3 +1951,17 @@ control path and default behavior are unchanged. Strict universal Editor/Develop
 plugin compilation passes, the actual universal sample builds, and both network automation tests
 pass. Evidence: `evidence/unreal/r2_live_evidence_instrumentation_automation.log`. The next result
 must come from PIE; automation is not substituted for live proof.
+
+Live attempt 1 result: rejected. PIE enabled the network component on ports 52580/52581 and verified
+resets 7201/7202, but the bounded evidence switch remained off and the bridge's varied-action
+schedule remained on. The schedule's later `ProduceInput` command overwrote the Python safe-zero
+echo, so neither visible motion nor bridge echo lines can be attributed to network control. The raw
+diagnostic excerpt and rejection rationale are preserved in
+`evidence/unreal/r2_live_attempt_1_invalid.log`; it earns no R2.3 checklist credit.
+
+Corrective result: Network enablement now rejects the competing varied schedule before opening the
+transport. Strict non-unity universal Mac Editor/Development/Shipping plugin builds pass. The exact
+source deployed into the actual Game Animation Sample builds for universal Editor, and its focused
+automation finds exactly two `MotionWorld.Network` tests; both pass, including true/false
+single-owner assertions. Full Python remains 530/530 and Ruff passes. Evidence:
+`evidence/unreal/r2_action_owner_guard_automation.log`. A clean live retry still remains required.

@@ -2199,3 +2199,12 @@ lines bind episode/control/state sequences, simulation time, and authoritative y
 bind the echoed source identity, local command, and Unreal monotonic end-to-end latency. The bridge's
 existing command-revision line independently records local request, yaw-resolved world command,
 Mover echo, and match status. Evidence capacity affects logging only, never control.
+
+The first live attempt exposed a second configuration invariant: network control and the bridge's
+varied-action schedule cannot both own the command. The schedule was still enabled and overwrote
+the safe-zero echo after network admission, while network evidence remained disabled. The attempt
+is explicitly rejected. Network enablement now fails closed with an error whenever the competing
+schedule is active; a pure automation assertion covers both the valid single-owner configuration
+and the rejected dual-owner configuration. A timed gate remains valid because it changes the
+environment, and the separately declared perturbation remains a labelled disturbance rather than
+an action producer.

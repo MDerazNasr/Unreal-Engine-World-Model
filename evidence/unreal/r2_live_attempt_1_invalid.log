@@ -1,0 +1,32 @@
+MotionWorld R2.3 live attempt 1 — rejected
+Date: 2026-09-03
+Source: local Game Animation Sample Editor log, PIE 16:39:51-16:40:16 UTC
+
+Acceptance decision: INVALID. Do not count this run toward R2.3.
+
+Reasons:
+1. Network control enabled, but no `MotionWorld network evidence started` line exists. The saved
+   network component retained `bLogNetworkEvidence=false`, so observation/action identity and
+   Unreal end-to-end latency were not captured.
+2. The bridge's frozen varied-action schedule remained enabled. It is evaluated later in
+   `ProduceInput` and overwrote the Python echo controller's zero request. Therefore visible motion
+   and bridge command echoes came from the schedule, not from the network controller.
+
+Exact establishing lines:
+[2026.09.03-16.39.51:826][  0]LogMotionWorldBridge: Display: MotionWorld bridge ready on 'SandboxCharacter_Mover_C_0'; automation=disabled, max_planar_speed=600.00 cm/s, state_log_interval=60 samples, episode_capacity=4096 transitions.
+[2026.09.03-16.39.51:827][  0]LogMotionWorldNetwork: Display: MotionWorld network control enabled: controller=echo local_port=52580 remote_port=52581 interval_ms=100 deadline_ms=100; waiting for a verified reset episode.
+[2026.09.03-16.39.57:889][102]LogMotionWorldBridge: Display: MotionWorld varied action schedule started: episode=7201 start_sim_time_s=2.188000 duration_s=4.700000 frame=world facing_policy=velocity_direction_then_hold.
+[2026.09.03-16.39.57:933][103]LogMotionWorldBridge: Display: MotionWorld varied action phase: episode=7201 phase=1 elapsed_s=0.000000 velocity_world_cm_per_sec=(70.00, 0.00, 0.00) orientation_intent_world=(1.000000, 0.000000, 0.000000).
+[2026.09.03-16.39.57:936][103]LogMotionWorldBridge: Display: MotionWorld command echo: revision=7 frame=character_local resolved=true facing_yaw_deg=0.00 finite=true requested_frame=(70.00, 0.00, 0.00) submitted_world=(70.00, 0.00, 0.00) echoed_world=(70.00, 0.00, 0.00) match=true
+
+Reset facts retained only as diagnostic evidence, not network acceptance:
+[2026.09.03-16.39.57:889][102] reset 7201 verified at exact zero state.
+[2026.09.03-16.39.59:769][133] episode 7201 stopped with 30/30 recorded transitions.
+[2026.09.03-16.39.59:851][134] reset 7202 verified at exact zero state.
+
+Corrective action:
+- Make network enablement reject a concurrently enabled varied-action command producer.
+- Explicitly enable the default-off bounded network evidence stream for the retry.
+- Re-run with the varied schedule disabled and a fresh non-reserved episode pair.
+
+Final-test episodes 5301/5302 opened: zero.

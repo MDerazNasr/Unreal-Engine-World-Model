@@ -82,6 +82,13 @@ public:
 	UFUNCTION(BlueprintPure, Category = "MotionWorld|Command")
 	bool DidLastCommandEchoMatch() const { return bLastCommandEchoMatched; }
 
+	/** True when a deterministic schedule would overwrite external network actions. */
+	UFUNCTION(BlueprintPure, Category = "MotionWorld|Network")
+	bool HasCompetingNetworkActionProducer() const
+	{
+		return bEnableVariedActionSchedule;
+	}
+
 	/** Latest immutable gameplay-state snapshot captured after Mover finalization. */
 	UFUNCTION(BlueprintPure, Category = "MotionWorld|State")
 	FMotionWorldStateSample GetLastAuthoritativeState() const { return LastAuthoritativeState; }

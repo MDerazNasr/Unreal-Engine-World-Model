@@ -9,6 +9,10 @@ constexpr double NetworkActionDeadlineSeconds = 0.1;
 constexpr int32 NetworkHoldMissCount = 2;
 constexpr int32 NetworkSafeStopMissCount = 3;
 
+/** Network control must own the command whenever it is enabled. */
+MOTIONWORLD_API bool IsNetworkActionProducerConfigurationValid(
+	bool bVariedActionScheduleEnabled);
+
 enum class ENetworkCommandCause : uint8
 {
 	None,

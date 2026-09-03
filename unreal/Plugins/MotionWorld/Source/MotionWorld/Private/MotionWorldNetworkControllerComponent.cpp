@@ -124,8 +124,18 @@ bool UMotionWorldNetworkControllerComponent::SetNetworkControlEnabled(
 		}
 		return true;
 	}
-	if (!BridgeComponent || !IsSupportedControllerMode(ControllerMode)
-		|| !OpenTransport())
+	if (!BridgeComponent || !IsSupportedControllerMode(ControllerMode))
+	{
+		return false;
+	}
+	if (!MotionWorld::IsNetworkActionProducerConfigurationValid(
+		BridgeComponent->HasCompetingNetworkActionProducer()))
+	{
+		UE_LOG(LogMotionWorldNetwork, Error,
+			TEXT("MotionWorld network control refused: the varied-action schedule is a competing command producer and must be disabled."));
+		return false;
+	}
+	if (!OpenTransport())
 	{
 		Transport.Close();
 		return false;

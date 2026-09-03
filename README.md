@@ -99,7 +99,9 @@ controller. Both clamp against the lower of the configured ceiling and Unreal's 
 max speed; reactive also obeys its cruise speed and rotates the world-target direction into the
 character frame using authoritative facing. The Unreal component can now publish an explicit
 planner-only target, which remains absent by default and never enters dynamics features. Controller
-unit tests, strict universal builds, and actual-sample automation pass. Live PIE direction,
+unit tests, strict universal builds, and actual-sample automation pass. Network enablement now
+rejects the bridge's competing varied-action schedule so one producer unambiguously owns the
+command. Live PIE direction,
 sequence, and reset evidence is still required before R2.3 is complete.
 
 No positive result is assumed. A reproducible negative result with a clear diagnosis is a valid research outcome.

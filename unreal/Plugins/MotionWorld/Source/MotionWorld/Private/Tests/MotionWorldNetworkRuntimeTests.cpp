@@ -11,6 +11,10 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 bool FMotionWorldNetworkRuntimeTest::RunTest(const FString& Parameters)
 {
 	using namespace MotionWorld;
+	TestTrue(TEXT("Network owns command when varied schedule is off"),
+		IsNetworkActionProducerConfigurationValid(false));
+	TestFalse(TEXT("Competing varied schedule is rejected"),
+		IsNetworkActionProducerConfigurationValid(true));
 	FNetworkRuntime Runtime;
 	TestFalse(TEXT("Negative episode is rejected"), Runtime.StartEpisode(-1));
 	TestTrue(TEXT("Episode starts"), Runtime.StartEpisode(7101));

@@ -4,6 +4,12 @@
 
 namespace MotionWorld
 {
+bool IsNetworkActionProducerConfigurationValid(
+	const bool bVariedActionScheduleEnabled)
+{
+	return !bVariedActionScheduleEnabled;
+}
+
 bool FNetworkRuntime::StartEpisode(const int64 EpisodeId)
 {
 	if (EpisodeId < 0 || EpisodeId > MaxSafeJsonInteger)
