@@ -1,0 +1,45 @@
+schema_name: motionworld_residual_width_sweep
+schema_version: 1
+status: frozen_before_training_or_validation
+claim_boundary: "validation-only model compression; not final-test or Unreal control evidence"
+source_training_config_sha256: 36e704366548b3b3d7c1964737e983a6e6b55d038d6c2d31ff731cf4806dd7a7
+source_training_comparison_sha256: cee4b4d09ca3d17b85cade4b8fe2b252cf9398c8c198107ccce7fa6ad0ac355b
+reference_checkpoint_sha256: d979549b30bd01b3a304697074c295caf6c7fa16a4a8e25a08c15eec1da7a4f6
+history_length: 1
+candidates:
+  - name: width_192_192_96
+    hidden_widths: [192, 192, 96]
+  - name: width_128_128_64
+    hidden_widths: [128, 128, 64]
+  - name: width_96_96_48
+    hidden_widths: [96, 96, 48]
+  - name: width_64_64_32
+    hidden_widths: [64, 64, 32]
+training_policy:
+  inherit_optimizer_loss_normalization_and_seed: true
+  checkpoint_selection: fixed_final_optimizer_step_no_validation_early_stopping
+recursive_quality_gate:
+  horizons_s: [0.5, 1.0, 1.5]
+  statistic: p95
+  maximum_relative_degradation_vs_reference: 0.15
+  require_all_metrics_and_horizons: true
+planner_quality_gate:
+  validation_queries:
+    - {episode_id: 5201, transition_index: 0}
+    - {episode_id: 5201, transition_index: 29}
+    - {episode_id: 5201, transition_index: 58}
+    - {episode_id: 5201, transition_index: 87}
+    - {episode_id: 5201, transition_index: 116}
+    - {episode_id: 5202, transition_index: 0}
+    - {episode_id: 5202, transition_index: 41}
+    - {episode_id: 5202, transition_index: 82}
+    - {episode_id: 5202, transition_index: 123}
+    - {episode_id: 5202, transition_index: 165}
+  maximum_p95_positive_relative_regret: 0.10
+  maximum_new_predicted_collisions: 0
+runtime_gate:
+  deadline_ms: 100.0
+  warmups: 2
+  repetitions: 20
+  torch_threads: 1
+selection_rule: eligible_then_lowest_runtime_p95_then_lowest_parameter_count
