@@ -1,0 +1,41 @@
+MotionWorld R2.3 live echo speed-bound evidence
+Date: 2026-09-03
+Source: local Game Animation Sample Editor log, PIE 21:19 UTC
+Session: 2EA3863C9E4F
+Episode: 7261
+Controller config: configs/control_service_echo_speed_bound.yaml
+Configured raw echo request: (1000, 1000) local cm/s
+Candidate visual observation: pawn moved diagonally forward-right
+
+Acceptance decision: PASS for the speed-bound case and the aggregate live direction/bound item.
+
+Independent audit:
+- observations sent=159; actions accepted=148
+- every accepted action is exactly local (116.672619, 116.672619) cm/s, current-identity,
+  and before deadline
+- accepted vector magnitude from logged precision is 165.000000147 cm/s
+- this is the observed Mover limit applied as a vector-norm clamp; independently clamping both
+  axes to 165 would incorrectly produce a 233.345 cm/s diagonal
+- latency min/median/p95/max=16.912/47.545/55.679/74.198 ms
+- reset position was (-800.00, 0.00) cm; last sampled position was (1000.02, 1800.02) cm
+- sampled displacement was balanced at +1800.02 cm on both X and Y; yaw remained 0.00 degrees
+- bridge echoes: 158 matching `(116.67,116.67)` and 3 matching `(0,0)` safe-stop commands
+- ten superseded responses caused ten misses: nine holds and one safe stop; later valid actions
+  resumed bounded diagonal control
+- final stats: rejected=10, stale=10, malformed=0, missed=10, held=9, safe_stops=1,
+  evidence_written=309, evidence_dropped=0
+
+Selected exact source lines:
+[2026.09.03-21.19.59:542][655]LogMotionWorldBridge: Display: MotionWorld reset verified: episode=7261 attempts=1 state_sequence=30 mover_frame=31 position_world_cm=(-800.00, 0.00, 90.00) yaw_deg=0.00 mode=Walking position_error_cm=0.000 facing_error_deg=0.000 linear_speed_cm_per_sec=0.000 angular_speed_deg_per_sec=0.000; new episode may seed this state.
+[2026.09.03-21.19.59:584][656]LogMotionWorldNetwork: Display: MotionWorld network action accepted: session=2EA3863C9E4F episode=7261 source_observation=0 desired_local_cm_per_sec=(116.672619, 116.672619) unreal_end_to_end_latency_ms=40.981539 current_identity_match=true before_deadline=true.
+[2026.09.03-21.20.00:918][685]LogMotionWorldBridge: Display: MotionWorld state sample: protocol=1 sequence=60 valid=true mover_step_frame=61 sim_time_s=3.009000 step_s=0.050000 resim=false mode=Walking position_world_cm=(-669.97, 130.03, 88.27) velocity_world_cm_per_sec=(116.67, 116.67, 0.00) velocity_local_planar_cm_per_sec=(116.67, 116.67, 0.00) facing_yaw_deg=0.00 facing_unit_world=(1.000000, 0.000000) angular_velocity_world_deg_per_sec=(0.00, 0.00, 0.00)
+[2026.09.03-21.20.13:499][925]LogMotionWorldBridge: Display: MotionWorld state sample: protocol=1 sequence=300 valid=true mover_step_frame=301 sim_time_s=14.447000 step_s=0.049000 resim=false mode=Walking position_world_cm=(663.66, 1463.66, 88.27) velocity_world_cm_per_sec=(116.67, 116.67, 0.00) velocity_local_planar_cm_per_sec=(116.67, 116.67, 0.00) facing_yaw_deg=0.00 facing_unit_world=(1.000000, 0.000000) angular_velocity_world_deg_per_sec=(0.00, 0.00, 0.00)
+[2026.09.03-21.20.16:799][993]LogMotionWorldNetwork: Display: MotionWorld network evidence stopped: session=2EA3863C9E4F observations_sent=159 actions_accepted=148 rejected=10 stale=10 malformed=0 missed=10 held=9 safe_stops=1 evidence_written=309 evidence_dropped=0.
+
+Interpretation:
+The named configuration deliberately requests a vector far above both limits. Exact equal action
+components and a 165 cm/s norm prove direction-preserving magnitude clamping against the causal
+observed Mover speed limit before Unreal admission. The candidate confirms forward-right motion;
+the runtime trace, rather than visual speed estimation, proves the numeric bound.
+
+Final-test episodes 5301/5302 opened: zero.

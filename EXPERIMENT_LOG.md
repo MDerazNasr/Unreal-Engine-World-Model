@@ -2017,3 +2017,14 @@ holds and three safe stops, visible in six exact-zero matching bridge echoes; va
 then resumed. No malformed packet or evidence drop occurred. Evidence:
 `evidence/unreal/r2_live_echo_reverse.log`. Aggregate direction/bound remains open only on the
 speed-bound case.
+
+Speed-bound result: accepted session `2EA3863C9E4F`, episode 7261, completing the aggregate live
+direction/bound item. The candidate observed forward-right diagonal travel. Although the named
+configuration requests local `(1000,1000)`, all 148 accepted current/before-deadline actions were
+exactly `(116.672619,116.672619)`, with magnitude `165.000000147` cm/s from logged precision. This
+proves direction-preserving vector-norm clamping to the causal observed Mover limit; independent
+per-axis clamping would have yielded an invalid 233.345 cm/s diagonal. Sampled displacement was
+balanced at +1800.02 cm on both axes. Ten superseded responses produced nine holds and one safe
+stop before recovery; no malformed packet or evidence drop occurred. Evidence:
+`evidence/unreal/r2_live_echo_speed_bound.log`. Nonzero-yaw local-to-world proof remains the final
+R2.3 item.
