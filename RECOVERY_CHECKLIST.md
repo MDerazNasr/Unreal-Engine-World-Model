@@ -244,15 +244,15 @@ Objective: prove the complete round trip before integrating CEM or retraining mo
 
 ### 3.2 Unreal runtime lifecycle
 
-- [ ] Add a default-off network controller component or clearly separated bridge subsystem.
-- [ ] Sample/send exactly one observation per 100 ms control interval.
-- [ ] Receive actions asynchronously.
-- [ ] Apply only the action matching the current episode and expected observation sequence.
-- [ ] Track missed, rejected, stale, and malformed responses separately.
-- [ ] Hold the last validated action after one miss.
-- [ ] Apply zero local velocity after three consecutive misses.
-- [ ] Clear network state on reset, controller switch, EndPlay, and service reconnection.
-- [ ] Ensure disabling network control restores normal human-input behavior.
+- [x] Add a default-off network controller component or clearly separated bridge subsystem.
+- [x] Sample/send exactly one observation per 100 ms control interval.
+- [x] Receive actions asynchronously.
+- [x] Apply only the action matching the current episode and expected observation sequence.
+- [x] Track missed, rejected, stale, and malformed responses separately.
+- [x] Hold the last validated action after one miss.
+- [x] Apply zero local velocity after three consecutive misses.
+- [x] Clear network state on reset, controller switch, EndPlay, and service reconnection.
+- [x] Ensure disabling network control restores normal human-input behavior.
 
 ### 3.3 Echo and reactive controller proof
 

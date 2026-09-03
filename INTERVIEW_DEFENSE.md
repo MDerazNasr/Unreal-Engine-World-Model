@@ -456,13 +456,13 @@ control; those belong to the R2 vertical slice.
 Examiner assessment: Not passed. The teacher answer was supplied at the candidate's request. Retry
 without notes after completing the first live vertical slice.
 
-### Q14 - Can Python forcibly cancel an obsolete planner thread? (awaiting candidate answer)
+### Q14 - Can Python forcibly cancel an obsolete planner thread? (teacher answer supplied)
 
 Question: When observation 13 arrives while Python is still planning for observation 12, why is it
 not enough merely to ignore action 12 after planning finishes? Can Python safely kill that planning
 thread, and what guarantees does the service actually provide?
 
-Candidate answer: Pending.
+Candidate answer: "I don't know."
 
 Teacher reference answer: Ignoring the late result protects correctness but can still let obsolete
 work consume the only worker and delay observation 13. Python cannot safely kill an arbitrary
@@ -471,6 +471,24 @@ pending observation, and never publishes a result unless its episode/sequence is
 Planners must check the event at bounded internal boundaries. Even if a planner ignores it, the old
 result cannot be sent as current; the bounded shutdown timeout faults diagnostics rather than
 blocking socket release or process exit indefinitely.
+
+Examiner assessment: Not passed. The teacher answer was supplied at the candidate's request. Retry
+without notes after the live echo round trip.
+
+### Q15 - Why does the Unreal runtime use two clocks? (awaiting candidate answer)
+
+Question: Why are 10 Hz observation boundaries based on Unreal simulation time while the 100 ms
+action deadline is based on Unreal monotonic wall time? What failure would occur if simulation time
+were used for both?
+
+Candidate answer: Pending.
+
+Teacher reference answer: Simulation time identifies when the authoritative world state exists, so
+it gives stable 100 ms world-timeline slots and naturally stops producing observations while the
+world is paused. Monotonic wall time measures the real delay between Unreal sending an observation
+and receiving its action. If the deadline used simulation time, pausing or slowing the simulation
+could make a genuinely late Python result appear timely. Using Unreal's own monotonic send/receive
+clock also avoids comparing unsynchronized clocks across processes.
 
 Examiner assessment: Awaiting unaided answer.
 

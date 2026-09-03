@@ -13,6 +13,7 @@
 #include "MotionWorldBridgeComponent.generated.h"
 
 class UMoverComponent;
+class UMotionWorldNetworkControllerComponent;
 
 UENUM(BlueprintType)
 enum class EMotionWorldVelocityCommandFrame : uint8
@@ -373,6 +374,9 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UMoverComponent> MoverComponent;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UMotionWorldNetworkControllerComponent> NetworkControllerComponent;
 
 	UPROPERTY(Transient)
 	TObjectPtr<AMotionWorldArenaManager> ArenaManager;

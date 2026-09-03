@@ -1,0 +1,126 @@
+#pragma once
+
+#include "Components/ActorComponent.h"
+#include "MotionWorldNetworkRuntime.h"
+#include "MotionWorldUdpTransport.h"
+#include "MotionWorldNetworkControllerComponent.generated.h"
+
+class UMotionWorldBridgeComponent;
+struct FMotionWorldNominalContextSample;
+struct FMotionWorldStateSample;
+
+USTRUCT(BlueprintType)
+struct MOTIONWORLD_API FMotionWorldNetworkControllerStats
+{
+	GENERATED_BODY()
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Network")
+	int64 ObservationsSent = 0;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Network")
+	int64 ObservationSendFailures = 0;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Network")
+	int64 ActionsAccepted = 0;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Network")
+	int64 RejectedActions = 0;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Network")
+	int64 StaleActions = 0;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Network")
+	int64 MalformedActions = 0;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Network")
+	int64 MissedResponses = 0;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Network")
+	int64 HeldAfterMiss = 0;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Network")
+	int64 SafeStops = 0;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Network")
+	int64 RejectedTransportDatagrams = 0;
+};
+
+/**
+ * Default-off owner of the live UDP control loop. It polls without blocking,
+ * admits only the current episode/observation action, and delegates the final
+ * bounded command mutation to UMotionWorldBridgeComponent.
+ */
+UCLASS(ClassGroup = (MotionWorld), BlueprintType, meta = (BlueprintSpawnableComponent))
+class MOTIONWORLD_API UMotionWorldNetworkControllerComponent final
+	: public UActorComponent
+{
+	GENERATED_BODY()
+
+public:
+	UMotionWorldNetworkControllerComponent();
+
+	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	virtual void TickComponent(
+		float DeltaTime,
+		ELevelTick TickType,
+		FActorComponentTickFunction* ThisTickFunction) override;
+
+	UFUNCTION(BlueprintCallable, Category = "MotionWorld|Network")
+	bool SetNetworkControlEnabled(bool bEnabled);
+
+	/** Switching controllers invalidates all outstanding work; a new episode must follow. */
+	UFUNCTION(BlueprintCallable, Category = "MotionWorld|Network")
+	bool SetControllerMode(const FString& NewControllerMode);
+
+	/** Close/reopen the socket and invalidate all old sequence state. */
+	UFUNCTION(BlueprintCallable, Category = "MotionWorld|Network")
+	bool ReconnectService();
+
+	UFUNCTION(BlueprintPure, Category = "MotionWorld|Network")
+	bool IsNetworkControlEnabled() const { return bNetworkControlEnabled; }
+
+	UFUNCTION(BlueprintPure, Category = "MotionWorld|Network")
+	FMotionWorldNetworkControllerStats GetNetworkStats() const { return ControllerStats; }
+
+	/** Called by the bridge before a reset is queued. */
+	void PrepareForReset();
+
+	/** Called only after Unreal verifies the reset's finalized state. */
+	bool BeginNetworkEpisode(int64 EpisodeId);
+
+	/** Called by the bridge after state and hidden nominal context are finalized. */
+	void ObserveFinalizedState(
+		const FMotionWorldStateSample& State,
+		const FMotionWorldNominalContextSample& NominalContext);
+
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Network")
+	bool bNetworkControlEnabled = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Network", meta = (ClampMin = "1", ClampMax = "65535"))
+	int32 LocalPort = 52580;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Network", meta = (ClampMin = "1", ClampMax = "65535"))
+	int32 RemotePort = 52581;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Network")
+	FString ControllerMode = TEXT("echo");
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "MotionWorld|Network")
+	FMotionWorldNetworkControllerStats ControllerStats;
+
+private:
+	bool OpenTransport();
+	void ClearControlState();
+	void ApplyCommand(const MotionWorld::FNetworkCommandUpdate& Update);
+	void RefreshRuntimeStats();
+	void PollActions(double MonotonicNowSeconds);
+	static bool IsSupportedControllerMode(const FString& Value);
+
+	UPROPERTY(Transient)
+	TObjectPtr<UMotionWorldBridgeComponent> BridgeComponent;
+
+	MotionWorld::FMotionWorldUdpTransport Transport;
+	MotionWorld::FNetworkRuntime Runtime;
+};

@@ -410,38 +410,38 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 
 ### 5.1 Observation packet
 
-- [ ] Define protocol version.
-- [ ] Include episode ID.
-- [ ] Include monotonically increasing sequence number.
-- [ ] Include engine timestamp.
-- [ ] Include controller mode.
-- [ ] Include explicit state-source label.
-- [ ] Include character state and declared units.
+- [x] Define protocol version.
+- [x] Include episode ID.
+- [x] Include monotonically increasing sequence number.
+- [x] Include engine timestamp.
+- [x] Include controller mode.
+- [x] Include explicit state-source label.
+- [x] Include character state and declared units.
 - [ ] Include contact state only if its semantics are reliable.
-- [ ] Include target state.
-- [ ] Include bounded nearest-obstacle list and validity information.
-- [ ] Include previous applied action.
-- [ ] Include movement parameters as metadata.
-- [ ] Reject missing, wrong-type, non-finite, or unsupported-version fields.
+- [x] Include target state.
+- [x] Include bounded nearest-obstacle list and validity information (amended to one exact bounded timed-gate context for P0).
+- [x] Include previous applied action.
+- [x] Include movement parameters as metadata.
+- [x] Reject missing, wrong-type, non-finite, or unsupported-version fields.
 
 ### 5.2 Action packet
 
-- [ ] Echo protocol version, episode ID, and observation sequence.
-- [ ] Include desired velocity with units.
-- [ ] Include planner latency measured consistently.
-- [ ] Include selected controller/model identifier.
-- [ ] Optionally include prediction telemetry without making it control-critical.
-- [ ] Reject wrong episode.
-- [ ] Reject stale sequence.
-- [ ] Reject malformed or non-finite action.
-- [ ] Clamp velocity again inside Unreal.
+- [x] Echo protocol version, episode ID, and observation sequence.
+- [x] Include desired velocity with units.
+- [x] Include planner latency measured consistently.
+- [x] Include selected controller/model identifier.
+- [x] Optionally include prediction telemetry without making it control-critical.
+- [x] Reject wrong episode.
+- [x] Reject stale sequence.
+- [x] Reject malformed or non-finite action.
+- [x] Clamp velocity again inside Unreal.
 
 ### 5.3 Timeout behavior
 
-- [ ] Define one-response deadline.
-- [ ] Hold the last safe action after one missed response.
-- [ ] Stop after three consecutive misses.
-- [ ] Clear missed-response state after valid recovery.
+- [x] Define one-response deadline.
+- [x] Hold the last safe action after one missed response.
+- [x] Stop after three consecutive misses.
+- [x] Clear missed-response state after valid recovery.
 - [ ] Test Python service absent at startup.
 - [ ] Test service disappears during movement.
 - [ ] Test delayed stale response arrives after reset.
@@ -450,12 +450,12 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 
 ### 5.4 Protocol gate
 
-- [ ] Serialization tests pass on Python side.
-- [ ] Parsing/validation tests pass on Unreal side.
+- [x] Serialization tests pass on Python side.
+- [x] Parsing/validation tests pass on Unreal side.
 - [ ] Unreal observation reaches Python and a valid action returns.
-- [ ] Wrong-episode and stale packets are demonstrably rejected.
+- [x] Wrong-episode and stale packets are demonstrably rejected in bounded automation; live injection remains in Recovery 3.4.
 - [ ] Safe stop is demonstrated.
-- [ ] Commit protocol and safety as an independently tested slice.
+- [x] Commit protocol as an independently tested slice; live safety closure remains Gate R2.
 
 ## 6. Faithful nominal movement model
 
@@ -807,8 +807,8 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [ ] Clear history on reset.
 - [ ] Clear CEM warm start on reset.
 - [ ] Clear nominal hidden state on reset.
-- [ ] Clear network/service episode state on reset.
-- [ ] Ensure controller switch does not reuse incompatible stale state.
+- [x] Clear network/service episode state on reset.
+- [x] Ensure controller switch does not reuse incompatible stale state.
 - [ ] Verify same-seed left/right agents start identically.
 
 ### 10.3 Counterfactual pause mode

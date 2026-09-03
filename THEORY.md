@@ -1261,3 +1261,34 @@ This yields two separate guarantees:
 Service shutdown closes UDP first, signals cancellation, drops pending work, and waits only a fixed
 configured interval. A non-cooperative worker changes health to `faulted`; because it is a daemon it
 cannot make the standalone process depend indefinitely on hidden interpreter or notebook state.
+
+## 28. Split clocks and authoritative live-action admission
+
+The live loop uses two clocks because they answer different questions. Let `tau_k` be Unreal
+simulation time at the finalized state and let `m` be Unreal's monotonic wall clock. Observation
+slots are selected by simulation time:
+
+`k = floor((tau - tau_0) / 0.1)`.
+
+This keeps the observation chronology attached to the simulated world. Pausing the world does not
+manufacture new states, and a slow rendered frame does not cause a catch-up burst: the first valid
+finalized state at or after the newest elapsed boundary is emitted once.
+
+The response deadline instead uses monotonic time. If observation `o_i` is sent at `m_i`, its action
+is eligible only when
+
+`m_receive - m_i < 0.1 s`
+
+and `(episode, source_sequence)` exactly equals the one outstanding identity. Wall time is required
+because service latency is real even if simulation is paused or time-dilated. A simulation-time
+deadline could incorrectly make a 500 ms Python response appear timely while the world was paused.
+
+At a missed deadline, miss counts one and two retain the last validated action. Miss three replaces
+it with exact local zero. This fallback changes the command for future simulation; it never rewrites
+the already-finalized state. Reset, controller switch, reconnection, and shutdown invalidate the
+outstanding identity and held command so a perfectly formed old datagram still cannot cross the
+lifecycle boundary.
+
+Nonblocking per-frame polling is asynchronous with respect to Python but remains game-thread-owned.
+No thread waits for UDP, and no background thread touches UObjects. This makes packet arrival
+opportunistic while keeping the final command mutation on Unreal's authoritative thread.

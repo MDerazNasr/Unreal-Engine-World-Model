@@ -125,6 +125,15 @@ Better prediction alone is not evidence of better control. Better control relati
   Irrespective of Python validation, the existing Unreal command-production path converts local to
   world space, projects to the plane, rejects non-finite input, and magnitude-clamps the command.
 
+The R2.2 implementation assigns these responsibilities to a default-off
+`UMotionWorldNetworkControllerComponent`. It owns socket polling, fixed-slot scheduling, deadline
+state, response classification, and fallback counters, but can mutate movement only through the
+bridge's existing character-local command function. The bridge calls it only after authoritative
+state and aligned Smooth Walking context are captured at `OnPostFinalize`. Disabling the component
+closes transport, clears the runtime, commands zero, and disables bridge automation so ordinary
+human input is again untouched. A disable request is rejected while deterministic reset verification
+is pending rather than falsely reporting human control before the bridge can safely release it.
+
 ## 4. State and coordinates
 
 ### Authoritative state

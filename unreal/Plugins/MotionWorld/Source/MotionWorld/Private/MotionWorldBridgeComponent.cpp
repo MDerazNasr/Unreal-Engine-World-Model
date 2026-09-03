@@ -15,6 +15,7 @@
 #include "MotionWorldCoordinateFrames.h"
 #include "MotionWorldEpisodeExporter.h"
 #include "MotionWorldNominalContext.h"
+#include "MotionWorldNetworkControllerComponent.h"
 #include "MotionWorldSmoothWalkingDiagnostic.h"
 #include "MotionWorldStateSample.h"
 #include "MotionWorldVelocityCommand.h"
@@ -32,6 +33,9 @@ void UMotionWorldBridgeComponent::BeginPlay()
 	Super::BeginPlay();
 
 	MoverComponent = GetOwner() ? GetOwner()->FindComponentByClass<UMoverComponent>() : nullptr;
+	NetworkControllerComponent = GetOwner()
+		? GetOwner()->FindComponentByClass<UMotionWorldNetworkControllerComponent>()
+		: nullptr;
 	if (!MoverComponent)
 	{
 		UE_LOG(
@@ -150,6 +154,7 @@ void UMotionWorldBridgeComponent::EndPlay(const EEndPlayReason::Type EndPlayReas
 			this,
 			&UMotionWorldBridgeComponent::HandlePostFinalize);
 	}
+	NetworkControllerComponent = nullptr;
 	if (IsValid(ArenaManager))
 	{
 		ArenaManager->Destroy();
@@ -615,6 +620,10 @@ bool UMotionWorldBridgeComponent::RequestDeterministicResetAndStartEpisode(
 			EpisodeId);
 		return false;
 	}
+	if (NetworkControllerComponent)
+	{
+		NetworkControllerComponent->PrepareForReset();
+	}
 
 	TSharedPtr<FTeleportEffect> TeleportEffect = MakeShared<FTeleportEffect>();
 	TeleportEffect->TargetLocation = ResetAnchor.PositionWorldCm;
@@ -682,6 +691,10 @@ void UMotionWorldBridgeComponent::FailPendingReset(const TCHAR* FailureContext)
 	ResetStatus.bLastResetSucceeded = false;
 	++ResetStatus.FailureCount;
 	RestorePreResetCommand();
+	if (NetworkControllerComponent)
+	{
+		NetworkControllerComponent->PrepareForReset();
+	}
 	UE_LOG(
 		LogMotionWorldBridge,
 		Error,
@@ -728,6 +741,10 @@ void UMotionWorldBridgeComponent::ProcessPendingResetVerification()
 				ResetStatus.bLastResetSucceeded = false;
 				--ResetStatus.SuccessCount;
 				++ResetStatus.FailureCount;
+				if (NetworkControllerComponent)
+				{
+					NetworkControllerComponent->PrepareForReset();
+				}
 				UE_LOG(
 					LogMotionWorldBridge,
 					Error,
@@ -743,10 +760,30 @@ void UMotionWorldBridgeComponent::ProcessPendingResetVerification()
 			ResetStatus.bLastResetSucceeded = false;
 			--ResetStatus.SuccessCount;
 			++ResetStatus.FailureCount;
+			if (NetworkControllerComponent)
+			{
+				NetworkControllerComponent->PrepareForReset();
+			}
 			UE_LOG(
 				LogMotionWorldBridge,
 				Error,
 				TEXT("MotionWorld reset state passed but episode %lld could not start; recording remains stopped."),
+				EpisodeId);
+			return;
+		}
+		if (NetworkControllerComponent
+			&& NetworkControllerComponent->IsNetworkControlEnabled()
+			&& !NetworkControllerComponent->BeginNetworkEpisode(EpisodeId))
+		{
+			StopEpisodeRecording();
+			ResetStatus.bLastResetSucceeded = false;
+			--ResetStatus.SuccessCount;
+			++ResetStatus.FailureCount;
+			NetworkControllerComponent->PrepareForReset();
+			UE_LOG(
+				LogMotionWorldBridge,
+				Error,
+				TEXT("MotionWorld reset state passed but network episode %lld could not start; recording stopped."),
 				EpisodeId);
 			return;
 		}
@@ -1410,7 +1447,10 @@ void UMotionWorldBridgeComponent::CaptureSmoothWalkingContextIfNeeded(
 {
 	LastNominalContext = FMotionWorldNominalContextSample();
 	const bool bRecorderNeedsContext =
-		EpisodeRecorder.GetStats().bIsRecording || ResetStatus.bIsPending;
+		EpisodeRecorder.GetStats().bIsRecording
+		|| ResetStatus.bIsPending
+		|| (NetworkControllerComponent
+			&& NetworkControllerComponent->IsNetworkControlEnabled());
 	if ((!bLogSmoothWalkingDiagnostics && !bRecorderNeedsContext)
 		|| !MoverComponent
 		|| !LastAuthoritativeState.bIsValid)
@@ -1636,6 +1676,12 @@ void UMotionWorldBridgeComponent::HandlePostFinalize(
 	CaptureResetAnchorIfEligible();
 	ProcessPendingResetVerification();
 	RequestConfiguredWarmupResetIfDue();
+	if (NetworkControllerComponent)
+	{
+		NetworkControllerComponent->ObserveFinalizedState(
+			LastAuthoritativeState,
+			LastNominalContext);
+	}
 
 	const FCharacterDefaultInputs* EchoedInputs = nullptr;
 	if (MoverComponent)

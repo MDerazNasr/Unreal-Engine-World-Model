@@ -1889,3 +1889,36 @@ load. The installed `motionworld-control-service --check-config` command returns
 frozen clean environment. Two first-run test races were corrected by waiting for the worker callback
 and receiver readability; neither required a service-semantic change. Final-test episode bytes
 opened: zero.
+
+## R2-NET-001 — default-off Unreal network runtime lifecycle
+
+Question: Can the actual Game Animation Sample host a bounded 10 Hz Unreal network controller that
+rejects temporally ineligible actions and reaches a deterministic safe stop without weakening the
+existing bridge's authoritative state or command boundary?
+
+Method: Implement the schedule/deadline/fallback rules in a pure runtime kernel, serialize real
+finalized state plus aligned Smooth Walking context into observation v1, and put UDP ownership in a
+separate default-off actor component. Compile with strict includes and unity disabled for universal
+Mac Editor/Development/Shipping targets. Deploy repository-owned source only into the actual UE
+5.8.2 sample, build its universal Editor target, and run the `MotionWorld.Network` automation prefix
+headlessly. Run all Python tests and Ruff. Do not open final-test episode files.
+
+Result: Strict isolated builds pass for universal Mac Editor Development, Game Development, and
+Game Shipping. The actual sample universal Editor build passes. Automation discovers exactly two
+tests. `ObservationSerialization` passes default-off, bounded schema, previous-action chronology,
+and aligned-context checks. `RuntimeLifecycle` passes first/boundary emission, no catch-up burst,
+current identity admission, exclusive deadline, first/second hold, third-miss zero, and stopped-state
+checks. Both pass with zero warnings/errors from the tests. The complete Python suite passes 509/509
+and Ruff passes.
+
+One first automation run failed four assertions because the test used literal `20.2` as the result
+of `20.1 + 0.1`; binary64 represented the computed deadline a few quadrillionths later. The fixture
+was corrected to test misses at 101 ms, safely beyond the boundary. The production comparison stayed
+exclusive, and a separate exact-boundary action assertion remained. This was a test-oracle precision
+error, not a fallback-policy change.
+
+Interpretation: R2.2's implementation and bounded automation obligations pass. This does not prove
+that a Python action traverses the complete live loop, that 100 consecutive intervals reconcile, or
+that service-loss behavior is visible in a running pawn. Those remain R2.3-R2.5 and Gate R2.
+Evidence: `evidence/unreal/r2_runtime_lifecycle_automation.log`. Final-test episodes 5301/5302 were
+not opened.

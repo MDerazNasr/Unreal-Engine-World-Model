@@ -84,6 +84,14 @@ Schema version 2 remains backward-compatible with that version-1 evidence and ad
 gate configuration, per-transition analytic obstacle state/event labels, and a reconciled terminal
 summary. Both Unreal and Python independently reject schedule, crossing, timeout, or count drift.
 
+Recovery R2.2 adds a default-off Unreal network controller around the isolated protocol. It samples
+only finalized state with aligned hidden Smooth Walking context, schedules one observation per fixed
+100 ms simulation-time slot, polls actions without blocking, admits only the current episode and
+sequence before an exclusive monotonic 100 ms deadline, holds after misses one and two, and commands
+zero on miss three. Strict universal plugin builds and the actual Game Animation Sample's two focused
+`MotionWorld.Network` automation tests pass. This is lifecycle/safety evidence only: no live
+Unreal-to-Python-to-Unreal echo run or MPC result is claimed yet.
+
 No positive result is assumed. A reproducible negative result with a clear diagnosis is a valid research outcome.
 
 ## Provenance and licensing

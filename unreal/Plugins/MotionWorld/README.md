@@ -86,6 +86,15 @@ Gate R1 additionally deploys this exact source and its packaged fixtures to the 
 Animation Sample. Its universal Editor target and both `MotionWorld.Protocol` automation tests pass.
 This establishes project compatibility while intentionally making no live-control claim.
 
+R2.2 connects the protocol to gameplay only through a separate, default-off
+`UMotionWorldNetworkControllerComponent`. The component owns nonblocking polling, fixed 10 Hz
+simulation-time slots, exclusive wall-time deadlines, episode/sequence admission, separate failure
+counters, and the one-hold/two-hold/three-stop policy. The bridge remains the final local-to-world
+conversion and clamp boundary. Reset, controller switch, reconnection, and EndPlay clear runtime
+state; disabling network control restores the bridge's ordinary human-input no-op behavior. Two
+focused `MotionWorld.Network` automation tests pass in the actual sample. Live round-trip evidence is
+still required by Gate R2.
+
 Use `/private/tmp` rather than its `/tmp` alias on macOS. UE 5.8's local build accelerator can retain
 the spelling used by AutomationTool while Clang resolves the same path to `/private/tmp`, causing a
 false missing-object linker failure.

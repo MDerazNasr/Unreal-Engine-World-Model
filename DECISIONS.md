@@ -2120,3 +2120,47 @@ bounded non-payload diagnostics, duplicate/old-episode rejection, bounded episod
 planner cancellation, newest-only action output, mode mismatch, cooperative shutdown/socket release,
 and a clean-process module entry point. The installed console entry point also validates successfully
 after a frozen environment refresh.
+
+## D-058 - Keep scheduling, admission, and gameplay mutation in separate Unreal layers
+
+Status: accepted for R2.2; live round-trip evidence remains R2.3-R2.5
+
+Decision: Add a default-off `UMotionWorldNetworkControllerComponent` beside the existing bridge. A
+pure `FNetworkRuntime` owns fixed 100 ms simulation-time slots, one outstanding observation, the
+exclusive 100 ms monotonic deadline, previous-applied-action chronology, miss count, and hold/stop
+fallback. The component owns bounded nonblocking UDP polling, strict parser invocation, separate
+malformed/stale/rejected/transport counters, observation serialization, and lifecycle clearing. It
+may request only a character-local velocity through `UMotionWorldBridgeComponent`; the bridge keeps
+the final game-thread local-to-world conversion, finite check, planar projection, magnitude clamp,
+and Mover input production.
+
+The bridge notifies the network component only after both authoritative `OnPostFinalize` state and
+aligned Smooth Walking parameters/internal state have been captured. Simulation time chooses which
+world-state slot to emit; Unreal monotonic wall time measures real response latency. There is no
+catch-up burst after skipped slots. A result must match the one outstanding episode/sequence and
+arrive strictly before its deadline and before the next observation. Misses one and two hold the
+last validated command; miss three and later command exact local zero. Reset, controller switch,
+service reconnection, and EndPlay invalidate runtime state and zero the held command. Normal disable
+also closes transport and disables bridge automation; a disable request during pending reset is
+rejected explicitly because the bridge cannot safely restore human input until verification ends.
+
+Why: Transport arrival, temporal eligibility, and safe application are different trust boundaries.
+Keeping them separate makes the pure timing policy exhaustively testable and prevents a valid JSON
+packet from bypassing the established movement clamp. Split clocks prevent pause/time dilation from
+making a genuinely late service response appear timely. Nonblocking game-thread polling avoids both
+waiting and unsafe background UObject mutation.
+
+Alternatives rejected: put sockets directly in the bridge; emit every finalized callback; queue
+catch-up observations; accept a late action for a newer slot; use simulation time for network
+deadlines; or mutate Mover inputs from a worker thread. These respectively create a monolith,
+variable control semantics, obsolete work bursts, causal reassignment, pause-dependent deadline
+errors, or unsafe engine-thread ownership.
+
+How it is tested: Strict non-unity universal Mac Editor, Development Game, and Shipping Game plugin
+builds compile the component and pure kernel. The actual UE 5.8.2 Game Animation Sample universal
+Editor target also builds. `MotionWorld.Network.ObservationSerialization` proves default-off
+construction, bounded v1 JSON, sequence-zero absence, causal previous-action identity, and
+state/context alignment rejection. `MotionWorld.Network.RuntimeLifecycle` covers slot boundaries,
+no burst after a time jump, accepted action identity, exclusive deadlines, two holds, third-miss
+zero, and stopped/reset state. Both focused actual-sample tests pass. The full Python suite remains
+509/509 and Ruff passes. Final-test episodes 5301/5302 were not opened.
