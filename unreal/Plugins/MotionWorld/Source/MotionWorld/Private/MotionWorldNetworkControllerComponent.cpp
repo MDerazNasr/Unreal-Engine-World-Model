@@ -144,6 +144,31 @@ bool UMotionWorldNetworkControllerComponent::ReconnectService()
 	return OpenTransport();
 }
 
+bool UMotionWorldNetworkControllerComponent::SetReactiveTarget(
+	const bool bTargetPresent,
+	const FVector TargetWorldCm,
+	const FVector2D DesiredTerminalVelocityLocalCmPerSec)
+{
+	const bool bTargetFinite = FMath::IsFinite(TargetWorldCm.X)
+		&& FMath::IsFinite(TargetWorldCm.Y)
+		&& FMath::IsFinite(TargetWorldCm.Z);
+	const bool bTerminalVelocityFinite =
+		FMath::IsFinite(DesiredTerminalVelocityLocalCmPerSec.X)
+		&& FMath::IsFinite(DesiredTerminalVelocityLocalCmPerSec.Y);
+	if ((bTargetPresent && !bTargetFinite) || !bTerminalVelocityFinite)
+	{
+		return false;
+	}
+	bHasReactiveTarget = bTargetPresent;
+	ReactiveTargetWorldCm = bTargetPresent
+		? TargetWorldCm
+		: FVector::ZeroVector;
+	ReactiveTerminalVelocityLocalCmPerSec = bTargetPresent
+		? DesiredTerminalVelocityLocalCmPerSec
+		: FVector2D::ZeroVector;
+	return true;
+}
+
 void UMotionWorldNetworkControllerComponent::PrepareForReset()
 {
 	if (!bNetworkControlEnabled)
@@ -201,6 +226,10 @@ void UMotionWorldNetworkControllerComponent::ObserveFinalizedState(
 		Decision.PreviousActionSourceObservationSequence;
 	Observation.PreviousAppliedVelocityLocalCmPerSec =
 		Decision.PreviousAppliedVelocityLocalCmPerSec;
+	Observation.bHasTarget = bHasReactiveTarget;
+	Observation.TargetPositionWorldCm = ReactiveTargetWorldCm;
+	Observation.DesiredTerminalVelocityLocalCmPerSec =
+		ReactiveTerminalVelocityLocalCmPerSec;
 	Observation.ScenarioSeed = Decision.EpisodeId;
 	Observation.ResetId = FString::Printf(
 		TEXT("network_vertical_slice:%lld"), Decision.EpisodeId);

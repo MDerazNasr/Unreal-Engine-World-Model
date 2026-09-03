@@ -104,6 +104,13 @@ Better prediction alone is not evidence of better control. Better control relati
   older completion ineligible for transmission. Shutdown closes the socket first, cancels pending
   work, and waits only the configured bounded interval. The R2.1 command-line default emits an
   explicit zero `planner_error` fallback; it is not presented as the later echo or MPC controller.
+- R2.3 replaces that temporary CLI default with a mode-selected stateless proof controller. Echo
+  returns one configured character-local command and echoes the current source identity. Reactive
+  normalizes the planar vector from authoritative world position to an explicit planner-only world
+  target, applies the inverse authoritative-facing rotation, and uses the target's terminal local
+  velocity inside the configured arrival radius. Commands are magnitude-clamped to the minimum of
+  the configured ceiling and observed effective Mover max speed; reactive additionally obeys its
+  cruise speed. Missing reactive target fails closed to a zero `invalid_observation` fallback.
 - The first valid `OnPostFinalize` state after reset defines control slot zero. Thereafter Unreal
   emits the first valid finalized state at or after each fixed 100 ms simulation-time boundary. If
   multiple boundaries elapse, it emits only the latest slot and never sends a catch-up burst.

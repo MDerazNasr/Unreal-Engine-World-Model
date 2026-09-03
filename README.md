@@ -56,8 +56,10 @@ Validate the standalone control-service configuration from a clean process with:
 uv run motionworld-control-service --config configs/control_service.yaml --check-config
 ```
 
-Omit `--check-config` to run the bounded localhost service. Until the echo/reactive controller gate,
-its command-line planner returns only an explicit zero safe fallback; it makes no MPC claim.
+Omit `--check-config` to run the bounded localhost service. The selected `echo` or `reactive`
+controller and its bounded parameters come from the same strict config. Echo defaults to zero for a
+safe start; reactive requires an explicit planner target from Unreal. Neither mode makes an MPC
+claim.
 
 ## Candidate study material
 
@@ -91,6 +93,14 @@ sequence before an exclusive monotonic 100 ms deadline, holds after misses one a
 zero on miss three. Strict universal plugin builds and the actual Game Animation Sample's two focused
 `MotionWorld.Network` automation tests pass. This is lifecycle/safety evidence only: no live
 Unreal-to-Python-to-Unreal echo run or MPC result is claimed yet.
+
+R2.3's code layer adds a stateless fixed-command echo controller and a goal-directed reactive
+controller. Both clamp against the lower of the configured ceiling and Unreal's observed effective
+max speed; reactive also obeys its cruise speed and rotates the world-target direction into the
+character frame using authoritative facing. The Unreal component can now publish an explicit
+planner-only target, which remains absent by default and never enters dynamics features. Controller
+unit tests, strict universal builds, and actual-sample automation pass. Live PIE direction,
+sequence, and reset evidence is still required before R2.3 is complete.
 
 No positive result is assumed. A reproducible negative result with a clear diagnosis is a valid research outcome.
 

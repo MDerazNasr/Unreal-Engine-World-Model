@@ -18,6 +18,11 @@ bool IsFiniteVector(const FVector& Value)
 		&& FMath::IsFinite(Value.Z);
 }
 
+bool IsFiniteVector2(const FVector2D& Value)
+{
+	return FMath::IsFinite(Value.X) && FMath::IsFinite(Value.Y);
+}
+
 bool IsFiniteQuaternion(const FQuat& Value)
 {
 	return FMath::IsFinite(Value.X)
@@ -111,6 +116,9 @@ bool SerializeControlObservation(
 				< Observation.ObservationSequence
 			&& FMath::IsFinite(Observation.PreviousAppliedVelocityLocalCmPerSec.X)
 			&& FMath::IsFinite(Observation.PreviousAppliedVelocityLocalCmPerSec.Y);
+	const bool bTargetValid = !Observation.bHasTarget
+		|| (IsFiniteVector(Observation.TargetPositionWorldCm)
+			&& IsFiniteVector2(Observation.DesiredTerminalVelocityLocalCmPerSec));
 	const bool bStateFinite = FMath::IsFinite(State.SimulationTimeSeconds)
 		&& State.SimulationTimeSeconds >= 0.0
 		&& IsFiniteVector(State.PositionWorldCm)
@@ -129,7 +137,7 @@ bool SerializeControlObservation(
 		&& Context.InputPreparation.bHasMaxMoveSpeed
 		&& MaxSpeedSource != nullptr
 		&& IsFiniteQuaternion(Internal.IntermediateFacingWorld);
-	if (!bIdentityValid || !bPreviousValid || !State.bIsValid
+	if (!bIdentityValid || !bPreviousValid || !bTargetValid || !State.bIsValid
 		|| State.bIsResimulation || !bStateFinite || !bContextAligned
 		|| !IsSupportedController(Observation.ControllerMode)
 		|| State.MovementMode.IsNone()
@@ -172,7 +180,7 @@ bool SerializeControlObservation(
 	Writer->WriteValue(TEXT("nominal_context_valid"), true);
 	Writer->WriteValue(TEXT("reset_verified"), true);
 	Writer->WriteValue(TEXT("is_resimulation"), false);
-	Writer->WriteValue(TEXT("target_present"), false);
+	Writer->WriteValue(TEXT("target_present"), Observation.bHasTarget);
 	Writer->WriteValue(TEXT("timed_gate_present"), false);
 	Writer->WriteObjectEnd();
 	Writer->WriteObjectStart(TEXT("state"));
@@ -227,7 +235,15 @@ bool SerializeControlObservation(
 	Writer->WriteObjectEnd();
 	Writer->WriteObjectStart(TEXT("planner_context"));
 	Writer->WriteObjectStart(TEXT("target"));
-	Writer->WriteValue(TEXT("is_present"), false);
+	Writer->WriteValue(TEXT("is_present"), Observation.bHasTarget);
+	if (Observation.bHasTarget)
+	{
+		WriteVector(*Writer, TEXT("position_world_cm"),
+			Observation.TargetPositionWorldCm);
+		WriteVector2(*Writer,
+			TEXT("desired_terminal_velocity_local_cm_per_s"),
+			Observation.DesiredTerminalVelocityLocalCmPerSec);
+	}
 	Writer->WriteObjectEnd();
 	Writer->WriteObjectStart(TEXT("timed_gate"));
 	Writer->WriteValue(TEXT("is_present"), false);

@@ -564,7 +564,7 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 
 - [x] Implement and unit-test a default-off deterministic varied-action schedule.
 - [x] Validate the schedule in live episode 4101 and audit realized action/facing coverage.
-- [ ] Implement goal-directed action generator.
+- [x] Implement goal-directed action generator.
 - [ ] Implement random piecewise-constant velocities.
 - [ ] Implement near-contact/boundary-following collection.
 - [x] Implement stops, reversals, and rapid turns.

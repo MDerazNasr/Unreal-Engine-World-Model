@@ -124,6 +124,10 @@ def test_service_config_loads_relative_frozen_contracts() -> None:
     assert config.controller_mode == "echo"
     assert config.transport.python_endpoint == UdpEndpoint("127.0.0.1", 52581)
     assert config.runtime.decision_interval_ms == 100
+    assert config.controller.max_command_speed_cm_per_s == 600.0
+    assert config.controller.echo_velocity_local_cm_per_s == (0.0, 0.0)
+    assert config.controller.reactive_cruise_speed_cm_per_s == 160.0
+    assert config.controller.reactive_arrival_radius_cm == 25.0
     assert config.poll_interval_ms == 5
     assert config.max_tracked_episodes == 16
 
@@ -132,6 +136,7 @@ def test_service_config_loads_relative_frozen_contracts() -> None:
     ("mutation", "message"),
     [
         (lambda raw: raw.update(extra=True), "keys must be exactly"),
+        (lambda raw: raw.update(schema_version=1), "unsupported service schema version"),
         (lambda raw: raw.update(controller_mode="unsafe"), "unsupported"),
         (lambda raw: raw.update(transport_config="/tmp/transport.yaml"), "relative path"),
         (lambda raw: raw.update(runtime_config="../runtime.yaml"), "stay inside"),

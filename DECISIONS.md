@@ -2164,3 +2164,31 @@ state/context alignment rejection. `MotionWorld.Network.RuntimeLifecycle` covers
 no burst after a time jump, accepted action identity, exclusive deadlines, two holds, third-miss
 zero, and stopped/reset state. Both focused actual-sample tests pass. The full Python suite remains
 509/509 and Ruff passes. Final-test episodes 5301/5302 were not opened.
+
+## D-059 - Use stateless bounded controllers to prove the live seam before MPC
+
+Status: accepted code layer; live PIE evidence remains required for R2.3
+
+Decision: Replace the temporary service safe-zero CLI planner with one of two schema-v2
+config-selected proof
+controllers. Echo emits a configured character-local vector and echoes the current episode/source
+observation identity. Reactive uses only the current authoritative world position, authoritative
+facing, and explicit planner-only target; it inverse-rotates the normalized world goal direction
+into character-local coordinates. Both controllers are stateless and magnitude-clamp against the
+configured ceiling and observation's effective Mover speed. Reactive also applies its cruise bound,
+uses a bounded terminal local velocity inside the arrival radius, and fails closed when its target
+is absent. Unreal publishes the optional finite target without adding it to causal dynamics state.
+
+Why: A deterministic controller isolates protocol, coordinate-frame, command-bound, and lifecycle
+correctness before introducing CEM state and latency. Statelessness makes reset non-reuse directly
+reviewable. Keeping the target in `planner_context` preserves the already-frozen privileged/planner
+versus causal-dynamics boundary.
+
+How it is tested: Twenty focused Python tests cover stop, forward, right, diagonal, reverse,
+speed-bound, configured-versus-observed limits, cancellation, yaw-zero/yaw-90 inverse rotations,
+arrival behavior, missing-target safe fallback, source identity, and fresh-episode independence.
+All 14 service tests and all 530 Python tests pass. Ruff passes. The first strict C++ build rejected
+three assumed convenience APIs; explicit component finite checks and standard-library NaN test data
+replaced them. The corrected strict universal Editor/Development/Shipping plugin build passes, as
+does the actual sample universal Editor build. Both `MotionWorld.Network` tests pass there. This is
+not yet a live movement, sequence-reconciliation, or reset-leakage claim.

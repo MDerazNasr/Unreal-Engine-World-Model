@@ -256,8 +256,8 @@ Objective: prove the complete round trip before integrating CEM or retraining mo
 
 ### 3.3 Echo and reactive controller proof
 
-- [ ] Implement a Python echo controller with explicit clamping.
-- [ ] Implement a simple goal-directed reactive controller for visual context.
+- [x] Implement a Python echo controller with explicit clamping.
+- [x] Implement a simple goal-directed reactive controller for visual context.
 - [ ] Run stop, forward, right, diagonal, reverse, and speed-bound cases live.
 - [ ] Prove requested local velocity resolves through authoritative yaw correctly.
 - [ ] Prove the applied command sequence matches the source observation sequence.

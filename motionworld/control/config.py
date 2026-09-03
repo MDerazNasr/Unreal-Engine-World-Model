@@ -30,6 +30,29 @@ def _positive_int(value: object, context: str, maximum: int) -> int:
     return value
 
 
+def _bounded_number(value: object, context: str, maximum: float) -> float:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise ValueError(f"{context} must be a finite number in [0, {maximum}]")
+    result = float(value)
+    if not 0.0 <= result <= maximum:
+        raise ValueError(f"{context} must be a finite number in [0, {maximum}]")
+    return result
+
+
+def _vector2(value: object, context: str, maximum: float) -> tuple[float, float]:
+    if not isinstance(value, list) or len(value) != 2:
+        raise ValueError(f"{context} must contain exactly two finite values")
+    result: list[float] = []
+    for index, component in enumerate(value):
+        if isinstance(component, bool) or not isinstance(component, (int, float)):
+            raise ValueError(f"{context}[{index}] must be a finite bounded number")
+        number = float(component)
+        if not -maximum <= number <= maximum:
+            raise ValueError(f"{context}[{index}] must be a finite bounded number")
+        result.append(number)
+    return result[0], result[1]
+
+
 def _relative_config_path(base: Path, value: object, context: str) -> Path:
     if not isinstance(value, str) or not value or Path(value).is_absolute():
         raise ValueError(f"{context} must be a non-empty relative path")
@@ -40,12 +63,45 @@ def _relative_config_path(base: Path, value: object, context: str) -> Path:
 
 
 @dataclass(frozen=True, slots=True)
+class ControllerConfig:
+    """Bounded parameters for the deliberately simple R2 proof controllers."""
+
+    max_command_speed_cm_per_s: float
+    echo_velocity_local_cm_per_s: tuple[float, float]
+    reactive_cruise_speed_cm_per_s: float
+    reactive_arrival_radius_cm: float
+
+    def __post_init__(self) -> None:
+        _bounded_number(
+            self.max_command_speed_cm_per_s,
+            "max_command_speed_cm_per_s",
+            10_000.0,
+        )
+        _vector2(
+            list(self.echo_velocity_local_cm_per_s),
+            "echo_velocity_local_cm_per_s",
+            10_000.0,
+        )
+        _bounded_number(
+            self.reactive_cruise_speed_cm_per_s,
+            "reactive_cruise_speed_cm_per_s",
+            10_000.0,
+        )
+        _bounded_number(
+            self.reactive_arrival_radius_cm,
+            "reactive_arrival_radius_cm",
+            10_000.0,
+        )
+
+
+@dataclass(frozen=True, slots=True)
 class ControlServiceConfig:
     """Fully resolved and bounded service configuration."""
 
     transport: ControlTransportConfig
     runtime: ControlRuntimeConfig
     controller_mode: str
+    controller: ControllerConfig
     poll_interval_ms: int
     planner_shutdown_timeout_ms: int
     max_tracked_episodes: int
@@ -78,6 +134,7 @@ def load_control_service_config(path: Path) -> ControlServiceConfig:
             "transport_config",
             "runtime_config",
             "controller_mode",
+            "controller",
             "event_loop",
             "diagnostics",
         },
@@ -85,10 +142,22 @@ def load_control_service_config(path: Path) -> ControlServiceConfig:
     )
     if raw["schema_name"] != "motionworld_control_service_config":
         raise ValueError("unsupported service schema name")
-    if type(raw["schema_version"]) is not int or raw["schema_version"] != 1:
+    if type(raw["schema_version"]) is not int or raw["schema_version"] != 2:
         raise ValueError("unsupported service schema version")
     if not isinstance(raw["controller_mode"], str):
         raise ValueError("controller_mode must be a string")
+
+    controller = _mapping(raw["controller"], "controller")
+    _keys(
+        controller,
+        {
+            "max_command_speed_cm_per_s",
+            "echo_velocity_local_cm_per_s",
+            "reactive_cruise_speed_cm_per_s",
+            "reactive_arrival_radius_cm",
+        },
+        "controller",
+    )
 
     event_loop = _mapping(raw["event_loop"], "event_loop")
     _keys(
@@ -111,6 +180,28 @@ def load_control_service_config(path: Path) -> ControlServiceConfig:
         transport=load_control_transport_config(transport_path),
         runtime=load_control_runtime_config(runtime_path),
         controller_mode=raw["controller_mode"],
+        controller=ControllerConfig(
+            max_command_speed_cm_per_s=_bounded_number(
+                controller["max_command_speed_cm_per_s"],
+                "max_command_speed_cm_per_s",
+                10_000.0,
+            ),
+            echo_velocity_local_cm_per_s=_vector2(
+                controller["echo_velocity_local_cm_per_s"],
+                "echo_velocity_local_cm_per_s",
+                10_000.0,
+            ),
+            reactive_cruise_speed_cm_per_s=_bounded_number(
+                controller["reactive_cruise_speed_cm_per_s"],
+                "reactive_cruise_speed_cm_per_s",
+                10_000.0,
+            ),
+            reactive_arrival_radius_cm=_bounded_number(
+                controller["reactive_arrival_radius_cm"],
+                "reactive_arrival_radius_cm",
+                10_000.0,
+            ),
+        ),
         poll_interval_ms=_positive_int(
             event_loop["poll_interval_ms"], "poll_interval_ms", 100
         ),

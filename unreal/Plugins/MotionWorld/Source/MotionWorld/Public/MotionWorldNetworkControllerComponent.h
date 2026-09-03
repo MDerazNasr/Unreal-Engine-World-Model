@@ -83,6 +83,13 @@ public:
 	UFUNCTION(BlueprintPure, Category = "MotionWorld|Network")
 	FMotionWorldNetworkControllerStats GetNetworkStats() const { return ControllerStats; }
 
+	/** Set the planner-only world target used by the stateless reactive proof controller. */
+	UFUNCTION(BlueprintCallable, Category = "MotionWorld|Network")
+	bool SetReactiveTarget(
+		bool bTargetPresent,
+		FVector TargetWorldCm,
+		FVector2D DesiredTerminalVelocityLocalCmPerSec);
+
 	/** Called by the bridge before a reset is queued. */
 	void PrepareForReset();
 
@@ -106,6 +113,15 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Network")
 	FString ControllerMode = TEXT("echo");
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Network|Reactive")
+	bool bHasReactiveTarget = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Network|Reactive")
+	FVector ReactiveTargetWorldCm = FVector::ZeroVector;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Network|Reactive")
+	FVector2D ReactiveTerminalVelocityLocalCmPerSec = FVector2D::ZeroVector;
 
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "MotionWorld|Network")
 	FMotionWorldNetworkControllerStats ControllerStats;

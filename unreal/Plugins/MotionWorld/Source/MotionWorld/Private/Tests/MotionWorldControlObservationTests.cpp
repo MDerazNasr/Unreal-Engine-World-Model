@@ -8,6 +8,8 @@
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
 
+#include <limits>
+
 namespace
 {
 MotionWorld::FControlObservation MakeObservation(const int64 Sequence)
@@ -58,11 +60,19 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 
 bool FMotionWorldControlObservationTest::RunTest(const FString& Parameters)
 {
-	const UMotionWorldNetworkControllerComponent* DefaultController =
+	UMotionWorldNetworkControllerComponent* DefaultController =
 		NewObject<UMotionWorldNetworkControllerComponent>();
 	TestNotNull(TEXT("Network controller can be constructed"), DefaultController);
 	TestFalse(TEXT("Network control is default-off"),
 		DefaultController && DefaultController->IsNetworkControlEnabled());
+	TestTrue(TEXT("Finite reactive target is accepted"),
+		DefaultController && DefaultController->SetReactiveTarget(
+			true, FVector(700.0, -125.0, 86.0), FVector2D::ZeroVector));
+	TestFalse(TEXT("Non-finite reactive target is rejected"),
+		DefaultController && DefaultController->SetReactiveTarget(
+			true,
+			FVector(std::numeric_limits<double>::quiet_NaN(), 0.0, 0.0),
+			FVector2D::ZeroVector));
 
 	MotionWorld::FControlObservation Observation = MakeObservation(0);
 	TArray<uint8> Payload;
@@ -94,6 +104,18 @@ bool FMotionWorldControlObservationTest::RunTest(const FString& Parameters)
 			TestFalse(TEXT("Sequence zero marks previous action absent"), (*Previous)->GetBoolField(TEXT("is_present")));
 			TestEqual(TEXT("Absent previous action has one exact key"), (*Previous)->Values.Num(), 1);
 		}
+		const TSharedPtr<FJsonObject>* Planner = nullptr;
+		TestTrue(TEXT("Planner context exists"), Root->TryGetObjectField(TEXT("planner_context"), Planner));
+		if (Planner && Planner->IsValid())
+		{
+			const TSharedPtr<FJsonObject>* Target = nullptr;
+			TestTrue(TEXT("Target object exists"), (*Planner)->TryGetObjectField(TEXT("target"), Target));
+			if (Target && Target->IsValid())
+			{
+				TestFalse(TEXT("Target defaults absent"), (*Target)->GetBoolField(TEXT("is_present")));
+				TestEqual(TEXT("Absent target has one exact key"), (*Target)->Values.Num(), 1);
+			}
+		}
 	}
 
 	Observation = MakeObservation(1);
@@ -102,6 +124,15 @@ bool FMotionWorldControlObservationTest::RunTest(const FString& Parameters)
 	Observation.PreviousAppliedVelocityLocalCmPerSec = FVector2D(120.0, -30.0);
 	TestTrue(TEXT("Later observation with causal previous action serializes"),
 		MotionWorld::SerializeControlObservation(Observation, Payload, Failure));
+	Observation.bHasTarget = true;
+	Observation.TargetPositionWorldCm = FVector(700.0, -125.0, 86.0);
+	Observation.DesiredTerminalVelocityLocalCmPerSec = FVector2D::ZeroVector;
+	TestTrue(TEXT("Finite reactive target serializes"),
+		MotionWorld::SerializeControlObservation(Observation, Payload, Failure));
+	Observation.TargetPositionWorldCm.X = std::numeric_limits<double>::quiet_NaN();
+	TestFalse(TEXT("Non-finite reactive target fails closed"),
+		MotionWorld::SerializeControlObservation(Observation, Payload, Failure));
+	Observation.TargetPositionWorldCm.X = 700.0;
 	Observation.NominalContext.AuthoritativeStateSampleSequence += 1;
 	TestFalse(TEXT("Misaligned hidden context fails closed"),
 		MotionWorld::SerializeControlObservation(Observation, Payload, Failure));

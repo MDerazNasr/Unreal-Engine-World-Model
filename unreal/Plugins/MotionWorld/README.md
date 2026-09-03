@@ -95,6 +95,13 @@ state; disabling network control restores the bridge's ordinary human-input no-o
 focused `MotionWorld.Network` automation tests pass in the actual sample. Live round-trip evidence is
 still required by Gate R2.
 
+The R2.3 code layer adds an optional finite world-space target to the planner-only observation
+branch. `SetReactiveTarget` and the matching instance properties are default-absent; they do not
+change human control or dynamics-model inputs. Python's fixed echo and reactive controller return
+only character-local commands bounded by the current observed Mover max speed. This path has passed
+strict universal compilation and focused actual-sample automation, but requires a live PIE run
+before any movement or end-to-end latency claim.
+
 Use `/private/tmp` rather than its `/tmp` alias on macOS. UE 5.8's local build accelerator can retain
 the spelling used by AutomationTool while Clang resolves the same path to `/private/tmp`, causing a
 false missing-object linker failure.

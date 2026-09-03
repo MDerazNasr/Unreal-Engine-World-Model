@@ -475,13 +475,14 @@ blocking socket release or process exit indefinitely.
 Examiner assessment: Not passed. The teacher answer was supplied at the candidate's request. Retry
 without notes after the live echo round trip.
 
-### Q15 - Why does the Unreal runtime use two clocks? (awaiting candidate answer)
+### Q15 - Why does the Unreal runtime use two clocks? (partial; retry required)
 
 Question: Why are 10 Hz observation boundaries based on Unreal simulation time while the 100 ms
 action deadline is based on Unreal monotonic wall time? What failure would occur if simulation time
 were used for both?
 
-Candidate answer: Pending.
+Candidate answer: "the simulation time presents predicted values so these could be incorrect and
+not actually match up with the wall time and or the collision time."
 
 Teacher reference answer: Simulation time identifies when the authoritative world state exists, so
 it gives stable 100 ms world-timeline slots and naturally stops producing observations while the
@@ -490,7 +491,31 @@ and receiving its action. If the deadline used simulation time, pausing or slowi
 could make a genuinely late Python result appear timely. Using Unreal's own monotonic send/receive
 clock also avoids comparing unsynchronized clocks across processes.
 
-Examiner assessment: Awaiting unaided answer.
+Examiner assessment: Partial, not passed. The answer correctly recognized that simulation time and
+real elapsed time can disagree, but incorrectly called simulation time predicted. Unreal simulation
+time is the authoritative world timeline: finalized state and collision events exist on it. The
+monotonic clock is separately authoritative for real process/network delay. Retry after the live
+round trip and explicitly explain what pause or time dilation would do to a simulation-time
+deadline.
+
+### Q16 - How does a world-space goal become a character-local command? (awaiting candidate answer)
+
+Question: The reactive controller receives a world-space goal, but Unreal's action is character-
+local (`+X` forward, `+Y` right). Using authoritative facing `(f_x, f_y)`, how do you calculate the
+local command direction, why is the inverse rotation used, and which speed limit wins?
+
+Candidate answer: Pending.
+
+Teacher reference answer: Subtract authoritative world position from the target and normalize its
+planar direction `(d_x, d_y)`. The character's world forward is `(f_x, f_y)` and world right is
+`(-f_y, f_x)`, so the inverse rotation gives local forward
+`f_x d_x + f_y d_y` and local right `-f_y d_x + f_x d_y`. It is the inverse because we are
+expressing an existing world vector in the character basis; Unreal later applies the forward
+rotation when producing the Mover command. The magnitude is the minimum of reactive cruise speed,
+the Python configured ceiling, and Unreal's observed effective max speed. Unreal still performs the
+final independent finite/planar/magnitude clamp after converting back to world space.
+
+Examiner assessment: Awaiting unaided answer after the R2.3 live proof.
 
 ## 7. Day 1 closeout answers to practise
 

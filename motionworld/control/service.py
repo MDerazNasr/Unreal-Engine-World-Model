@@ -16,6 +16,7 @@ from types import FrameType
 from typing import Any
 
 from motionworld.control.config import ControlServiceConfig, load_control_service_config
+from motionworld.control.controllers import build_controller
 from motionworld.protocol import (
     decode_observation_json,
     encode_action_json,
@@ -343,7 +344,7 @@ class ControlService:
 
 
 def safe_zero_planner(observation: Observation, cancelled: threading.Event) -> PlannerResult:
-    """Lifecycle-safe CLI default; real echo/reactive controllers are introduced in R2.3."""
+    """Lifecycle-safe zero helper retained for service cancellation tests."""
 
     if cancelled.is_set():
         return None
@@ -403,7 +404,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
         return 0
 
-    service = ControlService(config, safe_zero_planner)
+    service = ControlService(config, build_controller(config.controller_mode, config.controller))
     stop = threading.Event()
 
     def request_stop(_signum: int, _frame: FrameType | None) -> None:

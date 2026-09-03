@@ -1292,3 +1292,33 @@ lifecycle boundary.
 Nonblocking per-frame polling is asynchronous with respect to Python but remains game-thread-owned.
 No thread waits for UDP, and no background thread touches UObjects. This makes packet arrival
 opportunistic while keeping the final command mutation on Unreal's authoritative thread.
+
+## 29. Stateless echo and world-goal reactive control
+
+The R2 echo controller is a transport/application probe, not a movement-quality controller. For a
+configured local request `u` it returns an action carrying the exact current observation identity
+and clamps magnitude to
+
+`v_echo = min(v_config, v_effective_observed)`.
+
+Its default request is zero. Directional live cases deliberately change the recorded configuration;
+the controller never invents hidden episode state.
+
+For reactive control, let planar world position be `p`, world target be `g`, and normalized world
+direction `d = (g - p) / ||g - p||`. Authoritative facing gives world forward
+`f = (f_x, f_y)` and world right `r = (-f_y, f_x)`. Coordinates in the character basis are dot
+products:
+
+`d_local = (f dot d, r dot d)`
+
+`        = (f_x d_x + f_y d_y, -f_y d_x + f_x d_y)`.
+
+This is `R(theta)^T`, the inverse of the local-to-world rotation Unreal later applies. Outside the
+arrival radius, the requested local command is `v_reactive d_local`, where
+
+`v_reactive = min(v_cruise, v_config, v_effective_observed)`.
+
+Inside the radius, the declared terminal local velocity replaces the direction command and is
+clamped to the same limit. A missing target returns an explicit zero safe fallback. Both controllers
+are stateless, so an episode reset cannot preserve controller history; the service and Unreal
+runtime still independently reject old identities.

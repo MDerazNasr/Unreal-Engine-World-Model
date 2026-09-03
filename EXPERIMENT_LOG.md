@@ -1922,3 +1922,25 @@ that a Python action traverses the complete live loop, that 100 consecutive inte
 that service-loss behavior is visible in a running pawn. Those remain R2.3-R2.5 and Gate R2.
 Evidence: `evidence/unreal/r2_runtime_lifecycle_automation.log`. Final-test episodes 5301/5302 were
 not opened.
+
+## R2-CTRL-001 — bounded echo/reactive controller code gate
+
+Question: Can deliberately simple, stateless Python controllers produce bounded current-identity
+actions from real protocol observations, including a world-space target expressed through
+authoritative character yaw, without weakening the Unreal safety boundary?
+
+Method: Add strict controller parameters in service-config schema 2. Exercise stop, forward, right,
+diagonal, reverse, over-speed, configured-bound, observed-bound, yaw-zero/yaw-90, arrival,
+target-absent, cancellation, and new-episode cases. Extend Unreal's optional planner target with
+finite validation and exact absent/present JSON shapes. Build the plugin for universal Mac Editor,
+Development, and Shipping with strict includes/unity disabled; build and test the actual sample.
+
+Result: Controller tests pass 20/20, service tests 15/15, and the complete Python suite 530/530.
+Ruff passes. The initial strict C++ build usefully failed on unavailable UE convenience methods;
+the implementation now performs explicit component finite checks and the test uses
+`std::numeric_limits`. The corrected three-target universal plugin build and actual-sample universal
+Editor build pass. Actual-sample automation completes both `MotionWorld.Network` tests successfully;
+raw evidence is `evidence/unreal/r2_controller_automation.log`. No final-test files were opened.
+
+Interpretation: The first two R2.3 implementation items pass. Live stop/direction/bound, yaw,
+sequence, and reset evidence remain open, so neither R2.3 nor Gate R2 is accepted yet.
