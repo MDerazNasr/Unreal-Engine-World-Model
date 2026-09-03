@@ -2331,3 +2331,28 @@ observation 320, schema-validated a 470-byte local `(100,0)` action, delayed its
 bridge commands stayed zero. The candidate confirmed the pawn remained stopped after injection.
 Two setup probes that sent nothing are documented but excluded. Raw evidence:
 `evidence/unreal/r2_delayed_action_stale_rejection.log`.
+
+## D-064 - Trigger the old-episode send from the verified successor observation
+
+Status: accepted code layer; live PIE evidence remains required
+
+Decision: Use a separate bounded one-shot probe that captures and validates an action for one exact
+source observation, retains it without sending, and transmits it only after decoding the immediate
+successor episode's configured first observation with reset verification true and previous action
+absent. Require exact source and target identities, a bounded receive timeout, the ordinary bounded
+controller path, and exactly one send before exit.
+
+Why: Reset completion is asynchronous. A sleep measured in Python wall time cannot establish when
+Unreal completed and verified its Mover-owned reset, changed the authoritative episode identity,
+cleared network state, and emitted the new observation. Waiting for the successor observation zero
+makes Unreal's own verified lifecycle state the trigger. The retained packet remains structurally
+valid for its source observation but becomes temporally invalid solely because its episode is now
+obsolete, isolating the wrong-episode admission rule.
+
+How it is tested: Seven focused tests reject invalid identities, a skipped successor episode, a
+non-first target sequence, and an excessive timeout. The localhost UDP integration test proves that
+no action is sent after capture or after a wrong target sequence, then supplies the verified
+successor observation zero, receives one `(100,0)` action still naming the old episode/observation,
+and proves no second datagram exists. Full Python passes 548/548, Ruff, lock verification, CLI help,
+and diff integrity pass. Live episodes 7296 to 7297 must still prove Unreal counts that one packet as
+rejected/stale, accepts no action, and remains safely stopped.

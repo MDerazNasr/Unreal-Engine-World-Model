@@ -2122,3 +2122,16 @@ candidate reported `stopped` before injection and `yes` when asked whether it re
 the actual send. Final counters were 579 observations, 578 misses, two initial-zero holds, 576 safe
 stops, no malformed packet, and no evidence drop. Evidence:
 `evidence/unreal/r2_delayed_action_stale_rejection.log`.
+
+Old-episode-action probe pre-live gate: accepted at the code layer. The standalone
+`motionworld-old-episode-action-probe` captures and schema-validates one ordinary bounded action for
+an exact source identity but does not send it. It continues receiving observations until it sees
+the immediate successor episode's configured first sequence with `reset_verified=true` and no
+previous action, then sends the retained old-episode datagram exactly once and exits. It therefore
+uses Unreal's verified lifecycle observation, not a guessed wall-time delay, as proof that the reset
+has completed. Seven focused tests cover non-negative identity, immediate-successor and first-
+sequence invariants, a five-minute maximum timeout, withholding the action before the target reset,
+ignoring a wrong target sequence, exact old identity and bounded forward contents, and exactly one
+UDP send. Full Python passes 548/548, Ruff and diff integrity pass, `uv lock --check` passes, and the
+installed locked-environment CLI help check passes. No live rejection claim is made yet; automated
+episodes 7296 to 7297 remain required.

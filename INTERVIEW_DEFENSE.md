@@ -618,6 +618,26 @@ fabricate causality. Unreal must count it stale, leave it unapplied, and follow 
 Examiner assessment: Not passed. The operational observation agrees with the trace, but the teacher
 answer was supplied; retry later without notes and explain structural versus temporal validity.
 
+### Q22 - Why trigger the old-episode packet from observation zero instead of a timer?
+
+Question: Why does the reset-boundary probe wait for verified observation zero from episode 7297
+before sending its retained episode-7296 action, instead of sleeping for a fixed interval after the
+reset request?
+
+Candidate answer: Awaiting the live exercise and candidate teach-back.
+
+Teacher reference answer: A reset request is not proof that the reset has completed. Editor load,
+frame scheduling, Mover finalization, and reset verification can all vary, so either Python wall time
+or predicted simulation time could fire before or long after the authoritative boundary. Episode
+7297 observation zero is emitted only after Unreal has verified the new reset, installed the new
+episode identity, cleared prior network action state, and restarted sequencing at zero; its absent
+previous action is an additional observable check. Sending the retained 7296/0 packet only after
+that observation isolates one cause for rejection: the packet names an obsolete episode. Unreal
+must count it as rejected/stale and must not relabel or apply it.
+
+Examiner assessment: Not yet attempted. The candidate should explain the difference between a reset
+request, elapsed time, and an authoritative verified reset boundary after the live result.
+
 ## 7. Day 1 closeout answers to practise
 
 These are study answers, not passed candidate teach-backs yet.

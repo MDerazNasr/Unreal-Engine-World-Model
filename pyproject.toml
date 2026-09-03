@@ -16,6 +16,7 @@ dependencies = [
 [project.scripts]
 motionworld-control-service = "motionworld.control.service:main"
 motionworld-delayed-action-probe = "motionworld.control.delayed_action_probe:main"
+motionworld-old-episode-action-probe = "motionworld.control.old_episode_action_probe:main"
 
 [dependency-groups]
 dev = [
