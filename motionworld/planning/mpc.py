@@ -29,6 +29,7 @@ from motionworld.planning.planner_rollout import (
     PlannerSnapshot,
     rollout_action_candidates,
 )
+from motionworld.planning.vectorized_rollout import rollout_action_candidates_vectorized
 
 FloatArray = NDArray[np.float64]
 
@@ -42,6 +43,7 @@ class PlannerProblem:
     geometry: TimedGateGeometry
     weights: PlanningCostWeights
     goal_world_cm: tuple[float, float]
+    rollout_backend: str = "vectorized"
 
     def __post_init__(self) -> None:
         goal = np.asarray(self.goal_world_cm, dtype=np.float64)
@@ -54,6 +56,8 @@ class PlannerProblem:
             abs_tol=1.0e-12,
         ):
             raise ValueError("P0 planner horizon must be exactly 1.5 seconds")
+        if self.rollout_backend not in {"scalar_reference", "vectorized"}:
+            raise ValueError("rollout_backend must be scalar_reference or vectorized")
 
 
 @dataclass(frozen=True, slots=True)
@@ -115,6 +119,28 @@ def _scenario_times(problem: PlannerProblem, query: PlannerQuery) -> FloatArray:
     )
 
 
+def _rollout_candidates(
+    problem: PlannerProblem,
+    query: PlannerQuery,
+    actions_local_cm_s: FloatArray,
+    *,
+    residual_model: ResidualMLP | None,
+    residual_normalization: ResidualNormalization | None,
+) -> PlannerRollout:
+    rollout_function = (
+        rollout_action_candidates_vectorized
+        if problem.rollout_backend == "vectorized"
+        else rollout_action_candidates
+    )
+    return rollout_function(
+        query.snapshot,
+        actions_local_cm_s,
+        config=problem.rollout,
+        residual_model=residual_model,
+        residual_normalization=residual_normalization,
+    )
+
+
 def plan_model(
     problem: PlannerProblem,
     query: PlannerQuery,
@@ -132,9 +158,7 @@ def plan_model(
         residual_model is not None or residual_normalization is not None
     ):
         raise ValueError("nominal plan cannot receive a residual model")
-    if model_name == "residual" and (
-        residual_model is None or residual_normalization is None
-    ):
+    if model_name == "residual" and (residual_model is None or residual_normalization is None):
         raise ValueError("residual plan requires its model and normalization")
     if not math.isclose(
         problem.cem.max_action_speed_cm_s,
@@ -159,10 +183,10 @@ def plan_model(
 
     def cost_function(actions_local_cm_s: FloatArray) -> FloatArray:
         action_hashes.append(_array_sha256(actions_local_cm_s))
-        rollout = rollout_action_candidates(
-            query.snapshot,
+        rollout = _rollout_candidates(
+            problem,
+            query,
             actions_local_cm_s,
-            config=problem.rollout,
             residual_model=residual_model,
             residual_normalization=residual_normalization,
         )
@@ -186,10 +210,10 @@ def plan_model(
         initial_mean_knots_cm_s=query.initial_mean_knots_local_cm_s,
     )
     best_actions = cem.best_actions_cm_s[np.newaxis, :, :]
-    best_rollout = rollout_action_candidates(
-        query.snapshot,
+    best_rollout = _rollout_candidates(
+        problem,
+        query,
         best_actions,
-        config=problem.rollout,
         residual_model=residual_model,
         residual_normalization=residual_normalization,
     )
@@ -254,9 +278,7 @@ def plan_paired_nominal_residual(
     )
     if not nominal.evaluated_action_sha256 or not residual.evaluated_action_sha256:
         raise RuntimeError("both controllers must evaluate at least one candidate batch")
-    identical_first = (
-        nominal.evaluated_action_sha256[0] == residual.evaluated_action_sha256[0]
-    )
+    identical_first = nominal.evaluated_action_sha256[0] == residual.evaluated_action_sha256[0]
     if not identical_first:
         raise RuntimeError("nominal and residual first-iteration candidates differ")
     return PairedPlan(

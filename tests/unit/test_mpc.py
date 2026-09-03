@@ -87,6 +87,36 @@ def test_nominal_planner_returns_reproducible_forward_action_and_cost() -> None:
     assert abs(first.selected_cost_reproduction_error) <= 1.0e-4
 
 
+def test_vectorized_planner_matches_scalar_reference_selection() -> None:
+    problem = _problem()
+    noise = sample_standard_normal_schedule(problem.cem, seed=81)
+    vectorized = plan_model(
+        problem,
+        _query(),
+        standard_normal_noise=noise,
+        model_name="nominal",
+    )
+    scalar = plan_model(
+        replace(problem, rollout_backend="scalar_reference"),
+        _query(),
+        standard_normal_noise=noise,
+        model_name="nominal",
+    )
+    np.testing.assert_allclose(
+        vectorized.cem.best_actions_cm_s,
+        scalar.cem.best_actions_cm_s,
+        rtol=0.0,
+        atol=1.0e-12,
+    )
+    np.testing.assert_allclose(
+        vectorized.best_rollout.positions_world_cm,
+        scalar.best_rollout.positions_world_cm,
+        rtol=1.0e-12,
+        atol=1.0e-12,
+    )
+    assert vectorized.cem.best_cost == pytest.approx(scalar.cem.best_cost, abs=1.0e-12)
+
+
 def test_zero_residual_paired_plans_are_exactly_identical() -> None:
     model = ResidualMLP(RESIDUAL_STEP_FEATURE_COUNT, hidden_widths=(8,))
     paired = plan_paired_nominal_residual(
@@ -165,3 +195,8 @@ def test_cem_and_snapshot_speed_limits_must_match() -> None:
             standard_normal_noise=sample_standard_normal_schedule(problem.cem, seed=1),
             model_name="nominal",
         )
+
+
+def test_unknown_rollout_backend_fails_closed() -> None:
+    with pytest.raises(ValueError, match="rollout_backend"):
+        replace(_problem(), rollout_backend="fastish")
