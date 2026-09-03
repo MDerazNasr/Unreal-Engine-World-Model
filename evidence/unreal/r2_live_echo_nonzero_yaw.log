@@ -1,0 +1,45 @@
+MotionWorld R2.3 live echo nonzero-yaw evidence
+Date: 2026-09-03
+Source: local Game Animation Sample Editor log, PIE 21:47 UTC
+Session: 29378604B046
+Episode: 7271
+Controller config: configs/control_service_echo_forward.yaml
+Reset yaw override: 90 degrees
+Candidate visual observation: reset rotated the pawn approximately 90 degrees, then the pawn moved
+forward in the direction it faced
+
+Acceptance decision: PASS for nonzero-yaw local-to-world conversion and all of R2.3.
+
+Independent audit:
+- reset anchor captured with yaw_override=true and target yaw exactly 90.00 degrees
+- reset verified on attempt 1 at yaw 90.00 with zero position, facing, linear-speed, and
+  angular-speed error before the episode/network start
+- observations sent=130; every observation reported authoritative facing yaw 90.000000 degrees
+- actions accepted=125; every accepted action is exactly local (100, 0) cm/s, current-identity,
+  and before deadline
+- every one of 130 post-reset nonzero command echoes resolves local `(100,0)` through yaw 90 to
+  submitted/echoed world `(0,100)` with match=true
+- latency min/median/p95/max=14.399/35.356/43.148/82.037 ms
+- sampled post-reset X remained exactly -800.00 cm; sampled Y increased from 0.00 to 1141.76 cm
+- sampled finalized velocity is world `(0,100)` and local `(100,0)` at yaw 90 degrees
+- five superseded responses caused five misses and five bounded holds; there was no safe stop
+- final stats: rejected=5, stale=5, malformed=0, missed=5, held=5, safe_stops=0,
+  evidence_written=257, evidence_dropped=0
+
+Selected exact source lines:
+[2026.09.03-21.47.31:743][842]LogMotionWorldBridge: Display: MotionWorld reset anchor captured: source_state_sequence=0 position_world_cm=(-800.00, 0.00, 90.00) yaw_deg=90.00 yaw_override=true mode=Walking.
+[2026.09.03-21.47.33:649][872]LogMotionWorldBridge: Display: MotionWorld reset verified: episode=7271 attempts=1 state_sequence=30 mover_frame=31 position_world_cm=(-800.00, 0.00, 90.00) yaw_deg=90.00 mode=Walking position_error_cm=0.000 facing_error_deg=0.000 linear_speed_cm_per_sec=0.000 angular_speed_deg_per_sec=0.000; new episode may seed this state.
+[2026.09.03-21.47.33:684][873]LogMotionWorldNetwork: Display: MotionWorld network action accepted: session=29378604B046 episode=7271 source_observation=0 desired_local_cm_per_sec=(100.000000, 0.000000) unreal_end_to_end_latency_ms=34.354541 current_identity_match=true before_deadline=true.
+[2026.09.03-21.47.33:717][874]LogMotionWorldBridge: Display: MotionWorld command echo: revision=7 frame=character_local resolved=true facing_yaw_deg=90.00 finite=true requested_frame=(100.00, 0.00, 0.00) submitted_world=(0.00, 100.00, 0.00) echoed_world=(0.00, 100.00, 0.00) match=true
+[2026.09.03-21.47.34:770][902]LogMotionWorldBridge: Display: MotionWorld state sample: protocol=1 sequence=60 valid=true mover_step_frame=61 sim_time_s=2.349000 step_s=0.056000 resim=false mode=Walking position_world_cm=(-800.00, 92.26, 88.27) velocity_world_cm_per_sec=(0.00, 100.00, 0.00) velocity_local_planar_cm_per_sec=(100.00, 0.00, 0.00) facing_yaw_deg=90.00 facing_unit_world=(0.000000, 1.000000) angular_velocity_world_deg_per_sec=(0.00, 0.00, -0.00)
+[2026.09.03-21.47.45:279][202]LogMotionWorldBridge: Display: MotionWorld state sample: protocol=1 sequence=360 valid=true mover_step_frame=361 sim_time_s=12.844000 step_s=0.034000 resim=false mode=Walking position_world_cm=(-800.00, 1141.76, 88.27) velocity_world_cm_per_sec=(0.00, 100.00, 0.00) velocity_local_planar_cm_per_sec=(100.00, 0.00, 0.00) facing_yaw_deg=90.00 facing_unit_world=(0.000000, 1.000000) angular_velocity_world_deg_per_sec=(0.00, 0.00, -0.00)
+[2026.09.03-21.47.46:846][241]LogMotionWorldNetwork: Display: MotionWorld network evidence stopped: session=29378604B046 observations_sent=130 actions_accepted=125 rejected=5 stale=5 malformed=0 missed=5 held=5 safe_stops=0 evidence_written=257 evidence_dropped=0.
+
+Interpretation:
+The verified reset establishes authoritative yaw before network start. The accepted action remains
+character-local forward, while the bridge's exact world submission/echo and finalized state prove
+the expected rotation `R(90 degrees) * (100,0) = (0,100)`. Constant X and increasing Y rule out a
+mislabelled yaw-zero forward path. Candidate observation independently agrees with the logged
+rotation and facing-relative forward motion.
+
+Final-test episodes 5301/5302 opened: zero.

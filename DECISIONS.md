@@ -2218,7 +2218,7 @@ from being applied or carried across the reset.
 
 ## D-060 - Establish nonzero-yaw evidence through a verified reset target
 
-Status: accepted closed-editor seam; live PIE evidence remains required
+Status: accepted through live PIE evidence
 
 Decision: Add a default-off live-test property that replaces only the captured reset target's
 planar yaw. Normalize a finite override, preserve the captured target's position, mode, and source
@@ -2238,4 +2238,11 @@ closed sample passes. `GameAnimationSampleEditor Mac Development -architecture=a
 builds successfully, the deployed dylib is universal with SHA-256
 `a1595fcc529b1d93015a2e2553df1f235f8b64049f4ef8f45aa34541da94dda5`, and all 17 actual-sample
 `MotionWorld.` automation tests pass. Raw automation evidence:
-`evidence/unreal/r2_nonzero_yaw_seam_automation.log`. Live yaw-90 movement remains unclaimed.
+`evidence/unreal/r2_nonzero_yaw_seam_automation.log`. That closed-editor gate alone made no live
+yaw-90 movement claim.
+
+Live acceptance: Session `29378604B046`, episode 7271 verified the overridden reset at exactly 90
+degrees before network start. Every accepted local `(100,0)` command resolved and echoed as world
+`(0,100)` with authoritative yaw 90; executed state kept X fixed while Y increased 1141.76 cm. The
+candidate observed the reset rotation and facing-relative forward motion. Evidence:
+`evidence/unreal/r2_live_echo_nonzero_yaw.log`.

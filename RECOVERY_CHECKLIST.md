@@ -259,7 +259,7 @@ Objective: prove the complete round trip before integrating CEM or retraining mo
 - [x] Implement a Python echo controller with explicit clamping.
 - [x] Implement a simple goal-directed reactive controller for visual context.
 - [x] Run stop, forward, right, diagonal, reverse, and speed-bound cases live.
-- [ ] Prove requested local velocity resolves through authoritative yaw correctly.
+- [x] Prove requested local velocity resolves through authoritative yaw correctly.
 - [x] Prove the applied command sequence matches the source observation sequence.
 - [x] Prove reset creates no cross-episode action or history reuse.
 

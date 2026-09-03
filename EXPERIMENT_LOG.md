@@ -2037,3 +2037,13 @@ and invalid-source rejection. Exact deployed-source parity passes; the actual un
 GameAnimationSampleEditor target builds, and all 17 `MotionWorld.` tests pass. Deployed dylib SHA
 begins `a1595fcc`; raw evidence is `evidence/unreal/r2_nonzero_yaw_seam_automation.log`. This does
 not yet prove live nonzero-yaw conversion; yaw-90 PIE episode 7271 remains required.
+
+Nonzero-yaw live result: accepted session `29378604B046`, episode 7271, completing R2.3. The
+candidate observed the verified reset rotate the pawn approximately 90 degrees and then saw it move
+forward along its new facing. Runtime captured `yaw_override=true`, verified yaw 90 with zero reset
+error before episode start, and reported yaw 90 on all 130 observations. All 125 accepted actions
+were exact local `(100,0)`, current, and before deadline. All 130 post-reset nonzero bridge echoes
+resolved to world `(0,100)` with `match=true`; sampled X stayed -800.00 cm while Y reached 1141.76
+cm, and finalized world/local velocities were `(0,100)`/`(100,0)`. Five misses held the last valid
+action; no safe stop, malformed packet, or evidence loss occurred. Evidence:
+`evidence/unreal/r2_live_echo_nonzero_yaw.log`.
