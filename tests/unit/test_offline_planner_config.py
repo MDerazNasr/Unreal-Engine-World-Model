@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from scripts.run_offline_paired_planner import _load_cem_config, _load_problem_config
+from motionworld.planning.config import load_cem_planner_config, load_offline_planner_config
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 
@@ -20,10 +20,10 @@ def _mutated_problem_config(tmp_path: Path, **changes: object) -> Path:
 
 
 def test_frozen_offline_and_cem_configs_form_one_exact_horizon() -> None:
-    problem, geometry, weights = _load_problem_config(
+    problem, geometry, weights = load_offline_planner_config(
         REPOSITORY_ROOT / "configs" / "offline_planner.yaml"
     )
-    cem, rollout, seed, horizon_s = _load_cem_config(
+    cem, rollout, seed, horizon_s = load_cem_planner_config(
         REPOSITORY_ROOT / "configs" / "cem_planner.yaml"
     )
     assert problem["source_validation_episode_id"] == 5202
@@ -51,4 +51,4 @@ def test_problem_config_rejects_ambiguous_or_nonfinite_values(
     message: str,
 ) -> None:
     with pytest.raises(ValueError, match=message):
-        _load_problem_config(_mutated_problem_config(tmp_path, **{field: invalid}))
+        load_offline_planner_config(_mutated_problem_config(tmp_path, **{field: invalid}))
