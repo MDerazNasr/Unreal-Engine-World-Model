@@ -2399,7 +2399,7 @@ after the second fault is already the required recovery proof. Raw evidence:
 
 ## D-066 - Saturate optional packet telemetry and evidence logging together
 
-Status: accepted code layer; live PIE evidence remains required
+Status: accepted through live PIE evidence
 
 Decision: Use a separate bounded probe that sends contiguous normal forward commands while filling
 every action's optional selected trajectory to the protocol maximum of 32 steps and including every
@@ -2416,6 +2416,33 @@ or changing gameplay.
 How it is tested: Four focused tests reject negative identity, fewer than 16 actions, and excessive
 timeout. A localhost UDP test validates 16 responses, each containing exactly 32 `(100,0)` trajectory
 steps, all cost keys, and an unchanged bounded `(100,0)` command, and proves no extra response. Full
-Python passes 558/558; Ruff, lock verification, installed CLI help, and diff integrity pass. Live
-episode 7300 must still produce accepted bounded actions, deliberate evidence drops, no malformed or
-stale admission, and authoritative bounded motion.
+Python passes 558/558; Ruff, lock verification, installed CLI help, and diff integrity pass.
+
+Live acceptance: Session `1C8398809349`, episode 7300, received 21 contiguous observations and the
+probe sent 21 maximum-telemetry actions. Unreal accepted 19 and rejected two as stale; malformed
+remained zero. This is explicitly not a zero-stale performance run. Evidence logging reached its
+configured cap with eight lines written and 395 dropped, while accepted commands still echoed and
+finalized as exact bounded `(100,0)` motion. The candidate saw forward motion followed by stop; a
+subsequent verified reset returned the pawn to zero. Raw evidence:
+`evidence/unreal/r2_telemetry_saturation.log`.
+
+## D-067 - Close no-runaway safety from an execution-evidence matrix
+
+Status: accepted through aggregate live PIE evidence
+
+Decision: Define runaway as non-finite or above-bound execution, invalid/obsolete action execution,
+or nonzero motion persisting past the declared fallback/reset. Close the aggregate R2.4 claim only
+after reviewing every accepted failure case against command echoes or authoritative finalized
+state; counters and visual observation alone are insufficient.
+
+Why: Rejected/missed counters prove control-flow classification but not what Mover executed. Visual
+stillness cannot distinguish safe fallback from a disabled path. The causal chain needs packet
+classification, the submitted/echoed command, and finalized state, with candidate observation as
+corroboration.
+
+How it is tested: The evidence matrix covers absent service, service kill, clean restart, delayed
+valid action, old-episode action, malformed/non-finite packets, and saturated optional telemetry plus
+logging. Every stationary case has zero echoes and stationary finalized state; every moving case is
+finite and bounded and subsequently recovers, resets, or stops. The independent speed-bound run
+shows `(1000,1000)` is clamped to norm 165 cm/s. Evidence:
+`evidence/unreal/r2_failure_no_runaway_audit.md`.

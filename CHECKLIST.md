@@ -446,7 +446,7 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [x] Test service disappears during movement.
 - [x] Test delayed stale response arrives after reset.
 - [x] Test malformed response during movement.
-- [ ] Confirm no failure mode produces runaway motion.
+- [x] Confirm no failure mode produces runaway motion.
 
 ### 5.4 Protocol gate
 

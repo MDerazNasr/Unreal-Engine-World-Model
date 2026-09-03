@@ -271,8 +271,8 @@ Objective: prove the complete round trip before integrating CEM or retraining mo
 - [x] Delay a valid action until it is stale and verify rejection.
 - [x] Deliver an old-episode action after reset and verify rejection.
 - [x] Send malformed and non-finite actions during motion and verify safe behavior.
-- [ ] Saturate diagnostic telemetry and verify gameplay control remains bounded.
-- [ ] Confirm no tested failure produces runaway motion.
+- [x] Saturate diagnostic telemetry and verify gameplay control remains bounded.
+- [x] Confirm no tested failure produces runaway motion.
 
 ### 3.5 Gate R2 — live safe round trip
 

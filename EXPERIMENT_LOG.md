@@ -2180,3 +2180,20 @@ unchanged `(100,0)` control commands, strict decode/admission, and no extra data
 passes 558/558, Ruff, lock verification, installed CLI help, and diff integrity pass. The live trial
 will additionally set Unreal's evidence-line cap low enough to force drops, testing both packet
 telemetry saturation and diagnostic-log saturation without changing gameplay semantics.
+
+Telemetry-saturation live result: accepted session `1C8398809349`, target episode 7300. The probe
+received observations 0-20 and sent 21 actions of 1143-1144 bytes, each retaining exact local
+`(100,0)` control while carrying the protocol maximum of 32 trajectory steps and all cost fields.
+Unreal accepted 19 and rejected two stale; malformed remained zero. This distinction prevents the
+capacity test from being misreported as a Gate-R2 consecutive/zero-gap run. The deliberately tiny
+evidence cap saturated at eight written and 395 dropped lines while command echoes stayed finite and
+matching and finalized state reached exact bounded `(100,0)` velocity. The candidate observed
+forward motion followed by stop. A retained second reset began 7301 only after the target probe had
+completed and returned the pawn to zero. Evidence: `evidence/unreal/r2_telemetry_saturation.log`.
+
+R2.4 aggregate no-runaway audit: accepted. All seven accepted failure cases were checked against
+admission/fallback records plus command-echo or authoritative finalized-state evidence. Invalid,
+late, and old-episode packets never appear as applied commands; all nonzero commands are finite and
+bounded; absence/loss/reset paths reach exact zero. The separate episode-7261 speed-bound case proves
+that even raw `(1000,1000)` is clamped to norm 165 cm/s. This closes R2.4 without another PIE run.
+Evidence: `evidence/unreal/r2_failure_no_runaway_audit.md`.

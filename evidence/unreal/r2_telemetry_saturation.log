@@ -1,0 +1,57 @@
+MotionWorld R2.4 telemetry/evidence saturation safety
+Date: 2026-09-04 Europe/Copenhagen (PIE log 2026-09-03 23:32-23:33 UTC)
+Source: local Game Animation Sample Editor log and bounded telemetry-saturation probe
+Session: 1C8398809349
+Target episode: 7300
+Candidate visual observation: expected forward motion followed by stop
+
+Acceptance decision: PASS for "saturate diagnostic telemetry and verify gameplay control remains
+bounded." This is a capacity/safety result, not a zero-stale or steady-state performance result.
+
+Probe command:
+motionworld-telemetry-saturation-probe \
+  --service-config configs/control_service_echo_forward.yaml \
+  --episode-id 7300 --completion-sequence 20 --receive-timeout-ms 300000
+
+Probe report:
+{"actions_sent": 21, "completed": true, "completion_sequence": 20,
+ "datagrams_received": 21, "episode_id": 7300, "first_sequence": 0,
+ "ignored_observations": 0, "maximum_action_bytes": 1144,
+ "minimum_action_bytes": 1143, "telemetry_steps_per_action": 32,
+ "valid_observations_received": 21}
+
+Independent audit:
+- every one of the 21 probe responses retained the exact bounded local `(100,0)` command while
+  carrying the protocol maximum of 32 selected-trajectory steps and every finite cost field
+- Unreal accepted 19 actions and rejected two as stale; malformed remained zero
+- the two stale packets are ordinary temporal-admission outcomes and are reported explicitly; this
+  run therefore does not earn Gate-R2 zero-gap, consecutive-control, or latency credit
+- 383 command echoes contain 24 exact forward `(100,0)` commands and 359 exact zero commands, with
+  no non-finite value or command mismatch
+- state sequence 120 reports exact finite world/local velocity `(100,0,0)` at position
+  `(-577.11,0,88.27)`, proving bounded motion reached finalized gameplay state
+- Unreal's configured evidence cap reached exactly eight written lines while 395 additional lines
+  were deliberately dropped; control continued after capacity was exhausted
+- the candidate saw the expected forward motion and subsequent stop
+- a retained second reset started episode 7301 after the target probe had already completed; its
+  verified reset returned the pawn to `(-800,0,90)` at zero speed, and later service absence kept it
+  stopped
+- final session: observations=380, actions_accepted=19, rejected=2, stale=2, malformed=0,
+  missed=355, held=2, safe_stops=353, evidence_written=8, evidence_dropped=395
+
+Selected source excerpts (nonessential fields omitted on some bridge lines):
+[2026.09.03-23.32.01:552]LogMotionWorldNetwork: Display: MotionWorld network evidence started: session=1C8398809349 controller=echo max_lines=8 endpoints=127.0.0.1:52580->127.0.0.1:52581.
+[2026.09.03-23.32.05:016]LogMotionWorldNetwork: Display: MotionWorld network episode started: session=1C8398809349 episode=7300 first_observation_sequence=0 applied_local_cm_per_sec=(0.00, 0.00) prior_state_cleared=true.
+[2026.09.03-23.32.05:016]LogMotionWorldBridge: Display: MotionWorld reset verified: episode=7300 attempts=1 state_sequence=60 mover_frame=61 position_world_cm=(-800.00, 0.00, 90.00) yaw_deg=0.00 mode=Walking position_error_cm=0.000 facing_error_deg=0.000 linear_speed_cm_per_sec=0.000 angular_speed_deg_per_sec=0.000; new episode may seed this state.
+[2026.09.03-23.32.05:063]LogMotionWorldNetwork: Display: MotionWorld network action accepted: session=1C8398809349 episode=7300 source_observation=0 desired_local_cm_per_sec=(100.000000, 0.000000) unreal_end_to_end_latency_ms=45.425583 current_identity_match=true before_deadline=true.
+[2026.09.03-23.32.05:104]LogMotionWorldBridge: Display: MotionWorld command echo: frame=character_local resolved=true facing_yaw_deg=0.00 finite=true requested_frame=(100.00, 0.00, 0.00) submitted_world=(100.00, 0.00, 0.00) echoed_world=(100.00, 0.00, 0.00) match=true
+[2026.09.03-23.32.07:446]LogMotionWorldBridge: Display: MotionWorld state sample: protocol=1 sequence=120 valid=true mover_step_frame=121 position_world_cm=(-577.11, 0.00, 88.27) velocity_world_cm_per_sec=(100.00, 0.00, 0.00) velocity_local_planar_cm_per_sec=(100.00, 0.00, 0.00) facing_yaw_deg=0.00
+[2026.09.03-23.32.07:524]LogMotionWorldBridge: Display: MotionWorld reset verified: episode=7301 attempts=1 position_world_cm=(-800.00, 0.00, 90.00) yaw_deg=0.00 mode=Walking linear_speed_cm_per_sec=0.000 angular_speed_deg_per_sec=0.000; new episode may seed this state.
+[2026.09.03-23.33.29:922]LogMotionWorldNetwork: Display: MotionWorld network evidence stopped: session=1C8398809349 observations_sent=380 actions_accepted=19 rejected=2 stale=2 malformed=0 missed=355 held=2 safe_stops=353 evidence_written=8 evidence_dropped=395.
+
+Interpretation:
+The bounded optional telemetry increased packet size and the deliberately tiny evidence cap caused
+logging drops, but neither became a control authority. Valid current commands still passed normal
+admission and produced exact bounded finalized motion; late commands were rejected; exhausted
+logging skipped records rather than changing the command. The later reset and missing-service
+fallback selected zero. Final-test episodes 5301/5302 opened: zero.

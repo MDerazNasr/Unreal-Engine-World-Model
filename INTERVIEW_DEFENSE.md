@@ -666,7 +666,8 @@ unaided in a later teach-back.
 Question: What should happen when every action carries maximum diagnostic trajectory telemetry and
 Unreal's evidence log reaches its capacity?
 
-Candidate answer: Awaiting the live exercise and candidate teach-back.
+Candidate answer: The candidate completed the live exercise and visually confirmed forward motion
+followed by stop, but has not yet explained the control/telemetry separation unaided.
 
 Teacher reference answer: The command, identity, and deadline determine control admission;
 trajectory/cost telemetry only explains the planner's decision. Its schema and length are bounded so
@@ -675,7 +676,25 @@ capacity it increments a dropped-line counter and skips the log line. Neither co
 delay, or replace the validated command. Therefore Unreal should continue applying exact bounded
 motion while reporting diagnostic drops, with no malformed acceptance or runaway state.
 
-Examiner assessment: Not yet attempted. Require an unaided explanation after the live result.
+Examiner assessment: Not passed. The operational result agrees with the accepted trace; require an
+unaided explanation of why full telemetry and dropped evidence lines cannot change control.
+
+### Q25 - Why are rejection counters alone insufficient to rule out runaway motion?
+
+Question: What evidence distinguishes a packet being rejected from safe execution by the pawn?
+
+Candidate answer: Not yet attempted.
+
+Teacher reference answer: A rejected, stale, or malformed counter proves how the network runtime
+classified a received packet, but it does not by itself prove what command remained active or what
+Mover executed. The evidence chain must show the fallback decision, the requested/submitted/echoed
+command, and authoritative finalized velocity or stationary state. Episode/sequence and reset
+records establish which lifecycle the command belongs to. Candidate visual observation is useful
+corroboration but is not numerically authoritative. Only that combined chain rules out invalid,
+obsolete, unbounded, or persistent unintended motion.
+
+Examiner assessment: Not yet attempted. Require an unaided explanation after reviewing the R2.4
+aggregate evidence matrix.
 
 ## 7. Day 1 closeout answers to practise
 
