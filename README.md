@@ -1,10 +1,22 @@
 # MotionWorld
 
-MotionWorld is an action-conditioned residual state-space world model for real-time character control in Unreal Engine. A compact learned model corrects a faithful, inexpensive character predictor so that model-predictive control can evaluate many candidate futures without cloning the full engine simulation.
+MotionWorld is an action-conditioned residual state-space world model for character control in
+Unreal Engine. A learned model corrects a faithful, inexpensive character predictor so that
+model-predictive control can evaluate many candidate futures without cloning the full engine.
+
+**Evidence achieved:** the UE 5.8.2 movement/reset/logger bridge works; episode-safe train and
+validation data were captured; a residual MLP improves held-out recursive prediction; and a fair
+offline CEM comparison proves that the model changes selected actions. **Not achieved:** no live
+nominal-versus-residual MPC execution has been run, the residual planner misses its 100 ms p95
+deadline, and no final-test episode has been opened. The project therefore makes no control-win
+claim.
 
 The project is being built as a reproducible applied-ML research demonstration. Its central claim is deliberately causal:
 
 > Nominal prediction is wrong -> the residual predicts that error -> the planner selects a different action -> same-seed Unreal execution improves.
+
+The first three links have bounded evidence. The last link remains unproven. See
+[INTERVIEW_PACKAGE.md](INTERVIEW_PACKAGE.md) for the concise evidence map and fallback demo.
 
 ## Living documents
 
@@ -19,6 +31,7 @@ The project is being built as a reproducible applied-ML research demonstration. 
 ## Active runbook
 
 - [Sunday 30 August - Unreal feasibility](runbooks/2026-08-30-sunday.md)
+- [Interview fallback demo](runbooks/interview_fallback.md)
 
 ## Python environment
 
@@ -30,6 +43,7 @@ uv sync --frozen --python 3.12
 uv run python scripts/verify_environment.py
 uv run pytest
 uv run ruff check .
+uv run python scripts/verify_interview_package.py
 ```
 
 Unit-test oracles run on CPU by default for deterministic comparison. MPS availability is reported
@@ -61,3 +75,10 @@ gate configuration, per-transition analytic obstacle state/event labels, and a r
 summary. Both Unreal and Python independently reject schedule, crossing, timeout, or count drift.
 
 No positive result is assumed. A reproducible negative result with a clear diagnosis is a valid research outcome.
+
+## Provenance and licensing
+
+The repository contains only project-specific source, small derived evidence, configurations, and
+documentation. Epic's licensed Game Animation Sample, Unreal generated directories, and raw local
+episode captures are excluded. Reproducing Unreal evidence requires acquiring the Game Animation
+Sample separately through Epic and copying the source-controlled plugin into that local project.

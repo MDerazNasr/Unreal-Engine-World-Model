@@ -1671,3 +1671,37 @@ or model size next. Predicted cost is still not realized Unreal return.
 
 Artifacts: `artifacts/planning/budget_sweep_001/`; the runtime/quality plot was visually reviewed.
 Sweep implementation/freeze commit: `7d2de6f`. Test files opened: zero.
+
+## RESIDUAL-COMPRESS-001 — validation-only residual width sweep
+
+Question: Can a smaller no-history residual MLP preserve recursive prediction and reference-model
+planning behavior while moving the unchanged 256/32/3 CEM call below 100 ms p95?
+
+Prospective configuration: Commit four widths—192/192/96, 128/128/64, 96/96/48, and 64/64/32—
+before training. Inherit the original train-only normalization, seed 20260903, 1,500 optimizer
+steps, loss, batch size, and fixed-final-step checkpoint rule. Require every 0.5/1.0/1.5-second
+recursive p95 metric to degrade by no more than 15% versus the frozen full-width checkpoint.
+Require at most 10% p95 positive planner regret and zero new predicted collisions over ten frozen
+validation queries, with candidate-selected actions cross-evaluated by the reference model. Require
+complete residual CEM p95 at or below 100 ms over 20 calls after two warm-ups. Test files stay sealed.
+
+Result: No candidate is eligible. Only 128/128/64 passes recursive quality (8.43% worst p95
+degradation). Planner p95 positive regret is 10227.6%, 10693.8%, 6400.2%, and 9014.7% from largest
+to smallest, and all introduce at least one new reference-predicted collision. Runtime median/p95
+is 135.758/137.515, 125.516/184.242, 120.603/135.987, and 114.695/117.234 ms. Parameter counts
+are 61,734, 28,870, 17,046, and 8,294 versus 106,886 in the reference.
+
+Interpretation: Network width alone is not the solution. The near-monotonic median speedup is real,
+but even the smallest model misses the deadline, while all candidate planners exploit or disagree
+with the reference dynamics badly. The 128/128/64 result is the clearest warning that acceptable
+recursive p95 error does not guarantee acceptable downstream decisions. Keep the negative result,
+do not relax thresholds, and prioritize the honest offline package/defense over an unsafe live
+10 Hz claim.
+
+Additional profiling: Two Torch threads produce only a small exploratory improvement over one;
+four/eight are worse. NumPy MLP inference, Torch tracing, and `torch.compile` are no faster for this
+small repeated network. Dynamic int8 conversion fails because the installed Apple PyTorch build has
+no quantized linear engine. These probes are diagnostic, not accepted performance artifacts.
+
+Artifacts: `artifacts/residual/compression_001/`; the plot was visually reviewed. Prospective
+freeze commit: `342720b`; runner commit/provenance: `56899c8`. Test files opened: zero.

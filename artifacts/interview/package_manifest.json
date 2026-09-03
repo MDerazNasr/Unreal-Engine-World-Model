@@ -1,0 +1,47 @@
+{
+  "schema_name": "motionworld_interview_package_manifest",
+  "schema_version": 1,
+  "file_count": 8,
+  "files": [
+    {
+      "path": "INTERVIEW_PACKAGE.md",
+      "bytes": 4547,
+      "sha256": "21cc14fa28d026a61e59dc4fd358ae0786cc0daf48b0b2a4e267fa54b22ba7aa"
+    },
+    {
+      "path": "runbooks/interview_fallback.md",
+      "bytes": 2900,
+      "sha256": "cc60fff527a9238888c1e14006fd1076a9957d31652ac2eadd5ca30402e7ff74"
+    },
+    {
+      "path": "artifacts/interview/architecture.svg",
+      "bytes": 3874,
+      "sha256": "a49b4d674069934bdf87d61026d2308956088b7ff79546e01e3e71deb5599146"
+    },
+    {
+      "path": "artifacts/residual/recursive_001/recursive_comparison.png",
+      "bytes": 278251,
+      "sha256": "63b0082155aa1fc0dc8e368c5a2a23e4d341ce0ed7a30e15e934176e2ef7eacd"
+    },
+    {
+      "path": "artifacts/planning/offplan_001/offline_paired_planner.png",
+      "bytes": 250026,
+      "sha256": "9bb1fcdc741c4fe65b580e4f51e901da2d17f2fd3e5932c0c758836ca7df22fd"
+    },
+    {
+      "path": "artifacts/planning/runtime_001/runtime.json",
+      "bytes": 2809,
+      "sha256": "7fbf2696bebf038ecb93a8af8c4d5fbc663bfcc9671e087fca6ad737bcc55f42"
+    },
+    {
+      "path": "artifacts/planning/budget_sweep_001/budget_sweep.png",
+      "bytes": 146095,
+      "sha256": "1c51650b26ab0baab9c562b408b91fe8620bcd4596fc4cf5876111dda2b6083d"
+    },
+    {
+      "path": "artifacts/residual/compression_001/width_sweep.png",
+      "bytes": 100965,
+      "sha256": "38424f43298c9b259b57abf2719bce6bcae706ca9c29d827052a30276dbcd805"
+    }
+  ]
+}

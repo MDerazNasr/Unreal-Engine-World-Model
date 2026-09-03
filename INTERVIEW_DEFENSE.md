@@ -426,3 +426,22 @@ off-diagonal entries show whether the other model agrees. Large disagreement is 
 ground truth. It motivates live validation, error inspection near the selected paths, and possibly
 an uncertainty or model-disagreement penalty. It cannot tell me by itself which model is physically
 correct.
+
+### Why not just use the smaller network that passed prediction quality?
+
+Because prediction was only one gate. The 128/128/64 model stayed within 8.43% of the full model on
+all recursive p95 metrics, but CEM found action sequences where the models disagreed badly. When I
+evaluated the smaller model's selected plans under the frozen full model, p95 positive cost regret
+was over 100 times the reference cost and two newly predicted collisions appeared. Its full-planner
+p95 was also above 100 ms. This is a useful negative result: average rollout accuracy did not
+protect the optimizer from model error. I rejected the model rather than selecting the metric that
+made it look good.
+
+### What would you do next to make residual MPC deployable?
+
+First, I would not put the current 150 ms residual planner into a 100 ms synchronous loop. The
+lowest-risk engineering paths are a transport-safe slower control interval as an explicitly changed
+experiment, asynchronous planning with stale-action safeguards, or a compiled/native inference
+backend with numerical and planning parity. On the modelling side I would train with multi-step and
+planner-distribution data or distillation, then repeat recursive, cross-planning, and runtime gates.
+The present evidence does not authorize claiming any of those paths works.

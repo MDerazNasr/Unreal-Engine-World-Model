@@ -1146,3 +1146,27 @@ budget passes all three. This is a Pareto problem: some options are fast, and ot
 quality, but none lies in the acceptable region. Changing the threshold afterward would be
 post-hoc tuning, so the correct action is to retain the negative result and optimize a different
 part of the system.
+
+### Why a smaller prediction model can still make a worse planner
+
+Compression reduces matrix-multiplication work, but prediction error is not interchangeable with
+planning error. Let the reference model assign cost `J_ref(a)` to an action sequence. A compressed
+model chooses
+
+`a_small = argmin_a J_small(a)`,
+
+while the reference chooses
+
+`a_ref = argmin_a J_ref(a)`.
+
+Even if typical recursive state error changes only slightly, CEM searches specifically for action
+sequences where the learned model predicts low cost. A small local error near the collision
+boundary can therefore change an indicator by 10,000 cost units. Cross-evaluation measures
+
+`max(0, (J_ref(a_small) - J_ref(a_ref)) / max(abs(J_ref(a_ref)), 1))`.
+
+This does not prove that the reference is physically correct. It asks a narrower validation
+question: did compression preserve the behavior of the already-selected model? In
+RESIDUAL-COMPRESS-001, 128/128/64 preserved all recursive p95 metrics within 8.43% but failed this
+planner test severely. That is a concrete example of why an ML component must be evaluated inside
+the decision system that consumes it.

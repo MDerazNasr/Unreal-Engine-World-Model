@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="620" viewBox="0 0 1200 620">
+  <style>
+    text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #17212b; }
+    .title { font-size: 28px; font-weight: 700; }
+    .heading { font-size: 20px; font-weight: 700; }
+    .body { font-size: 16px; }
+    .small { font-size: 14px; fill: #405060; }
+    .box { stroke-width: 2; rx: 14; }
+    .arrow { stroke: #405060; stroke-width: 2.5; fill: none; marker-end: url(#arrow); }
+  </style>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#405060"/>
+    </marker>
+  </defs>
+  <rect width="1200" height="620" fill="#f7f9fb"/>
+  <text x="600" y="45" text-anchor="middle" class="title">MotionWorld: ownership and causal data flow</text>
+
+  <rect x="45" y="85" width="420" height="475" class="box" fill="#e8f3ff" stroke="#3478b8"/>
+  <text x="255" y="120" text-anchor="middle" class="heading">Unreal Engine 5.8.2 — physical authority</text>
+  <rect x="85" y="155" width="340" height="78" class="box" fill="#ffffff" stroke="#3478b8"/>
+  <text x="255" y="184" text-anchor="middle" class="body">Mover Smooth Walking + collision</text>
+  <text x="255" y="209" text-anchor="middle" class="small">requested action ≠ executed motion</text>
+  <rect x="85" y="275" width="340" height="92" class="box" fill="#ffffff" stroke="#3478b8"/>
+  <text x="255" y="304" text-anchor="middle" class="body">OnPostFinalize authoritative state</text>
+  <text x="255" y="329" text-anchor="middle" class="small">position, velocity, facing, yaw rate</text>
+  <text x="255" y="350" text-anchor="middle" class="small">episode + sequence + action identity</text>
+  <rect x="85" y="410" width="340" height="100" class="box" fill="#ffffff" stroke="#3478b8"/>
+  <text x="255" y="440" text-anchor="middle" class="body">Reset, gate, events, JSONL logger</text>
+  <text x="255" y="465" text-anchor="middle" class="small">atomic complete episodes</text>
+  <text x="255" y="486" text-anchor="middle" class="small">fail closed on stale/misaligned data</text>
+
+  <rect x="735" y="85" width="420" height="475" class="box" fill="#fff0e5" stroke="#d66a1f"/>
+  <text x="945" y="120" text-anchor="middle" class="heading">Python — prediction and planning</text>
+  <rect x="775" y="155" width="340" height="78" class="box" fill="#ffffff" stroke="#d66a1f"/>
+  <text x="945" y="184" text-anchor="middle" class="body">Faithful nominal transition</text>
+  <text x="945" y="209" text-anchor="middle" class="small">known Smooth Walking equations + memory</text>
+  <rect x="775" y="275" width="340" height="92" class="box" fill="#ffffff" stroke="#d66a1f"/>
+  <text x="945" y="304" text-anchor="middle" class="body">Residual MLP correction</text>
+  <text x="945" y="329" text-anchor="middle" class="small">ŝₜ₊₁ = compose(f_nom(sₜ,aₜ), rθ)</text>
+  <text x="945" y="350" text-anchor="middle" class="small">recursive, no teacher forcing</text>
+  <rect x="775" y="410" width="340" height="100" class="box" fill="#ffffff" stroke="#d66a1f"/>
+  <text x="945" y="440" text-anchor="middle" class="body">CEM-MPC + analytic gate cost</text>
+  <text x="945" y="465" text-anchor="middle" class="small">256 candidates · 32 elites · 3 iterations</text>
+  <text x="945" y="486" text-anchor="middle" class="small">execute first action, then replan</text>
+
+  <path d="M425 321 C540 321, 610 321, 775 321" class="arrow"/>
+  <text x="600" y="298" text-anchor="middle" class="body">finalized state + applied action + Δt</text>
+  <path d="M775 462 C650 535, 545 535, 425 462" class="arrow"/>
+  <text x="600" y="562" text-anchor="middle" class="body">selected desired local velocity</text>
+  <text x="600" y="590" text-anchor="middle" class="small">Live return path is designed but not yet demonstrated</text>
+</svg>

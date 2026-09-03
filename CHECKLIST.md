@@ -67,8 +67,8 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 
 ### Wednesday 2 September - CEM and live control
 
-- [ ] Complete deterministic offline CEM and cost tests before Unreal integration.
-- [ ] Demonstrate identical candidate actions and planner settings for nominal/residual MPC.
+- [x] Complete deterministic offline CEM and cost tests before Unreal integration.
+- [x] Demonstrate identical candidate actions and planner settings for nominal/residual MPC.
 - [ ] Demonstrate live nominal MPC.
 - [ ] Demonstrate live residual MPC if prediction gate passed.
 - [ ] Demonstrate pause-mode counterfactual futures.
@@ -79,7 +79,8 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 
 - [ ] Freeze all final configs/checkpoints/seeds/metrics before final test inspection.
 - [ ] Run paired timed-gate, push, and held-out-setting evaluations.
-- [ ] Produce statistics, exploitation diagnostic, and runtime report.
+- [x] Produce bounded validation statistics, cross-model exploitation diagnostic, and offline
+  runtime report; live/final-test statistics remain incomplete.
 - [ ] Produce main table, prediction graph, causal trace, and failure case.
 - [ ] Finish live HUD/trajectory view and record fallback video.
 - [ ] Complete repository/artifact packaging and clean reproduction check.
@@ -927,6 +928,8 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [x] Report exact candidates, elites, iterations, knots, horizon, device, and threading.
 - [x] Run a prospectively frozen validation-only budget/quality sweep; retain the negative result
   that no reduced budget passes both 100 ms p95 and the 10% predicted-cost-regret gate.
+- [x] Run a prospectively frozen residual-width sweep; retain the negative result that no smaller
+  model passes recursive, reference-cross-planning, and 100 ms p95 gates together.
 - [ ] Preserve cold-start latency separately rather than hiding it.
 
 ### 12.6 Paired statistics
@@ -1035,54 +1038,54 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 
 ### 14.1 Repository package
 
-- [ ] README begins with claim, evidence level achieved, and limitations.
+- [x] README begins with claim, evidence level achieved, and limitations.
 - [ ] Document exact prerequisites.
 - [ ] Document Unreal Engine and Game Animation Sample acquisition.
 - [ ] Document project-specific source integration.
-- [ ] Document Python environment creation.
-- [ ] Document test commands.
+- [x] Document Python environment creation.
+- [x] Document test commands.
 - [ ] Document data-generation command and schema.
 - [ ] Document training command.
 - [ ] Document evaluation command.
 - [ ] Document demo launch order.
-- [ ] Include frozen configs and seed manifests.
-- [ ] Include normalization/schema/checkpoint hashes.
-- [ ] Include result tables and plots.
-- [ ] Include license and provenance notes.
-- [ ] Exclude licensed sample assets and generated engine directories.
-- [ ] Exclude raw/private data.
+- [x] Include frozen configs and seed manifests.
+- [x] Include normalization/schema/checkpoint hashes.
+- [x] Include result tables and plots.
+- [x] Include license and provenance notes.
+- [x] Exclude licensed sample assets and generated engine directories.
+- [x] Exclude raw/private data.
 
 ### 14.2 Artifact package
 
-- [ ] Architecture diagram.
+- [x] Architecture diagram.
 - [ ] Main paired result table.
-- [ ] Recursive prediction-error graph.
+- [x] Recursive prediction-error graph.
 - [ ] One causal trace.
 - [ ] One OOD/failure graph.
-- [ ] Runtime/latency summary.
+- [x] Runtime/latency summary.
 - [ ] 60-90 second demo video.
 - [ ] Prerecorded fallback video stored locally.
-- [ ] Live-demo runbook.
-- [ ] Exact reproduction commands.
-- [ ] Artifact manifest with sizes and hashes.
+- [x] Offline fallback runbook; live-demo runbook remains blocked by absent live MPC.
+- [x] Exact package/test reproduction commands.
+- [x] Artifact manifest with sizes and hashes.
 
 ### 14.3 Reproduction check
 
 - [ ] Test from a clean worktree or clean clone.
 - [ ] Recreate Python environment from lockfile.
-- [ ] Run unit tests.
+- [x] Run 368 unit tests successfully on the packaging worktree.
 - [ ] Run deterministic synthetic smoke experiment.
-- [ ] Validate configs and manifests load.
-- [ ] Validate package contains no absolute developer-only paths.
-- [ ] Validate all referenced local artifacts exist.
+- [x] Validate configs and manifests load through automated tests.
+- [x] Validate package contains no absolute developer-only paths in its eight required files.
+- [x] Validate all eight required local artifacts exist, are nonempty, and are hashed.
 - [ ] Validate fallback video plays offline.
 - [ ] Record deviations that require local Unreal sample installation.
 
 ### 14.4 Release gate
 
 - [ ] Working tree is clean.
-- [ ] Tests pass.
-- [ ] `git diff --check` passes.
+- [x] Tests pass (368/368 before the package/evidence commit).
+- [x] `git diff --check` passes before the package/evidence commit.
 - [ ] No secrets or oversized accidental files are tracked.
 - [ ] Documentation and actual commands agree.
 - [ ] Obsidian contains final resume-ready handoff.

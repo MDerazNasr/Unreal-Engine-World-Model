@@ -1739,3 +1739,49 @@ remained zero.
 
 Related evidence: `configs/cem_budget_sweep.yaml` and
 `artifacts/planning/budget_sweep_001/`.
+
+## D-048 - Reject width compression that fails planning and runtime gates
+
+Status: RESIDUAL-COMPRESS-001 completed; no compressed model accepted
+
+Decision: Retain the 256/256/128 no-history residual checkpoint as the prediction reference. Do
+not replace it with any of the four tested 192/192/96, 128/128/64, 96/96/48, or 64/64/32 models.
+Do not claim that the 128/128/64 model is deployment-ready merely because it passed the recursive
+prediction gate.
+
+Why: A world model is useful to MPC only if its errors do not change the optimizer into selecting
+bad trajectories. Model size, recursive prediction, planner behavior, and complete-call latency
+therefore need independent gates. The 128/128/64 network stayed within the predeclared 15% limit on
+all recursive p95 metrics, but its chosen plans failed when evaluated by the frozen reference model.
+
+Alternatives considered: select the smallest or fastest model on latency alone; select 128/128/64
+on recursive accuracy alone; relax the planner-regret threshold after seeing the result; use test
+episodes for compression selection; use NumPy, Torch tracing, `torch.compile`, or dynamic int8
+quantization as unverified speed claims.
+
+Evidence: No candidate passes all three gates. Parameter counts fall from 106,886 to 61,734,
+28,870, 17,046, and 8,294. Only 128/128/64 passes recursive quality, with worst p95 degradation
+8.43%. All four fail reference-model cross-evaluated planning: p95 positive regret is 10227.6%,
+10693.8%, 6400.2%, and 9014.7%, with one or two new predicted collisions. All four also miss the
+100 ms full-CEM p95 deadline; the smallest records 114.695/117.234 ms median/p95. Test files opened
+is zero.
+
+Main assumption: The frozen full-width checkpoint is a useful validation-only arbiter of whether
+compression changes its planning behavior. It is not physical ground truth; only Unreal execution
+can adjudicate model disagreement.
+
+How it could fail: A compressed model might be closer to Unreal than the reference despite disagreeing
+with it. The 20-call runtime sample is small and the 128/128/64 p95 contains a large tail. The
+training objective uses ground-truth residuals rather than teacher distillation on planner-query
+states. The accepted dataset is free-space and narrow.
+
+How I tested it: Candidate widths, hashes, seed inheritance, validation queries, and all thresholds
+were committed before training. All candidates received identical fixed optimizer budgets and
+train-only normalization; none consulted validation until every checkpoint existed. Recursive
+rollouts were teacher-forcing-free. Candidate-selected plans were re-evaluated through the frozen
+reference model to expose exploitation. Test episodes 5301/5302 remained sealed. Exploratory
+threading improved the full model only slightly at two threads; NumPy, JIT, and compile did not
+speed it up, and this Apple build exposes no quantized linear engine.
+
+Related evidence: `configs/residual_width_sweep.yaml`,
+`scripts/run_residual_width_sweep.py`, and `artifacts/residual/compression_001/`.

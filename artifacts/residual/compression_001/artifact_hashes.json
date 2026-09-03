@@ -1,0 +1,9 @@
+{
+  "README.md": "01e49cfd8f2cae985989d90e1b600865886ba725732921d5023d9464c51ac727",
+  "result.json": "eaa2e136504e501019bf5d0e2512cc0f12774356ccfcbe19aba0dd040a7ecce7",
+  "width_128_128_64/checkpoint.pt": "1a382c13a1bec6fd2e64ad0d8b9fa242ba5be100c7a11e1f026f5da1cc77276f",
+  "width_192_192_96/checkpoint.pt": "521b7d721d1b8fec5fdb6806a5997be9be334d1177744411774da8903d7ecca3",
+  "width_64_64_32/checkpoint.pt": "e68b6291d98edc0831dbc4d39aab4ac30cdf26016c59eca85dbe0a28962648e5",
+  "width_96_96_48/checkpoint.pt": "0a31d5ba02ccbb6ec44d87f4854deb1c8e4c7cdb47195a407e49e1a222d6ff1c",
+  "width_sweep.png": "38424f43298c9b259b57abf2719bce6bcae706ca9c29d827052a30276dbcd805"
+}
