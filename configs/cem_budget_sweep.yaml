@@ -1,0 +1,37 @@
+schema_name: motionworld_cem_budget_sweep
+schema_version: 1
+status: frozen_before_sweep
+claim_boundary: "validation-only model-cost and offline CPU latency; not Unreal control evidence"
+reference:
+  num_candidates: 256
+  num_elites: 32
+  num_iterations: 3
+validation_queries:
+  - {episode_id: 5201, transition_index: 0}
+  - {episode_id: 5201, transition_index: 29}
+  - {episode_id: 5201, transition_index: 58}
+  - {episode_id: 5201, transition_index: 87}
+  - {episode_id: 5201, transition_index: 116}
+  - {episode_id: 5202, transition_index: 0}
+  - {episode_id: 5202, transition_index: 41}
+  - {episode_id: 5202, transition_index: 82}
+  - {episode_id: 5202, transition_index: 123}
+  - {episode_id: 5202, transition_index: 165}
+candidates:
+  - {name: c064_i2, num_candidates: 64, num_elites: 8, num_iterations: 2}
+  - {name: c096_i2, num_candidates: 96, num_elites: 12, num_iterations: 2}
+  - {name: c128_i2, num_candidates: 128, num_elites: 16, num_iterations: 2}
+  - {name: c160_i2, num_candidates: 160, num_elites: 20, num_iterations: 2}
+  - {name: c192_i2, num_candidates: 192, num_elites: 24, num_iterations: 2}
+  - {name: c256_i2, num_candidates: 256, num_elites: 32, num_iterations: 2}
+  - {name: c128_i3, num_candidates: 128, num_elites: 16, num_iterations: 3}
+  - {name: c192_i3, num_candidates: 192, num_elites: 24, num_iterations: 3}
+quality_gate:
+  maximum_p95_positive_relative_regret: 0.10
+  maximum_new_predicted_collisions: 0
+runtime_gate:
+  deadline_ms: 100.0
+  warmups_per_controller: 2
+  repetitions_per_controller: 20
+  torch_threads: 1
+selection_rule: "eligible_then_lowest_worst_model_mean_positive_regret_then_lowest_residual_p95"
