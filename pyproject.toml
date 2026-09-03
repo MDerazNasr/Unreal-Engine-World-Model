@@ -18,6 +18,7 @@ motionworld-control-service = "motionworld.control.service:main"
 motionworld-delayed-action-probe = "motionworld.control.delayed_action_probe:main"
 motionworld-invalid-action-probe = "motionworld.control.invalid_action_probe:main"
 motionworld-old-episode-action-probe = "motionworld.control.old_episode_action_probe:main"
+motionworld-telemetry-saturation-probe = "motionworld.control.telemetry_saturation_probe:main"
 
 [dependency-groups]
 dev = [

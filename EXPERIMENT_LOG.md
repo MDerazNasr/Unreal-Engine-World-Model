@@ -2171,3 +2171,12 @@ probe therefore timed out while ignoring 7299 and produced no completion report.
 the exact two-fault/two-recovery fingerprint, but it exposed an unnecessarily late probe completion
 condition. The default now exits at the first post-fault recovery, observation 21. This changes only
 test orchestration. Evidence: `evidence/unreal/r2_invalid_action_rejection.log`.
+
+Telemetry-saturation probe pre-live gate: accepted at the code layer. The standalone
+`motionworld-telemetry-saturation-probe` sends at least 16 contiguous ordinary bounded forward
+actions, each with the protocol maximum of 32 selected-trajectory steps and every finite cost field
+present. Four focused tests prove strict identity/duration/timeout bounds, exact maximum telemetry,
+unchanged `(100,0)` control commands, strict decode/admission, and no extra datagram. Full Python
+passes 558/558, Ruff, lock verification, installed CLI help, and diff integrity pass. The live trial
+will additionally set Unreal's evidence-line cap low enough to force drops, testing both packet
+telemetry saturation and diagnostic-log saturation without changing gameplay semantics.

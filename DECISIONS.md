@@ -2396,3 +2396,26 @@ second-reset configuration ended 7298 at observation 21, so the original sequenc
 until timeout in 7299; the completion default is corrected to 21 because the first current action
 after the second fault is already the required recovery proof. Raw evidence:
 `evidence/unreal/r2_invalid_action_rejection.log`.
+
+## D-066 - Saturate optional packet telemetry and evidence logging together
+
+Status: accepted code layer; live PIE evidence remains required
+
+Decision: Use a separate bounded probe that sends contiguous normal forward commands while filling
+every action's optional selected trajectory to the protocol maximum of 32 steps and including every
+cost field. In the same live trial, configure a deliberately small Unreal network-evidence cap so
+evidence lines are dropped while control continues. Keep the production service and default caps
+unchanged.
+
+Why: Optional planner telemetry and diagnostic logging must not be control dependencies. Exercising
+only one capacity would leave ambiguity about parser work versus logger backpressure. The action's
+small command field remains independently validated and applied; telemetry is bounded diagnostic
+context, while exhausted logging capacity increments a counter and skips output rather than delaying
+or changing gameplay.
+
+How it is tested: Four focused tests reject negative identity, fewer than 16 actions, and excessive
+timeout. A localhost UDP test validates 16 responses, each containing exactly 32 `(100,0)` trajectory
+steps, all cost keys, and an unchanged bounded `(100,0)` command, and proves no extra response. Full
+Python passes 558/558; Ruff, lock verification, installed CLI help, and diff integrity pass. Live
+episode 7300 must still produce accepted bounded actions, deliberate evidence drops, no malformed or
+stale admission, and authoritative bounded motion.

@@ -661,6 +661,22 @@ Examiner assessment: Not passed. The operational observation agrees with the acc
 the candidate to distinguish structural rejection, temporal admission, and missed-response fallback
 unaided in a later teach-back.
 
+### Q24 - Why must telemetry and logging be non-control-critical?
+
+Question: What should happen when every action carries maximum diagnostic trajectory telemetry and
+Unreal's evidence log reaches its capacity?
+
+Candidate answer: Awaiting the live exercise and candidate teach-back.
+
+Teacher reference answer: The command, identity, and deadline determine control admission;
+trajectory/cost telemetry only explains the planner's decision. Its schema and length are bounded so
+parsing work and datagram size cannot grow without limit. Evidence logging is separately capped; at
+capacity it increments a dropped-line counter and skips the log line. Neither condition may change,
+delay, or replace the validated command. Therefore Unreal should continue applying exact bounded
+motion while reporting diagnostic drops, with no malformed acceptance or runaway state.
+
+Examiner assessment: Not yet attempted. Require an unaided explanation after the live result.
+
 ## 7. Day 1 closeout answers to practise
 
 These are study answers, not passed candidate teach-backs yet.
