@@ -1991,3 +1991,11 @@ at zero yaw. Latency min/median/p95/max was 14.714/19.813/27.873/51.494 ms. Samp
 rejection, stale packet, malformed packet, miss, hold, safe stop, or evidence drop occurred.
 Evidence: `evidence/unreal/r2_live_echo_forward.log`. Aggregate direction/bound and nonzero-yaw
 items remain open.
+
+Right result: accepted session `FA65DFAE6B4C`, episode 7231. The candidate observed rightward
+strafing with facing retained. Unreal accepted 136 right actions; all were current, before deadline,
+and exact local/world `(0,100)` cm/s. The bridge retained 137 matching right echoes because one
+superseded response caused one declared miss/hold of the prior validated command. Latency
+min/median/p95/max was 13.518/20.951/34.418/55.351 ms. Sampled Y moved 1208.07 cm with zero X range
+and yaw held at zero. There was no malformed message, safe stop, or evidence drop. Evidence:
+`evidence/unreal/r2_live_echo_right.log`. Aggregate direction/bound remains open.

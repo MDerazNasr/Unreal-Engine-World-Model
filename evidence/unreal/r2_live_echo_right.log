@@ -1,0 +1,39 @@
+MotionWorld R2.3 live echo right evidence
+Date: 2026-09-03
+Source: local Game Animation Sample Editor log, PIE 20:32:52-20:33:08 UTC
+Session: FA65DFAE6B4C
+Episode: 7231
+Controller config: configs/control_service_echo_right.yaml
+Candidate visual observation: pawn moved to the right while retaining its facing
+
+Acceptance decision: PASS for the right case. Aggregate direction/bound remains open.
+
+Independent audit:
+- observations sent=137; actions accepted=136
+- every accepted command is character-local (0, 100) cm/s, current-identity, and before deadline
+- latency min/median/p95/max=13.518/20.951/34.418/55.351 ms
+- 137 post-command bridge echoes request local (0, 100), submit/retain world (0, 100), report
+  match=true, and retain authoritative yaw 0 degrees
+- sampled world Y moves from 0.00 to 1208.07 cm; sampled X range is 0.000 cm
+- maximum sampled finalized world Y velocity is 100.00 cm/s
+- observation 8's reply was superseded/rejected; one miss held the prior validated right command
+- final stats: rejected=1, stale=1, malformed=0, missed=1, held=1, safe_stops=0,
+  evidence_written=275, evidence_dropped=0
+
+Selected exact source lines:
+[2026.09.03-20.32.52:577][191]LogMotionWorldNetwork: Display: MotionWorld network evidence started: session=FA65DFAE6B4C controller=echo max_lines=2048 endpoints=127.0.0.1:52580->127.0.0.1:52581.
+[2026.09.03-20.32.54:585][221]LogMotionWorldNetwork: Display: MotionWorld network episode started: session=FA65DFAE6B4C episode=7231 first_observation_sequence=0 applied_local_cm_per_sec=(0.00, 0.00) prior_state_cleared=true.
+[2026.09.03-20.32.54:585][221]LogMotionWorldBridge: Display: MotionWorld reset verified: episode=7231 attempts=1 state_sequence=30 mover_frame=31 position_world_cm=(-800.00, 0.00, 90.00) yaw_deg=0.00 mode=Walking position_error_cm=0.000 facing_error_deg=0.000 linear_speed_cm_per_sec=0.000 angular_speed_deg_per_sec=0.000; new episode may seed this state.
+[2026.09.03-20.32.54:622][223]LogMotionWorldNetwork: Display: MotionWorld network action accepted: session=FA65DFAE6B4C episode=7231 source_observation=0 desired_local_cm_per_sec=(0.000000, 100.000000) unreal_end_to_end_latency_ms=35.857625 current_identity_match=true before_deadline=true.
+[2026.09.03-20.32.59:863][461]LogMotionWorldBridge: Display: MotionWorld command echo: revision=58 frame=character_local resolved=true facing_yaw_deg=0.00 finite=true requested_frame=(0.00, 100.00, 0.00) submitted_world=(0.00, 100.00, 0.00) echoed_world=(0.00, 100.00, 0.00) match=true
+[2026.09.03-20.33.00:505][491]LogMotionWorldBridge: Display: MotionWorld state sample: protocol=1 sequence=300 valid=true mover_step_frame=301 sim_time_s=6.765000 step_s=0.019000 resim=false mode=Walking position_world_cm=(-800.00, 558.27, 88.27) velocity_world_cm_per_sec=(0.00, 100.00, 0.00) velocity_local_planar_cm_per_sec=(0.00, 100.00, 0.00) facing_yaw_deg=0.00 facing_unit_world=(1.000000, 0.000000) angular_velocity_world_deg_per_sec=(0.00, 0.00, 0.00)
+[2026.09.03-20.33.07:007][791]LogMotionWorldBridge: Display: MotionWorld state sample: protocol=1 sequence=600 valid=true mover_step_frame=601 sim_time_s=13.263000 step_s=0.026000 resim=false mode=Walking position_world_cm=(-800.00, 1208.07, 88.27) velocity_world_cm_per_sec=(0.00, 100.00, 0.00) velocity_local_planar_cm_per_sec=(0.00, 100.00, 0.00) facing_yaw_deg=0.00 facing_unit_world=(1.000000, 0.000000) angular_velocity_world_deg_per_sec=(0.00, 0.00, 0.00)
+[2026.09.03-20.33.08:542][850]LogMotionWorldNetwork: Display: MotionWorld network evidence stopped: session=FA65DFAE6B4C observations_sent=137 actions_accepted=136 rejected=1 stale=1 malformed=0 missed=1 held=1 safe_stops=0 evidence_written=275 evidence_dropped=0.
+
+Interpretation:
+At zero yaw, character-local +Y resolves to world +Y while the character keeps world +X facing.
+The single missing response exercised the declared one-miss hold: the already validated right
+command remained bounded, and the obsolete reply was not applied. This is incidental evidence,
+not the deliberate service-loss failure-injection gate.
+
+Final-test episodes 5301/5302 opened: zero.
