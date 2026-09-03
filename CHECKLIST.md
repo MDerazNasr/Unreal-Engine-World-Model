@@ -442,9 +442,9 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 - [x] Hold the last safe action after one missed response.
 - [x] Stop after three consecutive misses.
 - [x] Clear missed-response state after valid recovery.
-- [ ] Test Python service absent at startup.
-- [ ] Test service disappears during movement.
-- [ ] Test delayed stale response arrives after reset.
+- [x] Test Python service absent at startup.
+- [x] Test service disappears during movement.
+- [x] Test delayed stale response arrives after reset.
 - [ ] Test malformed response during movement.
 - [ ] Confirm no failure mode produces runaway motion.
 
@@ -452,9 +452,9 @@ This is the canonical execution checklist. `PROJECT_PLAN.md` explains why and wh
 
 - [x] Serialization tests pass on Python side.
 - [x] Parsing/validation tests pass on Unreal side.
-- [ ] Unreal observation reaches Python and a valid action returns.
+- [x] Unreal observation reaches Python and a valid action returns.
 - [x] Wrong-episode and stale packets are demonstrably rejected in bounded automation; live injection remains in Recovery 3.4.
-- [ ] Safe stop is demonstrated.
+- [x] Safe stop is demonstrated.
 - [x] Commit protocol as an independently tested slice; live safety closure remains Gate R2.
 
 ## 6. Faithful nominal movement model

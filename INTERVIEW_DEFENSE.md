@@ -624,7 +624,8 @@ Question: Why does the reset-boundary probe wait for verified observation zero f
 before sending its retained episode-7296 action, instead of sleeping for a fixed interval after the
 reset request?
 
-Candidate answer: Awaiting the live exercise and candidate teach-back.
+Candidate answer: The candidate supplied the operational observation `stopped` through the live
+exercise but has not yet explained the reset-boundary reasoning unaided.
 
 Teacher reference answer: A reset request is not proof that the reset has completed. Editor load,
 frame scheduling, Mover finalization, and reset verification can all vary, so either Python wall time
@@ -635,8 +636,9 @@ previous action is an additional observable check. Sending the retained 7296/0 p
 that observation isolates one cause for rejection: the packet names an obsolete episode. Unreal
 must count it as rejected/stale and must not relabel or apply it.
 
-Examiner assessment: Not yet attempted. The candidate should explain the difference between a reset
-request, elapsed time, and an authoritative verified reset boundary after the live result.
+Examiner assessment: Not passed. The operational observation agrees with the accepted trace, but the
+candidate must still explain the difference between a reset request, elapsed time, and an
+authoritative verified reset boundary unaided.
 
 ## 7. Day 1 closeout answers to practise
 

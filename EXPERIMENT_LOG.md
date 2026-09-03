@@ -2135,3 +2135,13 @@ ignoring a wrong target sequence, exact old identity and bounded forward content
 UDP send. Full Python passes 548/548, Ruff and diff integrity pass, `uv lock --check` passes, and the
 installed locked-environment CLI help check passes. No live rejection claim is made yet; automated
 episodes 7296 to 7297 remain required.
+
+Old-episode-action live result: accepted session `D0FF97C62848`, episodes 7296 to 7297. The probe
+captured and validated one 468-byte bounded forward action for 7296/0, withheld it while 22 later
+source observations arrived, then observed verified 7297/0 with prior action absent and sent the
+retained old packet exactly once. Unreal's reset boundary had already cleared the outstanding
+7296/22 identity and action state. Final counters show exactly one rejected/stale action, zero
+accepted/malformed actions, 230 observations, 207 misses, two initial-zero holds, 205 safe stops,
+and no evidence loss. All 233 bridge echoes were exact zero/matching and all nine sampled finalized
+states remained at `(-800,0,90)` with zero velocity. The candidate observed the pawn remain stopped.
+Evidence: `evidence/unreal/r2_old_episode_action_rejection.log`.

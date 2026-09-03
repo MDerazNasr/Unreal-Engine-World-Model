@@ -1,0 +1,58 @@
+MotionWorld R2.4 old-episode-action rejection evidence
+Date: 2026-09-04 Europe/Copenhagen (PIE log 2026-09-03 23:00-23:01 UTC)
+Source: local Game Animation Sample Editor log and one-shot probe output
+Session: D0FF97C62848
+Source episode/observation: 7296/0
+Target episode/observation: 7297/0
+Candidate visual observation: `stopped` through the two automatic resets and injected packet
+
+Acceptance decision: PASS for "deliver an old-episode action after reset and verify rejection."
+
+Probe command:
+motionworld-old-episode-action-probe \
+  --service-config configs/control_service_echo_forward.yaml \
+  --source-episode-id 7296 --source-observation-sequence 0 \
+  --target-episode-id 7297 --target-observation-sequence 0 \
+  --receive-timeout-ms 300000
+
+Probe report:
+{"action_bytes": 468, "action_sent": true, "datagrams_received": 24,
+ "ignored_observations": 22, "source_episode_id": 7296,
+ "source_observation_sequence": 0, "target_episode_id": 7297,
+ "target_observation_sequence": 0, "target_previous_action_absent": true,
+ "target_reset_verified": true, "valid_observations_received": 24}
+
+Independent audit:
+- episode 7296 reset verified on attempt 1 and observation zero had no previous action/source
+- the probe captured and validated a bounded `(100,0)` action for exact identity 7296/0 but withheld it
+- Unreal cleared outstanding/action state at the 7296 boundary before verified episode 7297 started
+- episode 7297 observation zero had no previous action/source and triggered the single retained send
+- the sole sent packet still named obsolete episode 7296; Unreal counted exactly one rejected/stale
+  action and accepted zero actions
+- all 233 bridge command echoes were exact local/world zero with `match=true`
+- all nine periodic finalized states retained position `(-800,0,90)` and zero velocity
+- final stats: observations=230, actions_accepted=0, rejected=1, stale=1, malformed=0,
+  missed=207, held=2, safe_stops=205, evidence_written=234, evidence_dropped=0
+
+Selected exact source lines:
+[2026.09.03-23.00.52:450][883]LogMotionWorldNetwork: Display: MotionWorld network evidence started: session=D0FF97C62848 controller=echo max_lines=2048 endpoints=127.0.0.1:52580->127.0.0.1:52581.
+[2026.09.03-23.00.55:371][942]LogMotionWorldNetwork: Display: MotionWorld network reset boundary: session=D0FF97C62848 old_episode=-1 outstanding_observation=-1 action_state_cleared=true.
+[2026.09.03-23.00.55:425][943]LogMotionWorldNetwork: Display: MotionWorld network episode started: session=D0FF97C62848 episode=7296 first_observation_sequence=0 applied_local_cm_per_sec=(0.00, 0.00) prior_state_cleared=true.
+[2026.09.03-23.00.55:425][943]LogMotionWorldBridge: Display: MotionWorld reset verified: episode=7296 attempts=1 state_sequence=60 mover_frame=61 position_world_cm=(-800.00, 0.00, 90.00) yaw_deg=0.00 mode=Walking position_error_cm=0.000 facing_error_deg=0.000 linear_speed_cm_per_sec=0.000 angular_speed_deg_per_sec=0.000; new episode may seed this state.
+[2026.09.03-23.00.55:426][943]LogMotionWorldNetwork: Display: MotionWorld network observation sent: session=D0FF97C62848 episode=7296 observation=0 state_sequence=60 simulation_time_s=2.579000 facing_yaw_deg=0.000000 previous_action_present=false previous_action_source=-1.
+[2026.09.03-23.00.57:730][  4]LogMotionWorldNetwork: Display: MotionWorld network reset boundary: session=D0FF97C62848 old_episode=7296 outstanding_observation=22 action_state_cleared=true.
+[2026.09.03-23.00.57:786][  5]LogMotionWorldNetwork: Display: MotionWorld network episode started: session=D0FF97C62848 episode=7297 first_observation_sequence=0 applied_local_cm_per_sec=(0.00, 0.00) prior_state_cleared=true.
+[2026.09.03-23.00.57:786][  5]LogMotionWorldBridge: Display: MotionWorld reset verified: episode=7297 attempts=1 state_sequence=122 mover_frame=123 position_world_cm=(-800.00, 0.00, 90.00) yaw_deg=0.00 mode=Walking position_error_cm=0.000 facing_error_deg=0.000 linear_speed_cm_per_sec=0.000 angular_speed_deg_per_sec=0.000; new episode may seed this state.
+[2026.09.03-23.00.57:786][  5]LogMotionWorldNetwork: Display: MotionWorld network observation sent: session=D0FF97C62848 episode=7297 observation=0 state_sequence=122 simulation_time_s=4.928000 facing_yaw_deg=0.000000 previous_action_present=false previous_action_source=-1.
+[2026.09.03-23.00.57:829][  6]LogMotionWorldBridge: Display: MotionWorld command echo: revision=32 frame=character_local resolved=true facing_yaw_deg=0.00 finite=true requested_frame=(0.00, 0.00, 0.00) submitted_world=(0.00, 0.00, 0.00) echoed_world=(0.00, 0.00, 0.00) match=true
+[2026.09.03-23.00.57:926][  8]LogMotionWorldBridge: Display: MotionWorld command echo: revision=33 frame=character_local resolved=true facing_yaw_deg=0.00 finite=true requested_frame=(0.00, 0.00, 0.00) submitted_world=(0.00, 0.00, 0.00) echoed_world=(0.00, 0.00, 0.00) match=true
+[2026.09.03-23.01.39:211][363]LogMotionWorldBridge: Display: MotionWorld state sample: protocol=1 sequence=480 valid=true mover_step_frame=481 sim_time_s=24.752000 step_s=0.042000 resim=false mode=Walking position_world_cm=(-800.00, 0.00, 90.00) velocity_world_cm_per_sec=(0.00, 0.00, 0.00) velocity_local_planar_cm_per_sec=(0.00, 0.00, 0.00) facing_yaw_deg=0.00 facing_unit_world=(1.000000, 0.000000) angular_velocity_world_deg_per_sec=(0.00, 0.00, 0.00)
+[2026.09.03-23.01.40:309][388]LogMotionWorldNetwork: Display: MotionWorld network evidence stopped: session=D0FF97C62848 observations_sent=230 actions_accepted=0 rejected=1 stale=1 malformed=0 missed=207 held=2 safe_stops=205 evidence_written=234 evidence_dropped=0.
+
+Interpretation:
+The action remained structurally valid for the observation that created it, but reset changed the
+authoritative episode identity. Unreal rejected rather than relabelled the obsolete packet. The
+reset-boundary records, exact zero command echoes, stationary authoritative state, and candidate
+observation independently show that no pre-reset action reached post-reset gameplay.
+
+Final-test episodes 5301/5302 opened: zero.

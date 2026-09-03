@@ -2334,7 +2334,7 @@ Two setup probes that sent nothing are documented but excluded. Raw evidence:
 
 ## D-064 - Trigger the old-episode send from the verified successor observation
 
-Status: accepted code layer; live PIE evidence remains required
+Status: accepted through live PIE evidence
 
 Decision: Use a separate bounded one-shot probe that captures and validates an action for one exact
 source observation, retains it without sending, and transmits it only after decoding the immediate
@@ -2354,5 +2354,12 @@ non-first target sequence, and an excessive timeout. The localhost UDP integrati
 no action is sent after capture or after a wrong target sequence, then supplies the verified
 successor observation zero, receives one `(100,0)` action still naming the old episode/observation,
 and proves no second datagram exists. Full Python passes 548/548, Ruff, lock verification, CLI help,
-and diff integrity pass. Live episodes 7296 to 7297 must still prove Unreal counts that one packet as
-rejected/stale, accepts no action, and remains safely stopped.
+and diff integrity pass.
+
+Live acceptance: Session `D0FF97C62848` verified and started 7296/0 with no prior action. Before
+7297, Unreal logged `old_episode=7296`, `outstanding_observation=22`, and
+`action_state_cleared=true`; it then verified and started 7297/0 with no prior action. That target
+observation triggered the probe's single retained 468-byte 7296/0 send. Unreal reported zero
+accepted actions and exactly one rejected/stale action. All 233 command echoes were exact zero and
+all nine sampled states remained stationary, matching the candidate's observation. Raw evidence:
+`evidence/unreal/r2_old_episode_action_rejection.log`.
