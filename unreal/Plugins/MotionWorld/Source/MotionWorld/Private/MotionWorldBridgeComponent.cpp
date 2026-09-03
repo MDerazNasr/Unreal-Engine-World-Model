@@ -826,18 +826,25 @@ void UMotionWorldBridgeComponent::CaptureResetAnchorIfEligible()
 	}
 
 	ResetAnchor = MotionWorld::BuildResetTarget(LastAuthoritativeState);
+	if (bOverrideResetAnchorYawForLiveTest)
+	{
+		ResetAnchor = MotionWorld::OverrideResetTargetYaw(
+			ResetAnchor,
+			ResetAnchorYawOverrideDegrees);
+	}
 	ResetStatus.bHasAnchor = ResetAnchor.bIsValid;
 	if (ResetAnchor.bIsValid)
 	{
 		UE_LOG(
 			LogMotionWorldBridge,
 			Display,
-			TEXT("MotionWorld reset anchor captured: source_state_sequence=%lld position_world_cm=(%.2f, %.2f, %.2f) yaw_deg=%.2f mode=%s."),
+			TEXT("MotionWorld reset anchor captured: source_state_sequence=%lld position_world_cm=(%.2f, %.2f, %.2f) yaw_deg=%.2f yaw_override=%s mode=%s."),
 			ResetAnchor.SourceStateSequence,
 			ResetAnchor.PositionWorldCm.X,
 			ResetAnchor.PositionWorldCm.Y,
 			ResetAnchor.PositionWorldCm.Z,
 			ResetAnchor.OrientationWorldDegrees.Yaw,
+			bOverrideResetAnchorYawForLiveTest ? TEXT("true") : TEXT("false"),
 			*ResetAnchor.MovementMode.ToString());
 		InitializeTimedArenaIfEligible();
 	}

@@ -2215,3 +2215,27 @@ response is counted and rejected rather than reassigned. Reset clears the outsta
 prior action before the next episode begins at control sequence zero with no previous action. This
 permits ordinary same-episode staleness as a safe rejected outcome while forbidding any stale action
 from being applied or carried across the reset.
+
+## D-060 - Establish nonzero-yaw evidence through a verified reset target
+
+Status: accepted closed-editor seam; live PIE evidence remains required
+
+Decision: Add a default-off live-test property that replaces only the captured reset target's
+planar yaw. Normalize a finite override, preserve the captured target's position, mode, and source
+identity, and fail closed for a non-finite yaw or invalid source target. The ordinary Mover-owned
+teleport/zero-velocity reset and finalized-state verifier remain mandatory before the episode and
+network controller start.
+
+Why: R2.3 must prove that a character-local action is rotated by authoritative nonzero facing in
+the actual runtime. Human turning before the test is neither exact nor reproducible, and a second
+motion producer would destroy causal attribution. A verified 90-degree reset provides an explicit
+precondition: local forward `(100,0)` must resolve to world `(0,100)` under Unreal's X-forward,
+Y-right convention.
+
+How it is tested: The pure reset test covers 450-to-90-degree normalization, preservation of target
+identity/position/mode, non-finite rejection, and invalid-source rejection. Source parity with the
+closed sample passes. `GameAnimationSampleEditor Mac Development -architecture=arm64+x86_64`
+builds successfully, the deployed dylib is universal with SHA-256
+`a1595fcc529b1d93015a2e2553df1f235f8b64049f4ef8f45aa34541da94dda5`, and all 17 actual-sample
+`MotionWorld.` automation tests pass. Raw automation evidence:
+`evidence/unreal/r2_nonzero_yaw_seam_automation.log`. Live yaw-90 movement remains unclaimed.

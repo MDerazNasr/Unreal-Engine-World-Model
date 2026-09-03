@@ -131,6 +131,11 @@ namespace MotionWorld
 MOTIONWORLD_API FMotionWorldResetTarget BuildResetTarget(
 	const FMotionWorldStateSample& AnchorState);
 
+/** Return a copied planar reset target with normalized yaw, or an invalid target on bad input. */
+MOTIONWORLD_API FMotionWorldResetTarget OverrideResetTargetYaw(
+	const FMotionWorldResetTarget& Target,
+	double FacingYawDegrees);
+
 /** Fail-closed comparison used before a post-reset state may seed a new episode. */
 MOTIONWORLD_API FMotionWorldResetCheck CheckFinalizedResetState(
 	const FMotionWorldResetTarget& Target,

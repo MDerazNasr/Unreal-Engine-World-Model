@@ -305,6 +305,14 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Reset|Live Test", meta = (ClampMin = "1", ClampMax = "10000"))
 	int32 ResetLiveTestTransitionsPerEpisode = 60;
 
+	/** Default-off proof seam: replace only the captured reset target's planar yaw. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Reset|Live Test")
+	bool bOverrideResetAnchorYawForLiveTest = false;
+
+	/** Normalized before use; reset verification must pass before the episode or network control starts. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Reset|Live Test", meta = (ClampMin = "-180.0", ClampMax = "180.0"))
+	double ResetAnchorYawOverrideDegrees = 90.0;
+
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "MotionWorld|Reset")
 	FMotionWorldResetTarget ResetAnchor;
 

@@ -2028,3 +2028,12 @@ balanced at +1800.02 cm on both axes. Ten superseded responses produced nine hol
 stop before recovery; no malformed packet or evidence drop occurred. Evidence:
 `evidence/unreal/r2_live_echo_speed_bound.log`. Nonzero-yaw local-to-world proof remains the final
 R2.3 item.
+
+Nonzero-yaw closed-editor seam: accepted. A default-off live-test override changes only the
+captured reset target's planar yaw, and the existing Mover-owned reset must still pass its finalized
+position/facing/velocity/mode verifier before the episode and network controller start. Pure tests
+cover angle normalization, preservation of target identity/position/mode, non-finite rejection,
+and invalid-source rejection. Exact deployed-source parity passes; the actual universal
+GameAnimationSampleEditor target builds, and all 17 `MotionWorld.` tests pass. Deployed dylib SHA
+begins `a1595fcc`; raw evidence is `evidence/unreal/r2_nonzero_yaw_seam_automation.log`. This does
+not yet prove live nonzero-yaw conversion; yaw-90 PIE episode 7271 remains required.

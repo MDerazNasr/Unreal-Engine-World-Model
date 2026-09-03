@@ -52,6 +52,25 @@ FMotionWorldResetTarget BuildResetTarget(
 	return Target;
 }
 
+FMotionWorldResetTarget OverrideResetTargetYaw(
+	const FMotionWorldResetTarget& Target,
+	const double FacingYawDegrees)
+{
+	FMotionWorldResetTarget OverriddenTarget;
+	if (!IsTargetNumericallyValid(Target)
+		|| !FMath::IsFinite(FacingYawDegrees))
+	{
+		return OverriddenTarget;
+	}
+
+	OverriddenTarget = Target;
+	OverriddenTarget.OrientationWorldDegrees = FRotator(
+		0.0,
+		FRotator::NormalizeAxis(FacingYawDegrees),
+		0.0);
+	return OverriddenTarget;
+}
+
 FMotionWorldResetCheck CheckFinalizedResetState(
 	const FMotionWorldResetTarget& Target,
 	const FMotionWorldStateSample& FinalizedState,

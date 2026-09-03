@@ -3,6 +3,8 @@
 #include "Misc/AutomationTest.h"
 #include "MotionWorldReset.h"
 
+#include <limits>
+
 namespace
 {
 FMotionWorldStateSample MakeResetState(
@@ -36,6 +38,26 @@ bool FMotionWorldResetVerifierTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("A valid ordinary state creates an anchor"), Target.bIsValid);
 	TestEqual(TEXT("Anchor retains source identity"), Target.SourceStateSequence, int64(10));
 	TestEqual(TEXT("Anchor retains movement mode"), Target.MovementMode, FName(TEXT("Walking")));
+
+	const FMotionWorldResetTarget YawOverride =
+		MotionWorld::OverrideResetTargetYaw(Target, 450.0);
+	TestTrue(TEXT("Finite yaw override retains a valid target"), YawOverride.bIsValid);
+	TestEqual(TEXT("Yaw override retains source identity"), YawOverride.SourceStateSequence, int64(10));
+	TestTrue(
+		TEXT("Yaw override normalizes to the equivalent planar angle"),
+		FMath::IsNearlyEqual(YawOverride.OrientationWorldDegrees.Yaw, 90.0));
+	TestTrue(
+		TEXT("Yaw override retains reset position"),
+		YawOverride.PositionWorldCm.Equals(Target.PositionWorldCm));
+	TestEqual(TEXT("Yaw override retains movement mode"), YawOverride.MovementMode, Target.MovementMode);
+	TestFalse(
+		TEXT("Non-finite yaw override fails closed"),
+		MotionWorld::OverrideResetTargetYaw(
+			Target,
+			std::numeric_limits<double>::quiet_NaN()).bIsValid);
+	TestFalse(
+		TEXT("Invalid source target cannot be repaired by yaw override"),
+		MotionWorld::OverrideResetTargetYaw(FMotionWorldResetTarget(), 90.0).bIsValid);
 
 	FMotionWorldStateSample Exact = MakeResetState(11, 179.0);
 	TestEqual(
