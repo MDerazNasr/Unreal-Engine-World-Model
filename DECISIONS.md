@@ -2091,4 +2091,5 @@ Editor Development, Game Development, and Game Shipping builds pass. Ruff, envir
 interview-package verification, and `git diff --check` pass. The deployed source/resources match the
 repository, the actual Game Animation Sample universal Editor target builds, and both discovered
 `MotionWorld.Protocol` tests pass there with exit code zero. Actual-sample evidence is preserved in
-`evidence/unreal/r1_actual_sample_protocol_automation.log`.
+`evidence/unreal/r1_actual_sample_protocol_automation.log`. The independent protocol implementation
+commit is `d85eeaf`; Gate R1 is accepted without making a live-control claim.

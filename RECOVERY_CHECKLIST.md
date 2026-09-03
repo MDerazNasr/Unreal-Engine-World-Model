@@ -225,7 +225,7 @@ Objective: create a bounded, testable protocol independently of planning quality
 - [x] Golden fixtures agree byte-for-byte or semantically under the declared encoding.
 - [x] Protocol remains valid when optional telemetry is omitted.
 - [x] No network path mutates gameplay state before full validation.
-- [ ] Commit protocol types and tests as an independent slice.
+- [x] Commit protocol types and tests as an independent slice (`d85eeaf`).
 
 ## 3. Minimal live vertical slice and safety
 

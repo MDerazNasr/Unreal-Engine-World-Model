@@ -1867,4 +1867,5 @@ tests—`BoundedNonblockingUdp` and `CrossLanguageFixtures`—and both completed
 process exited zero. Production references stop at isolated byte transport and typed validation;
 neither file references the bridge, Mover, or an application function. Thus R1 cannot mutate
 gameplay, even from a valid packet. Evidence:
-`evidence/unreal/r1_actual_sample_protocol_automation.log`. Final-test episode bytes opened: zero.
+`evidence/unreal/r1_actual_sample_protocol_automation.log`. The complete isolated protocol slice is
+committed as `d85eeaf`. Gate R1 passes 6/6; Section 2 is 41/41. Final-test episode bytes opened: zero.
