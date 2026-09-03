@@ -1,0 +1,37 @@
+MotionWorld R2.3 live echo reverse evidence
+Date: 2026-09-03
+Source: local Game Animation Sample Editor log, PIE 20:58 UTC
+Session: F4B048C35B4F
+Episode: 7251
+Controller config: configs/control_service_echo_reverse.yaml
+Candidate visual observation: pawn moved backward while retaining its forward facing
+
+Acceptance decision: PASS for the reverse case. Aggregate direction/bound remains open.
+
+Independent audit:
+- observations sent=182; actions accepted=153
+- every accepted action is exactly local (-100, 0) cm/s, current-identity, and before deadline
+- latency min/median/p95/max=12.774/42.137/69.500/97.301 ms
+- reset position was (-800.00, 0.00) cm; last sampled position was (-2555.50, 0.00) cm
+- sampled Y remained exactly 0.00 cm and sampled facing remained exactly 0.00 degrees
+- maximum-magnitude sampled finalized reverse velocity was (-100, 0) cm/s
+- bridge echoes: 178 matching `(-100,0)` and 6 matching `(0,0)` safe-stop commands
+- twenty-nine superseded responses caused twenty-nine misses: twenty-six holds and three safe stops;
+  later valid actions resumed reverse control
+- final stats: rejected=29, stale=29, malformed=0, missed=29, held=26, safe_stops=3,
+  evidence_written=337, evidence_dropped=0
+
+Selected exact source lines:
+[2026.09.03-20.58.49:927][521]LogMotionWorldBridge: Display: MotionWorld reset verified: episode=7251 attempts=1 state_sequence=30 mover_frame=31 position_world_cm=(-800.00, 0.00, 90.00) yaw_deg=0.00 mode=Walking position_error_cm=0.000 facing_error_deg=0.000 linear_speed_cm_per_sec=0.000 angular_speed_deg_per_sec=0.000; new episode may seed this state.
+[2026.09.03-20.58.49:969][522]LogMotionWorldNetwork: Display: MotionWorld network action accepted: session=F4B048C35B4F episode=7251 source_observation=0 desired_local_cm_per_sec=(-100.000000, 0.000000) unreal_end_to_end_latency_ms=40.001292 current_identity_match=true before_deadline=true.
+[2026.09.03-20.58.51:149][551]LogMotionWorldBridge: Display: MotionWorld state sample: protocol=1 sequence=60 valid=true mover_step_frame=61 sim_time_s=2.606000 step_s=0.044000 resim=false mode=Walking position_world_cm=(-902.22, 0.00, 88.27) velocity_world_cm_per_sec=(-100.00, 0.00, 0.00) velocity_local_planar_cm_per_sec=(-100.00, 0.00, 0.00) facing_yaw_deg=0.00 facing_unit_world=(1.000000, 0.000000) angular_velocity_world_deg_per_sec=(0.00, 0.00, 0.00)
+[2026.09.03-20.59.08:652][911]LogMotionWorldBridge: Display: MotionWorld state sample: protocol=1 sequence=420 valid=true mover_step_frame=421 sim_time_s=19.469000 step_s=0.028000 resim=false mode=Walking position_world_cm=(-2555.50, 0.00, 88.27) velocity_world_cm_per_sec=(-100.00, 0.00, 0.00) velocity_local_planar_cm_per_sec=(-100.00, 0.00, 0.00) facing_yaw_deg=0.00 facing_unit_world=(1.000000, 0.000000) angular_velocity_world_deg_per_sec=(0.00, 0.00, 0.00)
+[2026.09.03-20.59.09:024][915]LogMotionWorldNetwork: Display: MotionWorld network evidence stopped: session=F4B048C35B4F observations_sent=182 actions_accepted=153 rejected=29 stale=29 malformed=0 missed=29 held=26 safe_stops=3 evidence_written=337 evidence_dropped=0.
+
+Interpretation:
+Negative local-forward requests, world echoes, finalized velocity, and monotonically decreasing X
+establish reverse travel at zero yaw. The candidate independently confirms backward visual travel
+with facing retained. The bounded fallback counters and zero echoes show that missed responses did
+not permit unbounded stale-action reuse; current valid responses restored reverse control.
+
+Final-test episodes 5301/5302 opened: zero.

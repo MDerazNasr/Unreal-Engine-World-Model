@@ -2008,3 +2008,12 @@ twelve holds and one three-miss safe stop, visible in three exact-zero matching 
 control then resumed. No malformed packet or evidence drop occurred. Evidence:
 `evidence/unreal/r2_live_echo_diagonal.log`. This incidental fallback does not replace the deliberate
 failure-injection gate. Aggregate direction/bound remains open.
+
+Reverse result: accepted session `F4B048C35B4F`, episode 7251. The candidate observed backward
+travel with forward facing retained. All 153 accepted actions were exact `(-100,0)`, current, and
+before deadline; p95 latency was 69.500 ms. Sampled X decreased from -800.00 to -2555.50 cm while
+Y and yaw remained exactly zero. Twenty-nine superseded responses produced twenty-six bounded
+holds and three safe stops, visible in six exact-zero matching bridge echoes; valid reverse control
+then resumed. No malformed packet or evidence drop occurred. Evidence:
+`evidence/unreal/r2_live_echo_reverse.log`. Aggregate direction/bound remains open only on the
+speed-bound case.
