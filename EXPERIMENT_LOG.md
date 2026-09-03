@@ -2085,3 +2085,17 @@ caused the two holds and third-miss stop credited here. Aggregate counters there
 misreported as if all four holds followed the kill. The earlier incidental recovery does not satisfy
 the separate explicit service-restart trial. Evidence:
 `evidence/unreal/r2_service_kill_safe_stop.log`.
+
+Explicit service-restart result: accepted session `984D8C7C2946`, episode 7294. After the prior
+service had been killed and episode 7293 ended, a clean forward service started with no current
+episode/observation and zero tracked episodes or actions. Episode 7294 then reported
+`prior_state_cleared=true`; observation zero had `previous_action_present=false` and source `-1`.
+Fresh episode-7294 action zero was accepted at 34.767 ms as local `(100,0)`, later fresh actions were
+also accepted, authoritative X advanced from -800.00 to 1263.86 cm, and the candidate confirmed
+motion. No action from episode 7293 was accepted or applied in the new session.
+
+This run had severe same-episode scheduling pressure: 868 observations, 166 accepted actions, 701
+stale rejections/misses, 45 holds, and 656 safe stops. Those late packets were rejected rather than
+relabeled or applied. Therefore `without stale state` is accepted as lifecycle isolation across the
+restart, not misrepresented as a zero-staleness or steady-control result; the latter remains for
+Gate R2. Evidence: `evidence/unreal/r2_service_restart_recovery.log`.

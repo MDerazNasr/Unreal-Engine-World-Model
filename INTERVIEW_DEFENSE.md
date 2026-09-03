@@ -577,6 +577,27 @@ confirmation independently agrees with it.
 Examiner assessment: Not passed. The operational observation is valid evidence, but the candidate
 must explain the policy and evidence chain unaided in a later teach-back.
 
+### Q20 - What does recovery "without stale state" mean? (teacher answer supplied)
+
+Question: Episode 7294 had many stale same-episode replies. How can it still prove recovery without
+stale state, and what claim does it not prove?
+
+Candidate answer: The candidate confirmed `moving` after the clean service restart but did not yet
+supply a conceptual explanation.
+
+Teacher reference answer: The recovery requirement concerns state crossing the killed-service and
+episode boundary. The restarted Python process began with no current identity or tracked episode;
+Unreal verified a fresh reset, explicitly cleared prior action state, and emitted episode-7294
+observation zero with no previous action. The first applied forward command explicitly named 7294/0,
+so episode 7293 was not reused. Later same-episode replies missed their current observation and were
+counted/rejected as stale rather than relabelled. Thus lifecycle recovery is proven, while the 701
+stale rejections mean this run does not prove stable 10 Hz performance, zero gaps, or the Gate-R2
+latency criterion.
+
+Examiner assessment: Not passed. The visual observation supports the runtime evidence, but the
+candidate must later distinguish cross-lifecycle stale-state exclusion from same-episode late-packet
+performance unaided.
+
 ## 7. Day 1 closeout answers to practise
 
 These are study answers, not passed candidate teach-backs yet.

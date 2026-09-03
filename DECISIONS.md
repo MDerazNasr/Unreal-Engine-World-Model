@@ -2277,3 +2277,27 @@ report zero velocity, with position fixed at `(-214.48,0,88.27)`. EndPlay report
 55 accepted actions, 529 misses, four holds, 525 safe stops, 31 stale rejections, zero malformed
 packets, and zero evidence drops. The candidate confirmed both motion before termination and stop
 after termination. Raw evidence: `evidence/unreal/r2_service_kill_safe_stop.log`.
+
+## D-062 - Define restart recovery by fresh lifecycle identity, not zero network jitter
+
+Status: accepted through live PIE evidence
+
+Decision: Credit explicit service restart/recovery when the new Python process begins with empty
+identity state, Unreal starts a fresh verified-reset episode with prior action state cleared, the
+first accepted action names that episode's observation zero, and fresh commands cause authoritative
+motion. Do not require zero late same-episode packets for this item, and do not use this run as the
+Gate-R2 steady-state latency proof.
+
+Why: `Without stale state` is a cross-lifecycle causal requirement: a command derived from episode
+7293 must never affect episode 7294. A slow editor or service may still generate late replies inside
+7294; rejecting those replies is the required admission behavior. Conflating lifecycle isolation
+with a zero-staleness performance criterion would either reject correct safety behavior or tempt us
+to hide valid overload outcomes.
+
+How it is tested: Before PIE, the restarted service reported no current episode/observation, zero
+actions, and zero tracked episodes. Session `984D8C7C2946` then verified reset episode 7294, started
+with `prior_state_cleared=true`, and emitted observation zero with no prior action/source. It accepted
+fresh episode-7294 action zero as local `(100,0)` at 34.767 ms, accepted 165 more fresh actions, and
+moved authoritative X from -800.00 to 1263.86 cm; the candidate observed motion. Its 701 late
+same-episode packets were counted stale and rejected, not applied. Raw evidence:
+`evidence/unreal/r2_service_restart_recovery.log`.

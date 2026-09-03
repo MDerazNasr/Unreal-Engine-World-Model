@@ -1,0 +1,52 @@
+MotionWorld R2.4 explicit service-restart recovery evidence
+Date: 2026-09-04 Europe/Copenhagen (PIE log 2026-09-03 22:26-22:30 UTC)
+Source: local Game Animation Sample Editor log and clean service startup health
+Session: 984D8C7C2946
+Episode: 7294
+Python controller: configs/control_service_echo_forward.yaml
+Candidate visual observation: `moving`
+
+Acceptance decision: PASS for "restart the service and verify explicit recovery without stale
+state." This is a lifecycle-identity claim, not a claim of zero late same-episode packets.
+
+Clean service startup before PIE:
+{"actions_sent": 0, "controller_mode": "echo", "current_episode_id": null,
+ "current_observation_sequence": null, "datagrams_received": 0, "health": "running",
+ "malformed_observations": 0, "observations_dispatched": 0, "observations_validated": 0,
+ "planner_errors": 0, "ready": true, "recent_rejections": [], "rejected_observations": 0,
+ "send_errors": 0, "superseded_plans": 0, "tracked_episode_count": 0}
+
+Independent audit:
+- the previously killed service was replaced by a clean process with empty episode/sequence state
+- reset episode 7294 verified on attempt one at (-800, 0, 90), yaw zero, and zero speed
+- the Unreal episode start explicitly reports applied zero and `prior_state_cleared=true`
+- observation zero explicitly reports no previous action and source -1
+- the first accepted command names episode 7294, observation 0 and requests local (100, 0)
+- later accepted commands also name episode 7294; no episode-7293 action is accepted in this session
+- authoritative X progressed from -800.00 to 1263.86 cm; candidate independently saw motion
+- final stats: observations=868, accepted=166, rejected/stale=701/701, malformed=0, missed=701,
+  held=45, safe_stops=656, evidence_written=1036, evidence_dropped=0
+
+Performance qualification:
+The editor/service experienced substantial scheduling pressure. Late replies inside episode 7294
+were rejected as stale and the declared miss fallback repeatedly held then stopped the pawn. This is
+positive admission/safety evidence and does not weaken cross-episode lifecycle isolation, but it is
+not acceptable as Gate-R2 steady-state latency, consecutive-control, or zero-gap evidence.
+
+Selected exact source lines:
+[2026.09.03-22.26.00:618][534]LogMotionWorldNetwork: Display: MotionWorld network evidence started: session=984D8C7C2946 controller=echo max_lines=2048 endpoints=127.0.0.1:52580->127.0.0.1:52581.
+[2026.09.03-22.26.02:891][563]LogMotionWorldNetwork: Display: MotionWorld network reset boundary: session=984D8C7C2946 old_episode=-1 outstanding_observation=-1 action_state_cleared=true.
+[2026.09.03-22.26.02:926][564]LogMotionWorldNetwork: Display: MotionWorld network episode started: session=984D8C7C2946 episode=7294 first_observation_sequence=0 applied_local_cm_per_sec=(0.00, 0.00) prior_state_cleared=true.
+[2026.09.03-22.26.02:926][564]LogMotionWorldBridge: Display: MotionWorld reset verified: episode=7294 attempts=1 state_sequence=30 mover_frame=31 position_world_cm=(-800.00, 0.00, 90.00) yaw_deg=0.00 mode=Walking position_error_cm=0.000 facing_error_deg=0.000 linear_speed_cm_per_sec=0.000 angular_speed_deg_per_sec=0.000; new episode may seed this state.
+[2026.09.03-22.26.02:927][564]LogMotionWorldNetwork: Display: MotionWorld network observation sent: session=984D8C7C2946 episode=7294 observation=0 state_sequence=30 simulation_time_s=1.491000 facing_yaw_deg=0.000000 previous_action_present=false previous_action_source=-1.
+[2026.09.03-22.26.02:962][565]LogMotionWorldNetwork: Display: MotionWorld network action accepted: session=984D8C7C2946 episode=7294 source_observation=0 desired_local_cm_per_sec=(100.000000, 0.000000) unreal_end_to_end_latency_ms=34.767333 current_identity_match=true before_deadline=true.
+[2026.09.03-22.26.11:795][655]LogMotionWorldBridge: Display: MotionWorld state sample: protocol=1 sequence=120 valid=true mover_step_frame=121 sim_time_s=6.274000 step_s=0.033000 resim=false mode=Walking position_world_cm=(-502.83, 0.00, 88.27) velocity_world_cm_per_sec=(100.00, 0.00, 0.00) velocity_local_planar_cm_per_sec=(100.00, 0.00, 0.00) facing_yaw_deg=0.00 facing_unit_world=(1.000000, 0.000000) angular_velocity_world_deg_per_sec=(0.00, 0.00, 0.00)
+[2026.09.03-22.30.16:124][619]LogMotionWorldBridge: Display: MotionWorld state sample: protocol=1 sequence=1080 valid=true mover_step_frame=1081 sim_time_s=87.382000 step_s=0.041000 resim=false mode=Walking position_world_cm=(1263.86, 0.00, 88.27) velocity_world_cm_per_sec=(100.00, 0.00, 0.00) velocity_local_planar_cm_per_sec=(100.00, 0.00, 0.00) facing_yaw_deg=0.00 facing_unit_world=(1.000000, 0.000000) angular_velocity_world_deg_per_sec=(0.00, 0.00, 0.00)
+[2026.09.03-22.30.17:203][639]LogMotionWorldNetwork: Display: MotionWorld network evidence stopped: session=984D8C7C2946 observations_sent=868 actions_accepted=166 rejected=701 stale=701 malformed=0 missed=701 held=45 safe_stops=656 evidence_written=1036 evidence_dropped=0.
+
+Interpretation:
+Every causal link after restart is fresh: empty Python state, verified Unreal reset, cleared prior
+action, new episode/sequence zero, accepted matching action, and measured new motion. Same-episode
+late replies were rejected, so neither prior-episode nor superseded commands were silently applied.
+
+Final-test episodes 5301/5302 opened: zero.
