@@ -72,7 +72,22 @@ Better prediction alone is not evidence of better control. Better control relati
 - Versioned localhost UDP messages at 10 Hz for P0.
 - Every packet carries episode and sequence identifiers.
 - Unreal rejects malformed, wrong-episode, and stale actions.
-- One missed response holds the previous action; three misses produce a safe stop.
+- The first valid `OnPostFinalize` state after reset defines control slot zero. Thereafter Unreal
+  emits the first valid finalized state at or after each fixed 100 ms simulation-time boundary. If
+  multiple boundaries elapse, it emits only the latest slot and never sends a catch-up burst.
+  Observation sequence increments once per emitted observation; skipped slots are diagnostics, not
+  phantom sequence entries.
+- An action is valid only if Unreal receives it less than 100 ms after sending its matching
+  observation and before emitting the next observation. The 100 ms boundary is exclusive; late or
+  superseded results are discarded rather than applied to a newer state.
+- A validated current action is applied immediately on receipt and held until a newer validated
+  action or the fallback policy replaces it. Thus observations/replans are scheduled at 10 Hz;
+  network response latency determines the within-slot action-application instant.
+- Cold start commands zero velocity. After one or two consecutive slots without a valid matching
+  action, Unreal holds the last valid action; the third consecutive miss commands a safe zero stop.
+  A current valid action clears the miss count.
+- Reset, controller switch, shutdown, and service reconnection clear sequence, pending deadline,
+  held-action, and consecutive-miss state.
 - Unreal clamps all received velocities.
 
 ## 4. State and coordinates
@@ -97,7 +112,11 @@ At every real observation boundary, the synchronization policy for nominal inter
 - Authoritative global position is retained for integration and goal tests.
 - Velocities, actions, target vectors, and obstacle-relative features use the character-local frame at the model boundary.
 - Facing uses sine/cosine for input; learned facing output uses a normalized representation or a scalar yaw increment.
-- Model steps are 100 ms; nominal dynamics are internally substepped at the verified Unreal movement rate, initially six 1/60 s steps.
+- Model steps are 100 ms. Live planning uses exactly three equal `1/30 s` nominal/residual
+  substeps per model step. Recorded-`dt` replay remains a retrospective accuracy oracle only:
+  future Unreal callback durations are unavailable to a causal planner. Residual training and
+  prediction evaluation use each recorded transition's actual `dt`; the residual feature schema
+  includes `dt`, and the selected `1/30 s` deployment value lies inside accepted training support.
 - Units are centimeters, seconds, radians internally unless an interface explicitly declares degrees.
 
 ## 5. Action
@@ -147,7 +166,13 @@ Primary objective:
 
 `L_total = L_state + lambda_residual * mean(||delta||^2)`
 
-Initial values: `gamma = 0.9`, `lambda_residual = 0.01`. They are hypotheses, not sacred constants.
+For the recovery multi-step run, `H=15` supervision boundaries at 100 ms intervals over 1.5
+seconds, `gamma=0.9`, normalized component Huber `beta=1.0`, and
+`lambda_residual=0.01`. Training advances through recorded causal actions and recorded transition
+durations, holds the rollout-start parameter snapshot, and rejects starts without a complete
+1.5-second within-episode horizon. Four-history starts with three real past queries and shifts in
+predicted causal queries thereafter. Exact optimizer and clipping choices are frozen in
+`configs/residual_multistep_training.yaml` before training.
 
 ## 8. Planning
 
@@ -164,7 +189,9 @@ The initial cost combines terminal goal distance, analytic collision, analytic c
 ### Prediction
 
 - Position, velocity, facing, and angular-velocity error at 0.5, 1.0, and 1.5 s.
-- Free-space, near-contact, post-push, and held-out-setting strata.
+- Final prediction episodes 5301/5302 are sealed free-space schedules. Near-contact, post-push,
+  and held-out-setting prediction strata are preregistered as absent from those episodes and must
+  be reported as absent, not inferred from unrelated controller runs.
 - Recursive rather than teacher-forced evaluation.
 
 ### Control
@@ -186,6 +213,24 @@ The initial cost combines terminal goal distance, analytic collision, analytic c
 - Paired bootstrap confidence intervals for nominal MPC versus residual MPC.
 - Episode count, medians, and interquartile ranges.
 - Test seeds remain frozen and are never used for tuning.
+- The primary estimand is the mean paired timed-gate success-proportion difference, residual MPC
+  minus nominal MPC, over 12 fixed scenario identities. At least 10 complete pairs are required. Use 10,000
+  paired percentile-bootstrap resamples with seed 20260905 and a 95% interval.
+- A positive result requires an observed improvement of at least 0.10 (10 percentage points), a primary interval strictly
+  above zero, no collision-rate increase under the frozen guardrail, residual end-to-end p95 below
+  the exclusive 100 ms deadline, and evidence for all four causal links. Significant harm or a
+  failed safety/runtime guardrail is negative; every other outcome is unresolved.
+- Collision, timeout, missed deadline, safe fallback, and failure to recover are controller results,
+  not infrastructure exclusions. Fewer than 10 valid pairs makes the scenario unresolved; seeds
+  are never substituted after results are seen.
+
+Exact episode schedules, paired seeds, reset tolerances, geometry hypotheses, scenario parameters,
+metric units, retry rules, and interpretations are frozen in
+`configs/final_prediction_manifest.yaml` and `configs/final_control_manifest.yaml`. The expected
+30 cm capsule radius and 86 cm half-height were verified by transiently constructing the actual
+`SandboxCharacter_Mover` Blueprint in UE 5.8.2. Historical offline planning artifacts used a
+provisional 42 cm radius and remain unchanged as historical evidence; all final-control planning
+must use the verified geometry.
 
 ## 10. Demo acceptance
 

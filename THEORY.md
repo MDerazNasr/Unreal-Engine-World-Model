@@ -384,6 +384,17 @@ not 30 independent per-step numbers. Reducing dimensionality is necessary becaus
 budget becomes exponentially sparse as dimensions increase. The one-knot CEM-001 oracle isolates
 the optimizer math; it is not evidence that the full five-knot control problem is already solved.
 
+TSTEP-001 reconciled this choice against the accepted Unreal cadence instead of assuming a 60 Hz
+tick. Across 740 training transitions, recorded `dt` had median/p95/max
+`28.000/32.050/95.000 ms`; across 283 validation transitions it was
+`27.000/40.900/96.000 ms`. On 74 constant-action, constant-parameter validation windows, three
+`1/30 s` substeps produced lower p95 position and velocity error than six `1/60 s` substeps
+(`0.539 vs 1.184 cm` and `2.320 vs 3.362 cm/s`). Six substeps modestly improved yaw p95
+(`3.288 vs 3.916 deg`) but caused nominal full-CEM p95 to rise from `93.897` to `143.565 ms`,
+breaking the 100 ms compute gate. Recorded-`dt` replay is a retrospective oracle, not a deployment
+option, because future frame durations are unknown. Training and held-out prediction evaluation
+continue to use recorded transition durations; the residual explicitly receives `dt` as a feature.
+
 All action vectors are projected onto an L2 ball of radius 165 cm/s. This differs from clipping each
 coordinate: component clipping would permit a diagonal speed of `sqrt(2) * 165` cm/s. The projector
 also corrects one floating-point unit inward when norm rounding would otherwise produce a value just

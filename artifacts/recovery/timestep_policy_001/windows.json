@@ -1,0 +1,2222 @@
+[
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.09312593613901754,
+    "planar_velocity_error_cm_s": 0.4575312141379442,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 1,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.09942374199647475,
+    "planar_velocity_error_cm_s": 0.7222025794865559,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 1,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.3148705903379323,
+    "planar_velocity_error_cm_s": 1.959645484479509,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 1,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.15252822987201853,
+    "planar_velocity_error_cm_s": 0.5987771367164925,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 2,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.0467512428841701,
+    "planar_velocity_error_cm_s": 0.4489437264265703,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 2,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.4197159905645549,
+    "planar_velocity_error_cm_s": 2.2363899418714297,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 2,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.13274099402622141,
+    "planar_velocity_error_cm_s": 0.35293073454887747,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 3,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.05119765483914307,
+    "planar_velocity_error_cm_s": 0.06240392181776144,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 3,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.5528601250380234,
+    "planar_velocity_error_cm_s": 2.7499202490748402,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 3,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.4322939057452686,
+    "planar_velocity_error_cm_s": 1.414642696039465,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 3,
+    "start_transition_sequence": 4,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.43532904204505485,
+    "planar_velocity_error_cm_s": 1.4822543583294845,
+    "policy": "fixed_30_hz",
+    "source_step_count": 3,
+    "start_transition_sequence": 4,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.9655543907499577,
+    "planar_velocity_error_cm_s": 4.171252665696713,
+    "policy": "fixed_60_hz",
+    "source_step_count": 3,
+    "start_transition_sequence": 4,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.06873987421943184,
+    "planar_velocity_error_cm_s": 0.04696569754305813,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 3,
+    "start_transition_sequence": 5,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.49888845174746166,
+    "planar_velocity_error_cm_s": 2.1984489161898892,
+    "policy": "fixed_30_hz",
+    "source_step_count": 3,
+    "start_transition_sequence": 5,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 1.0480279006155797,
+    "planar_velocity_error_cm_s": 4.888341622680329,
+    "policy": "fixed_60_hz",
+    "source_step_count": 3,
+    "start_transition_sequence": 5,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.14622996580965264,
+    "planar_velocity_error_cm_s": 0.5065449979862677,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 3,
+    "start_transition_sequence": 6,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.5462311603445187,
+    "planar_velocity_error_cm_s": 1.1465239176924058,
+    "policy": "fixed_30_hz",
+    "source_step_count": 3,
+    "start_transition_sequence": 6,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 1.084671609995553,
+    "planar_velocity_error_cm_s": 3.286824041985028,
+    "policy": "fixed_60_hz",
+    "source_step_count": 3,
+    "start_transition_sequence": 6,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.024601620525231738,
+    "planar_velocity_error_cm_s": 0.16526204763462715,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 3,
+    "start_transition_sequence": 7,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.02702918018599121,
+    "planar_velocity_error_cm_s": 0.7225895104973006,
+    "policy": "fixed_30_hz",
+    "source_step_count": 3,
+    "start_transition_sequence": 7,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.36529436086379974,
+    "planar_velocity_error_cm_s": 0.09812512833944709,
+    "policy": "fixed_60_hz",
+    "source_step_count": 3,
+    "start_transition_sequence": 7,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.022572236339215124,
+    "planar_velocity_error_cm_s": 0.16740806170746225,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 3,
+    "start_transition_sequence": 8,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.06576177435056252,
+    "planar_velocity_error_cm_s": 0.170031480537574,
+    "policy": "fixed_30_hz",
+    "source_step_count": 3,
+    "start_transition_sequence": 8,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.31049406484135034,
+    "planar_velocity_error_cm_s": 0.15381756424311277,
+    "policy": "fixed_60_hz",
+    "source_step_count": 3,
+    "start_transition_sequence": 8,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.003193611590859291,
+    "planar_velocity_error_cm_s": 0.027390846909412403,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 3,
+    "start_transition_sequence": 9,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.01444131823063799,
+    "planar_velocity_error_cm_s": 0.028043934031387607,
+    "policy": "fixed_30_hz",
+    "source_step_count": 3,
+    "start_transition_sequence": 9,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.16984435191182,
+    "planar_velocity_error_cm_s": 0.01921212202680067,
+    "policy": "fixed_60_hz",
+    "source_step_count": 3,
+    "start_transition_sequence": 9,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.003955284828066397,
+    "planar_velocity_error_cm_s": 0.03774849974092831,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 3,
+    "start_transition_sequence": 10,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.0012364751570430599,
+    "planar_velocity_error_cm_s": 0.037994305904447856,
+    "policy": "fixed_30_hz",
+    "source_step_count": 3,
+    "start_transition_sequence": 10,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.09112158045809338,
+    "planar_velocity_error_cm_s": 0.03322675954913734,
+    "policy": "fixed_60_hz",
+    "source_step_count": 3,
+    "start_transition_sequence": 10,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.03699666721627182,
+    "planar_velocity_error_cm_s": 0.444857307893443,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 3,
+    "start_transition_sequence": 11,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.041625562580179576,
+    "planar_velocity_error_cm_s": 0.4451991212081907,
+    "policy": "fixed_30_hz",
+    "source_step_count": 3,
+    "start_transition_sequence": 11,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.10175288939387883,
+    "planar_velocity_error_cm_s": 0.4422571234020154,
+    "policy": "fixed_60_hz",
+    "source_step_count": 3,
+    "start_transition_sequence": 11,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.029610208620738376,
+    "planar_velocity_error_cm_s": 0.435287180646327,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 2,
+    "start_transition_sequence": 12,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.05693775985321281,
+    "planar_velocity_error_cm_s": 0.44257177225921396,
+    "policy": "fixed_30_hz",
+    "source_step_count": 2,
+    "start_transition_sequence": 12,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.09239154744477673,
+    "planar_velocity_error_cm_s": 0.4409196648705347,
+    "policy": "fixed_60_hz",
+    "source_step_count": 2,
+    "start_transition_sequence": 12,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.5117267536949157,
+    "planar_velocity_error_cm_s": 0.2069662332467317,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 5,
+    "start_transition_sequence": 15,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.006309906000751653,
+    "planar_velocity_error_cm_s": 3.097252524606162,
+    "policy": "fixed_30_hz",
+    "source_step_count": 5,
+    "start_transition_sequence": 15,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.7573216659395712,
+    "planar_velocity_error_cm_s": 2.261657147749858,
+    "policy": "fixed_60_hz",
+    "source_step_count": 5,
+    "start_transition_sequence": 15,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.921375609756069,
+    "planar_velocity_error_cm_s": 1.2945808055917638,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 16,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.5343744488134234,
+    "planar_velocity_error_cm_s": 3.6177695218787846,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 16,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 1.368363350194727,
+    "planar_velocity_error_cm_s": 1.7474563215082384,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 16,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.8803085491809952,
+    "planar_velocity_error_cm_s": 2.5256371396277615,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 3,
+    "start_transition_sequence": 17,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.914362744869436,
+    "planar_velocity_error_cm_s": 2.942234580909677,
+    "policy": "fixed_30_hz",
+    "source_step_count": 3,
+    "start_transition_sequence": 17,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 1.7591308580649638,
+    "planar_velocity_error_cm_s": 0.9281840620516562,
+    "policy": "fixed_60_hz",
+    "source_step_count": 3,
+    "start_transition_sequence": 17,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.19179195819799588,
+    "planar_velocity_error_cm_s": 0.8612923434807769,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 2,
+    "start_transition_sequence": 18,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 1.0136551543151882,
+    "planar_velocity_error_cm_s": 1.571902982419843,
+    "policy": "fixed_30_hz",
+    "source_step_count": 2,
+    "start_transition_sequence": 18,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 1.8312015328647249,
+    "planar_velocity_error_cm_s": 1.2000821316865,
+    "policy": "fixed_60_hz",
+    "source_step_count": 2,
+    "start_transition_sequence": 18,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.11969755935569992,
+    "planar_velocity_error_cm_s": 0.7854503025532509,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 2,
+    "start_transition_sequence": 19,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 1.0859127288931631,
+    "planar_velocity_error_cm_s": 1.4644732421786948,
+    "policy": "fixed_30_hz",
+    "source_step_count": 2,
+    "start_transition_sequence": 19,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 1.763437069377801,
+    "planar_velocity_error_cm_s": 0.11811116158559187,
+    "policy": "fixed_60_hz",
+    "source_step_count": 2,
+    "start_transition_sequence": 19,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 1.0741018741100561e-07,
+    "planar_velocity_error_cm_s": 1.4850596894433465e-06,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 3,
+    "start_transition_sequence": 20,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.030820969227761452,
+    "planar_velocity_error_cm_s": 0.0018742295048923552,
+    "policy": "fixed_30_hz",
+    "source_step_count": 3,
+    "start_transition_sequence": 20,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.28343816015797074,
+    "planar_velocity_error_cm_s": 0.012199785187089418,
+    "policy": "fixed_60_hz",
+    "source_step_count": 3,
+    "start_transition_sequence": 20,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.10896964481173654,
+    "planar_velocity_error_cm_s": 0.3523464229207818,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 39,
+    "yaw_error_deg": 4.911955806724001,
+    "yaw_rate_error_deg_s": 54.78828374468304
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.18929098196099403,
+    "planar_velocity_error_cm_s": 1.6775333582244798,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 39,
+    "yaw_error_deg": 5.127927133390996,
+    "yaw_rate_error_deg_s": 55.345201757065034
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.5488626446767739,
+    "planar_velocity_error_cm_s": 2.0152910008477605,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 39,
+    "yaw_error_deg": 4.402504527928729,
+    "yaw_rate_error_deg_s": 54.04429237729266
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.05177465175370344,
+    "planar_velocity_error_cm_s": 0.27623385959350344,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 40,
+    "yaw_error_deg": 4.1172967654836805,
+    "yaw_rate_error_deg_s": 45.92041589518897
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.2241170218227353,
+    "planar_velocity_error_cm_s": 0.925130572392753,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 40,
+    "yaw_error_deg": 4.3752280762120375,
+    "yaw_rate_error_deg_s": 46.48719474028516
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.4207086664420103,
+    "planar_velocity_error_cm_s": 0.7473119273197142,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 40,
+    "yaw_error_deg": 3.694129743481516,
+    "yaw_rate_error_deg_s": 45.265772630021765
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.05052785115822189,
+    "planar_velocity_error_cm_s": 0.3325764182518931,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 41,
+    "yaw_error_deg": 3.503293876210072,
+    "yaw_rate_error_deg_s": 38.94794253112918
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.13258206702766984,
+    "planar_velocity_error_cm_s": 0.3541205701285435,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 41,
+    "yaw_error_deg": 3.73607253720473,
+    "yaw_rate_error_deg_s": 39.49585870502746
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.2922730015535535,
+    "planar_velocity_error_cm_s": 0.32103623415784455,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 41,
+    "yaw_error_deg": 3.1158928731794315,
+    "yaw_rate_error_deg_s": 38.38368280094115
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.017897472511435808,
+    "planar_velocity_error_cm_s": 0.13213495326750113,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 42,
+    "yaw_error_deg": 2.954399127076655,
+    "yaw_rate_error_deg_s": 32.65758624246503
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.1267590541805248,
+    "planar_velocity_error_cm_s": 0.1463452060597863,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 42,
+    "yaw_error_deg": 3.176258045405083,
+    "yaw_rate_error_deg_s": 33.14271246462196
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.20616320836609248,
+    "planar_velocity_error_cm_s": 0.12452319235043419,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 42,
+    "yaw_error_deg": 2.6271495653129984,
+    "yaw_rate_error_deg_s": 32.157989398528414
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.0028950188345788774,
+    "planar_velocity_error_cm_s": 0.02407246951333697,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 5,
+    "start_transition_sequence": 43,
+    "yaw_error_deg": 2.460376674177352,
+    "yaw_rate_error_deg_s": 27.160157780571495
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.11614447523413673,
+    "planar_velocity_error_cm_s": 0.03307367509758308,
+    "policy": "fixed_30_hz",
+    "source_step_count": 5,
+    "start_transition_sequence": 43,
+    "yaw_error_deg": 2.693720127717298,
+    "yaw_rate_error_deg_s": 27.695165190772425
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.12557202941661672,
+    "planar_velocity_error_cm_s": 0.018938506275317124,
+    "policy": "fixed_60_hz",
+    "source_step_count": 5,
+    "start_transition_sequence": 43,
+    "yaw_error_deg": 2.2158264611463827,
+    "yaw_rate_error_deg_s": 26.838152535397885
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.004321056328080886,
+    "planar_velocity_error_cm_s": 0.03722137785183843,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 5,
+    "start_transition_sequence": 44,
+    "yaw_error_deg": 2.1232685475063993,
+    "yaw_rate_error_deg_s": 23.146270568458434
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.08061439969185358,
+    "planar_velocity_error_cm_s": 0.042907682900803046,
+    "policy": "fixed_30_hz",
+    "source_step_count": 5,
+    "start_transition_sequence": 44,
+    "yaw_error_deg": 2.311359671827943,
+    "yaw_rate_error_deg_s": 23.69957473285183
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.09632082269865805,
+    "planar_velocity_error_cm_s": 0.03327388526743125,
+    "policy": "fixed_60_hz",
+    "source_step_count": 5,
+    "start_transition_sequence": 44,
+    "yaw_error_deg": 1.8911892505933372,
+    "yaw_rate_error_deg_s": 22.94607789118843
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.13264604501149546,
+    "planar_velocity_error_cm_s": 0.673947939684427,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 102,
+    "yaw_error_deg": 4.647816866725965,
+    "yaw_rate_error_deg_s": 52.45934262135466
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.2613181493400533,
+    "planar_velocity_error_cm_s": 1.8594331642196238,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 102,
+    "yaw_error_deg": 4.92716198407776,
+    "yaw_rate_error_deg_s": 53.06088777940561
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.5344258092436621,
+    "planar_velocity_error_cm_s": 3.5026324956316306,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 102,
+    "yaw_error_deg": 4.256692824041555,
+    "yaw_rate_error_deg_s": 51.85852709671985
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.1295648116892666,
+    "planar_velocity_error_cm_s": 0.38596263949240395,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 103,
+    "yaw_error_deg": 3.9786791372731467,
+    "yaw_rate_error_deg_s": 44.90554119210318
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.23454902712372075,
+    "planar_velocity_error_cm_s": 1.2075080614061504,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 103,
+    "yaw_error_deg": 4.250934092896133,
+    "yaw_rate_error_deg_s": 45.47013705078705
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.6005063769184096,
+    "planar_velocity_error_cm_s": 2.4944420063906105,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 103,
+    "yaw_error_deg": 3.6069952374109318,
+    "yaw_rate_error_deg_s": 44.31535349318503
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.11801175676293744,
+    "planar_velocity_error_cm_s": 0.624595478879514,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 104,
+    "yaw_error_deg": 3.4277597806848905,
+    "yaw_rate_error_deg_s": 38.49148483354594
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.15588350183682154,
+    "planar_velocity_error_cm_s": 0.779804534018626,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 104,
+    "yaw_error_deg": 3.6481048394813134,
+    "yaw_rate_error_deg_s": 38.96928820694055
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.6124821788705889,
+    "planar_velocity_error_cm_s": 1.427942559195323,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 104,
+    "yaw_error_deg": 3.0526437982337127,
+    "yaw_rate_error_deg_s": 37.901440516483774
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.07442351726263785,
+    "planar_velocity_error_cm_s": 0.4922224883435739,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 105,
+    "yaw_error_deg": 2.9347646661649427,
+    "yaw_rate_error_deg_s": 32.65274488255551
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.10764172543819155,
+    "planar_velocity_error_cm_s": 0.5068988227794132,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 105,
+    "yaw_error_deg": 3.1019381927171508,
+    "yaw_rate_error_deg_s": 33.02753231346385
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.5234096122330402,
+    "planar_velocity_error_cm_s": 0.5787744610808571,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 105,
+    "yaw_error_deg": 2.5675481661655524,
+    "yaw_rate_error_deg_s": 32.069204033144054
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.08535409036717467,
+    "planar_velocity_error_cm_s": 0.6598722479764083,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 106,
+    "yaw_error_deg": 2.450326285871885,
+    "yaw_rate_error_deg_s": 27.46339783637827
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.048560963603036265,
+    "planar_velocity_error_cm_s": 0.6695790254981239,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 106,
+    "yaw_error_deg": 2.5819302412329765,
+    "yaw_rate_error_deg_s": 27.79179266145959
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.36873093669922685,
+    "planar_velocity_error_cm_s": 0.6417258876774232,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 106,
+    "yaw_error_deg": 2.1136890334921596,
+    "yaw_rate_error_deg_s": 26.9520898805436
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.007266090680242999,
+    "planar_velocity_error_cm_s": 0.05990423633993571,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 107,
+    "yaw_error_deg": 2.0919771180205147,
+    "yaw_rate_error_deg_s": 22.82312771532316
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.021802014909623083,
+    "planar_velocity_error_cm_s": 0.060947242794448735,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 107,
+    "yaw_error_deg": 2.146434278651744,
+    "yaw_rate_error_deg_s": 22.937647931318207
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.2797965744268074,
+    "planar_velocity_error_cm_s": 0.043150688788931815,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 107,
+    "yaw_error_deg": 1.7441650391558081,
+    "yaw_rate_error_deg_s": 22.21625350148694
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.0116220827012216,
+    "planar_velocity_error_cm_s": 0.0986340207398636,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 108,
+    "yaw_error_deg": 1.7403190281599523,
+    "yaw_rate_error_deg_s": 18.527911120381596
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.014185301257656952,
+    "planar_velocity_error_cm_s": 0.10079011919664617,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 108,
+    "yaw_error_deg": 1.7809327023028205,
+    "yaw_rate_error_deg_s": 19.038539013992004
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.18990764413004801,
+    "planar_velocity_error_cm_s": 0.08977372058148131,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 108,
+    "yaw_error_deg": 1.4410310823169457,
+    "yaw_rate_error_deg_s": 18.428989211835372
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.01308137304573924,
+    "planar_velocity_error_cm_s": 0.11574956244875938,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 109,
+    "yaw_error_deg": 1.489343258387022,
+    "yaw_rate_error_deg_s": 15.060676561941083
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.00229123053896622,
+    "planar_velocity_error_cm_s": 0.11952216130475643,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 109,
+    "yaw_error_deg": 1.4861935033196172,
+    "yaw_rate_error_deg_s": 15.927302600523266
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.13944280012330132,
+    "planar_velocity_error_cm_s": 0.11256293378315045,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 109,
+    "yaw_error_deg": 1.1826481608818349,
+    "yaw_rate_error_deg_s": 14.50062786464893
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.003432908950210462,
+    "planar_velocity_error_cm_s": 0.03282216315075255,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 110,
+    "yaw_error_deg": 1.0699766103838024,
+    "yaw_rate_error_deg_s": 12.013412416825993
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.03555166419281926,
+    "planar_velocity_error_cm_s": 0.03522693804666284,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 110,
+    "yaw_error_deg": 1.1920823602249067,
+    "yaw_rate_error_deg_s": 12.216631930884613
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.03926214320245845,
+    "planar_velocity_error_cm_s": 0.031672928918337756,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 110,
+    "yaw_error_deg": 0.9548324515000305,
+    "yaw_rate_error_deg_s": 11.101548272714542
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.004417884021684115,
+    "planar_velocity_error_cm_s": 0.04213492836480452,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 111,
+    "yaw_error_deg": 0.8918650559640388,
+    "yaw_rate_error_deg_s": 9.504526335751343
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.02024327623099163,
+    "planar_velocity_error_cm_s": 0.043606915774253685,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 111,
+    "yaw_error_deg": 1.0062710422607948,
+    "yaw_rate_error_deg_s": 10.43606821072785
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.03095899261251662,
+    "planar_velocity_error_cm_s": 0.04124861007292868,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 111,
+    "yaw_error_deg": 0.774504757994118,
+    "yaw_rate_error_deg_s": 8.735727201548004
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.002985734984173962,
+    "planar_velocity_error_cm_s": 0.02833276278572545,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 112,
+    "yaw_error_deg": 0.8070486849454092,
+    "yaw_rate_error_deg_s": 8.582738287926453
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.008732568665774071,
+    "planar_velocity_error_cm_s": 0.02890253000589747,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 112,
+    "yaw_error_deg": 0.8656761796648506,
+    "yaw_rate_error_deg_s": 9.075418383988897
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.02773492721940954,
+    "planar_velocity_error_cm_s": 0.027261388716025407,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 112,
+    "yaw_error_deg": 0.6623800042040885,
+    "yaw_rate_error_deg_s": 7.5839468127918
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.0020263256946587067,
+    "planar_velocity_error_cm_s": 0.019589019538422636,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 113,
+    "yaw_error_deg": 0.6441694791181284,
+    "yaw_rate_error_deg_s": 6.2744388551149015
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.004418858098062871,
+    "planar_velocity_error_cm_s": 0.020001342542145518,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 113,
+    "yaw_error_deg": 0.7221216121839755,
+    "yaw_rate_error_deg_s": 7.5845996767288915
+  },
+  {
+    "episode_id": 5201,
+    "planar_position_error_cm": 0.018945696434681483,
+    "planar_velocity_error_cm_s": 0.01897648970451172,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 113,
+    "yaw_error_deg": 0.5122402588233582,
+    "yaw_rate_error_deg_s": 5.677817915479764
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.06605999807220542,
+    "planar_velocity_error_cm_s": 0.03693694368049805,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 1,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.029794016857863426,
+    "planar_velocity_error_cm_s": 0.48923305050545807,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 1,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.3807193955213961,
+    "planar_velocity_error_cm_s": 2.1924142446877504,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 1,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.05057252210599472,
+    "planar_velocity_error_cm_s": 0.2111593896858608,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 2,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.047640859732268837,
+    "planar_velocity_error_cm_s": 0.5610352649599548,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 2,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.3825014925321284,
+    "planar_velocity_error_cm_s": 1.2898953877619022,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 2,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.04284141219989124,
+    "planar_velocity_error_cm_s": 0.26118037971216523,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 3,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.0307049839436786,
+    "planar_velocity_error_cm_s": 0.3740546429769651,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 3,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.3395594002532789,
+    "planar_velocity_error_cm_s": 0.46566328991278993,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 3,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.02466975424965767,
+    "planar_velocity_error_cm_s": 0.18837558099127705,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 4,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.005992936933353121,
+    "planar_velocity_error_cm_s": 0.186513726995166,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 4,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.23662915355168934,
+    "planar_velocity_error_cm_s": 0.16849927063816494,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 4,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.05046667316878484,
+    "planar_velocity_error_cm_s": 0.4342343674272726,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 3,
+    "start_transition_sequence": 5,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.044135925127761766,
+    "planar_velocity_error_cm_s": 0.43456096527675925,
+    "policy": "fixed_30_hz",
+    "source_step_count": 3,
+    "start_transition_sequence": 5,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.22207646901210865,
+    "planar_velocity_error_cm_s": 0.42344262229848084,
+    "policy": "fixed_60_hz",
+    "source_step_count": 3,
+    "start_transition_sequence": 5,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.0062857063395540536,
+    "planar_velocity_error_cm_s": 0.051517325685523474,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 3,
+    "start_transition_sequence": 6,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.04176800195864416,
+    "planar_velocity_error_cm_s": 0.05817018899665527,
+    "policy": "fixed_30_hz",
+    "source_step_count": 3,
+    "start_transition_sequence": 6,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.16515485500440263,
+    "planar_velocity_error_cm_s": 0.05123483247348304,
+    "policy": "fixed_60_hz",
+    "source_step_count": 3,
+    "start_transition_sequence": 6,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.00381309866202173,
+    "planar_velocity_error_cm_s": 0.03302926399089756,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 7,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.025923357832539295,
+    "planar_velocity_error_cm_s": 0.03765581441496124,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 7,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.10319459872516745,
+    "planar_velocity_error_cm_s": 0.03366429591467579,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 7,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.0034890799722688826,
+    "planar_velocity_error_cm_s": 0.032177506079889895,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 5,
+    "start_transition_sequence": 8,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.02302348286855249,
+    "planar_velocity_error_cm_s": 0.03352299071505627,
+    "policy": "fixed_30_hz",
+    "source_step_count": 5,
+    "start_transition_sequence": 8,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.014000945021962252,
+    "planar_velocity_error_cm_s": 0.03176447889224221,
+    "policy": "fixed_60_hz",
+    "source_step_count": 5,
+    "start_transition_sequence": 8,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.0017577817321807743,
+    "planar_velocity_error_cm_s": 0.016576402162243653,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 5,
+    "start_transition_sequence": 9,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.015409453342272172,
+    "planar_velocity_error_cm_s": 0.017146702607760744,
+    "policy": "fixed_30_hz",
+    "source_step_count": 5,
+    "start_transition_sequence": 9,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.010753243661952183,
+    "planar_velocity_error_cm_s": 0.015939001062633906,
+    "policy": "fixed_60_hz",
+    "source_step_count": 5,
+    "start_transition_sequence": 9,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.0014913936846596698,
+    "planar_velocity_error_cm_s": 0.014632511218053423,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 10,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.008364972148910965,
+    "planar_velocity_error_cm_s": 0.015179588351259099,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 10,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.010896522523808017,
+    "planar_velocity_error_cm_s": 0.01430925954375084,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 10,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.001374364232788139,
+    "planar_velocity_error_cm_s": 0.01324733667269129,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 11,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.0032350610362072985,
+    "planar_velocity_error_cm_s": 0.013465301635648075,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 11,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.010874263050368427,
+    "planar_velocity_error_cm_s": 0.012839723078769794,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 11,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.0007395782229195902,
+    "planar_velocity_error_cm_s": 0.007188970299637276,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 12,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.0018595136461954098,
+    "planar_velocity_error_cm_s": 0.007299082993341699,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 12,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.0069867723901779755,
+    "planar_velocity_error_cm_s": 0.006916249793434304,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 12,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.00046288828275464766,
+    "planar_velocity_error_cm_s": 0.0045585634163956,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 13,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.0009892443606531742,
+    "planar_velocity_error_cm_s": 0.004639539922393965,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 13,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.004513340639846319,
+    "planar_velocity_error_cm_s": 0.004406297497325795,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 13,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.0002110770051331201,
+    "planar_velocity_error_cm_s": 0.0021050362188077543,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 14,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.0009368040839490277,
+    "planar_velocity_error_cm_s": 0.002179845783828682,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 14,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.0022906125846020586,
+    "planar_velocity_error_cm_s": 0.0020457160170792577,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 14,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.00010010590506226436,
+    "planar_velocity_error_cm_s": 0.0010186830736245156,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 15,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.0007198279727163026,
+    "planar_velocity_error_cm_s": 0.0010731986064769217,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 15,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.001227334941290792,
+    "planar_velocity_error_cm_s": 0.0009935595868597602,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 15,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 3.9590345409123984e-05,
+    "planar_velocity_error_cm_s": 0.00040522391910258193,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 16,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.0004923612776792652,
+    "planar_velocity_error_cm_s": 0.00043958968035440193,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 16,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.0007184666445709809,
+    "planar_velocity_error_cm_s": 0.0003907133431226839,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 16,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 3.5148934557582834e-05,
+    "planar_velocity_error_cm_s": 0.00036752596967914997,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 17,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.000322007133149782,
+    "planar_velocity_error_cm_s": 0.00038919255577241074,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 17,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.0004279656147900823,
+    "planar_velocity_error_cm_s": 0.0003592722531493564,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 17,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 3.33487964780943e-05,
+    "planar_velocity_error_cm_s": 0.000347505389328262,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 18,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.00018171141903167154,
+    "planar_velocity_error_cm_s": 0.00036044416980018923,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 18,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.0002981221349500629,
+    "planar_velocity_error_cm_s": 0.000341487742133495,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 18,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 1.669673110882286e-07,
+    "planar_velocity_error_cm_s": 0.002769233057819065,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 19,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.0002454645970146885,
+    "planar_velocity_error_cm_s": 0.002769233057819065,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 19,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.00019064822924974578,
+    "planar_velocity_error_cm_s": 0.002769233057819065,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 19,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 1.8161586012865882e-07,
+    "planar_velocity_error_cm_s": 0.0,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 20,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.00027984264681890636,
+    "planar_velocity_error_cm_s": 0.0,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 20,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 3.8443353673756064e-05,
+    "planar_velocity_error_cm_s": 0.0,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 20,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 1.96848418454465e-07,
+    "planar_velocity_error_cm_s": 1.4210854715202004e-14,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 21,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 2.5851746727312275e-05,
+    "planar_velocity_error_cm_s": 1.4210854715202004e-14,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 21,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 8.823505118016328e-05,
+    "planar_velocity_error_cm_s": 1.4210854715202004e-14,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 21,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 1.803661007215851e-07,
+    "planar_velocity_error_cm_s": 0.0,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 22,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 1.8036598703474738e-07,
+    "planar_velocity_error_cm_s": 0.0,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 22,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 1.8036632809526054e-07,
+    "planar_velocity_error_cm_s": 0.0,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 22,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 1.845452288762317e-07,
+    "planar_velocity_error_cm_s": 0.0,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 23,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 1.8454500150255626e-07,
+    "planar_velocity_error_cm_s": 0.0,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 23,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 1.8454534256306943e-07,
+    "planar_velocity_error_cm_s": 0.0,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 23,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 1.745155486787553e-07,
+    "planar_velocity_error_cm_s": 0.0,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 24,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 1.7451543499191757e-07,
+    "planar_velocity_error_cm_s": 0.0,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 24,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 1.7451577605243074e-07,
+    "planar_velocity_error_cm_s": 0.0,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 24,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 1.564621925354004e-07,
+    "planar_velocity_error_cm_s": 0.0,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 25,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 1.5646207884856267e-07,
+    "planar_velocity_error_cm_s": 0.0,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 25,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 1.5646241990907583e-07,
+    "planar_velocity_error_cm_s": 0.0,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 25,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.06193694971830155,
+    "planar_velocity_error_cm_s": 0.29757252276237267,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 30,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.14944073247022516,
+    "planar_velocity_error_cm_s": 0.8527615861508551,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 30,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.36399802450807783,
+    "planar_velocity_error_cm_s": 0.8120104809571309,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 30,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.05365503032180641,
+    "planar_velocity_error_cm_s": 0.33745664476996495,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 31,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.07784871254170866,
+    "planar_velocity_error_cm_s": 0.35203087449109205,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 31,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.2699837660960611,
+    "planar_velocity_error_cm_s": 0.19335016020155749,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 31,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.03163071836445397,
+    "planar_velocity_error_cm_s": 0.22903486191379763,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 32,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.0735280701173906,
+    "planar_velocity_error_cm_s": 0.23858042936857515,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 32,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.1973141853427478,
+    "planar_velocity_error_cm_s": 0.21994794833682008,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 32,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.016836817932016857,
+    "planar_velocity_error_cm_s": 0.1322693239656889,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 33,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.06192042456382296,
+    "planar_velocity_error_cm_s": 0.1390374749964849,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 33,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.13883175604394182,
+    "planar_velocity_error_cm_s": 0.12690252248159517,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 33,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.019747192412864933,
+    "planar_velocity_error_cm_s": 0.16782310169005754,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 34,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.035871554183813714,
+    "planar_velocity_error_cm_s": 0.1727855759104111,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 34,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.10699693275307709,
+    "planar_velocity_error_cm_s": 0.16487526173038258,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 34,
+    "yaw_error_deg": 0.0,
+    "yaw_rate_error_deg_s": 0.0
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.1344528258795208,
+    "planar_velocity_error_cm_s": 0.6931846908162385,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 68,
+    "yaw_error_deg": 1.3183743602939746,
+    "yaw_rate_error_deg_s": 14.293531554163138
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.24222923763591098,
+    "planar_velocity_error_cm_s": 1.7004988052594854,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 68,
+    "yaw_error_deg": 1.3988779724230698,
+    "yaw_rate_error_deg_s": 15.077111514694938
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.5626071283093097,
+    "planar_velocity_error_cm_s": 3.6618824620389887,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 68,
+    "yaw_error_deg": 1.1719393087530188,
+    "yaw_rate_error_deg_s": 13.41218808708059
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.18961527799024225,
+    "planar_velocity_error_cm_s": 0.1728723911018193,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 69,
+    "yaw_error_deg": 1.1140153367218943,
+    "yaw_rate_error_deg_s": 12.049792343638845
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.22721134288428857,
+    "planar_velocity_error_cm_s": 2.2110232123173432,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 69,
+    "yaw_error_deg": 1.1966786902009463,
+    "yaw_rate_error_deg_s": 12.846012321778412
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.6692377520605532,
+    "planar_velocity_error_cm_s": 2.6589041405607077,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 69,
+    "yaw_error_deg": 0.9793640923595618,
+    "yaw_rate_error_deg_s": 11.251695340891452
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.09535611828755464,
+    "planar_velocity_error_cm_s": 0.4081931295760697,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 70,
+    "yaw_error_deg": 0.9512351852576564,
+    "yaw_rate_error_deg_s": 10.303790402093528
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.3035107829819026,
+    "planar_velocity_error_cm_s": 2.522274206871373,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 70,
+    "yaw_error_deg": 1.022101822974834,
+    "yaw_rate_error_deg_s": 10.863103622558988
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.5999070960580184,
+    "planar_velocity_error_cm_s": 1.1793069805288425,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 70,
+    "yaw_error_deg": 0.8229019147806749,
+    "yaw_rate_error_deg_s": 9.401684098148033
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.11343566569041741,
+    "planar_velocity_error_cm_s": 0.6756699939346689,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 71,
+    "yaw_error_deg": 0.8138094299923149,
+    "yaw_rate_error_deg_s": 8.736662126108786
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.18716388468510559,
+    "planar_velocity_error_cm_s": 1.4123048311896298,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 71,
+    "yaw_error_deg": 0.8696526969191418,
+    "yaw_rate_error_deg_s": 9.27489585825105
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.5680717603526091,
+    "planar_velocity_error_cm_s": 0.26597345780604087,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 71,
+    "yaw_error_deg": 0.6497384587265087,
+    "yaw_rate_error_deg_s": 7.276964876244516
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.06791644045586054,
+    "planar_velocity_error_cm_s": 0.47909513387973135,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 72,
+    "yaw_error_deg": 0.7018676379965324,
+    "yaw_rate_error_deg_s": 7.479568122895129
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.07722616532146276,
+    "planar_velocity_error_cm_s": 0.48923389028211517,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 72,
+    "yaw_error_deg": 0.7036895684061266,
+    "yaw_rate_error_deg_s": 6.900539600225054
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.4203110027204957,
+    "planar_velocity_error_cm_s": 0.45275455347674765,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 72,
+    "yaw_error_deg": 0.5411028195614864,
+    "yaw_rate_error_deg_s": 6.068407062620494
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.03271191655246633,
+    "planar_velocity_error_cm_s": 0.11359008317112297,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 160,
+    "yaw_error_deg": 1.5831097480132381,
+    "yaw_rate_error_deg_s": 17.204893712642384
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.30218873988137407,
+    "planar_velocity_error_cm_s": 1.6718944949944812,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 160,
+    "yaw_error_deg": 1.709919445186214,
+    "yaw_rate_error_deg_s": 18.3593938203318
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.36493944570907544,
+    "planar_velocity_error_cm_s": 1.3218347105169699,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 160,
+    "yaw_error_deg": 1.4728012477971342,
+    "yaw_rate_error_deg_s": 17.244929210484592
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.04245840277812712,
+    "planar_velocity_error_cm_s": 0.2294181954773063,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 161,
+    "yaw_error_deg": 1.378656119249625,
+    "yaw_rate_error_deg_s": 14.80112382164541
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.2707391658853586,
+    "planar_velocity_error_cm_s": 1.289211638613067,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 161,
+    "yaw_error_deg": 1.496161693448545,
+    "yaw_rate_error_deg_s": 15.926869620848414
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.3316007904573582,
+    "planar_velocity_error_cm_s": 0.3783334561334926,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 161,
+    "yaw_error_deg": 1.2347217461102833,
+    "yaw_rate_error_deg_s": 14.008829361870976
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.029779396284142983,
+    "planar_velocity_error_cm_s": 0.19697425908572436,
+    "policy": "recorded_dt_replay",
+    "source_step_count": 4,
+    "start_transition_sequence": 162,
+    "yaw_error_deg": 1.188313122571604,
+    "yaw_rate_error_deg_s": 12.65512561185833
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.14529486735931965,
+    "planar_velocity_error_cm_s": 0.2168403752776064,
+    "policy": "fixed_30_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 162,
+    "yaw_error_deg": 1.293441910766122,
+    "yaw_rate_error_deg_s": 13.652914544971335
+  },
+  {
+    "episode_id": 5202,
+    "planar_position_error_cm": 0.2346033141159757,
+    "planar_velocity_error_cm_s": 0.18781895840341248,
+    "policy": "fixed_60_hz",
+    "source_step_count": 4,
+    "start_transition_sequence": 162,
+    "yaw_error_deg": 1.0494261447001045,
+    "yaw_rate_error_deg_s": 11.862705864526454
+  }
+]

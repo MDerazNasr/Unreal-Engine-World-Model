@@ -1,0 +1,26 @@
+schema_name: motionworld_control_runtime_config
+schema_version: 1
+status: frozen_for_live_vertical_slice
+control_frequency_hz: 10
+decision_interval_ms: 100
+observation_schedule:
+  time_source: unreal_simulation_time
+  epoch: first_valid_post_reset_finalize
+  boundary_selection: first_valid_finalize_at_or_after_slot_boundary
+  catch_up_policy: latest_elapsed_slot_only_no_burst
+  sequence_policy: increment_once_per_emitted_observation
+  first_sequence: 0
+response_deadline:
+  duration_ms: 100
+  boundary: exclusive
+  measurement: unreal_monotonic_observation_send_to_action_receive
+  stale_when: next_observation_emitted_or_deadline_reached
+  late_response_policy: discard
+  valid_action_application: apply_immediately_and_hold_until_replaced_or_fallback
+fallback:
+  cold_start_action_local_cm_s: [0.0, 0.0]
+  hold_last_valid_action_for_consecutive_misses: 2
+  safe_stop_on_consecutive_miss: 3
+  miss_definition: no_valid_matching_action_by_deadline
+  valid_recovery_policy: reset_miss_count_after_current_matching_action
+  reset_policy: clear_action_sequence_deadline_and_miss_state

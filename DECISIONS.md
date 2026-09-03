@@ -1785,3 +1785,186 @@ speed it up, and this Apple build exposes no quantized linear engine.
 
 Related evidence: `configs/residual_width_sweep.yaml`,
 `scripts/run_residual_width_sweep.py`, and `artifacts/residual/compression_001/`.
+
+## D-049 - Use fixed 10 Hz slots with sequence-gated exclusive deadlines
+
+Status: accepted for the recovery live-control vertical slice
+
+Decision: Keep the original 10 Hz control target. The first valid post-reset `OnPostFinalize`
+sample defines slot and sequence zero. Unreal then emits the first valid finalized sample at or
+after each fixed 100 ms simulation-time boundary. It never sends a burst to catch up; if several
+boundaries elapsed, only the latest elapsed slot is emitted. An action is accepted only for its
+matching current episode and observation sequence, less than 100 ms after Unreal sent that
+observation, and before the next observation is emitted. The deadline boundary is exclusive.
+Sequence increments once per emitted observation, not once per skipped slot; skipped-slot count is
+diagnostic telemetry. A validated current action is applied immediately and held until a newer
+validated action or the fallback policy replaces it. Replanning is scheduled at 10 Hz, while the
+within-slot application instant reflects measured response latency.
+
+Why: Mover finalization is observed at a variable roughly 25--35 ms cadence in existing evidence,
+while MPC actions have a 100 ms semantic duration. Fixed simulation-time slots avoid callback-rate
+dependence and accumulated scheduling drift. Sequence plus elapsed-time checks prevent a quick
+answer to an obsolete state from being applied as if it were current.
+
+Alternatives considered: emit every finalized callback; use every third or fourth callback; advance
+the next slot from the actual callback time; send all missed slots in a burst; accept a late result
+for the next slot; silently reduce the controller to 5 Hz. These either create variable semantics,
+accumulate drift, overload the planner, apply stale actions, or change the target project.
+
+Failure behavior: Before the first valid result, command zero. A slot with no valid matching action
+by its deadline is one miss. Misses one and two hold the last valid action; miss three and later
+command zero. A valid current action clears the count. Reset, controller switch, shutdown, and
+reconnection clear held action, pending sequence/deadline, and miss state. A timely explicit
+planner fallback to zero is a valid safe result and is diagnosed separately from transport loss.
+
+Main assumption: Unreal simulation time is monotonic within an episode and `OnPostFinalize` is the
+authoritative sampling boundary. Unreal's own monotonic clock measures send-to-receive elapsed time;
+no cross-process clock comparison is required.
+
+How it could fail: Large game-thread stalls can skip control slots, variable observation lateness
+reduces the useful planner budget, and holding an earlier action for two misses may be unsafe near a
+fast obstacle. The live vertical-slice failure tests must measure these cases. Scenario-specific
+safety may later choose an earlier stop, but may not extend the three-miss bound.
+
+How I tested it: `configs/control_runtime.yaml` is loaded through an exact-key, exact-literal parser.
+Tests reject frequency/interval disagreement, a deadline longer than one slot, inclusive deadline
+semantics, coercible wrong types, an inconsistent hold/stop threshold, and unknown schema fields.
+
+Related evidence: `configs/control_runtime.yaml`,
+`motionworld/protocol/runtime_config.py`, and
+`tests/unit/test_control_runtime_config.py`.
+
+## D-050 - Use three 1/30-second dynamics substeps per 100 ms planning step
+
+Status: accepted for nominal and residual live-planner rollouts
+
+Decision: Keep `dynamics_substeps_per_plan_step: 3`, giving three equal `1/30 s` dynamics
+substeps inside every 100 ms planner step. Use the same schedule in scalar and vectorized planning
+and for both nominal and residual controllers. Continue to use each real transition's recorded
+`dt` during residual training and prediction evaluation. Recorded-`dt` future replay is an accuracy
+oracle only and is prohibited in live counterfactual planning.
+
+Why: Accepted Unreal callbacks are variable rather than 60 Hz. Train median/p95/max is
+`28.000/32.050/95.000 ms`; validation is `27.000/40.900/96.000 ms`. On 74 validation windows with
+constant action and current parameters, three `1/30 s` steps beat six `1/60 s` steps on p95
+position (`0.539 vs 1.184 cm`) and velocity (`2.320 vs 3.362 cm/s`). Six steps improved yaw p95
+slightly (`3.288 vs 3.916 deg`) and yaw-rate p95 (`40.460 vs 41.587 deg/s`), but its complete
+nominal CEM p95 was `143.565 ms`, versus `93.897 ms` for three steps, so it violates the 100 ms
+compute budget before transport or Unreal application is counted.
+
+Alternatives considered: assume Unreal is fixed 60 Hz; use six `1/60 s` substeps; replay future
+recorded `dt`; use callback count as control time; use one 100 ms dynamics step. Six steps lose the
+runtime gate and translation accuracy, future `dt` leaks unavailable information, callback count is
+variable, and one large step was not the original fidelity target.
+
+Main assumption: Linear interpolation between surrounding authoritative samples is adequate for
+comparing exact 100 ms endpoints in these free-space, constant-context windows. The result does not
+claim collision accuracy or bit-exact Unreal reproduction.
+
+How it could fail: The 74 windows exclude action and parameter changes, the fixed-30 nominal p95
+leaves little room under 100 ms for transport, and residual p95 remains `230.265 ms`. Live profiling
+and multi-step residual reconciliation remain mandatory; this decision does not pass R5.
+
+How I tested it: The audit uses only the seven SHA-256-approved train/validation files and reports
+zero test files opened. Both schedules total exactly 100 ms. Scalar/vectorized parity uses the
+selected three-substep configuration. Complete CEM timing used the same snapshot, candidate budget,
+seed, one CPU thread, three warmups, and 30 alternating calls per controller.
+
+Related evidence: `scripts/audit_timestep_policy.py`,
+`artifacts/recovery/timestep_policy_001/`, `configs/cem_planner.yaml`, and
+`tests/unit/test_timestep_policy_audit.py`.
+
+## D-051 - Freeze the recursive residual-training contract before implementation
+
+Status: contract and correctness-first differentiable implementation accepted
+
+Decision: Preserve both schema-v1 one-step checkpoints byte-for-byte as baselines. Train new,
+separately identified no-history and four-history multi-step variants over complete 1.5-second
+within-episode windows. Supervise at 15 elapsed-time boundaries, weight boundary `k` by
+`0.9^(k-1)`, use normalized component Huber with beta 1.0, and add `0.01` times mean normalized
+predicted-residual magnitude. Hold the rollout-start parameters, advance nominal internal state and
+predicted observable state recursively, and seed four-history with three real past queries before
+shifting predicted queries. Reject incomplete tails rather than pad them as targets.
+
+Training contract: CPU float32, widths 256/256/128, AdamW at 0.001 with weight decay 0.0001,
+batch size 16, 600 fixed optimizer steps, global gradient-norm clipping at 1.0, seed 20260904, and
+fixed-final-step checkpoint selection. Both variants must exist before validation is opened.
+
+Why: The current model is a legitimate deterministic one-step baseline, but its loss contradicts
+the original recursive-training specification. Merely looping NumPy inference would detach the
+gradient graph and cannot be called recursive training. The new path must backpropagate through
+predicted state, nominal hidden state, residual composition, and predicted history.
+
+Evidence so far: Exact config validation binds the accepted dataset-manifest hash and immutable
+baseline checkpoint hashes. The five accepted training episodes yield 475 no-history and 460
+four-history complete windows, each 52--56 recorded transitions. Unit tests cover the 15-boundary
+contract, incomplete-tail rejection, history prefix, padding masks, wrong hashes, and a two-step
+discounted-loss hand calculation.
+
+Implementation evidence: The Torch nominal step matches the scalar observable and all five hidden
+state fields within `1e-5`. Full 1.5-second no-history and four-history tests produce finite nonzero
+gradients from a zero-output model. A masked zero-vector normalization bug that initially produced
+NaN gradients was caught and corrected before acceptance. Two identical seeded training runs have
+equal traces and bit-equal weights. The implementation is correctness-first and processes sampled
+windows sequentially; runtime optimization may be required before the frozen full run.
+
+Remaining risk: The smaller fixed optimizer budget is a compute-bounded hypothesis and cannot be
+tuned after inspecting validation. Passing synthetic parity and gradient tests does not establish
+that the new model will improve held-out recursive prediction; that remains R4 evidence.
+
+Related files: `configs/residual_multistep_training.yaml`,
+`motionworld/models/multistep_training.py`, and `tests/unit/test_multistep_training.py`.
+
+## D-052 - Freeze separate final prediction and paired-control evaluation drafts
+
+Status: accepted draft; live capsule verification and R7 hash freeze remain mandatory
+
+Decision: Reserve episodes 5301/5302 only for final recursive prediction evaluation and keep their
+raw identities absent until R7 authorizes collection. These schedules are free-space; near-contact,
+post-push, and held-out-setting prediction strata must therefore be reported as absent rather than
+manufactured from other runs. Use separate controller seeds 7101-7112 for timed-gate, push-recovery,
+interpolated deceleration (650 cm/s^2), and OOD deceleration (1300 cm/s^2) scenarios. Counterbalance
+controller order and give nominal and residual MPC identical CEM randomness and all inputs except
+the transition model. Reactive control is contextual and required on timed-gate seeds, but is not
+part of the primary causal contrast.
+
+Primary estimand: Mean paired timed-gate success-proportion difference, residual MPC minus nominal
+MPC; 0.10 means 10 percentage points. Plan
+12 pairs and require at least 10. Compute a 95% paired percentile-bootstrap interval using 10,000
+resamples and seed 20260905. A positive claim requires observed improvement of at least 0.10, an
+interval strictly above zero, a non-inferior collision guardrail, residual end-to-end p95 strictly
+below 100 ms, and all four causal links. Significant primary harm, significant collision harm, or
+runtime failure is negative. The exact complement, including insufficient pairs or an interval
+overlapping zero, is unresolved.
+
+Why: Prediction accuracy, action selection, executed task outcome, safety, and deployability are
+different questions. Fixing identities and interpretation before results prevents seed selection,
+metric selection, and missing-run rules from adapting to the desired story. Pairing reduces
+scenario variance without pretending that 12 runs provide high power.
+
+Invalid-run rule: Collision, timeout, missed deadline, safe fallback, and non-recovery are valid
+controller outcomes. Only the enumerated infrastructure failures invalidate an attempt. Retain all
+attempts, retry the same identity at most once, never substitute a seed after results, and label a
+scenario with fewer than 10 valid pairs unresolved.
+
+Geometry correction: The provisional offline-planner assumption was 42 cm radius and 96 cm
+half-height. A headless UE 5.8.2 query transiently constructed the actual
+`SandboxCharacter_Mover` Blueprint and found one `CapsuleComponent` named `Capsule`, with both
+scaled and unscaled dimensions 30 cm radius and 86 cm half-height. The final-control draft now uses
+30/86. Historical offline evidence remains unchanged and must be described with its provisional
+42 cm planning radius.
+
+Pre-result scenario audit: The first draft accidentally combined a 700 cm push target with a 3.5 s
+timeout, although 165 cm/s permits at most 577.5 cm even without acceleration. It also declared a
+world-Y kick despite defining reset pose relatively. Correct the push target to reset-local
+`[500, 0]` cm, timeout to 6 s, and observation horizon to 4.5 s after the 1.5 s kick. Declare the
+kick as reset-local `[0, 250, 0]` cm/s and rotate it once into world space using verified reset yaw.
+This is a contract correction before any controller result, not post-result tuning.
+
+How I tested it: Fail-closed Python loaders reject test/control identity overlap, scenario seed
+drift, teacher forcing, raw test metadata, missing failure outcomes, and schema additions. The
+focused suite passes without opening any episode file.
+
+Related files: `configs/final_prediction_manifest.yaml`,
+`configs/final_control_manifest.yaml`, `motionworld/evaluation/contracts.py`, and
+`tests/unit/test_final_evaluation_contracts.py`.

@@ -1,0 +1,141 @@
+{
+  "accepted_raw_sha256": {
+    "5101": "eb437123d88dcf0c7b96b7f4fa5e2d75f502c2b70bc08408094b154693c3eaae",
+    "5102": "a70492872c8b5d55cf669b500c44a703cba6d6e14d8bb21a057cd8efb67094b1",
+    "5103": "59e4d5a2f0c6a2b2f4b3212d17335b8ead8a5d1f6ae947c86904e22f81626abf",
+    "5104": "3a67867880654362434c496c0f81a184bc77e4b3e0ac2237dfdfb6c0554b5427",
+    "5105": "d9e352128462909effb1b4ad45398a0db0a70aaeaef60f0ef874f09a063c2152",
+    "5201": "7ef1cc4756e2e49a0f94a15b61fc553e4f595dffebad85dd5ca86855d22336aa",
+    "5202": "34c3df8e3dbe893e7d89fdba001b8afd244af93dad2c2b3758b965feb5934ba1"
+  },
+  "cadence_ms": {
+    "train": {
+      "count": 740,
+      "maximum": 95.00000000000064,
+      "median": 27.99999999999958,
+      "minimum": 16.99999999999946,
+      "p95": 32.049999999999976
+    },
+    "validation": {
+      "count": 283,
+      "maximum": 96.00000000000009,
+      "median": 27.000000000000135,
+      "minimum": 16.000000000000014,
+      "p95": 40.89999999999992
+    }
+  },
+  "claim_boundary": "accepted train/validation cadence and interpolated constant-context 100 ms validation windows; recorded dt is retrospective and not deployable",
+  "collection_plan_sha256": "ef33fb44af39c89e8ac396548dea7b6f1d9d0204531164c5faff42dcf85be367",
+  "control_interval_s": 0.1,
+  "git_commit": "96d8879673300d4d53db9d8dfb0df78bac090d1e",
+  "policies": {
+    "fixed_30_hz": {
+      "metrics": {
+        "planar_position_error_cm": {
+          "count": 74,
+          "maximum": 1.0859127288931631,
+          "median": 0.042951963543202965,
+          "minimum": 1.5646207884856267e-07,
+          "p95": 0.5385242978493067
+        },
+        "planar_velocity_error_cm_s": {
+          "count": 74,
+          "maximum": 3.6177695218787846,
+          "median": 0.17964965145278855,
+          "minimum": 0.0,
+          "p95": 2.3199610604112517
+        },
+        "yaw_error_deg": {
+          "count": 74,
+          "maximum": 5.127927133390996,
+          "median": 0.0,
+          "minimum": 0.0,
+          "p95": 3.9162740816967183
+        },
+        "yaw_rate_error_deg_s": {
+          "count": 74,
+          "maximum": 55.345201757065034,
+          "median": 0.0,
+          "minimum": 0.0,
+          "p95": 41.58685612604328
+        }
+      },
+      "window_count": 74
+    },
+    "fixed_60_hz": {
+      "metrics": {
+        "planar_position_error_cm": {
+          "count": 74,
+          "maximum": 1.8312015328647249,
+          "median": 0.22833989156404216,
+          "minimum": 1.5646241990907583e-07,
+          "p95": 1.1839637190652623
+        },
+        "planar_velocity_error_cm_s": {
+          "count": 74,
+          "maximum": 4.888341622680329,
+          "median": 0.15934641298674768,
+          "minimum": 0.0,
+          "p95": 3.362357000761338
+        },
+        "yaw_error_deg": {
+          "count": 74,
+          "maximum": 4.402504527928729,
+          "median": 0.0,
+          "minimum": 0.0,
+          "p95": 3.287778700660454
+        },
+        "yaw_rate_error_deg_s": {
+          "count": 74,
+          "maximum": 54.04429237729266,
+          "median": 0.0,
+          "minimum": 0.0,
+          "p95": 40.45976754322648
+        }
+      },
+      "window_count": 74
+    },
+    "recorded_dt_replay": {
+      "metrics": {
+        "planar_position_error_cm": {
+          "count": 74,
+          "maximum": 0.921375609756069,
+          "median": 0.024635687387444705,
+          "minimum": 1.0741018741100561e-07,
+          "p95": 0.27596763983954
+        },
+        "planar_velocity_error_cm_s": {
+          "count": 74,
+          "maximum": 2.5256371396277615,
+          "median": 0.14876568580015803,
+          "minimum": 0.0,
+          "p95": 0.8119950168778846
+        },
+        "yaw_error_deg": {
+          "count": 74,
+          "maximum": 4.911955806724001,
+          "median": 0.0,
+          "minimum": 0.0,
+          "p95": 3.6696787175821455
+        },
+        "yaw_rate_error_deg_s": {
+          "count": 74,
+          "maximum": 54.78828374468304,
+          "median": 0.0,
+          "minimum": 0.0,
+          "p95": 41.03310206247004
+        }
+      },
+      "window_count": 74
+    }
+  },
+  "schema_name": "motionworld_timestep_policy_audit",
+  "schema_version": 1,
+  "test_files_opened": 0,
+  "window_filter": {
+    "authoritative_endpoint": "linear_interpolation_at_exactly_100_ms",
+    "constant_action": true,
+    "constant_current_parameters": true,
+    "split": "validation"
+  }
+}

@@ -78,6 +78,22 @@ No. Evaluation begins after the impulse. The question is whether observed post-p
 
 No. That is why the project has separate prediction and task metrics. The positive claim requires a specific corrected prediction to change the selected action and improve same-seed execution.
 
+### Why use paired seeds and a paired bootstrap?
+
+Each seed fixes the same reset and scenario for nominal and residual MPC, so their within-seed
+difference removes much of the variation caused by scenario difficulty. The bootstrap resamples
+complete pairs, not individual controller runs, because the pair is the independent comparison
+unit. The primary estimand is residual-minus-nominal timed-gate success probability. Twelve pairs
+are planned, at least ten must be valid, and the small sample means an interval overlapping zero is
+unresolved rather than proof that the controllers are equal.
+
+### Why do timeouts and deadline misses remain valid results?
+
+They are consequences of deploying the controller under the promised task and runtime contract.
+Discarding them would condition the analysis on successful behavior and bias the comparison. Only
+predeclared infrastructure faults—such as the wrong manifest, a failed reset, or unusable logging—
+can invalidate an attempt, and every invalid attempt is retained in the audit trail.
+
 ### What happens outside the training distribution?
 
 I sweep movement parameters and push strength inside and outside the training range, show degradation curves, and preserve a failure case. The model is only claimed to be reliable near represented state-action distributions.
@@ -300,6 +316,51 @@ Examiner assessment: Passed after teaching. A transition is accepted only when i
 states share the active episode, its finalized sequence is adjacent, and its applied action identity
 matches the attempted step. Any mismatch fails closed instead of becoming a false teleport or
 state-action training pair.
+
+### Q6 - Why must reset clear hidden state? (passed 2026-09-03)
+
+Question: Why is returning only the visible transform to the same pose insufficient for a fair
+paired controller comparison?
+
+Candidate answer, lightly spelling-normalized: "Because the hidden states remain and affect the
+subsequent action."
+
+Examiner assessment: Correct. Hidden velocity, angular velocity, Smooth Walking spring state,
+previous-action state, model history, planner warm start, gate phase, and protocol sequence can all
+change the next outcome despite an identical visible pose. Interview-ready refinement: distinguish
+state that we explicitly reset, state that we resynchronize from authoritative Unreal observations,
+and inaccessible state that remains a declared limitation.
+
+### Q7 - Why not use future recorded timestep values in live MPC? (passed 2026-09-03)
+
+Question: Why is replaying the recorded `dt` sequence acceptable as a retrospective oracle but not
+as the live planner's future substep schedule?
+
+Candidate answer, lightly spelling-normalized: "Because it would not be accurate. It would act
+almost as a prediction that would not be reflected in the actual timestep."
+
+Examiner assessment: Passed after refinement. The decisive issue is causality: future callback
+durations are not known when CEM evaluates candidate actions. Supplying a previously recorded future
+`dt` sequence would give the planner information unavailable at deployment and would not match the
+next live run. The causal deployment policy is therefore three fixed 1/30-second substeps per 100 ms
+control step; recorded `dt` remains evaluation-only.
+
+### Q8 - Why can one-step accuracy fail inside MPC? (learning; answer supplied 2026-09-03)
+
+Question: Why can a residual model that looks accurate on one-step validation still select a worse
+MPC action, and what evidence finally determines whether it helped?
+
+Candidate answer: "I don't know."
+
+Teacher answer: One-step validation repeatedly starts from real Unreal states. MPC recursively feeds
+predicted states back into the model, so small errors compound and later queries can leave the
+training distribution. CEM evaluates many candidates and can select trajectories that exploit these
+model weaknesses because they look artificially cheap. Only paired same-seed authoritative Unreal
+execution can establish that the resulting changed action improves control.
+
+Examiner assessment: Not yet passed. The candidate must later explain, unaided, recursive error,
+planner/model exploitation, why the model's own predicted return is not ground truth, and why Unreal
+adjudicates the fourth causal link.
 
 ## 7. Day 1 closeout answers to practise
 

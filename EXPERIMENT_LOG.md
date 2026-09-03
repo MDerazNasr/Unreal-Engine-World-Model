@@ -1705,3 +1705,70 @@ no quantized linear engine. These probes are diagnostic, not accepted performanc
 
 Artifacts: `artifacts/residual/compression_001/`; the plot was visually reviewed. Prospective
 freeze commit: `342720b`; runner commit/provenance: `56899c8`. Test files opened: zero.
+
+## TSTEP-001 — reconcile planner dynamics substeps
+
+Question: Should each 100 ms planning step use three `1/30 s` substeps, six `1/60 s` substeps, or
+future recorded Unreal `dt` values?
+
+Method: Strictly audit the seven SHA-256-approved train/validation episodes, opening zero pending
+test files. Measure all 1,023 recorded transition durations. For physical comparison, select 74
+validation windows spanning exactly 100 ms whose action and current movement parameters remain
+constant. Linearly interpolate the authoritative endpoint between its surrounding finalized
+samples, then roll the same observed state, hidden state, parameters, and local action under
+recorded-`dt`, fixed-30, and fixed-60 schedules. Separately time complete 256/32/3 CEM calls under
+both fixed schedules using one CPU thread, three warmups, and 30 alternating calls per controller.
+
+Result: Train `dt` median/p95/max is `28.000/32.050/95.000 ms`; validation is
+`27.000/40.900/96.000 ms`. Fixed-30 versus fixed-60 p95 errors are `0.539 vs 1.184 cm` position,
+`2.320 vs 3.362 cm/s` velocity, `3.916 vs 3.288 deg` yaw, and `41.587 vs 40.460 deg/s` yaw rate.
+Complete fixed-30 nominal/residual CEM p95 is `93.897/230.265 ms`; fixed-60 is
+`143.565/371.585 ms`.
+
+Decision: Select three `1/30 s` substeps. They better reproduce translation, preserve existing
+scalar/vectorized parity, and keep nominal offline computation below 100 ms. The modest fixed-60
+yaw advantage cannot compensate for worse translation and a failed nominal deadline. Recorded
+future `dt` is a retrospective oracle, never a live input. Residual MPC still fails the runtime
+gate; TSTEP-001 does not change that negative result.
+
+Limitations: The physical comparison uses free-space constant-context windows and interpolated
+100 ms endpoints. It does not establish collision fidelity or end-to-end latency. Fixed-30 nominal
+p95 leaves little transport/application margin, and the 30-call latency samples remain bounded
+benchmarks rather than live control evidence.
+
+Artifacts: `artifacts/recovery/timestep_policy_001/`. Test files opened: zero.
+
+## R0-EVAL-CONTRACT-001 — freeze separate prediction and control evaluation drafts
+
+Question: What exact evidence would count as positive, negative, or unresolved before final data is
+available?
+
+Decision: Reserve 5301/5302 solely for recursive free-space prediction evaluation. Their frozen
+schedules contain no contact, push, or setting override, so those prediction strata are explicitly
+predeclared absent. Separately freeze 12 controller identities for timed-gate, post-push,
+interpolated-deceleration, and OOD-deceleration execution. Nominal and residual MPC share each seed,
+candidate noise, cost, horizon, budget, and scenario; only the transition model differs.
+
+Primary analysis: Mean paired timed-gate success difference, residual minus nominal, with 10,000
+paired percentile-bootstrap resamples at seed 20260905. Twelve pairs are planned and at least ten
+must be valid. Positive requires at least +0.10 observed effect, an interval strictly above zero,
+the collision and sub-100-ms runtime guardrails, and all four causal links. Significant harm or a
+failed safety/runtime guardrail is negative; the exact complement is unresolved.
+
+Integrity: Controller failures remain outcomes. Only predeclared infrastructure defects can
+invalidate an attempt, which remains logged and may be retried once under the same identity. No
+post-result seed substitution is permitted. The initial 42/96 cm capsule hypothesis was rejected by
+a headless UE 5.8.2 query: transient construction of the actual `SandboxCharacter_Mover` found one
+capsule with 30 cm radius and 86 cm half-height at unit scale. The final-control draft was corrected
+before result collection; historical offline artifacts retain their declared provisional 42 cm
+radius. Fourteen focused tests pass without accessing test episode bytes.
+
+Pre-result review correction: A 700 cm push target with a 3.5 s timeout was unreachable under the
+165 cm/s action cap, and world `+Y` was not intrinsically lateral under a relative reset yaw. The
+reconciled draft uses a reachable reset-local 500 cm push target, 6 s timeout, a kick at 1.5 s,
+4.5 s of post-kick observation, and a reset-local +Y 250 cm/s velocity delta transformed once to
+world space at scenario start. The 0.10 primary effect is explicitly a proportion difference equal
+to 10 percentage points.
+
+Artifacts: `configs/final_prediction_manifest.yaml`, `configs/final_control_manifest.yaml`,
+`motionworld/evaluation/contracts.py`, and `tests/unit/test_final_evaluation_contracts.py`.

@@ -1,0 +1,25 @@
+MotionWorld R0 capsule-geometry audit
+Date: 2026-09-03
+Engine: Unreal Engine 5.8.2, CL 56702186
+Project: Game Animation Sample
+Asset: /Game/Blueprints/SandboxCharacter_Mover
+Asset SHA-256: 8ee47c34a390141dff33cf495bfcc380167a72226680178e027c5b2cd629a963
+Source log SHA-256: c3ad51050eeedd700082a021d87b000588d420506d5364744579305fe585c8f9
+Source log accepted-output lines: 1993-2009
+Method: scripts/query_unreal_capsule.py loaded the Blueprint, transiently constructed its generated
+class without saving the map or asset, required exactly one CapsuleComponent, and queried scaled and
+unscaled dimensions.
+
+Rejected attempt:
+The class-default object returned zero constructed capsules. This was not accepted as evidence of
+missing collision geometry because Blueprint construction had not run.
+
+Accepted query output:
+MOTIONWORLD_COMPONENT_COUNT count=15
+MOTIONWORLD_COMPONENT name=Capsule class=CapsuleComponent
+MOTIONWORLD_CAPSULE name=Capsule unscaled_radius_cm=30.000000000 unscaled_half_height_cm=86.000000000 scaled_radius_cm=30.000000000 scaled_half_height_cm=86.000000000
+
+Interpretation:
+Final-control collision and clearance calculations must use radius 30 cm and half-height 86 cm for
+this pawn. The historical offline-planner radius of 42 cm was provisional and is not rewritten.
+No final prediction or controller-result data was opened.

@@ -1,0 +1,70 @@
+schema_name: motionworld_final_prediction_manifest
+schema_version: 1
+status: frozen_draft_before_test_collection
+purpose: final_prediction_only_not_controller_evaluation
+integrity:
+  reserved_episode_ids: [5301, 5302]
+  forbidden_uses:
+    - training
+    - validation
+    - checkpoint_selection
+    - controller_seed_selection
+    - scenario_tuning
+  raw_file_metadata_policy: absent_until_r7_authorized_collection
+  unseal_gate: r7_final_freeze_complete
+episodes:
+  - episode_id: 5301
+    split: test
+    status: pending_uncollected
+    motion_phase_duration_s: 0.60
+    intermediate_stop_duration_s: 0.40
+    final_stop_duration_s: 0.35
+    forward_speed_cm_s: 155.0
+    reverse_speed_cm_s: 75.0
+    lateral_speed_cm_s: 100.0
+    diagonal_component_speed_cm_s: 105.0
+  - episode_id: 5302
+    split: test
+    status: pending_uncollected
+    motion_phase_duration_s: 0.75
+    intermediate_stop_duration_s: 0.18
+    final_stop_duration_s: 0.55
+    forward_speed_cm_s: 90.0
+    reverse_speed_cm_s: 140.0
+    lateral_speed_cm_s: 150.0
+    diagonal_component_speed_cm_s: 70.0
+model_roles:
+  - faithful_nominal
+  - residual_no_history_multistep
+  - residual_four_history_multistep
+checkpoint_policy:
+  residual_identity_source: validation_only_fixed_final_step_selection
+  checkpoint_hashes: pending_r4_training_before_r7_unseal
+rollout:
+  mode: recursive_no_teacher_forcing
+  horizons_s: [0.5, 1.0, 1.5]
+  endpoint_rule: first_recorded_boundary_at_or_after_horizon
+  action_source: recorded_causal_actions
+  duration_source: recorded_transition_dt
+  parameter_policy: hold_rollout_start_snapshot
+metrics:
+  - {name: planar_position_error, unit: cm, summaries: [median, p95]}
+  - {name: local_velocity_error, unit: cm_per_s, summaries: [median, p95]}
+  - {name: facing_error, unit: deg, summaries: [median, p95]}
+  - {name: angular_velocity_error, unit: deg_per_s, summaries: [median, p95]}
+strata:
+  - {name: free_space, status: predeclared_present, source_episode_ids: [5301, 5302]}
+  - {name: near_contact, status: predeclared_absent, reason: no_contact_scenario_in_frozen_test_schedules}
+  - {name: post_push, status: predeclared_absent, reason: no_external_perturbation_in_frozen_test_schedules}
+  - {name: held_out_movement_setting, status: predeclared_absent, reason: no_setting_override_in_frozen_test_schedules}
+statistics:
+  pairing_unit: identical_episode_start_and_horizon
+  bootstrap_seed: 20260905
+  bootstrap_resamples: 10000
+  confidence_level: 0.95
+  interval: percentile_paired_bootstrap
+interpretation:
+  primary_metric: planar_position_error_p95_at_1.5_s
+  positive: selected_residual_ci_upper_for_paired_difference_residual_minus_nominal_below_zero_and_no_other_p95_metric_exceeds_nominal_by_more_than_10_percent
+  negative: selected_residual_ci_lower_for_primary_paired_difference_above_zero_or_any_nonfinite_recursive_rollout
+  unresolved: all_other_outcomes_including_mixed_metrics_or_interval_overlapping_zero

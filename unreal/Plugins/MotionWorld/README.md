@@ -46,16 +46,19 @@ Python loader validated every row, reconciled all counters, and found no partial
 The timed-gate foundation evaluates sinusoidal blocker position and velocity directly from absolute
 scenario time. Its focused actual-sample automation test and strict universal builds pass. A
 separate runtime actor owns blocking geometry and collision evidence; bridge integration, scenario
-schema-v2 fields, and independent Python revalidation pass. Live physical event trials remain
-pending.
+schema-v2 fields, and independent Python revalidation pass. Live episode 1901 captured a retained
+gate collision, and same-seed episode 1902 reproduced the schedule and initial state. Later
+schema-v5 episode 4301 captured one source-aligned controlled velocity perturbation and its
+recovery interval.
 
 A separate default-off Smooth Walking diagnostic reads the active public movement-mode object and
 the finalized public Mover sync collection through a narrow UE 5.8 reflection contract. It captures
 the 14 audited float parameters, double-facing flag, and five known spring-state fields without
 including Epic's private state header. Missing, type-mismatched, out-of-range, or non-finite data
 fails closed; output is throttled, capped, and explicitly excluded from model input. Closed-editor
-build and automation evidence passes; one live opt-in trace is required before freezing runtime
-Blueprint values into the Python nominal model.
+build and automation evidence passes. Live session `FF6768704542` accepted 1,422 valid finalized
+reads with no invalid read and established the runtime parameter/state contract subsequently used
+by the Python nominal model.
 
 Build the isolated plugin package on macOS with:
 

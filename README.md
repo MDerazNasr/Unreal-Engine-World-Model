@@ -22,7 +22,8 @@ The first three links have bounded evidence. The last link remains unproven. See
 
 - [PROJECT_SPEC.md](PROJECT_SPEC.md) - exact system contract and acceptance criteria
 - [PROJECT_PLAN.md](PROJECT_PLAN.md) - deadline-adjusted execution plan, gates, branches, and deliverables
-- [CHECKLIST.md](CHECKLIST.md) - canonical atomic build, evidence, packaging, and interview-readiness checklist
+- [RECOVERY_CHECKLIST.md](RECOVERY_CHECKLIST.md) - active dependency-ordered plan for completing the live causal-control target
+- [CHECKLIST.md](CHECKLIST.md) - historical original-plan checklist retained for audit and traceability
 - [THEORY.md](THEORY.md) - equations, hand calculations, assumptions, and teaching notes
 - [DECISIONS.md](DECISIONS.md) - design decisions and rejected alternatives
 - [EXPERIMENT_LOG.md](EXPERIMENT_LOG.md) - hypotheses, configurations, results, and interpretations

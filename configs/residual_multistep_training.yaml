@@ -1,0 +1,49 @@
+schema_name: motionworld_residual_multistep_training_config
+schema_version: 1
+status: frozen_before_multistep_training
+source_dataset_manifest_sha256: 4c5d921194d339ba0617c930ce1ae41497ac5e04b14280c9ea8610bc3cc4d770
+immutable_one_step_baselines:
+  no_history_checkpoint_sha256: d979549b30bd01b3a304697074c295caf6c7fa16a4a8e25a08c15eec1da7a4f6
+  four_history_checkpoint_sha256: da4e2281c50b5ff329dd41ea3b02811ba634a35c461923c7afc240c11872c30f
+variants:
+  - name: no_history_multistep
+    history_length: 1
+  - name: four_history_multistep
+    history_length: 4
+horizon:
+  duration_s: 1.5
+  supervision_interval_s: 0.1
+  endpoint_policy: first_recorded_boundary_at_or_after_each_supervision_time
+  incomplete_window_policy: reject
+  action_and_dt_policy: recorded_future_queries_known_to_training_evaluator
+  parameter_policy: hold_rollout_start_current_snapshot
+  nominal_internal_state_policy: advance_recursively_without_observed_reseeding
+  history_policy: three_real_prefix_queries_then_predicted_queries
+loss:
+  state: normalized_component_huber
+  huber_beta: 1.0
+  discount_gamma_per_supervision_interval: 0.9
+  state_reduction: weighted_mean_over_windows_boundaries_and_six_components
+  residual_magnitude_weight: 0.01
+  residual_magnitude_reduction: mean_normalized_squared_output_over_valid_dynamics_steps
+  residual_output_clipping: none
+  gradient_norm_clip: 1.0
+architecture:
+  hidden_widths: [256, 256, 128]
+  activation: silu
+  zero_initialized_output: true
+optimizer:
+  name: adamw
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  batch_size: 16
+  optimizer_steps: 600
+  batch_sampling: fixed_seed_uniform_windows_with_replacement
+  trace_interval_steps: 20
+reproducibility:
+  seed: 20260904
+  device: cpu
+  dtype: float32
+  train_both_variants_before_validation: true
+  checkpoint_selection: fixed_final_optimizer_step_no_validation_early_stopping
+  test_policy: do_not_collect_or_open_during_training_or_model_selection

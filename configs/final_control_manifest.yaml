@@ -1,0 +1,121 @@
+schema_name: motionworld_final_control_manifest
+schema_version: 1
+status: frozen_draft_geometry_verified_headless
+purpose: paired_authoritative_unreal_controller_evaluation
+controllers:
+  primary_pair: [nominal_mpc, residual_mpc]
+  contextual_only: [reactive]
+  contextual_required_scenarios: [timed_gate]
+  fairness_rule: identical_observation_candidate_noise_cost_horizon_budget_and_scenario_only_transition_model_differs
+identity:
+  prediction_episode_ids_forbidden: [5301, 5302]
+  paired_scenario_seeds: [7101, 7102, 7103, 7104, 7105, 7106, 7107, 7108, 7109, 7110, 7111, 7112]
+  controller_order_by_pair: [nominal_first, residual_first, residual_first, nominal_first, nominal_first, residual_first, nominal_first, residual_first, residual_first, nominal_first, residual_first, nominal_first]
+  cem_randomness_rule: same_seed_and_candidate_noise_for_both_controllers
+geometry_and_reset:
+  reset_pose: captured_mover_authoritative_anchor_position_orientation_and_mode
+  equality_tolerance:
+    planar_position_cm: 0.5
+    yaw_deg: 0.5
+    planar_speed_cm_per_s: 1.0
+  agent_capsule:
+    radius_cm: 30.0
+    half_height_cm: 86.0
+    source: headless_transient_sandbox_character_mover_query_2026_09_03
+  mismatch_policy: create_new_manifest_version_before_collection
+common_target:
+  frame: reset_anchor_character_local_xy
+  position_cm: [700.0, 0.0]
+  desired_terminal_velocity_cm_per_s: [0.0, 0.0]
+scenarios:
+  timed_gate:
+    paired_seeds: [7101, 7102, 7103, 7104, 7105, 7106, 7107, 7108, 7109, 7110, 7111, 7112]
+    timeout_s: 8.0
+    goal: cross_gate_plane_without_gate_collision
+    gate:
+      origin_from_reset_cm: [600.0, 0.0, 0.0]
+      motion_axis_reset_local: [0.0, 1.0, 0.0]
+      crossing_plane_normal_reset_local: [1.0, 0.0, 0.0]
+      half_extents_cm: [30.0, 150.0, 90.0]
+      amplitude_cm: 200.0
+      period_s: 4.0
+      phase_offsets_rad: [0.0, 0.5235987756, 1.0471975512, 1.5707963268, 2.0943951024, 2.6179938780, 3.1415926536, 3.6651914292, 4.1887902048, 4.7123889804, 5.2359877560, 5.7595865316]
+  push_recovery:
+    paired_seeds: [7101, 7102, 7103, 7104, 7105, 7106, 7107, 7108, 7109, 7110, 7111, 7112]
+    timeout_s: 6.0
+    goal: reach_push_target_after_velocity_kick
+    target_position_reset_local_cm: [500.0, 0.0]
+    perturbation:
+      type: one_tick_additive_world_velocity_not_force
+      trigger_time_s: 1.5
+      declared_frame: reset_anchor_character_local
+      delta_reset_local_cm_per_s: [0.0, 250.0, 0.0]
+      application_rule: rotate_once_to_world_using_verified_reset_yaw_and_record_derived_world_vector
+      post_perturbation_observation_s: 4.5
+    recovery_definition:
+      cross_track_error_at_most_cm: 10.0
+      absolute_lateral_velocity_at_most_cm_per_s: 10.0
+      sustained_for_s: 0.3
+  held_out_setting:
+    paired_seeds: [7101, 7102, 7103, 7104, 7105, 7106, 7107, 7108, 7109, 7110, 7111, 7112]
+    base_scenario: timed_gate
+    changed_parameter: deceleration_cm_per_s2
+    value: 650.0
+    relation_to_training_support: interpolated_between_observed_300_and_1000
+    parameter_visibility: causal_current_parameter_visible_to_nominal_and_residual
+  ood_setting:
+    paired_seeds: [7101, 7102, 7103, 7104, 7105, 7106, 7107, 7108, 7109, 7110, 7111, 7112]
+    base_scenario: timed_gate
+    changed_parameter: deceleration_cm_per_s2
+    value: 1300.0
+    relation_to_training_support: above_observed_maximum_1000
+    parameter_visibility: causal_current_parameter_visible_to_nominal_and_residual
+metrics:
+  - {name: success, unit: binary_episode_indicator}
+  - {name: collision_occurred, unit: binary_episode_indicator}
+  - {name: collision_count, unit: count_per_episode}
+  - {name: completion_time, unit: s_from_scenario_start_capped_at_timeout}
+  - {name: time_to_goal, unit: s_from_scenario_start_or_null_if_unsuccessful}
+  - {name: minimum_capsule_gate_clearance, unit: cm_signed_negative_means_penetration}
+  - {name: push_recovered, unit: binary_episode_indicator}
+  - {name: push_recovery_time, unit: s_after_kick_or_null_if_not_recovered}
+  - {name: predicted_realized_return_gap, unit: planner_cost_units}
+  - {name: selected_action_disagreement, unit: cm_per_s_l2}
+  - {name: end_to_end_latency, unit: ms_unreal_send_to_matching_receive}
+  - {name: deadline_miss_count, unit: count_per_episode}
+  - {name: fallback_action_count, unit: count_per_episode}
+primary_analysis:
+  estimand: mean_paired_timed_gate_success_difference_residual_minus_nominal
+  effect_unit: proportion_residual_minus_nominal_where_0.10_equals_10_percentage_points
+  minimum_effect: 0.10
+  bootstrap:
+    resampling_unit: complete_seed_pair
+    seed: 20260905
+    resamples: 10000
+    confidence_level: 0.95
+    interval: percentile_paired_bootstrap
+  safety_guardrail: upper_95_ci_of_paired_collision_indicator_difference_residual_minus_nominal_at_most_zero
+  runtime_guardrail: residual_completed_response_end_to_end_p95_strictly_below_100_ms_and_deadline_miss_rate_at_most_nominal
+validity:
+  minimum_valid_pairs_per_scenario: 10
+  planned_pairs_per_scenario: 12
+  infrastructure_invalid_reasons:
+    - reset_outside_frozen_tolerance
+    - wrong_manifest_or_checkpoint_hash
+    - protocol_or_scenario_identity_mismatch
+    - missing_or_unparseable_log_footer
+    - service_unavailable_before_scenario_start
+    - latency_instrumentation_failure
+  valid_controller_failures:
+    - collision
+    - timeout
+    - missed_deadline
+    - safe_fallback
+    - failure_to_recover
+    - service_failure_after_scenario_start
+  retry_policy: retain_all_attempts_and_retry_same_pair_identity_at_most_once_without_seed_substitution
+  insufficient_pairs_policy: unresolved_no_post_result_seed_substitution
+interpretation:
+  positive: minimum_pairs_met_and_primary_observed_effect_at_least_0.10_and_primary_ci_lower_above_zero_and_collision_guardrail_and_runtime_guardrail_and_all_four_causal_links_present
+  negative: minimum_pairs_met_and_at_least_one_of_primary_ci_upper_below_zero_collision_ci_lower_above_zero_or_runtime_guardrail_failed
+  unresolved: exact_complement_of_positive_and_negative_including_primary_interval_overlapping_zero_missing_causal_link_or_insufficient_pairs
