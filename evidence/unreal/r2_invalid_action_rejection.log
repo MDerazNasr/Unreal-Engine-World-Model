@@ -1,0 +1,68 @@
+MotionWorld R2.4 malformed/non-finite action rejection evidence
+Date: 2026-09-04 Europe/Copenhagen (PIE log 2026-09-03 23:17-23:21 UTC)
+Source: local Game Animation Sample Editor log and bounded invalid-action probe
+Session: 05E030AE594D
+Target episode: 7298
+Candidate visual observation: `move then stop`; no runaway or invalid motion observed
+
+Acceptance decision: PASS for "send malformed and non-finite actions during motion and verify safe
+behavior."
+
+Probe command used:
+motionworld-invalid-action-probe \
+  --service-config configs/control_service_echo_forward.yaml \
+  --episode-id 7298 --malformed-sequence 10 --nonfinite-sequence 20 \
+  --completion-sequence 25 --receive-timeout-ms 300000
+
+Configuration deviation and bounded interpretation:
+- The Blueprint retained two reset repeats, so episode 7298 reset after 60 finalized transitions at
+  observation 21 and episode 7299 began before planned completion observation 25.
+- The probe consequently timed out while ignoring 7299 and emitted no completion report.
+- This does not obscure either injected fault: source inspection fixes the only two invalid sends at
+  exact 7298/10 and 7298/20, and Unreal's trace has the complete expected fingerprint through valid
+  recovery 7298/21.
+- The probe default is corrected after this run to exit at sequence 21, the first valid action after
+  the second fault. No gameplay, protocol, deadline, or production-service behavior changed.
+
+Independent episode-7298 audit:
+- reset verified on attempt 1; observation zero had no previous action/source
+- observations/actions 0-9 established ten accepted bounded `(100,0)` forward actions
+- observation 10 has no accepted action; the next command remains exact bounded `(100,0)`
+- action 11 is accepted current and before deadline, proving recovery from malformed JSON
+- actions 11-19 provide nine accepted bounded forward actions before the second fault
+- observation 20 has no accepted action; the next command remains exact bounded `(100,0)`
+- action 21 is accepted current and before deadline, proving recovery from the non-finite command
+- exactly 20 actions were accepted in 7298, matching 0-9, 11-19, and 21
+- final session counters report exactly two rejected actions, both classified malformed, and zero
+  stale actions; no invalid packet reached acceptance
+- state sequence 120 reports position X advanced from -800.00 to -604.96 cm with exact bounded
+  world/local velocity `(100,0,0)` immediately before the reset
+- the verified 7299 reset then returned the pawn to `(-800,0,90)` with zero velocity; after the probe
+  timed out, the ordinary service-loss fallback kept it stopped
+- session final: observations=712, actions_accepted=20, rejected=2, stale=0, malformed=2,
+  missed=689, held=2, safe_stops=687, evidence_written=736, evidence_dropped=0
+
+Selected exact source lines:
+[2026.09.03-23.17.46:699][256]LogMotionWorldNetwork: Display: MotionWorld network episode started: session=05E030AE594D episode=7298 first_observation_sequence=0 applied_local_cm_per_sec=(0.00, 0.00) prior_state_cleared=true.
+[2026.09.03-23.17.46:699][256]LogMotionWorldBridge: Display: MotionWorld reset verified: episode=7298 attempts=1 state_sequence=60 mover_frame=61 position_world_cm=(-800.00, 0.00, 90.00) yaw_deg=0.00 mode=Walking position_error_cm=0.000 facing_error_deg=0.000 linear_speed_cm_per_sec=0.000 angular_speed_deg_per_sec=0.000; new episode may seed this state.
+[2026.09.03-23.17.46:699][256]LogMotionWorldNetwork: Display: MotionWorld network observation sent: session=05E030AE594D episode=7298 observation=0 state_sequence=60 simulation_time_s=2.067000 facing_yaw_deg=0.000000 previous_action_present=false previous_action_source=-1.
+[2026.09.03-23.17.47:645][282]LogMotionWorldNetwork: Display: MotionWorld network action accepted: session=05E030AE594D episode=7298 source_observation=9 desired_local_cm_per_sec=(100.000000, 0.000000) unreal_end_to_end_latency_ms=35.452377 current_identity_match=true before_deadline=true.
+[2026.09.03-23.17.47:717][284]LogMotionWorldNetwork: Display: MotionWorld network observation sent: session=05E030AE594D episode=7298 observation=10 state_sequence=88 simulation_time_s=3.084000 facing_yaw_deg=0.000000 previous_action_present=true previous_action_source=9.
+[2026.09.03-23.17.47:901][286]LogMotionWorldBridge: Display: MotionWorld command echo: revision=17 frame=character_local resolved=true facing_yaw_deg=0.00 finite=true requested_frame=(100.00, 0.00, 0.00) submitted_world=(100.00, 0.00, 0.00) echoed_world=(100.00, 0.00, 0.00) match=true
+[2026.09.03-23.17.47:938][287]LogMotionWorldNetwork: Display: MotionWorld network action accepted: session=05E030AE594D episode=7298 source_observation=11 desired_local_cm_per_sec=(100.000000, 0.000000) unreal_end_to_end_latency_ms=36.304250 current_identity_match=true before_deadline=true.
+[2026.09.03-23.17.48:698][311]LogMotionWorldNetwork: Display: MotionWorld network action accepted: session=05E030AE594D episode=7298 source_observation=19 desired_local_cm_per_sec=(100.000000, 0.000000) unreal_end_to_end_latency_ms=36.515750 current_identity_match=true before_deadline=true.
+[2026.09.03-23.17.48:739][312]LogMotionWorldNetwork: Display: MotionWorld network observation sent: session=05E030AE594D episode=7298 observation=20 state_sequence=116 simulation_time_s=4.067000 facing_yaw_deg=0.000000 previous_action_present=true previous_action_source=19.
+[2026.09.03-23.17.48:853][315]LogMotionWorldBridge: Display: MotionWorld command echo: revision=27 frame=character_local resolved=true facing_yaw_deg=0.00 finite=true requested_frame=(100.00, 0.00, 0.00) submitted_world=(100.00, 0.00, 0.00) echoed_world=(100.00, 0.00, 0.00) match=true
+[2026.09.03-23.17.48:886][316]LogMotionWorldBridge: Display: MotionWorld state sample: protocol=1 sequence=120 valid=true mover_step_frame=121 sim_time_s=4.215000 step_s=0.034000 resim=false mode=Walking position_world_cm=(-604.96, 0.00, 88.27) velocity_world_cm_per_sec=(100.00, 0.00, 0.00) velocity_local_planar_cm_per_sec=(100.00, 0.00, 0.00) facing_yaw_deg=0.00 facing_unit_world=(1.000000, 0.000000) angular_velocity_world_deg_per_sec=(0.00, 0.00, 0.00)
+[2026.09.03-23.17.48:887][316]LogMotionWorldNetwork: Display: MotionWorld network action accepted: session=05E030AE594D episode=7298 source_observation=21 desired_local_cm_per_sec=(100.000000, 0.000000) unreal_end_to_end_latency_ms=34.228291 current_identity_match=true before_deadline=true.
+[2026.09.03-23.17.48:919][317]LogMotionWorldNetwork: Display: MotionWorld network reset boundary: session=05E030AE594D old_episode=7298 outstanding_observation=21 action_state_cleared=true.
+[2026.09.03-23.17.48:952][318]LogMotionWorldBridge: Display: MotionWorld reset verified: episode=7299 attempts=1 state_sequence=122 mover_frame=123 position_world_cm=(-800.00, 0.00, 90.00) yaw_deg=0.00 mode=Walking position_error_cm=0.000 facing_error_deg=0.000 linear_speed_cm_per_sec=0.000 angular_speed_deg_per_sec=0.000; new episode may seed this state.
+[2026.09.03-23.21.33:853][ 60]LogMotionWorldNetwork: Display: MotionWorld network evidence stopped: session=05E030AE594D observations_sent=712 actions_accepted=20 rejected=2 stale=0 malformed=2 missed=689 held=2 safe_stops=687 evidence_written=736 evidence_dropped=0.
+
+Interpretation:
+Both invalid packets failed structural validation and were never accepted. Each isolated absence
+caused one bounded hold of the last validated 100 cm/s action, and the immediately following current
+action recovered control. The second configured reset—not an invalid value—then cleared the command;
+later service absence selected safe zero. Candidate observation and authoritative state agree.
+
+Final-test episodes 5301/5302 opened: zero.

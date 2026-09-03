@@ -77,7 +77,7 @@ def _observation(episode: int, sequence: int) -> bytes:
         ({"episode_id": -1}, "non-negative"),
         ({"malformed_sequence": 2}, "three valid actions"),
         ({"nonfinite_sequence": 4}, "valid recovery action"),
-        ({"completion_sequence": 6}, "post-fault recovery"),
+        ({"completion_sequence": 5}, "post-fault recovery"),
         ({"receive_timeout_ms": 300_001}, "integer in"),
     ],
 )

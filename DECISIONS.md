@@ -2366,7 +2366,7 @@ all nine sampled states remained stationary, matching the candidate's observatio
 
 ## D-065 - Isolate malformed and non-finite packets between valid motion responses
 
-Status: accepted code layer; live PIE evidence remains required
+Status: accepted through live PIE evidence
 
 Decision: Use a bounded synchronous probe that requires a contiguous exact-episode observation
 stream, establishes motion with at least three ordinary validated forward actions, substitutes one
@@ -2385,5 +2385,14 @@ recovery, negative identity, and excessive timeout. The localhost UDP test check
 responses: six schema-valid `(100,0)` actions, one byte `{`, and one otherwise normal packet with
 `1e309` in its command. Python's strict decoder rejects the latter as non-finite and no ninth packet
 exists. Full Python passes 554/554; Ruff, lock verification, installed CLI help, and diff integrity
-pass. Live episode 7298 must still establish movement, report exactly two malformed rejections and
-no stale acceptance, recover after each fault, and remain bounded.
+pass.
+
+Live acceptance: In session `05E030AE594D`, episode 7298 accepted exact forward actions 0-9,
+rejected malformed response 10, accepted recovery 11, accepted actions through 19, rejected the
+non-finite response 20, and accepted recovery 21. The session ended with 20 accepted actions,
+exactly two rejected/malformed actions, and zero stale actions. Authoritative velocity at the target
+window's end was finite `(100,0)` and the candidate saw bounded motion followed by stop. A retained
+second-reset configuration ended 7298 at observation 21, so the original sequence-25 probe waited
+until timeout in 7299; the completion default is corrected to 21 because the first current action
+after the second fault is already the required recovery proof. Raw evidence:
+`evidence/unreal/r2_invalid_action_rejection.log`.

@@ -64,7 +64,7 @@ class InvalidActionProbeConfig:
             raise ValueError("malformed_sequence must follow at least three valid actions")
         if self.nonfinite_sequence < self.malformed_sequence + 2:
             raise ValueError("nonfinite_sequence must follow a valid recovery action")
-        if self.completion_sequence < self.nonfinite_sequence + 2:
+        if self.completion_sequence < self.nonfinite_sequence + 1:
             raise ValueError("completion_sequence must prove a valid post-fault recovery")
 
 
@@ -232,7 +232,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--episode-id", type=_nonnegative_cli_int, required=True)
     parser.add_argument("--malformed-sequence", type=_nonnegative_cli_int, default=10)
     parser.add_argument("--nonfinite-sequence", type=_nonnegative_cli_int, default=20)
-    parser.add_argument("--completion-sequence", type=_nonnegative_cli_int, default=25)
+    parser.add_argument("--completion-sequence", type=_nonnegative_cli_int, default=21)
     parser.add_argument("--receive-timeout-ms", type=_positive_cli_int, default=300_000)
     return parser
 

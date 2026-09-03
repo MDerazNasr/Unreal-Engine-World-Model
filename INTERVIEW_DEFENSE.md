@@ -645,7 +645,8 @@ authoritative verified reset boundary unaided.
 Question: Why does the malformed/non-finite probe establish valid motion first and place a valid
 matching action between its two invalid packets?
 
-Candidate answer: Awaiting the live exercise and candidate teach-back.
+Candidate answer: The candidate observed and reported `move then stop`, with no runaway behavior,
+but has not yet explained the separation and fallback reasoning unaided.
 
 Teacher reference answer: The test has two claims to isolate. First, malformed syntax and non-finite
 values must fail structural parsing before they can reach action admission or Mover. Second, their
@@ -656,8 +657,9 @@ command rather than combining into an unrelated multi-miss safe stop. A valid re
 fault proves recovery; exact malformed counters, no invalid acceptance, bounded command echoes, and
 authoritative state prove safety.
 
-Examiner assessment: Not yet attempted. Require the candidate to distinguish structural rejection,
-temporal admission, and missed-response fallback after the live run.
+Examiner assessment: Not passed. The operational observation agrees with the accepted trace; require
+the candidate to distinguish structural rejection, temporal admission, and missed-response fallback
+unaided in a later teach-back.
 
 ## 7. Day 1 closeout answers to practise
 

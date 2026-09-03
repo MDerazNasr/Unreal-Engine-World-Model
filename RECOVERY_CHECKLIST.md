@@ -270,7 +270,7 @@ Objective: prove the complete round trip before integrating CEM or retraining mo
 - [x] Restart the service and verify explicit recovery without stale state.
 - [x] Delay a valid action until it is stale and verify rejection.
 - [x] Deliver an old-episode action after reset and verify rejection.
-- [ ] Send malformed and non-finite actions during motion and verify safe behavior.
+- [x] Send malformed and non-finite actions during motion and verify safe behavior.
 - [ ] Saturate diagnostic telemetry and verify gameplay control remains bounded.
 - [ ] Confirm no tested failure produces runaway motion.
 

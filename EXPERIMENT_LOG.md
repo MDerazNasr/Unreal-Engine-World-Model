@@ -2150,9 +2150,24 @@ Invalid-action probe pre-live gate: accepted at the code layer. The standalone
 `motionworld-invalid-action-probe` requires one exact episode and a contiguous observation stream.
 It sends at least three normal bounded forward actions before replacing one response with truncated
 JSON, sends a normal recovery action before replacing a later response's command with `1e309`, then
-sends at least one more valid recovery action before exiting. The ordinary validated encoder cannot
+sends a valid recovery action before exiting. The ordinary validated encoder cannot
 create either invalid packet; mutation occurs only in this isolated transport probe. Six focused
 tests cover identity/timeout bounds, minimum pre-fault motion, mandatory recovery separation, exact
 malformed and non-finite payloads, valid forward actions around both faults, and no extra datagram.
 Full Python passes 554/554, Ruff, lock verification, installed CLI help, and diff integrity pass. No
 live parser-safety claim is made yet; episode 7298 remains required.
+
+Invalid-action live result: accepted for the complete episode-7298 fault window in session
+`05E030AE594D`. Ten accepted forward actions established motion before truncated JSON replaced
+response 10; response 11 was then accepted and recovered. Nine more accepted forward responses
+preceded the `1e309` command at 20; response 21 was accepted and recovered. Exact final counters are
+20 accepted, two rejected/malformed, and zero stale. At the end of the target window authoritative X
+had moved from -800.00 to -604.96 cm and world/local velocity remained finite and exactly `(100,0)`.
+The candidate observed movement followed by a safe stop and no runaway behavior.
+
+The Blueprint unexpectedly retained two resets, so episode 7298 ended after 60 finalized transitions
+at observation 21 and verified episode 7299 began before the probe's planned completion at 25. The
+probe therefore timed out while ignoring 7299 and produced no completion report. This does not erase
+the exact two-fault/two-recovery fingerprint, but it exposed an unnecessarily late probe completion
+condition. The default now exits at the first post-fault recovery, observation 21. This changes only
+test orchestration. Evidence: `evidence/unreal/r2_invalid_action_rejection.log`.
