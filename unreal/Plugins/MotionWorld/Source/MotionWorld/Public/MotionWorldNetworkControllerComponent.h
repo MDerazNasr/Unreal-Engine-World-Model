@@ -43,6 +43,12 @@ struct MOTIONWORLD_API FMotionWorldNetworkControllerStats
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Network")
 	int64 RejectedTransportDatagrams = 0;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Network")
+	int64 EvidenceLinesWritten = 0;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MotionWorld|Network")
+	int64 EvidenceLinesDropped = 0;
 };
 
 /**
@@ -123,6 +129,13 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Network|Reactive")
 	FVector2D ReactiveTerminalVelocityLocalCmPerSec = FVector2D::ZeroVector;
 
+	/** Default-off bounded evidence for live episode/sequence/yaw reconciliation. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Network|Evidence")
+	bool bLogNetworkEvidence = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Network|Evidence", meta = (ClampMin = "1", ClampMax = "10000"))
+	int32 MaxNetworkEvidenceLines = 2048;
+
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "MotionWorld|Network")
 	FMotionWorldNetworkControllerStats ControllerStats;
 
@@ -132,6 +145,7 @@ private:
 	void ApplyCommand(const MotionWorld::FNetworkCommandUpdate& Update);
 	void RefreshRuntimeStats();
 	void PollActions(double MonotonicNowSeconds);
+	bool ReserveEvidenceLine();
 	static bool IsSupportedControllerMode(const FString& Value);
 
 	UPROPERTY(Transient)
@@ -139,4 +153,6 @@ private:
 
 	MotionWorld::FMotionWorldUdpTransport Transport;
 	MotionWorld::FNetworkRuntime Runtime;
+	double OutstandingObservationSentMonotonicSeconds = 0.0;
+	FString EvidenceSessionId;
 };

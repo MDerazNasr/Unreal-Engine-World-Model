@@ -102,6 +102,11 @@ only character-local commands bounded by the current observed Mover max speed. T
 strict universal compilation and focused actual-sample automation, but requires a live PIE run
 before any movement or end-to-end latency claim.
 
+For the live gate only, `Log Network Evidence` enables a hard-capped session stream joining emitted
+observation identity/state/yaw to accepted source identity/local command/Unreal latency and explicit
+reset boundaries. The bridge's existing revision log supplies the independent local-to-world/Mover
+echo check. The switch defaults off and dropping evidence after the cap never affects control.
+
 Use `/private/tmp` rather than its `/tmp` alias on macOS. UE 5.8's local build accelerator can retain
 the spelling used by AutomationTool while Clang resolves the same path to `/private/tmp`, causing a
 false missing-object linker failure.

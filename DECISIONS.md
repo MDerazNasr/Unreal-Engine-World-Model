@@ -2192,3 +2192,10 @@ three assumed convenience APIs; explicit component finite checks and standard-li
 replaced them. The corrected strict universal Editor/Development/Shipping plugin build passes, as
 does the actual sample universal Editor build. Both `MotionWorld.Network` tests pass there. This is
 not yet a live movement, sequence-reconciliation, or reset-leakage claim.
+
+Before PIE, add a separate default-off evidence switch to the Unreal network component. When
+enabled, it writes at most the configured number of observation/action/reset lines. Observation
+lines bind episode/control/state sequences, simulation time, and authoritative yaw; action lines
+bind the echoed source identity, local command, and Unreal monotonic end-to-end latency. The bridge's
+existing command-revision line independently records local request, yaw-resolved world command,
+Mover echo, and match status. Evidence capacity affects logging only, never control.

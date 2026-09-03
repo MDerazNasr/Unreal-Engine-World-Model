@@ -1944,3 +1944,10 @@ raw evidence is `evidence/unreal/r2_controller_automation.log`. No final-test fi
 
 Interpretation: The first two R2.3 implementation items pass. Live stop/direction/bound, yaw,
 sequence, and reset evidence remain open, so neither R2.3 nor Gate R2 is accepted yet.
+
+Live-evidence readiness: Added a default-off 2,048-line cap and session identity around explicit
+observation-sent, action-accepted, reset-boundary, episode-start, and EndPlay-summary records. The
+control path and default behavior are unchanged. Strict universal Editor/Development/Shipping
+plugin compilation passes, the actual universal sample builds, and both network automation tests
+pass. Evidence: `evidence/unreal/r2_live_evidence_instrumentation_automation.log`. The next result
+must come from PIE; automation is not substituted for live proof.
