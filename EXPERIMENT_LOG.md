@@ -2110,3 +2110,15 @@ focused tests prove strict delay/timeout/identity bounds and an actual localhost
 structurally valid, embeds sub-deadline planner timing, arrives only after the 100 ms wall deadline,
 and is sent exactly once. The installed locked-environment CLI help check passes. No live stale-
 rejection claim is made yet; episode 7295 with a 250 ms delay remains required.
+
+Delayed-valid-action live result: accepted session `B02613982640`, episode 7295. The first probe
+expired before PIE emitted observation zero; a second probe targeted already-passed observation 120.
+Neither sent a packet and neither earns evidence credit. With PIE kept active, the accepted probe
+targeted future observation 320, received it, constructed and validated one 470-byte forward action,
+held it for a measured 254.645 ms against Unreal's 100 ms deadline, sent exactly once, and exited.
+Unreal counted exactly one rejected/stale action, accepted zero actions, and retained exact zero
+commands. All periodic finalized states stayed at position `(-800,0,90)` with zero velocity. The
+candidate reported `stopped` before injection and `yes` when asked whether it remained stopped after
+the actual send. Final counters were 579 observations, 578 misses, two initial-zero holds, 576 safe
+stops, no malformed packet, and no evidence drop. Evidence:
+`evidence/unreal/r2_delayed_action_stale_rejection.log`.

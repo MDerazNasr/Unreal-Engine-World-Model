@@ -1,0 +1,59 @@
+MotionWorld R2.4 delayed-valid-action stale-rejection evidence
+Date: 2026-09-04 Europe/Copenhagen (PIE log 2026-09-03 22:40-22:43 UTC)
+Source: local Game Animation Sample Editor log and one-shot probe output
+Session: B02613982640
+Episode: 7295
+Candidate visual observations: `stopped` before the accepted injection; `yes` when asked whether it
+remained stopped after the accepted injection
+
+Acceptance decision: PASS for "delay a valid action until it is stale and verify rejection."
+
+Accepted probe command:
+motionworld-delayed-action-probe --service-config configs/control_service_echo_forward.yaml \
+  --episode-id 7295 --observation-sequence 320 --delay-ms 250 --receive-timeout-ms 60000
+
+Accepted probe report:
+{"action_bytes": 470, "action_sent": true, "configured_delay_ms": 250,
+ "datagrams_received": 40, "episode_id": 7295, "ignored_observations": 39,
+ "measured_delay_ms": 254.6448329812847, "observation_sequence": 320,
+ "valid_observations_received": 40}
+
+Independent audit:
+- reset verified on attempt 1 at (-800, 0, 90), yaw zero, and zero speed
+- observation zero had no previous action/source; no network action was ever accepted
+- the probe received exact episode 7295/observation 320, built an ordinary bounded forward action,
+  validated it against that identity before delay, encoded 470 bytes, delayed 254.645 ms, sent once,
+  and exited
+- the delay exceeds Unreal's exclusive 100 ms receive deadline by 154.645 ms
+- Unreal counted exactly one rejected packet and classified exactly one stale packet; malformed=0
+- all bridge command echoes around and after observation 320 remained exact local/world zero
+- all twelve periodic finalized states retained exact position (-800, 0, 90) and zero velocity
+- final stats: observations=579, actions_accepted=0, rejected=1, stale=1, malformed=0,
+  missed=578, held=2, safe_stops=576, evidence_written=581, evidence_dropped=0
+
+Rejected setup attempts:
+- The first observation-0 probe timed out before PIE began and sent no action.
+- The observation-120 probe bound only after that live identity had passed and sent no action.
+- Both are coordination/setup failures, not Unreal outcomes; only the reported observation-320 send
+  is used for acceptance.
+
+Selected exact source lines:
+[2026.09.03-22.40.27:130][684]LogMotionWorldNetwork: Display: MotionWorld network evidence started: session=B02613982640 controller=echo max_lines=2048 endpoints=127.0.0.1:52580->127.0.0.1:52581.
+[2026.09.03-22.40.30:042][714]LogMotionWorldNetwork: Display: MotionWorld network episode started: session=B02613982640 episode=7295 first_observation_sequence=0 applied_local_cm_per_sec=(0.00, 0.00) prior_state_cleared=true.
+[2026.09.03-22.40.30:042][714]LogMotionWorldBridge: Display: MotionWorld reset verified: episode=7295 attempts=1 state_sequence=30 mover_frame=31 position_world_cm=(-800.00, 0.00, 90.00) yaw_deg=0.00 mode=Walking position_error_cm=0.000 facing_error_deg=0.000 linear_speed_cm_per_sec=0.000 angular_speed_deg_per_sec=0.000; new episode may seed this state.
+[2026.09.03-22.40.30:043][714]LogMotionWorldNetwork: Display: MotionWorld network observation sent: session=B02613982640 episode=7295 observation=0 state_sequence=30 simulation_time_s=1.585000 facing_yaw_deg=0.000000 previous_action_present=false previous_action_source=-1.
+[2026.09.03-22.42.10:959][ 76]LogMotionWorldNetwork: Display: MotionWorld network observation sent: session=B02613982640 episode=7295 observation=320 state_sequence=388 simulation_time_s=33.616000 facing_yaw_deg=0.000000 previous_action_present=true previous_action_source=318.
+[2026.09.03-22.42.11:295][ 77]LogMotionWorldBridge: Display: MotionWorld command echo: revision=327 frame=character_local resolved=true facing_yaw_deg=0.00 finite=true requested_frame=(0.00, 0.00, 0.00) submitted_world=(0.00, 0.00, 0.00) echoed_world=(0.00, 0.00, 0.00) match=true
+[2026.09.03-22.42.11:627][ 78]LogMotionWorldBridge: Display: MotionWorld command echo: revision=328 frame=character_local resolved=true facing_yaw_deg=0.00 finite=true requested_frame=(0.00, 0.00, 0.00) submitted_world=(0.00, 0.00, 0.00) echoed_world=(0.00, 0.00, 0.00) match=true
+[2026.09.03-22.42.11:962][ 79]LogMotionWorldBridge: Display: MotionWorld command echo: revision=329 frame=character_local resolved=true facing_yaw_deg=0.00 finite=true requested_frame=(0.00, 0.00, 0.00) submitted_world=(0.00, 0.00, 0.00) echoed_world=(0.00, 0.00, 0.00) match=true
+[2026.09.03-22.42.00:454][ 44]LogMotionWorldBridge: Display: MotionWorld state sample: protocol=1 sequence=360 valid=true mover_step_frame=361 sim_time_s=30.816000 step_s=0.100000 resim=false mode=Walking position_world_cm=(-800.00, 0.00, 90.00) velocity_world_cm_per_sec=(0.00, 0.00, 0.00) velocity_local_planar_cm_per_sec=(0.00, 0.00, 0.00) facing_yaw_deg=0.00 facing_unit_world=(1.000000, 0.000000) angular_velocity_world_deg_per_sec=(0.00, 0.00, 0.00)
+[2026.09.03-22.43.31:508][348]LogMotionWorldBridge: Display: MotionWorld state sample: protocol=1 sequence=660 valid=true mover_step_frame=661 sim_time_s=58.828000 step_s=0.100000 resim=false mode=Walking position_world_cm=(-800.00, 0.00, 90.00) velocity_world_cm_per_sec=(0.00, 0.00, 0.00) velocity_local_planar_cm_per_sec=(0.00, 0.00, 0.00) facing_yaw_deg=0.00 facing_unit_world=(1.000000, 0.000000) angular_velocity_world_deg_per_sec=(0.00, 0.00, 0.00)
+[2026.09.03-22.43.32:529][364]LogMotionWorldNetwork: Display: MotionWorld network evidence stopped: session=B02613982640 observations_sent=579 actions_accepted=0 rejected=1 stale=1 malformed=0 missed=578 held=2 safe_stops=576 evidence_written=581 evidence_dropped=0.
+
+Interpretation:
+The action was valid in structure and values but obsolete in time. Unreal's own current-identity and
+receive-deadline admission rejected it rather than trusting Python timing, relabelling it, or applying
+forward motion. Exact zero command echoes, stationary authoritative state, and the candidate's
+post-injection observation prove the rejection reached gameplay safety.
+
+Final-test episodes 5301/5302 opened: zero.

@@ -2304,7 +2304,7 @@ same-episode packets were counted stale and rejected, not applied. Raw evidence:
 
 ## D-063 - Inject one transport delay without weakening the production service
 
-Status: accepted at the code layer; live episode 7295 remains required
+Status: accepted through live PIE evidence
 
 Decision: Use a separate bounded one-shot probe for the delayed-valid-action test. It must target an
 explicit episode and observation sequence, accept only a strictly greater-than-runtime-deadline
@@ -2322,6 +2322,12 @@ How it is tested: Six focused tests cover negative identity, non-late delay, upp
 bounds, and a real localhost UDP exchange. The integration test receives the selected observation,
 creates a valid `(100,0)` echo action whose embedded planner duration is below 100 ms, waits at least
 125 ms, sends one packet, and verifies there is no second datagram. `uv lock --check`, the installed
-locked-environment CLI help check, Ruff, and diff integrity pass. Live acceptance still requires
-episode 7295 to report zero accepted actions, at least one stale rejection, safe-zero gameplay, and
-the probe's measured 250 ms send delay.
+locked-environment CLI help check, Ruff, and diff integrity pass.
+
+Live acceptance: In session `B02613982640`, episode 7295, the accepted one-shot probe received
+observation 320, schema-validated a 470-byte local `(100,0)` action, delayed its send by measured
+254.645 ms, and exited after exactly one send. Unreal reported `actions_accepted=0`, `rejected=1`,
+`stale=1`, and `malformed=0`; every sampled authoritative state remained stationary and all retained
+bridge commands stayed zero. The candidate confirmed the pawn remained stopped after injection.
+Two setup probes that sent nothing are documented but excluded. Raw evidence:
+`evidence/unreal/r2_delayed_action_stale_rejection.log`.
