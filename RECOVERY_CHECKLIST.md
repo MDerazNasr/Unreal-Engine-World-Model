@@ -170,61 +170,61 @@ Objective: create a bounded, testable protocol independently of planning quality
 
 ### 2.1 Observation message
 
-- [ ] Define a protocol name and version.
-- [ ] Include episode ID and monotonic observation sequence.
-- [ ] Include simulation timestamp and declared control interval.
-- [ ] Include controller mode and explicit authoritative state-source label.
-- [ ] Include world position, world/local velocity as required, facing, and yaw rate with units.
-- [ ] Include all causal nominal internal state and current parameter/preparation values.
-- [ ] Include previous applied action and its sequence identity.
-- [ ] Include target and bounded timed-gate state for planner cost only.
-- [ ] Include reset/scenario identity and termination state.
-- [ ] Include validity flags instead of inventing defaults for unavailable fields.
-- [ ] Exclude animation-root data, future event schedules, completed-future parameter snapshots, and
+- [x] Define a protocol name and version.
+- [x] Include episode ID and monotonic observation sequence.
+- [x] Include simulation timestamp and declared control interval.
+- [x] Include controller mode and explicit authoritative state-source label.
+- [x] Include world position, world/local velocity as required, facing, and yaw rate with units.
+- [x] Include all causal nominal internal state and current parameter/preparation values.
+- [x] Include previous applied action and its sequence identity.
+- [x] Include target and bounded timed-gate state for planner cost only.
+- [x] Include reset/scenario identity and termination state.
+- [x] Include validity flags instead of inventing defaults for unavailable fields.
+- [x] Exclude animation-root data, future event schedules, completed-future parameter snapshots, and
       final outcomes from model inputs.
-- [ ] Reject missing, extra, wrong-type, unsupported-version, non-finite, oversized, and internally
+- [x] Reject missing, extra, wrong-type, unsupported-version, non-finite, oversized, and internally
       inconsistent messages.
 
 ### 2.2 Action message
 
-- [ ] Echo protocol version, episode ID, and source observation sequence.
-- [ ] Include selected local desired velocity in cm/s.
-- [ ] Include controller/model identifier.
-- [ ] Include planner start/end timestamps and measured planner latency.
-- [ ] Include safe-fallback status and reason.
-- [ ] Include selected trajectory and cost breakdown only as bounded diagnostic telemetry.
-- [ ] Reject wrong-episode, future-sequence, stale-sequence, duplicate, malformed, non-finite, and
+- [x] Echo protocol version, episode ID, and source observation sequence.
+- [x] Include selected local desired velocity in cm/s.
+- [x] Include controller/model identifier.
+- [x] Include planner start/end timestamps and measured planner latency.
+- [x] Include safe-fallback status and reason.
+- [x] Include selected trajectory and cost breakdown only as bounded diagnostic telemetry.
+- [x] Reject wrong-episode, future-sequence, stale-sequence, duplicate, malformed, non-finite, and
       oversized actions.
-- [ ] Clamp velocity again inside Unreal.
+- [x] Clamp velocity again inside Unreal.
 
 ### 2.3 Transport and serialization
 
-- [ ] Use versioned localhost UDP as the P0 transport unless R0 explicitly changes the contract.
-- [ ] Define maximum datagram size and bounded trajectory telemetry.
-- [ ] Define byte order, numeric representation, and text/binary encoding.
-- [ ] Define port configuration without hard-coded developer paths.
-- [ ] Ensure receive/send work cannot block the Unreal game thread.
-- [ ] Ensure parsing cannot allocate unbounded memory.
-- [ ] Define behavior for dropped, duplicated, reordered, and truncated datagrams.
+- [x] Use versioned localhost UDP as the P0 transport unless R0 explicitly changes the contract.
+- [x] Define maximum datagram size and bounded trajectory telemetry.
+- [x] Define byte order, numeric representation, and text/binary encoding.
+- [x] Define port configuration without hard-coded developer paths.
+- [x] Ensure receive/send work cannot block the Unreal game thread.
+- [x] Ensure parsing cannot allocate unbounded memory.
+- [x] Define behavior for dropped, duplicated, reordered, and truncated datagrams.
 
 ### 2.4 Cross-language tests
 
-- [ ] Generate canonical valid observation and action fixtures.
-- [ ] Parse Unreal-produced observations in Python.
-- [ ] Parse Python-produced actions in Unreal.
-- [ ] Round-trip boundary values and zero values.
-- [ ] Reject NaN, infinity, wrong dimensions, unknown versions, and out-of-range values on both sides.
-- [ ] Reject wrong episode and stale sequence on both sides where applicable.
-- [ ] Fuzz or table-test malformed packets within a strict bounded corpus.
-- [ ] Confirm protocol logs never expose checkpoint payloads or unbounded source data.
+- [x] Generate canonical valid observation and action fixtures.
+- [x] Parse Unreal-produced observations in Python.
+- [x] Parse Python-produced actions in Unreal.
+- [x] Round-trip boundary values and zero values.
+- [x] Reject NaN, infinity, wrong dimensions, unknown versions, and out-of-range values on both sides.
+- [x] Reject wrong episode and stale sequence on both sides where applicable.
+- [x] Fuzz or table-test malformed packets within a strict bounded corpus.
+- [x] Confirm protocol logs never expose checkpoint payloads or unbounded source data.
 
 ### 2.5 Gate R1 — protocol correctness
 
-- [ ] Python serialization/validation tests pass.
-- [ ] Unreal parsing/validation automation tests pass in the actual Game Animation Sample.
-- [ ] Golden fixtures agree byte-for-byte or semantically under the declared encoding.
-- [ ] Protocol remains valid when optional telemetry is omitted.
-- [ ] No network path mutates gameplay state before full validation.
+- [x] Python serialization/validation tests pass.
+- [x] Unreal parsing/validation automation tests pass in the actual Game Animation Sample.
+- [x] Golden fixtures agree byte-for-byte or semantically under the declared encoding.
+- [x] Protocol remains valid when optional telemetry is omitted.
+- [x] No network path mutates gameplay state before full validation.
 - [ ] Commit protocol types and tests as an independent slice.
 
 ## 3. Minimal live vertical slice and safety

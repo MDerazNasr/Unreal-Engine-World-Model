@@ -1968,3 +1968,127 @@ focused suite passes without opening any episode file.
 Related files: `configs/final_prediction_manifest.yaml`,
 `configs/final_control_manifest.yaml`, `motionworld/evaluation/contracts.py`, and
 `tests/unit/test_final_evaluation_contracts.py`.
+
+## D-053 - Define a bounded causal observation protocol before transport
+
+Status: accepted Python logical/serialization contract and cross-language fixture; live Unreal
+producer integration remains R2 work
+
+Decision: Name protocol v1 `motionworld_control` and encode observations as deterministic compact
+UTF-8 JSON bounded to 16,384 bytes. Carry separate episode, 10 Hz observation, and authoritative
+state-sample identities. Include the fixed 100 ms interval, simulation time, controller/source,
+finalized state, aligned current Smooth Walking parameters/preparation/internal state, previous
+applied action, reset/scenario/termination state, and explicit validity. Reject resimulation.
+
+Keep target and deterministic gate configuration/current state in `planner_context`. Validate that
+branch, but remove it through `causal_dynamics_context` before model feature construction. Never
+admit animation-root data, actual next state, later parameter snapshots, a future perturbation, or
+outcome labels into dynamics context.
+
+Why: The planner legitimately needs known future obstacle geometry, while character dynamics do
+not. Structural separation is stronger than relying on each caller to remember which keys are
+privileged. Three identities are required because resets, 10 Hz decisions, and higher-rate finalized
+states advance under different rules.
+
+How it is tested: Exact-key/type/range checks cover protocol literals, finite values, vector sizes,
+unit facing/quaternion constraints, state/context alignment, previous-action chronology, optional
+payload/validity agreement, terminal consistency, duplicate JSON keys, malformed UTF-8, oversize,
+unknown animation fields, detached outputs, deterministic round trips, and planner exclusion.
+
+## D-054 - Separate action structure from current-observation admission
+
+Status: accepted Python and Unreal logical/serialization contract; live bridge admission remains R2
+work
+
+Decision: Encode `motionworld_control` action v1 as deterministic compact UTF-8 JSON bounded to
+8,192 bytes. Echo episode and source-observation identity; transmit the selected character-local
+planar velocity, bounded controller/model identifiers, Python monotonic start/end timestamps and
+consistent measured planner latency, and explicit safe-fallback status/reason. Safe fallback actions
+must command zero. Optional diagnostics contain no more than 32 selected trajectory steps and the
+six declared planning-cost components.
+
+Validate packet structure independently from runtime admission. Admission requires the current
+episode, exactly the current outstanding observation sequence, and a sequence not already accepted;
+classify lower sequences as stale and higher sequences as future. Unreal's existing production path
+remains the final safety boundary: after local-to-world resolution it rejects non-finite vectors,
+projects out Z, and magnitude-clamps every command. Do not duplicate that sanitizer merely because
+the network action source is new.
+
+Why: Schema validity cannot establish temporal relevance. Separating the checks makes malformed data
+and delayed/replayed work diagnosable without ever reassigning a result to a different timestep.
+Planner clocks measure only Python duration; Unreal owns end-to-end deadline measurement, so the
+design makes no cross-process clock comparison. Telemetry is bounded and non-authoritative to keep
+large diagnostic payloads out of command semantics.
+
+How it is tested: Python tests cover deterministic round trip, exact keys/types, finite two-value
+local action, bounded identifiers/trajectory, timestamp ordering and duration consistency, explicit
+zero fallback, six finite non-negative cost fields, binary collision indicator, wrong episode,
+future/stale/duplicate sequences, malformed/duplicate/invalid UTF-8 JSON, oversize, and detached
+results. Existing Unreal `MotionWorld.Command.SanitizeWorldVelocity` automation covers zero,
+boundary, oversized, vertical, reverse, and non-finite requests at the application boundary.
+
+## D-055 - Use bounded nonblocking IPv4 loopback UDP
+
+Status: accepted transport/serialization seam; gameplay integration remains R2
+
+Decision: Carry one strict RFC 8259 UTF-8 JSON object per IPv4 loopback UDP datagram. Configure
+Unreal at `127.0.0.1:52580` and Python at `127.0.0.1:52581` through
+`configs/control_transport.yaml`. Bound observations to 16,384 bytes, actions to 8,192 bytes,
+diagnostic trajectories to 32 steps, raw UDP receives to 65,507 bytes, and each nonblocking poll to
+16 datagrams. Both implementations reject empty, oversized/truncated, and unknown-sender datagrams
+before JSON parsing. The Unreal byte transport has no reference to the bridge and cannot mutate
+gameplay state.
+
+Declare JSON byte order not applicable, parse real numbers as binary64, and restrict integer wire
+values to the exactly representable range `0..2^53-1`. Change Python diagnostic planner timestamps
+from nanoseconds to monotonic microseconds so their integer values remain safely representable while
+retaining sub-millisecond resolution.
+
+Failure policy: UDP loss is not retransmitted because the original decision expires at the next
+observation/deadline. Duplicates and reordered packets reach semantic episode/current-observation
+admission and are discarded unless they answer the one outstanding decision. Transport rejection
+and deadline fallback remain separately counted.
+
+Why: Loopback UDP is the frozen P0 choice and avoids stream framing or connection lifecycle work.
+Nonblocking operations protect the Unreal game thread from waiting, while a fixed poll count also
+bounds CPU work under a flooded queue. Fixed buffers and pre-parse size/source checks prevent packet
+contents from causing unbounded parsing allocation. Exact JSON-safe integers prevent silent identity
+rounding between Python integers and Unreal binary64 JSON numbers.
+
+How it is tested: Python config tests reject endpoint, schema, policy, size, and blocking-mode drift.
+Real loopback tests cover empty polls, one-datagram framing, fixed poll budgets, unknown senders,
+empty and oversized packets, bounded sends, and blocking-socket rejection. Strict UE 5.8 universal
+Editor/Development/Shipping builds pass. The first Unreal automation run exposed that macOS
+`HasPendingData` can reflect queued bytes rather than the next datagram size; using actual
+`RecvFrom` bytes fixed the false rejection. The corrected focused automation test passes and is
+preserved in `evidence/unreal/r1_transport_udp_automation.log`.
+
+## D-056 - Use shared semantic fixtures at the Python/Unreal trust boundary
+
+Status: accepted cross-language protocol test seam; live control-loop behavior remains R2 work
+
+Decision: Preserve three version-1 fixtures inside the plugin package: one full Unreal observation,
+one normal Python action with bounded diagnostic telemetry, and one zero-identity/zero-action packet
+with telemetry explicitly absent. Python must strictly parse and deterministically re-encode every
+fixture it consumes. Unreal must parse Python action bytes into typed fields and perform separate
+current-observation admission.
+
+The Unreal parser rejects empty/oversized packets and invalid UTF-8 before JSON allocation, rejects
+duplicate keys before DOM deserialization, requires exact schema keys and safe binary64 integers,
+and classifies wrong-episode, future, stale, and duplicate work with bounded labels that contain no
+packet bytes. Both implementations exercise a deterministic 128-packet, maximum-256-byte malformed
+corpus; fixtures contain no checkpoint/model-state payload and remain below their frozen caps.
+
+Why: Parser tests written independently against independently invented examples can both pass while
+the real wire formats disagree. Shared bytes expose naming, shape, optional-field, number, and
+identity drift. Golden fixtures are boundary evidence, not live-system evidence: they do not prove
+UDP timing, fallback behavior, or gameplay mutation, which remain later gates.
+
+How it is tested: Python cross-language tests pass 21/21 and the full Python suite passes 495/495.
+The Unreal `MotionWorld.Protocol.CrossLanguageFixtures` automation test passes in a headless UE 5.8
+host, with evidence in `evidence/unreal/r1_cross_language_automation.log`. Strict universal Mac
+Editor Development, Game Development, and Game Shipping builds pass. Ruff, environment verification,
+interview-package verification, and `git diff --check` pass. The deployed source/resources match the
+repository, the actual Game Animation Sample universal Editor target builds, and both discovered
+`MotionWorld.Protocol` tests pass there with exit code zero. Actual-sample evidence is preserved in
+`evidence/unreal/r1_actual_sample_protocol_automation.log`.

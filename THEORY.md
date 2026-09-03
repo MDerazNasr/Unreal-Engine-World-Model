@@ -545,6 +545,61 @@ This Mover state represents gameplay motion. `GetPrimaryVisualComponent()` repre
 
 The bridge eventually accepts only bounded planar commands and labels every command/observation with protocol version, episode ID, and sequence number. It rejects stale or wrong-episode commands and clamps again inside Unreal. Python-side validation is not enough because delayed packets, bugs, or a restarted service must not send an unsafe action to the current episode.
 
+The v1 observation has three identities with different jobs. `episode_id` prevents a packet from a
+previous reset entering the current episode. `observation_sequence` identifies the 10 Hz control
+decision and is echoed by the action. `state_sample_sequence` identifies the particular higher-rate
+`OnPostFinalize` sample selected for that control slot and must equal the nominal-context source
+sequence. Treating these as one counter would either lose the state/context join or invent phantom
+control decisions when finalized callbacks are skipped.
+
+Planner context and dynamics context are intentionally separate views of the same validated packet.
+The planner may know the target and the gate's deterministic analytic schedule because it must score
+future geometry. The residual receives neither: character dynamics should not change merely because
+a target moved, and giving it scenario variables would invite correlation shortcuts. A dedicated
+extractor returns only identity, timing, authoritative state, aligned nominal context, and the
+previous applied action.
+
+The action contract separates two kinds of validity. Structural validity asks whether bytes decode
+as the exact bounded v1 schema, all values are finite, timestamps agree with measured Python planner
+latency, fallback semantics are consistent, and optional telemetry is bounded. Runtime admission
+then asks whether the action answers the current episode's one outstanding observation and has not
+already been accepted. A perfectly formed packet can still be unsafe because it is late, duplicated,
+from a previous reset, or computed for a newer observation than Unreal has emitted.
+
+Planner timestamps use Python's monotonic clock only to report planner duration. Unreal never
+compares that clock with its own. The end-to-end deadline remains an Unreal monotonic send-to-receive
+measurement, avoiding an invalid cross-process clock-synchronization assumption.
+
+The selected trajectory and cost breakdown are diagnostics, not authority. Unreal applies only the
+first local desired-velocity pair. It then resolves that pair through authoritative Mover yaw and
+passes the resulting world vector through `SanitizeWorldVelocityCommand`, which removes Z,
+fails closed on non-finite values, and clamps planar magnitude. This final engine-side clamp remains
+necessary even after Python validation because trust boundaries should enforce safety locally.
+
+### UDP framing and bounded work
+
+UDP preserves message boundaries: one send becomes one datagram, so v1 puts exactly one JSON object
+in each datagram. There is no length prefix or stream reassembly. P0 binds both peers only to IPv4
+loopback. This is intentionally a local-process transport, not a reliable distributed protocol.
+
+UDP can drop, duplicate, or reorder datagrams. We do not add retransmission because a resent action
+may arrive after its 100 ms control decision has expired. Instead, episode and observation identity
+decide relevance, while a missing current action becomes a measured deadline miss and invokes the
+frozen hold/stop fallback. Unknown senders and oversized or empty datagrams are discarded before
+JSON parsing.
+
+Nonblocking alone does not bound CPU work: a malfunctioning peer could keep the receive queue
+nonempty indefinitely. Therefore each Unreal and Python poll drains at most 16 datagrams. Each read
+uses at most the 65,507-byte IPv4 UDP payload ceiling, and the JSON decoder receives only a packet
+already within its message-specific 16,384-byte observation or 8,192-byte action limit. Unreal's
+transport only returns byte arrays; it cannot mutate gameplay state.
+
+JSON is UTF-8 text, so byte order is not applicable. Parsed real values use binary64. Because every
+integer through `2^53-1` is exactly representable in binary64, wire identities are restricted to
+that safe range. Nanosecond uptime counters could eventually exceed it, so planner diagnostic
+timestamps use integer monotonic microseconds. Python computes its own duration from those values;
+Unreal still measures the independent end-to-end deadline on its own monotonic clock.
+
 ### Acceptance tests
 
 D-011 is accepted only if all of these pass:

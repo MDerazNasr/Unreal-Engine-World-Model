@@ -72,6 +72,30 @@ Better prediction alone is not evidence of better control. Better control relati
 - Versioned localhost UDP messages at 10 Hz for P0.
 - Every packet carries episode and sequence identifiers.
 - Unreal rejects malformed, wrong-episode, and stale actions.
+- Control protocol v1 is named `motionworld_control`. An observation is bounded to 16,384 bytes of
+  canonical UTF-8 JSON and contains episode/control/state sequence identity, simulation time and
+  the 100 ms interval, controller/source labels, finalized world/local state, aligned causal Smooth
+  Walking parameters and internal state, the previous applied action identity, reset/scenario/
+  termination identity, and explicit validity flags. Target and deterministic current/immutable
+  timed-gate context occupy a separate planner-only branch that is removed before dynamics-model
+  feature construction. Animation data, actual next state, later parameter snapshots, future push
+  events, and outcome labels are excluded from dynamics inputs.
+- An action is bounded to 8,192 bytes of deterministic compact UTF-8 JSON. It echoes protocol,
+  episode, and source-observation identity; carries one character-local planar desired velocity,
+  controller/model identity, Python monotonic planner timestamps and their measured latency, and
+  explicit safe-fallback status/reason. An optional diagnostic branch contains at most 32 selected
+  local trajectory actions and the six declared cost terms. Diagnostic trajectory and costs never
+  participate in command application.
+- P0 uses one strict RFC 8259 JSON object per IPv4 loopback UDP datagram. Unreal binds
+  `127.0.0.1:52580`; Python binds `127.0.0.1:52581`. These endpoints and all bounds live in
+  `configs/control_transport.yaml`, not developer paths. JSON text has no byte-order field; finite
+  numbers become binary64 after parsing, and integer identities/timestamps are limited to the exact
+  binary64 range `0..2^53-1`. Planner monotonic timestamps are integer microseconds.
+- Both endpoints are nonblocking and drain at most 16 datagrams per poll. A full UDP receive buffer
+  is capped at 65,507 bytes; empty, wrong-sender, truncated/oversized, malformed, and unsupported
+  messages are discarded before gameplay mutation. UDP loss is not retransmitted. Duplicate and
+  reordered actions are rejected by episode/current-observation admission, and an absent valid
+  response reaches the existing deadline/fallback policy.
 - The first valid `OnPostFinalize` state after reset defines control slot zero. Thereafter Unreal
   emits the first valid finalized state at or after each fixed 100 ms simulation-time boundary. If
   multiple boundaries elapse, it emits only the latest slot and never sends a catch-up burst.
@@ -88,7 +112,10 @@ Better prediction alone is not evidence of better control. Better control relati
   A current valid action clears the miss count.
 - Reset, controller switch, shutdown, and service reconnection clear sequence, pending deadline,
   held-action, and consecutive-miss state.
-- Unreal clamps all received velocities.
+- Unreal rejects a validly shaped action unless it answers the one current outstanding observation,
+  has not already been accepted, and arrived before the separately measured Unreal deadline.
+  Irrespective of Python validation, the existing Unreal command-production path converts local to
+  world space, projects to the plane, rejects non-finite input, and magnitude-clamps the command.
 
 ## 4. State and coordinates
 

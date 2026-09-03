@@ -1772,3 +1772,99 @@ to 10 percentage points.
 
 Artifacts: `configs/final_prediction_manifest.yaml`, `configs/final_control_manifest.yaml`,
 `motionworld/evaluation/contracts.py`, and `tests/unit/test_final_evaluation_contracts.py`.
+
+## R1-OBS-001 — bounded causal observation contract
+
+Question: Can Unreal's authoritative control snapshot be represented without mixing model inputs,
+planner-only context, or stale identities?
+
+Decision: Define `motionworld_control` observation v1 as deterministic compact UTF-8 JSON, maximum
+16,384 bytes. Preserve separate episode, control-observation, and finalized-state sequences; require
+the nominal-context sequence to equal the state sequence. Transmit only verified non-resimulated
+state with known current nominal context and explicit optional-payload validity.
+
+The complete deterministic timed-gate configuration/current state and target are planner-only.
+`causal_dynamics_context` strips planner/scenario data before feature construction. Tests attack
+missing/extra keys, coercible types, unsupported versions/controllers, non-finite values, wrong
+dimensions/norms, stale action identity, invalid terminal state, duplicate keys, invalid UTF-8,
+oversize, animation-root injection, and validity disagreement. Final-test bytes opened: zero.
+
+## R1-ACT-001 — bounded action and sequence-admission contract
+
+Question: Can Python return a diagnosable planner result without allowing validly encoded but stale,
+future, duplicate, or cross-reset work to affect Unreal?
+
+Decision: Define the v1 action as deterministic UTF-8 JSON bounded to 8,192 bytes. The command is
+one character-local planar velocity tied to an episode and source observation. Controller/model,
+monotonic planner duration, and explicit zero-action fallback are required. The selected trajectory
+(maximum 32 steps) and exact cost breakdown are optional diagnostic telemetry only.
+
+Result: Structural validation and current-observation admission are separate. Admission rejects
+wrong episodes, sequences below/above the outstanding sequence, and replayed accepted sequences.
+The existing Unreal command path already performs the required final clamp after local-to-world
+conversion, so no redundant sanitizer was added. Focused action/observation/runtime tests pass
+59/59; the full suite passes 458/458. Repository-wide Ruff, environment/package verification, and
+`git diff --check` pass. Final-test episode bytes opened: zero.
+
+## R1-TRANS-001 — bounded nonblocking loopback UDP
+
+Question: Can Unreal and Python exchange bounded protocol bytes without waiting on Unreal's game
+thread or letting malformed traffic allocate or process without a fixed limit?
+
+Decision: Freeze IPv4 loopback UDP endpoints `127.0.0.1:52580` (Unreal) and `:52581` (Python), one
+strict UTF-8 JSON object per datagram, 16,384-byte observations, 8,192-byte actions, 32 diagnostic
+trajectory steps, a 65,507-byte raw receive ceiling, and 16 datagrams per nonblocking poll. Reject
+unknown senders and empty/oversized traffic before JSON parsing. Do not retransmit obsolete control
+work; semantic identity rejects duplicates/reordering and the runtime deadline handles loss.
+
+Serialization review found that Python's prior 64-bit integer bound exceeded Unreal JSON's exact
+binary64 integer range. All wire integers are now bounded to `2^53-1`; planner diagnostic timestamps
+use monotonic microseconds rather than nanoseconds.
+
+Result: The 75 focused protocol/runtime tests and all 474 Python tests pass. Repository-wide Ruff,
+environment/package verification, and diff checks pass. Strict UE 5.8 universal Editor, Development, and
+Shipping builds pass. The first Unreal test failed because macOS `HasPendingData` described queued
+bytes rather than a dependable next-datagram length, causing a valid packet to be rejected when an
+oversized packet followed it. Classification now uses the actual bytes returned into a fixed full-UDP
+buffer. The corrected focused Unreal automation test passes. Evidence:
+`evidence/unreal/r1_transport_udp_automation.log`. The byte transport remains isolated from gameplay.
+Final-test episode bytes opened: zero.
+
+## R1-XLANG-001 — shared protocol fixtures and Unreal action admission
+
+Question: Do Python and Unreal agree on the exact version-1 wire semantics, including optional and
+zero boundaries, or are their independently passing implementations merely self-consistent?
+
+Decision: Package one full observation fixture and two action fixtures under
+`Resources/ProtocolFixtures/v1`. Python strictly parses and canonicalizes the observation/action
+bytes. Unreal parses the Python actions into typed fields and separately admits only the expected
+episode and observation. Both sides reject bounded malformed data; the Unreal corpus explicitly
+covers invalid UTF-8, truncated JSON, duplicate keys, wrong vector size, unsupported version,
+infinite binary64 results, unsafe integers, wrong episode, future/stale sequence, and replay.
+
+Result: The new Python cross-language suite passes 21/21; the combined focused protocol slice passes
+83/83; and all 495 Python tests pass. Ruff, deterministic environment verification, interview-package
+verification, and `git diff --check` pass. Strict universal UE 5.8 Editor Development, Game
+Development, and Game Shipping builds pass. Headless Unreal automation discovered exactly one
+`MotionWorld.Protocol.CrossLanguageFixtures` test and completed it successfully with exit code zero.
+Evidence: `evidence/unreal/r1_cross_language_automation.log`. Fixtures contain no checkpoint/model
+state and stay below frozen byte limits. This proves the isolated language boundary, not live UDP
+deadlines or gameplay integration. Final-test episode bytes opened: zero.
+
+## R1-GATE-001 — actual-sample protocol correctness
+
+Question: Does the isolated version-1 protocol still compile and enforce its byte/semantic boundary
+when deployed into the real UE 5.8 Game Animation Sample, without creating an early gameplay path?
+
+Procedure: With Unreal closed, deploy only repository-owned plugin source, config, resources,
+descriptor, and README; preserve generated/sample-owned directories. Verify source and fixture
+parity, build `GameAnimationSampleEditor Mac Development` for arm64+x86_64, then run the complete
+`MotionWorld.Protocol` automation prefix headlessly in that project. Separately search production
+references for any transport/parser-to-bridge application path.
+
+Result: Exact-sample universal compilation succeeded in 359.83 seconds. Automation discovered two
+tests—`BoundedNonblockingUdp` and `CrossLanguageFixtures`—and both completed successfully; the test
+process exited zero. Production references stop at isolated byte transport and typed validation;
+neither file references the bridge, Mover, or an application function. Thus R1 cannot mutate
+gameplay, even from a valid packet. Evidence:
+`evidence/unreal/r1_actual_sample_protocol_automation.log`. Final-test episode bytes opened: zero.

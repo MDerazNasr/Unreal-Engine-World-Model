@@ -1,0 +1,30 @@
+schema_name: motionworld_control_transport_config
+schema_version: 1
+protocol_name: motionworld_control
+protocol_version: 1
+endpoints:
+  unreal: {host: 127.0.0.1, port: 52580}
+  python: {host: 127.0.0.1, port: 52581}
+wire:
+  transport: udp
+  address_family: ipv4
+  framing: one_json_object_per_datagram
+  text_encoding: utf-8
+  json_profile: rfc8259_strict_no_nan_infinity_or_duplicate_keys
+  numeric_representation: json_numbers_binary64_with_safe_integers
+  byte_order: not_applicable_utf8_json
+  max_observation_datagram_bytes: 16384
+  max_action_datagram_bytes: 8192
+  max_trajectory_steps: 32
+io:
+  socket_mode: nonblocking
+  unreal_io_model: bounded_game_thread_poll
+  python_io_model: bounded_event_loop_poll
+  max_datagrams_per_poll: 16
+  max_udp_payload_bytes: 65507
+packet_policy:
+  dropped: no_retransmission_deadline_fallback
+  duplicated: discard_by_episode_and_observation_identity
+  reordered: discard_unless_current_outstanding_identity
+  truncated_or_oversized: discard_before_json_parse
+  unknown_sender: discard_before_json_parse

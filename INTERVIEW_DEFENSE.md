@@ -362,6 +362,99 @@ Examiner assessment: Not yet passed. The candidate must later explain, unaided, 
 planner/model exploitation, why the model's own predicted return is not ground truth, and why Unreal
 adjudicates the fourth causal link.
 
+### Q9 - Why carry three sequence identities? (learning; partial answer 2026-09-03)
+
+Question: Why does a control observation need an episode ID, a 10 Hz observation sequence, and the
+underlying `OnPostFinalize` state-sample sequence instead of one shared counter?
+
+Candidate answer: "To make sure we're not running anything redundant into the next episode that
+could affect outcomes."
+
+Teacher reference answer: Episode ID rejects packets across resets. Observation sequence identifies
+the control decision that an action must echo. State-sample sequence identifies the exact higher-rate
+authoritative sample and proves that nominal context was captured from that same finalized state.
+They advance for different events, so collapsing them would lose either reset safety, action
+matching, or state/context alignment.
+
+Examiner assessment: Partial, not yet passed. The answer correctly explains why episode identity
+prevents old work from leaking across reset boundaries. It does not yet explain that observation
+sequence binds the returned action to one 10 Hz decision, or that state-sample sequence proves the
+observation and nominal context came from the same higher-rate `OnPostFinalize` state. Retry later.
+
+### Q10 - Why are action validation, admission, and clamping separate? (learning; partial answer 2026-09-03)
+
+Question: A packet is valid v1 JSON and contains a finite local velocity. Why must Unreal still test
+its episode/sequence against the current outstanding observation and clamp again after local-to-world
+conversion? Also explain why Python and Unreal planner timestamps are not directly compared.
+
+Candidate answer: "Python can be considered a little bit unreliable because, for example, it could
+return action 52 after Unreal has reset the episode, so you have to check against an overall more
+reliable source."
+
+Teacher reference answer: Schema validation proves only that the packet is well formed. Admission
+proves it is relevant now: same episode, exactly the unanswered observation, not stale, future, or a
+duplicate. Unreal then enforces the velocity bound at its own trust boundary after coordinate
+conversion, so a Python bug or delayed/replayed packet cannot bypass safety. Python's monotonic clock
+measures planner duration; Unreal's monotonic clock measures observation-send to action-receive.
+Their epochs are unrelated, so comparing their absolute timestamps would be invalid.
+
+Examiner assessment: Partial, not yet passed. The answer correctly identifies Unreal as the
+authoritative episode owner and explains why a structurally valid Python result can be obsolete
+after reset. It still needs to distinguish schema validation from episode/sequence admission,
+explain the final clamp after local-to-world conversion, and explain why absolute monotonic clocks
+from two processes cannot be compared. Retry after R1.3.
+
+### Q11 - Why use lossy UDP for a control loop? (teacher answer supplied)
+
+Question: UDP can drop, duplicate, and reorder packets. Why is localhost UDP still appropriate for
+this 10 Hz P0 control loop, why do we not retransmit a missing action, and why are both nonblocking
+sockets and a maximum datagram count per poll required?
+
+Candidate answer: "I don't know."
+
+Teacher reference answer: UDP preserves one-message-per-datagram boundaries and avoids TCP stream
+framing and connection lifecycle for two processes on one machine. A retransmitted action may arrive
+after its observation has expired, so identity admission discards duplicate/reordered work and a
+missing result becomes an explicit deadline miss handled by the frozen fallback. Nonblocking sockets
+prevent waiting, but do not stop an endlessly nonempty receive queue from consuming a frame; the
+16-datagram poll budget bounds CPU work as well as blocking time.
+
+Examiner assessment: Not passed. The teacher answer was supplied at the candidate's request. Retry
+without notes after completing Gate R1.
+
+### Q12 - What do cross-language golden fixtures prove? (awaiting candidate answer)
+
+Question: Why are Python-only and Unreal-only parser tests insufficient? What does a shared golden
+fixture prove, and what important behavior does it still not prove?
+
+Candidate answer: Pending.
+
+Teacher reference answer: Each side can be internally correct while disagreeing about field names,
+types, numeric limits, optional values, or identity semantics. Feeding the same declared bytes across
+both implementations proves they agree on that wire contract, including representative boundary
+and rejection cases. A finite fixture corpus cannot prove every packet, live timing, packet loss,
+deadline fallback, or gameplay application. Those require bounded malformed tests and later
+end-to-end runtime tests in the actual sample.
+
+Examiner assessment: Awaiting unaided answer.
+
+### Q13 - Why test the protocol inside the actual Unreal sample? (awaiting candidate answer)
+
+Question: If the isolated plugin already compiles and its automation passes, what additional claim
+does building and testing it inside the actual Game Animation Sample support? What does it still not
+prove?
+
+Candidate answer: Pending.
+
+Teacher reference answer: The actual-sample run checks integration assumptions that an artificial
+host cannot: the real enabled-plugin set, module/dependency graph, target rules, platform binary,
+resource discovery, and test execution environment. It shows that the protocol seam is compatible
+with the project we will demo. Because R1 deliberately has no bridge connection, it still does not
+prove live observation timing, action deadlines/fallback, coordinate conversion, or gameplay
+control; those belong to the R2 vertical slice.
+
+Examiner assessment: Awaiting unaided answer.
+
 ## 7. Day 1 closeout answers to practise
 
 These are study answers, not passed candidate teach-backs yet.

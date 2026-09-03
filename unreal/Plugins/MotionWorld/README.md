@@ -74,6 +74,18 @@ The package location is disposable and must not be committed. The plugin source 
 local sample without committing Epic assets. Runtime acceptance for each slice requires executing
 its automation test and inspecting the corresponding command or state evidence in the real sample.
 
+The isolated control transport uses configurable IPv4 loopback UDP endpoints. It performs only
+bounded nonblocking byte I/O: at most 16 datagrams per poll, a fixed full-UDP receive buffer, and
+message-specific size/source rejection before parsing. It has no bridge reference and cannot mutate
+gameplay state. Shared packaged fixtures prove that Python parses the Unreal observation contract and
+Unreal parses typed Python actions, including zero/optional boundaries and bounded malformed input.
+The action parser performs current-episode/observation admission, but remains disconnected from the
+bridge until the live vertical-slice gate.
+
+Gate R1 additionally deploys this exact source and its packaged fixtures to the actual UE 5.8 Game
+Animation Sample. Its universal Editor target and both `MotionWorld.Protocol` automation tests pass.
+This establishes project compatibility while intentionally making no live-control claim.
+
 Use `/private/tmp` rather than its `/tmp` alias on macOS. UE 5.8's local build accelerator can retain
 the spelling used by AutomationTool while Clang resolves the same path to `/private/tmp`, causing a
 false missing-object linker failure.
