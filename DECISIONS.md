@@ -2165,6 +2165,13 @@ no burst after a time jump, accepted action identity, exclusive deadlines, two h
 zero, and stopped/reset state. Both focused actual-sample tests pass. The full Python suite remains
 509/509 and Ruff passes. Final-test episodes 5301/5302 were not opened.
 
+Live service-absent acceptance: Unreal was started with no listener on the configured Python port.
+Session `77556ED6C846`, episode 7281 emitted 201 observations, accepted zero actions, held initial
+zero twice, then applied safe zero 199 times. Observation zero omitted prior action identity, all
+sampled finalized states remained exactly stationary, and the candidate saw no motion. This proves
+the absent-service policy reached gameplay execution rather than merely showing a still image.
+Evidence: `evidence/unreal/r2_service_absent_safe_stop.log`.
+
 ## D-059 - Use stateless bounded controllers to prove the live seam before MPC
 
 Status: accepted code layer; live PIE evidence remains required for R2.3

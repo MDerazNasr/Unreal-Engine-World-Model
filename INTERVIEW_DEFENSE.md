@@ -504,7 +504,8 @@ Question: The reactive controller receives a world-space goal, but Unreal's acti
 local (`+X` forward, `+Y` right). Using authoritative facing `(f_x, f_y)`, how do you calculate the
 local command direction, why is the inverse rotation used, and which speed limit wins?
 
-Candidate answer: Pending.
+Candidate answer: No conceptual answer supplied; the candidate replied only that the Unreal
+configuration task was done.
 
 Teacher reference answer: Subtract authoritative world position from the target and normalize its
 planar direction `(d_x, d_y)`. The character's world forward is `(f_x, f_y)` and world right is
@@ -515,7 +516,8 @@ rotation when producing the Mover command. The magnitude is the minimum of react
 the Python configured ceiling, and Unreal's observed effective max speed. Unreal still performs the
 final independent finite/planar/magnitude clamp after converting back to world space.
 
-Examiner assessment: Awaiting unaided answer after the R2.3 live proof.
+Examiner assessment: Still awaiting an unaided answer after the R2.3 live proof; task completion is
+not evidence of conceptual mastery.
 
 ### Q17 - Why is a stale reply a successful safety result rather than an applied action? (awaiting candidate answer)
 
@@ -536,6 +538,24 @@ zero with `previous_action_present=false` and `previous_action_source=-1`. The l
 
 Examiner assessment: Not passed. The teacher answer was supplied at the candidate's request. Retry
 later without notes. Live evidence is `evidence/unreal/r2_live_echo_stop_sequence_reset.log`.
+
+### Q18 - Why is visible stillness insufficient evidence for service-loss safety? (awaiting candidate answer)
+
+Question: In episode 7281 the pawn visibly remained stopped while Python was absent. Why is that
+observation alone insufficient, and which runtime facts distinguish a working fail-safe from a
+disabled or broken controller path?
+
+Candidate answer: Pending.
+
+Teacher reference answer: Visible stillness alone is ambiguous: the network component might be
+disabled, reset might have failed, observations might never be sent, or an unrelated system might
+hold the pawn. The accepted trace shows the network session and verified reset started, 201
+observations were emitted, zero Python actions were accepted, observation zero had no prior action,
+the first two misses held the initial zero command, and later misses explicitly selected safe zero.
+Matching zero bridge echoes and unchanged authoritative finalized states prove that policy reached
+Mover execution. Together those facts establish fail-safe behavior and exclude stale action reuse.
+
+Examiner assessment: Awaiting unaided candidate answer after the service-absent trial.
 
 ## 7. Day 1 closeout answers to practise
 

@@ -2047,3 +2047,11 @@ resolved to world `(0,100)` with `match=true`; sampled X stayed -800.00 cm while
 cm, and finalized world/local velocities were `(0,100)`/`(100,0)`. Five misses held the last valid
 action; no safe stop, malformed packet, or evidence loss occurred. Evidence:
 `evidence/unreal/r2_live_echo_nonzero_yaw.log`.
+
+Service-absent result: accepted session `77556ED6C846`, episode 7281, as the first R2.4 failure
+case. Before Unreal start, no Python process listened on UDP 52581. The candidate observed the pawn
+remain stopped. Runtime still emitted 201 observations and accepted zero actions. Observation zero
+explicitly had no previous action/source, excluding reuse from episode 7271. Exactly two misses held
+the initial zero command and 199 subsequent misses applied safe stop; all 203 bridge echoes were
+zero/matching. Ten sampled finalized states retained exact position (-800,0,90), zero velocity, and
+yaw zero. Evidence: `evidence/unreal/r2_service_absent_safe_stop.log`.

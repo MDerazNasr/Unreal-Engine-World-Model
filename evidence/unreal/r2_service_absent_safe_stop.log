@@ -1,0 +1,40 @@
+MotionWorld R2.4 service-absent safe-stop evidence
+Date: 2026-09-04 Europe/Copenhagen (PIE log 2026-09-03 22:00 UTC)
+Source: local Game Animation Sample Editor log
+Session: 77556ED6C846
+Episode: 7281
+Python service state: absent; no process was listening on UDP 127.0.0.1:52581 before Unreal start
+Candidate visual observation: pawn remained stopped throughout the trial
+
+Acceptance decision: PASS for "start Unreal with the Python service absent and verify safe stop."
+
+Independent audit:
+- reset yaw override was disabled; reset verified on attempt 1 at position (-800, 0, 90), yaw 0,
+  and zero linear/angular speed
+- observations sent=201; actions accepted=0
+- observation zero reports previous_action_present=false and previous_action_source=-1, proving the
+  prior episode 7271 action was cleared rather than reused
+- misses=201: the first two held the initial safe-zero command and the remaining 199 applied the
+  declared safe stop
+- all 203 bridge command echoes are exact local/world zero with match=true
+- all ten sampled states retain exact position (-800, 0, 90), zero world velocity, and yaw 0
+- all ten periodic transition records contain exact zero local/world action
+- final stats: rejected=0, stale=0, malformed=0, held=2, safe_stops=199,
+  evidence_written=203, evidence_dropped=0
+
+Selected exact source lines:
+[2026.09.03-22.00.02:632][646]LogMotionWorldNetwork: Display: MotionWorld network evidence started: session=77556ED6C846 controller=echo max_lines=2048 endpoints=127.0.0.1:52580->127.0.0.1:52581.
+[2026.09.03-22.00.04:715][676]LogMotionWorldBridge: Display: MotionWorld reset verified: episode=7281 attempts=1 state_sequence=30 mover_frame=31 position_world_cm=(-800.00, 0.00, 90.00) yaw_deg=0.00 mode=Walking position_error_cm=0.000 facing_error_deg=0.000 linear_speed_cm_per_sec=0.000 angular_speed_deg_per_sec=0.000; new episode may seed this state.
+[2026.09.03-22.00.04:718][676]LogMotionWorldNetwork: Display: MotionWorld network observation sent: session=77556ED6C846 episode=7281 observation=0 state_sequence=30 simulation_time_s=1.397000 facing_yaw_deg=0.000000 previous_action_present=false previous_action_source=-1.
+[2026.09.03-22.00.05:883][706]LogMotionWorldBridge: Display: MotionWorld state sample: protocol=1 sequence=60 valid=true mover_step_frame=61 sim_time_s=2.569000 step_s=0.038000 resim=false mode=Walking position_world_cm=(-800.00, 0.00, 90.00) velocity_world_cm_per_sec=(0.00, 0.00, 0.00) velocity_local_planar_cm_per_sec=(0.00, 0.00, 0.00) facing_yaw_deg=0.00 facing_unit_world=(1.000000, 0.000000) angular_velocity_world_deg_per_sec=(0.00, 0.00, 0.00)
+[2026.09.03-22.00.23:261][186]LogMotionWorldBridge: Display: MotionWorld state sample: protocol=1 sequence=540 valid=true mover_step_frame=541 sim_time_s=19.798000 step_s=0.030000 resim=false mode=Walking position_world_cm=(-800.00, 0.00, 90.00) velocity_world_cm_per_sec=(0.00, 0.00, 0.00) velocity_local_planar_cm_per_sec=(0.00, 0.00, 0.00) facing_yaw_deg=0.00 facing_unit_world=(1.000000, 0.000000) angular_velocity_world_deg_per_sec=(0.00, 0.00, 0.00)
+[2026.09.03-22.00.25:184][238]LogMotionWorldNetwork: Display: MotionWorld network evidence stopped: session=77556ED6C846 observations_sent=201 actions_accepted=0 rejected=0 stale=0 malformed=0 missed=201 held=2 safe_stops=199 evidence_written=203 evidence_dropped=0.
+
+Interpretation:
+Visible stillness alone would not distinguish a disabled controller, a broken observation path, or
+a valid fail-safe. The trace proves the network runtime remained active and emitted 201 observations
+while accepting no Python action, cleared prior episode state, and deterministically progressed from
+two bounded holds of initial zero to explicit zero safe stops. Exact stationary finalized states
+show that the safety policy reached gameplay execution.
+
+Final-test episodes 5301/5302 opened: zero.
