@@ -1,0 +1,39 @@
+{
+  "schema_name": "motionworld_gate_r2_live_manifest",
+  "schema_version": 1,
+  "blueprint_asset": "/Game/Blueprints/SandboxCharacter_Mover",
+  "service": {
+    "config_path": "configs/control_service_echo_forward.yaml",
+    "sha256": "7d8979980b2fcd1889deb4eef3ea99e8d257198f5f1841155e5815b7bb73efc9",
+    "runtime_config_sha256": "33fd7bc309b63dc355f313aed6e9ebb3ec2c6426ab3af25f9408383a17189525",
+    "transport_config_sha256": "c4b14c609e78301a446310b04795ab4fb8ca44aae8cb44c065ffefb987ad9ee1"
+  },
+  "bridge_settings": {
+    "start_episode_recording_on_begin_play": false,
+    "request_reset_after_warmup_on_begin_play": true,
+    "reset_warmup_finalized_samples": 60,
+    "begin_play_reset_episode_id": 7310,
+    "reset_live_test_repeat_count": 3,
+    "reset_live_test_transitions_per_episode": 90,
+    "override_reset_anchor_yaw_for_live_test": false,
+    "enable_timed_gate_scenario": false,
+    "enable_varied_action_schedule": false,
+    "enable_external_perturbation_schedule": false
+  },
+  "network_settings": {
+    "network_control_enabled": true,
+    "local_port": 52580,
+    "remote_port": 52581,
+    "controller_mode": "echo",
+    "has_reactive_target": false,
+    "log_network_evidence": true,
+    "max_network_evidence_lines": 2048
+  },
+  "acceptance": {
+    "expected_episode_ids": [7310, 7311, 7312],
+    "minimum_consecutive_intervals": 100,
+    "maximum_p95_latency_ms": 100.0,
+    "required_verified_resets": 3,
+    "require_unedited_recording": true
+  }
+}

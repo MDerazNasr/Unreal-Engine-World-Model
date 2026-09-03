@@ -1,0 +1,47 @@
+{
+  "episode_id": 7221,
+  "final_stats": {
+    "accepted": 224,
+    "dropped": 0,
+    "held": 0,
+    "malformed": 0,
+    "missed": 0,
+    "observations": 224,
+    "rejected": 0,
+    "safe_stops": 0,
+    "stale": 0,
+    "written": 450
+  },
+  "gate_r2": {
+    "claim_boundary": "echo round trip only; reset/failure/video evidence is separate",
+    "consecutive_interval_pass": true,
+    "final_prediction_episodes_opened": 0,
+    "identity_reconciliation_pass": true,
+    "latency_pass": true,
+    "minimum_consecutive_intervals": 100
+  },
+  "identity_reconciliation": {
+    "accepted_actions": 224,
+    "action_gaps": 0,
+    "first_sequence": 0,
+    "last_sequence": 223,
+    "observation_gaps": 0,
+    "observations": 224,
+    "unexplained_gaps": 0
+  },
+  "schema_name": "motionworld_runtime_roundtrip_summary",
+  "schema_version": 1,
+  "session_id": "31E1BBC5684B",
+  "source_log": {
+    "extraction": "inclusive byte-preserving decoded UTF-8 line range",
+    "first_line_number": 4003,
+    "last_line_number": 4731,
+    "sha256": "0e4a8be0e1a9df7ab3cc619e5405c8e993c5a0ce9a640a7c6a06f332a6176109"
+  },
+  "unreal_end_to_end_latency_ms": {
+    "exclusive_deadline_ms": 100.0,
+    "maximum": 51.494207,
+    "minimum": 14.713708,
+    "p95": 27.8717601
+  }
+}

@@ -2197,3 +2197,22 @@ late, and old-episode packets never appear as applied commands; all nonzero comm
 bounded; absence/loss/reset paths reach exact zero. The separate episode-7261 speed-bound case proves
 that even raw `(1000,1000)` is clamped to norm 165 cm/s. This closes R2.4 without another PIE run.
 Evidence: `evidence/unreal/r2_failure_no_runaway_audit.md`.
+
+Gate-R2 existing-evidence reconciliation: accepted for four of seven items. A strict parser audited
+the original rotated actual-sample log for session `31E1BBC5684B`, episode 7221. Both emitted
+observation and accepted-action sequences are exactly 0-223 with no gap, every accepted line reports
+current identity and pre-deadline admission, and the final counters reconcile 224 observations to
+224 actions with every rejection/miss/fallback/evidence-drop counter zero. Recomputed Unreal
+end-to-end latency is 14.714/27.872/51.494 ms minimum/p95/maximum. The source file SHA is
+`0e4a8be0...a6176109`; its unedited inclusive lines 4003-4731 are preserved as
+`evidence/unreal/runtime_roundtrip_001.log`, with machine summary at
+`artifacts/runtime/roundtrip_001/summary.json`. The completed R2.4 actual-sample matrix separately
+closes service-loss and stale-action safety. Three resets and unedited video remain open.
+
+Gate-R2 configuration automation pre-live gate: accepted at the code layer. The frozen manifest
+pins Blueprint asset identity, three reset episodes 7310-7312, reset/network/evidence settings, and
+SHA-256 values for the echo service plus runtime/transport dependencies. The Unreal Python utility
+backs up prior component-template values, applies or verifies the manifest, compiles/saves, performs
+exact readback, and restores from the recoverable backup. It is default-inactive unless explicitly
+run and does not issue gameplay commands or choose settings from outcomes. Actual Blueprint
+apply/readback remains required before the final reset/video run.

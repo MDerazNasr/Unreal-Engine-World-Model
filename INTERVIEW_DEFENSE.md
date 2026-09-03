@@ -696,6 +696,38 @@ obsolete, unbounded, or persistent unintended motion.
 Examiner assessment: Not yet attempted. Require an unaided explanation after reviewing the R2.4
 aggregate evidence matrix.
 
+### Q26 - Why can one clean run satisfy several Gate-R2 requirements?
+
+Question: Why is it legitimate to use episode 7221 for consecutive control, identity reconciliation,
+and latency instead of repeating those measurements?
+
+Candidate answer: Not yet attempted.
+
+Teacher reference answer: These are different measurements over the same declared round-trip path,
+not independent interventions. The untouched raw session contains every emitted observation,
+matching accepted action, admission flag, and Unreal-clock latency, so one prespecified audit can
+evaluate all three without changing the data. Reuse is legitimate only when each claim's exact
+criterion is checked and claim boundaries remain explicit; the same run cannot be stretched to
+prove three resets, service loss, or video evidence that it does not contain.
+
+Examiner assessment: Not yet attempted. Require an unaided explanation before Section 3 closes.
+
+### Q27 - Why does configuration automation not invalidate the experiment?
+
+Question: Under what conditions is automated Blueprint setup scientifically equivalent to entering
+the same values manually?
+
+Candidate answer: Not yet attempted.
+
+Teacher reference answer: Automation is equivalent when it applies a frozen input selected before
+outcomes, changes only the same configuration fields a person would change, reads every value back,
+binds the exact manifest and service files by hash, and refuses any mismatch. It must not issue
+gameplay commands, modify controller/model logic, inspect results to choose settings, or silently
+rerun failures. A recoverable snapshot preserves the prior asset state. The execution and acceptance
+evidence still come from Unreal, not from the configuration script.
+
+Examiner assessment: Not yet attempted. Require an unaided explanation after the live apply/readback.
+
 ## 7. Day 1 closeout answers to practise
 
 These are study answers, not passed candidate teach-backs yet.

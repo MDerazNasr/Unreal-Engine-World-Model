@@ -2446,3 +2446,46 @@ logging. Every stationary case has zero echoes and stationary finalized state; e
 finite and bounded and subsequently recovers, resets, or stops. The independent speed-bound run
 shows `(1000,1000)` is clamped to norm 165 cm/s. Evidence:
 `evidence/unreal/r2_failure_no_runaway_audit.md`.
+
+## D-068 - Reuse clean actual-sample evidence across Gate R2 without rerunning it
+
+Status: accepted for four Gate-R2 requirements
+
+Decision: Credit the clean episode-7221 echo session for consecutive round trip, sequence/episode
+reconciliation, and steady-state latency. Credit the accepted R2.4 failure matrix for actual-sample
+service-loss and stale-action safety. Preserve the exact raw 7221 session range and a machine-audited
+summary under the artifact names required by the recovery plan. Do not claim that these artifacts
+also prove three resets or an unedited video.
+
+Why: A gate requires evidence, not needless repetition. Episode 7221 already exceeds the 100-cycle
+threshold with a cleaner result than later stress runs, and every R2.4 case ran in the actual sample.
+Explicit claim boundaries prevent reuse from becoming evidence inflation.
+
+How it is tested: The strict auditor locates one ordered session start/stop, requires one episode,
+parses observations and current/deadline-valid actions, requires both sequences to be exactly
+contiguous from zero and identical, reconciles final counters, rejects any failure/evidence-drop
+counter, and recomputes latency. The raw source has SHA-256
+`0e4a8be0e1a9df7ab3cc619e5405c8e993c5a0ce9a640a7c6a06f332a6176109`; the extracted inclusive
+line range is 4003-4731. It contains 224/224 matched intervals, zero gaps/failures, and 27.872 ms p95
+against the 100 ms exclusive deadline. Artifacts: `evidence/unreal/runtime_roundtrip_001.log` and
+`artifacts/runtime/roundtrip_001/summary.json`.
+
+## D-069 - Automate Gate-R2 setup through frozen apply/readback/restore
+
+Status: accepted at the code layer; actual Blueprint apply/readback remains required
+
+Decision: Freeze the three-reset live setup in a strict JSON manifest and apply it through an Unreal
+Editor Python script. Before changing the Blueprint component templates, save their exact prior
+values; after applying, compile/save and read every field back; refuse a mismatch. Restore through
+the same backup after evidence capture. The manifest changes setup only and never selects settings
+from outcomes or writes a gameplay command.
+
+Why: Repeated manual property editing consumed time and caused configuration errors. A frozen,
+hashed input plus exact readback reduces those errors without changing Mover, the controller,
+protocol admission, reset implementation, or evaluation rules.
+
+How it is tested: Seven manifest tests cover the accepted three-episode contract, frozen service and
+dependency hashes, and rejection of weakened reset/control/latency/video requirements. The Unreal
+script has apply, verify, and restore modes and refuses to overwrite its recoverable backup. The
+actual sample must still prove that the editor property names resolve, the compiled Blueprint reads
+back identically, and episodes 7310-7312 execute.
