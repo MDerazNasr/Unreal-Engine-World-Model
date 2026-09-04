@@ -10,8 +10,11 @@ from typing import Any
 import numpy as np
 
 from motionworld.control.live_planner_adapter import planner_snapshot_from_observation
+from motionworld.models.residual_mlp import ResidualMLP
+from motionworld.models.residual_normalization import ResidualNormalization
 from motionworld.planning.cem import expand_action_knots, sample_standard_normal_schedule
 from motionworld.planning.mpc import PlannerProblem, plan_model
+from motionworld.planning.planner_rollout import PlannerRolloutConfig
 from motionworld.planning.vectorized_rollout import rollout_action_candidates_vectorized
 from motionworld.protocol.visualization import (
     TrajectoryRole,
@@ -32,6 +35,9 @@ class LiveNominalMPCConfig:
     seed: int
     preview_iteration_winners: int = 3
     initial_mean_action_local_cm_s: tuple[float, float] = (130.0, 0.0)
+    residual_overlay_model: ResidualMLP | None = None
+    residual_overlay_normalization: ResidualNormalization | None = None
+    residual_overlay_rollout: PlannerRolloutConfig | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.problem_template, PlannerProblem):
@@ -67,6 +73,31 @@ class LiveNominalMPCConfig:
             raise ValueError("initial_mean_action_local_cm_s must contain two finite values")
         if np.linalg.norm(action) > self.problem_template.cem.max_action_speed_cm_s:
             raise ValueError("initial mean action exceeds the CEM speed limit")
+        overlay_values = (
+            self.residual_overlay_model,
+            self.residual_overlay_normalization,
+            self.residual_overlay_rollout,
+        )
+        if any(value is None for value in overlay_values) != all(
+            value is None for value in overlay_values
+        ):
+            raise ValueError("residual overlay model, normalization, and rollout are atomic")
+        if self.residual_overlay_model is not None:
+            if not isinstance(self.residual_overlay_model, ResidualMLP):
+                raise TypeError("residual_overlay_model must be a ResidualMLP")
+            if not isinstance(self.residual_overlay_normalization, ResidualNormalization):
+                raise TypeError("residual_overlay_normalization must be ResidualNormalization")
+            if not isinstance(self.residual_overlay_rollout, PlannerRolloutConfig):
+                raise TypeError("residual_overlay_rollout must be PlannerRolloutConfig")
+            if self.residual_overlay_model.input_width != 28:
+                raise ValueError("live residual overlay requires the no-history model")
+            if self.residual_overlay_normalization.history_length != 1:
+                raise ValueError("live residual overlay requires no-history normalization")
+            if (
+                self.residual_overlay_rollout.plan_step_s
+                != self.problem_template.rollout.plan_step_s
+            ):
+                raise ValueError("overlay and planner sampling timesteps must match")
 
 
 @dataclass(frozen=True, slots=True)
@@ -125,6 +156,10 @@ class LiveNominalMPCController:
                 problem,
                 plan,
                 winner_count=self.config.preview_iteration_winners,
+                residual_model=self.config.residual_overlay_model,
+                residual_normalization=self.config.residual_overlay_normalization,
+                overlay_rollout=self.config.residual_overlay_rollout,
+                cancelled=cancelled,
             )
         except Exception:
             if cancelled.is_set():
@@ -139,7 +174,16 @@ class LiveNominalMPCController:
             return None
 
         selected = tuple(float(value) for value in plan.cem.first_action_cm_s)
-        action = _action(observation, selected, started_us=started_us)
+        action = _action(
+            observation,
+            selected,
+            started_us=started_us,
+            model_id=(
+                "nominal_mpc_matched_residual_overlay_v1"
+                if self.config.residual_overlay_model is not None
+                else "smooth_walking_nominal_mpc_v1"
+            ),
+        )
         action["telemetry"] = {
             "is_present": True,
             "visualization": visualization.to_json_object(),
@@ -147,7 +191,17 @@ class LiveNominalMPCController:
         return action
 
 
-def _visualization(live, problem, plan, *, winner_count: int) -> VisualizationTelemetry:
+def _visualization(
+    live,
+    problem,
+    plan,
+    *,
+    winner_count: int,
+    residual_model: ResidualMLP | None = None,
+    residual_normalization: ResidualNormalization | None = None,
+    overlay_rollout: PlannerRolloutConfig | None = None,
+    cancelled: threading.Event | None = None,
+) -> VisualizationTelemetry:
     iteration_actions = np.stack(
         [
             expand_action_knots(
@@ -174,7 +228,34 @@ def _visualization(live, problem, plan, *, winner_count: int) -> VisualizationTe
     paths = tuple(
         path(TrajectoryRole.CEM_CANDIDATE, candidates.positions_world_cm[index])
         for index in range(winner_count)
-    ) + (path(TrajectoryRole.SELECTED, plan.best_rollout.positions_world_cm[0]),)
+    )
+    if residual_model is None:
+        paths += (path(TrajectoryRole.SELECTED, plan.best_rollout.positions_world_cm[0]),)
+    else:
+        if residual_normalization is None or overlay_rollout is None:
+            raise ValueError("residual overlay inputs must be supplied atomically")
+        selected_actions = np.asarray(plan.cem.best_actions_cm_s, dtype=np.float64)
+        matched = np.broadcast_to(selected_actions, (2, *selected_actions.shape)).copy()
+        nominal_overlay = rollout_action_candidates_vectorized(
+            live.snapshot,
+            matched[:1],
+            config=overlay_rollout,
+        )
+        if cancelled is not None and cancelled.is_set():
+            raise _CancelledOverlay
+        residual_overlay = rollout_action_candidates_vectorized(
+            live.snapshot,
+            matched[1:],
+            config=overlay_rollout,
+            residual_model=residual_model,
+            residual_normalization=residual_normalization,
+        )
+        if cancelled is not None and cancelled.is_set():
+            raise _CancelledOverlay
+        paths += (
+            path(TrajectoryRole.NOMINAL, nominal_overlay.positions_world_cm[0]),
+            path(TrajectoryRole.RESIDUAL, residual_overlay.positions_world_cm[0]),
+        )
     telemetry = VisualizationTelemetry(
         episode_id=live.episode_id,
         source_observation_sequence=live.observation_sequence,
@@ -186,12 +267,17 @@ def _visualization(live, problem, plan, *, winner_count: int) -> VisualizationTe
     return telemetry
 
 
+class _CancelledOverlay(Exception):
+    """Internal signal; the controller suppresses publication for superseded work."""
+
+
 def _action(
     observation: Observation,
     desired_velocity: tuple[float, float],
     *,
     started_us: int,
     fallback_reason: str = "none",
+    model_id: str = "smooth_walking_nominal_mpc_v1",
 ) -> dict[str, Any]:
     finished_us = time.monotonic_ns() // 1_000
     identity = observation["identity"]
@@ -209,7 +295,7 @@ def _action(
         "command": {"desired_velocity_local_cm_per_s": list(desired_velocity)},
         "controller": {
             "controller_id": "nominal_mpc",
-            "model_id": "smooth_walking_nominal_mpc_v1",
+            "model_id": model_id,
         },
         "planner": {
             "started_monotonic_us": started_us,

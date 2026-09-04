@@ -1,0 +1,50 @@
+{
+  "schema_name": "motionworld_d6_residual_overlay_manifest",
+  "schema_version": 1,
+  "blueprint_asset": "/Game/Blueprints/SandboxCharacter_Mover",
+  "service": {
+    "config_path": "configs/control_service_demo_nominal_mpc.yaml",
+    "sha256": "826cbb309b3df27bcd7ff460cffe2e177c187f3ab77b87a2f307fd411983d865",
+    "planner_config_path": "configs/live_residual_overlay_demo.yaml",
+    "planner_sha256": "e0281cc65de235e2ee3500d4ccdd19ce2c6344243402dbb39ac792a74b1622d1",
+    "runtime_config_sha256": "33fd7bc309b63dc355f313aed6e9ebb3ec2c6426ab3af25f9408383a17189525",
+    "transport_config_sha256": "c4b14c609e78301a446310b04795ab4fb8ca44aae8cb44c065ffefb987ad9ee1"
+  },
+  "demo_geometry": {
+    "reset_anchor_world_cm": [-800.0, 0.0, 90.0],
+    "reactive_target_world_cm": [800.0, 0.0, 90.0],
+    "terminal_velocity_local_cm_per_sec": [0.0, 0.0]
+  },
+  "bridge_settings": {
+    "start_episode_recording_on_begin_play": false,
+    "request_reset_after_warmup_on_begin_play": true,
+    "reset_warmup_finalized_samples": 60,
+    "begin_play_reset_episode_id": 7601,
+    "reset_live_test_repeat_count": 1,
+    "reset_live_test_transitions_per_episode": 120,
+    "override_reset_anchor_yaw_for_live_test": false,
+    "enable_timed_gate_scenario": false,
+    "enable_varied_action_schedule": false,
+    "enable_external_perturbation_schedule": false,
+    "max_planar_speed_cm_per_sec": 165.0
+  },
+  "network_settings": {
+    "network_control_enabled": true,
+    "local_port": 52580,
+    "remote_port": 52581,
+    "controller_mode": "nominal_mpc",
+    "has_reactive_target": true,
+    "reactive_target_world_cm": [800.0, 0.0, 90.0],
+    "reactive_terminal_velocity_local_cm_per_sec": [0.0, 0.0],
+    "draw_world_model_visualization": true,
+    "log_network_evidence": true,
+    "max_network_evidence_lines": 2048
+  },
+  "acceptance": {
+    "expected_episode_id": 7601,
+    "visual_inspection_transitions": 120,
+    "require_network_evidence": true,
+    "controller_owns_actions": "nominal_mpc",
+    "overlay_is_prediction_only": true
+  }
+}

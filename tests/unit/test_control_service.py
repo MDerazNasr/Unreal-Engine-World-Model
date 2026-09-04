@@ -203,6 +203,31 @@ def test_demo_nominal_mpc_cli_requires_and_loads_frozen_planner_config() -> None
     assert "requires --planner-config" in missing.stderr
 
 
+def test_demo_nominal_mpc_cli_loads_verified_residual_overlay() -> None:
+    service_path = REPOSITORY_ROOT / "configs/control_service_demo_nominal_mpc.yaml"
+    overlay_path = REPOSITORY_ROOT / "configs/live_residual_overlay_demo.yaml"
+
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "motionworld.control.service",
+            "--config",
+            str(service_path),
+            "--residual-overlay-config",
+            str(overlay_path),
+            "--check-config",
+        ],
+        cwd=REPOSITORY_ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+        timeout=10.0,
+    )
+
+    assert json.loads(completed.stdout)["controller_mode"] == "nominal_mpc"
+
+
 @pytest.mark.parametrize(
     ("name", "expected_velocity"),
     [

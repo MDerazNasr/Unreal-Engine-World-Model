@@ -12,20 +12,43 @@ from pathlib import Path
 import unreal
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
-MANIFEST_PATH = REPOSITORY_ROOT / "configs" / "d5_nominal_mpc_manifest.json"
+DEMO_STAGE = os.environ.get("MOTIONWORLD_DEMO_STAGE", "D5")
+if DEMO_STAGE not in {"D5", "D6"}:
+    raise RuntimeError("MOTIONWORLD_DEMO_STAGE must be D5 or D6")
+MANIFEST_PATH = REPOSITORY_ROOT / "configs" / (
+    "d5_nominal_mpc_manifest.json"
+    if DEMO_STAGE == "D5"
+    else "d6_residual_overlay_manifest.json"
+)
 _VECTOR3 = "reactive_target_world_cm"
 _VECTOR2 = "reactive_terminal_velocity_local_cm_per_sec"
 
 
 def _load_manifest_function():
-    module_path = REPOSITORY_ROOT / "motionworld/control/d5_nominal_mpc_manifest.py"
-    spec = importlib.util.spec_from_file_location("motionworld_d5_nominal_manifest", module_path)
+    repository_text = str(REPOSITORY_ROOT)
+    if repository_text not in sys.path:
+        sys.path.insert(0, repository_text)
+    module_name = (
+        "d5_nominal_mpc_manifest.py"
+        if DEMO_STAGE == "D5"
+        else "d6_residual_overlay_manifest.py"
+    )
+    function_name = (
+        "load_d5_nominal_mpc_manifest"
+        if DEMO_STAGE == "D5"
+        else "load_d6_residual_overlay_manifest"
+    )
+    module_path = REPOSITORY_ROOT / "motionworld/control" / module_name
+    spec = importlib.util.spec_from_file_location(
+        f"motionworld_{DEMO_STAGE.lower()}_manifest",
+        module_path,
+    )
     if spec is None or spec.loader is None:
         raise RuntimeError(f"could not load manifest module from {module_path}")
     module = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = module
     spec.loader.exec_module(module)
-    return module.load_d5_nominal_mpc_manifest
+    return getattr(module, function_name)
 
 
 def _single_component(blueprint, component_class, label: str):
@@ -82,7 +105,9 @@ def _require_backup_vector(settings, name: str, size: int) -> None:
         or len(value) != size
         or any(type(item) not in {int, float} or not math.isfinite(item) for item in value)
     ):
-        raise RuntimeError(f"D5 backup {name} must contain {size} finite coordinates")
+        raise RuntimeError(
+            f"{DEMO_STAGE} backup {name} must contain {size} finite coordinates"
+        )
 
 
 def _compile_and_save(asset, context: str) -> None:
@@ -94,9 +119,11 @@ def _compile_and_save(asset, context: str) -> None:
 
 def main() -> None:
     manifest = _load_manifest_function()(MANIFEST_PATH, REPOSITORY_ROOT)
-    mode = os.environ.get("MOTIONWORLD_D5_DEMO_MODE", "verify")
+    mode = os.environ.get(f"MOTIONWORLD_{DEMO_STAGE}_DEMO_MODE", "verify")
     if mode not in {"apply", "verify", "restore"}:
-        raise RuntimeError("MOTIONWORLD_D5_DEMO_MODE must be apply, verify, or restore")
+        raise RuntimeError(
+            f"MOTIONWORLD_{DEMO_STAGE}_DEMO_MODE must be apply, verify, or restore"
+        )
     asset = unreal.EditorAssetLibrary.load_asset(manifest.blueprint_asset)
     if asset is None:
         raise RuntimeError(f"could not load {manifest.blueprint_asset}")
@@ -104,7 +131,8 @@ def main() -> None:
     network = _single_component(
         asset, unreal.MotionWorldNetworkControllerComponent, "MotionWorld network controller"
     )
-    saved_dir = Path(unreal.Paths.project_saved_dir()) / "MotionWorld" / "D5NominalMpc"
+    saved_name = "D5NominalMpc" if DEMO_STAGE == "D5" else "D6ResidualOverlay"
+    saved_dir = Path(unreal.Paths.project_saved_dir()) / "MotionWorld" / saved_name
     saved_dir.mkdir(parents=True, exist_ok=True)
     backup_path = saved_dir / "blueprint_settings_backup.json"
     expected = {
@@ -114,9 +142,11 @@ def main() -> None:
 
     if mode == "apply":
         if backup_path.exists():
-            raise RuntimeError(f"refusing to overwrite existing D5 backup: {backup_path}")
+            raise RuntimeError(
+                f"refusing to overwrite existing {DEMO_STAGE} backup: {backup_path}"
+            )
         backup = {
-            "schema_name": "motionworld_d5_blueprint_settings_backup",
+            "schema_name": f"motionworld_{DEMO_STAGE.lower()}_blueprint_settings_backup",
             "schema_version": 1,
             "manifest_sha256": manifest.canonical_sha256,
             "blueprint_asset": manifest.blueprint_asset,
@@ -134,12 +164,12 @@ def main() -> None:
                 "network_settings": _read(network, manifest.network_settings),
             },
             expected,
-            "D5 apply",
+            f"{DEMO_STAGE} apply",
         )
-        _compile_and_save(asset, "configured D5")
+        _compile_and_save(asset, f"configured {DEMO_STAGE}")
     elif mode == "restore":
         if not backup_path.is_file():
-            raise RuntimeError(f"missing D5 settings backup: {backup_path}")
+            raise RuntimeError(f"missing {DEMO_STAGE} settings backup: {backup_path}")
         backup = json.loads(backup_path.read_text(encoding="utf-8"))
         required_backup_keys = {
             "schema_name",
@@ -150,19 +180,22 @@ def main() -> None:
             "network_settings",
         }
         if set(backup) != required_backup_keys:
-            raise RuntimeError("D5 backup keys are not exact")
-        if backup["schema_name"] != "motionworld_d5_blueprint_settings_backup":
-            raise RuntimeError("D5 backup schema name mismatch")
+            raise RuntimeError(f"{DEMO_STAGE} backup keys are not exact")
+        expected_backup_schema = (
+            f"motionworld_{DEMO_STAGE.lower()}_blueprint_settings_backup"
+        )
+        if backup["schema_name"] != expected_backup_schema:
+            raise RuntimeError(f"{DEMO_STAGE} backup schema name mismatch")
         if backup["schema_version"] != 1:
-            raise RuntimeError("D5 backup schema version mismatch")
+            raise RuntimeError(f"{DEMO_STAGE} backup schema version mismatch")
         if backup["manifest_sha256"] != manifest.canonical_sha256:
-            raise RuntimeError("D5 backup manifest identity mismatch")
+            raise RuntimeError(f"{DEMO_STAGE} backup manifest identity mismatch")
         if backup["blueprint_asset"] != manifest.blueprint_asset:
-            raise RuntimeError("D5 backup Blueprint identity mismatch")
+            raise RuntimeError(f"{DEMO_STAGE} backup Blueprint identity mismatch")
         if set(backup["bridge_settings"]) != set(manifest.bridge_settings):
-            raise RuntimeError("D5 backup bridge keys mismatch")
+            raise RuntimeError(f"{DEMO_STAGE} backup bridge keys mismatch")
         if set(backup["network_settings"]) != set(manifest.network_settings):
-            raise RuntimeError("D5 backup network keys mismatch")
+            raise RuntimeError(f"{DEMO_STAGE} backup network keys mismatch")
         _require_backup_vector(backup["network_settings"], _VECTOR3, 3)
         _require_backup_vector(backup["network_settings"], _VECTOR2, 2)
         restored = {
@@ -177,16 +210,16 @@ def main() -> None:
                 "network_settings": _read(network, manifest.network_settings),
             },
             restored,
-            "D5 restore",
+            f"{DEMO_STAGE} restore",
         )
-        _compile_and_save(asset, "restored D5")
+        _compile_and_save(asset, f"restored {DEMO_STAGE}")
         _require_exact(
             {
                 "bridge_settings": _read(bridge, manifest.bridge_settings),
                 "network_settings": _read(network, manifest.network_settings),
             },
             restored,
-            "saved D5 restore",
+            f"saved {DEMO_STAGE} restore",
         )
         backup_path.unlink()
 
@@ -200,15 +233,20 @@ def main() -> None:
         "manifest_sha256": manifest.canonical_sha256,
         "service_config": str(manifest.service_config_path.relative_to(REPOSITORY_ROOT)),
         "planner_config": str(manifest.planner_config_path.relative_to(REPOSITORY_ROOT)),
-        "matches_d5_manifest": matches,
+        f"matches_{DEMO_STAGE.lower()}_manifest": matches,
         "actual": actual,
     }
     (saved_dir / "configuration_report.json").write_text(
         json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
     if mode != "restore" and not matches:
-        raise RuntimeError("Blueprint readback does not match the D5 manifest")
-    unreal.log(f"MotionWorld D5 configuration {mode}: {json.dumps(report, sort_keys=True)}")
+        raise RuntimeError(
+            f"Blueprint readback does not match the {DEMO_STAGE} manifest"
+        )
+    unreal.log(
+        f"MotionWorld {DEMO_STAGE} configuration {mode}: "
+        f"{json.dumps(report, sort_keys=True)}"
+    )
 
 
 main()

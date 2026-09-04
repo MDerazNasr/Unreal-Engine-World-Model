@@ -10,6 +10,9 @@ from motionworld.control.live_nominal_mpc import (
     LiveNominalMPCConfig,
     LiveNominalMPCController,
 )
+from motionworld.models.residual_features import RESIDUAL_STEP_FEATURE_COUNT
+from motionworld.models.residual_mlp import ResidualMLP
+from motionworld.models.residual_normalization import ResidualNormalization
 from motionworld.planning.cem import CEMConfig, expand_action_knots, sample_standard_normal_schedule
 from motionworld.planning.mpc import plan_model
 from motionworld.planning.planner_rollout import PlannerRolloutConfig
@@ -40,6 +43,19 @@ def _demo_problem():
             clearance_per_cm2=0.0,
             action_second_difference_per_cm2_s2=0.0,
         ),
+    )
+
+
+def _identity_normalization() -> ResidualNormalization:
+    return ResidualNormalization(
+        history_length=1,
+        train_episode_ids=(1,),
+        sample_count=1,
+        feature_mean=np.zeros(RESIDUAL_STEP_FEATURE_COUNT),
+        feature_scale=np.ones(RESIDUAL_STEP_FEATURE_COUNT),
+        constant_feature_mask=np.ones(RESIDUAL_STEP_FEATURE_COUNT, dtype=np.bool_),
+        target_scale=np.ones(6),
+        constant_target_mask=np.ones(6, dtype=np.bool_),
     )
 
 
@@ -149,6 +165,97 @@ def test_live_nominal_mpc_cancels_after_visualization(monkeypatch) -> None:
     controller = LiveNominalMPCController(LiveNominalMPCConfig(_demo_problem(), seed=2))
 
     assert controller(observation, cancelled) is None
+
+
+def test_matched_residual_overlay_uses_same_state_actions_and_keeps_nominal_command(
+    monkeypatch,
+) -> None:
+    from motionworld.control import live_nominal_mpc
+
+    normalization = _identity_normalization()
+    model = ResidualMLP(RESIDUAL_STEP_FEATURE_COUNT)
+    base = LiveNominalMPCConfig(_demo_problem(), seed=19, preview_iteration_winners=2)
+    overlay = replace(
+        base,
+        residual_overlay_model=model,
+        residual_overlay_normalization=normalization,
+        residual_overlay_rollout=replace(
+            base.problem_template.rollout,
+            dynamics_substeps_per_plan_step=3,
+        ),
+    )
+    observation = _observation(9)
+    observation["source"]["controller_mode"] = "nominal_mpc"
+    baseline = LiveNominalMPCController(base)(observation, threading.Event())
+
+    calls = []
+    real_rollout = live_nominal_mpc.rollout_action_candidates_vectorized
+
+    def capture(snapshot, actions, **kwargs):
+        calls.append((snapshot, np.asarray(actions).copy(), kwargs.copy()))
+        return real_rollout(snapshot, actions, **kwargs)
+
+    monkeypatch.setattr(live_nominal_mpc, "rollout_action_candidates_vectorized", capture)
+    result = LiveNominalMPCController(overlay)(observation, threading.Event())
+
+    assert baseline is not None and result is not None
+    assert result["command"] == baseline["command"]
+    assert result["controller"]["controller_id"] == "nominal_mpc"
+    assert result["controller"]["model_id"] == "nominal_mpc_matched_residual_overlay_v1"
+    visualization = validate_action_mapping(result)["telemetry"]["visualization"]
+    assert [path["role"] for path in visualization["paths"]] == [
+        "cem_candidate",
+        "cem_candidate",
+        "nominal",
+        "residual",
+    ]
+    assert len(encode_action_json(result)) <= 8_192
+    # Call zero is the gray CEM preview. Calls one and two are the blue/orange
+    # matched comparison and must differ only by model selection.
+    nominal_call, residual_call = calls[-2:]
+    assert nominal_call[0] is residual_call[0]
+    np.testing.assert_array_equal(nominal_call[1], residual_call[1])
+    assert "residual_model" not in nominal_call[2]
+    assert residual_call[2]["residual_model"] is model
+    assert residual_call[2]["residual_normalization"] is normalization
+
+
+def test_matched_residual_overlay_cancellation_suppresses_stale_action(monkeypatch) -> None:
+    from motionworld.control import live_nominal_mpc
+
+    cancelled = threading.Event()
+    normalization = _identity_normalization()
+    model = ResidualMLP(RESIDUAL_STEP_FEATURE_COUNT)
+    base = LiveNominalMPCConfig(_demo_problem(), seed=19)
+    config = replace(
+        base,
+        residual_overlay_model=model,
+        residual_overlay_normalization=normalization,
+        residual_overlay_rollout=replace(
+            base.problem_template.rollout,
+            dynamics_substeps_per_plan_step=3,
+        ),
+    )
+    real_rollout = live_nominal_mpc.rollout_action_candidates_vectorized
+    calls = 0
+
+    def cancel_after_nominal_overlay(*args, **kwargs):
+        nonlocal calls
+        calls += 1
+        result = real_rollout(*args, **kwargs)
+        if calls == 2:
+            cancelled.set()
+        return result
+
+    monkeypatch.setattr(
+        live_nominal_mpc,
+        "rollout_action_candidates_vectorized",
+        cancel_after_nominal_overlay,
+    )
+    observation = _observation(9)
+    observation["source"]["controller_mode"] = "nominal_mpc"
+
+    assert LiveNominalMPCController(config)(observation, cancelled) is None
 
 
 def test_live_nominal_mpc_suppresses_fallback_when_exception_coincides_with_cancel(

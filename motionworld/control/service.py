@@ -18,6 +18,7 @@ from typing import Any
 from motionworld.control.config import ControlServiceConfig, load_control_service_config
 from motionworld.control.controllers import build_controller
 from motionworld.control.live_mpc_config import load_live_nominal_mpc_config
+from motionworld.control.live_residual_overlay_config import load_live_residual_overlay_config
 from motionworld.protocol import (
     decode_observation_json,
     encode_action_json,
@@ -392,24 +393,43 @@ def _parser() -> argparse.ArgumentParser:
         type=Path,
         help="required prospective demo planner configuration for nominal_mpc",
     )
+    parser.add_argument(
+        "--residual-overlay-config",
+        type=Path,
+        help=(
+            "verified matched residual-prediction overlay configuration; "
+            "nominal MPC remains the controller"
+        ),
+    )
     return parser
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     config = load_control_service_config(args.config)
-    if config.controller_mode == "nominal_mpc" and args.planner_config is None:
-        raise ValueError("nominal_mpc requires --planner-config")
-    if config.controller_mode != "nominal_mpc" and args.planner_config is not None:
-        raise ValueError("--planner-config is valid only for nominal_mpc")
-    live_mpc_config = (
-        load_live_nominal_mpc_config(
-            args.planner_config,
-            Path(__file__).resolve().parents[2],
-        )
-        if args.planner_config is not None
-        else None
+    supplied = sum(
+        value is not None for value in (args.planner_config, args.residual_overlay_config)
     )
+    if config.controller_mode == "nominal_mpc" and supplied != 1:
+        raise ValueError(
+            "nominal_mpc requires --planner-config or --residual-overlay-config "
+            "(exactly one)"
+        )
+    if config.controller_mode != "nominal_mpc" and supplied:
+        raise ValueError("planner and residual-overlay configs are valid only for nominal_mpc")
+    repository_root = Path(__file__).resolve().parents[2]
+    if args.residual_overlay_config is not None:
+        live_mpc_config = load_live_residual_overlay_config(
+            args.residual_overlay_config,
+            repository_root,
+        )
+    elif args.planner_config is not None:
+        live_mpc_config = load_live_nominal_mpc_config(
+            args.planner_config,
+            repository_root,
+        )
+    else:
+        live_mpc_config = None
     if args.check_config:
         print(
             json.dumps(

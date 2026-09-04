@@ -1,0 +1,32 @@
+schema_name: motionworld_live_residual_overlay_demo
+schema_version: 1
+status: matched_prediction_overlay_nominal_control_only
+claim_boundary: >-
+  The blue nominal and orange learned-residual paths use the same current state and
+  nominal-selected action sequence. This is a model forecast comparison, not residual control,
+  not proof of improvement, and not a research-qualified planner.
+nominal_planner:
+  path: configs/live_nominal_mpc_demo.yaml
+  sha256: 3a72fa5a5ac36100a5d6a8152172fab6b65bffe1b95536943909f6c0f61527cd
+checkpoint:
+  path: artifacts/residual/training_001/no_history/checkpoint.pt
+  sha256: d979549b30bd01b3a304697074c295caf6c7fa16a4a8e25a08c15eec1da7a4f6
+normalization:
+  path: artifacts/residual/training_001/no_history/normalization.json
+  sha256: f359b9af31b4a0b93b3865739773aadd210950c0b50f4874d9ab28ff3a05b366
+training_config:
+  path: configs/residual_training.yaml
+  sha256: 36e704366548b3b3d7c1964737e983a6e6b55d038d6c2d31ff731cf4806dd7a7
+dataset_manifest:
+  path: artifacts/residual/dataset_audit/manifest.json
+  sha256: 4c5d921194d339ba0617c930ce1ae41497ac5e04b14280c9ea8610bc3cc4d770
+expected_checkpoint:
+  history_length: 1
+  input_width: 28
+  hidden_widths: [256, 256, 128]
+  parameter_count: 106886
+  seed: 20260903
+  git_commit: f25b54d
+overlay_rollout:
+  plan_step_s: 0.1
+  dynamics_substeps_per_plan_step: 3
