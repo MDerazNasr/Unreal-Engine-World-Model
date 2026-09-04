@@ -4,14 +4,14 @@
   "file_count": 8,
   "files": [
     {
-      "path": "INTERVIEW_PACKAGE.md",
-      "bytes": 4547,
-      "sha256": "21cc14fa28d026a61e59dc4fd358ae0786cc0daf48b0b2a4e267fa54b22ba7aa"
+      "path": "docs/INTERVIEW_PACKAGE.md",
+      "bytes": 4571,
+      "sha256": "087ee198a62048138bd23a6df214d731382b4c31f59a7d4021fa6955c87fb08d"
     },
     {
       "path": "runbooks/interview_fallback.md",
-      "bytes": 2900,
-      "sha256": "cc60fff527a9238888c1e14006fd1076a9957d31652ac2eadd5ca30402e7ff74"
+      "bytes": 2905,
+      "sha256": "575c8c0dabcba215c403854c9c0f7f55765bfb2ab3905d711f1f5fedba14a3a7"
     },
     {
       "path": "artifacts/interview/architecture.svg",

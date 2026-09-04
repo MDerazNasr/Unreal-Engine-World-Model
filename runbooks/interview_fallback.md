@@ -4,7 +4,7 @@ Use this when live Unreal or a Python service is unreliable. Target duration: 75
 
 ## Before the call
 
-- Open `INTERVIEW_PACKAGE.md` at the evidence ladder.
+- Open `docs/INTERVIEW_PACKAGE.md` at the evidence ladder.
 - Open the architecture SVG and the three plots in the sequence below.
 - Keep the repository at the release-candidate commit with a clean working tree.
 - Do not open or generate final-test episodes 5301/5302 during rehearsal.

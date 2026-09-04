@@ -10,7 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "artifacts/interview/package_manifest.json"
 REQUIRED = (
-    "INTERVIEW_PACKAGE.md",
+    "docs/INTERVIEW_PACKAGE.md",
     "runbooks/interview_fallback.md",
     "artifacts/interview/architecture.svg",
     "artifacts/residual/recursive_001/recursive_comparison.png",

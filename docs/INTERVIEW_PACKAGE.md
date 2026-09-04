@@ -18,7 +18,7 @@ not complete the decisive live-control comparison, and the residual planner curr
 
 ## Architecture
 
-![MotionWorld architecture](artifacts/interview/architecture.svg)
+![MotionWorld architecture](../artifacts/interview/architecture.svg)
 
 Unreal owns authoritative movement, collision, reset, and finalized state. Python owns episode
 validation, the faithful nominal predictor, residual inference, analytic gate cost, and CEM. The
@@ -38,7 +38,7 @@ future event schedules or final-test outcomes.
 | 1.5 s | Nominal | 31.229 | 66.629 | 52.302 | 361.373 |
 | 1.5 s | Residual | 28.964 | 58.557 | 11.583 | 66.670 |
 
-Source: [recursive comparison](artifacts/residual/recursive_001/README.md). These validation
+Source: [recursive comparison](../artifacts/residual/recursive_001/README.md). These validation
 episodes come from the same scripted family as training and contain no collisions or random pushes.
 
 ### Fair offline planning
@@ -75,12 +75,12 @@ execution, and final-test statistics.
 
 ## Visual evidence sequence
 
-1. [Architecture](artifacts/interview/architecture.svg)
-2. [Recursive prediction graph](artifacts/residual/recursive_001/recursive_comparison.png)
-3. [Offline paired planner](artifacts/planning/offplan_001/offline_paired_planner.png)
-4. [Full-planner latency](artifacts/planning/runtime_001/README.md)
-5. [Rejected CEM budgets](artifacts/planning/budget_sweep_001/budget_sweep.png)
-6. [Rejected smaller models](artifacts/residual/compression_001/width_sweep.png)
+1. [Architecture](../artifacts/interview/architecture.svg)
+2. [Recursive prediction graph](../artifacts/residual/recursive_001/recursive_comparison.png)
+3. [Offline paired planner](../artifacts/planning/offplan_001/offline_paired_planner.png)
+4. [Full-planner latency](../artifacts/planning/runtime_001/README.md)
+5. [Rejected CEM budgets](../artifacts/planning/budget_sweep_001/budget_sweep.png)
+6. [Rejected smaller models](../artifacts/residual/compression_001/width_sweep.png)
 
 ## Reproduce the package checks
 

@@ -104,7 +104,7 @@ learned-controller victory.
   manifests make the result auditable.
 
 The accepted and failed V3 runs are documented in
-[DEMO-V3-001](EXPERIMENT_LOG.md#demo-v3-001--two-obstacle-sequential-world-model-avoidance).
+[DEMO-V3-001](docs/EXPERIMENT_LOG.md#demo-v3-001--two-obstacle-sequential-world-model-avoidance).
 
 ## Run the controller
 
@@ -126,7 +126,7 @@ plugin, start the canonical two-obstacle controller from this repository:
 ```
 
 Wait for `"health": "running"` and `"ready": true`, then press Play in Unreal. The complete
-apply/record/restore workflow is in [V3_DEMO_RUNBOOK.md](V3_DEMO_RUNBOOK.md). The optional
+apply/record/restore workflow is in [V3_DEMO_RUNBOOK.md](docs/V3_DEMO_RUNBOOK.md). The optional
 [retiming script](scripts/retime_v3_two_obstacle_demo_unreal.py) keeps Unreal and the randomized
 planner configuration synchronized when demonstrating different obstacle speeds.
 
@@ -139,7 +139,7 @@ planner configuration synchronized when demonstrating different obstacle speeds.
 - [`unreal/Plugins/MotionWorld/`](unreal/Plugins/MotionWorld/) — Unreal authority, reset, networking,
   visualization, obstacle actors, and evidence capture
 - [`artifacts/`](artifacts/) and [`evidence/`](evidence/) — frozen evaluations and live-run evidence
-- [`INTERVIEW_DEFENSE.md`](INTERVIEW_DEFENSE.md) — design questions, equations, limitations, and answers
+- [`docs/`](docs/) — specification, evidence, decisions, runbooks, checklists, and interview material
 
 ## Scope and licensing
 
