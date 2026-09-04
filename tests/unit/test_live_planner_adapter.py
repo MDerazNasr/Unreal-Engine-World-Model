@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import math
+from dataclasses import replace
 from pathlib import Path
 
 import numpy as np
@@ -273,3 +274,35 @@ def test_stateless_conversion_retains_strict_observation_and_planner_validation(
 
     with pytest.raises(ValueError, match="velocities disagree"):
         planner_snapshot_from_observation(malformed)
+
+
+def test_stateless_mpc_query_requires_target_and_zero_unavailable_costs() -> None:
+    from tests.unit.test_mpc import _problem
+
+    live = planner_snapshot_from_observation(_observation(4))
+    base = _problem()
+    problem = replace(
+        base,
+        weights=replace(base.weights, collision=0.0),
+        goal_world_cm=live.target_world_xy_cm,
+    )
+    query = live.to_stateless_mpc_query(problem)
+    assert query.previous_previous_action_local_cm_s == (0.0, 0.0)
+
+    with pytest.raises(ValueError, match="equal the authoritative target"):
+        live.to_stateless_mpc_query(replace(problem, goal_world_cm=(999.0, 999.0)))
+
+    for field in (
+        "collision",
+        "clearance_per_cm2",
+        "action_second_difference_per_cm2_s2",
+    ):
+        weighted = replace(problem.weights, **{field: 1.0})
+        with pytest.raises(ValueError, match="requires zero"):
+            live.to_stateless_mpc_query(replace(problem, weights=weighted))
+
+    missing_target = _observation(4)
+    missing_target["planner_context"]["target"] = {"is_present": False}
+    missing_target["validity"]["target_present"] = False
+    with pytest.raises(ValueError, match="requires an authoritative target"):
+        planner_snapshot_from_observation(missing_target).to_stateless_mpc_query(problem)

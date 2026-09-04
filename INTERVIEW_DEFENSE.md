@@ -821,6 +821,27 @@ only execution, reobservation, and replanning before I can call the closed loop 
 Examiner assessment: Not passed. Require an unaided distinction between counterfactual rollout,
 optimization, first-action execution, and replanning, including zero-input braking semantics.
 
+### Q32 - What does the first live nominal-MPC run prove, and what does it not prove?
+
+Question: The character moved under `nominal_mpc`; does that mean the controller or learned world
+model succeeded?
+
+Candidate answer: Not yet attempted.
+
+Teacher reference answer: Unlike `branch_preview`, `nominal_mpc` scores a CEM candidate population,
+selects a trajectory, transmits only its first action for the current episode and observation, then
+replans after Unreal finalizes another state. Episode 7504 proves that this loop can repeatedly cross
+Python and Unreal with current identity and under the exclusive 100 ms deadline: 387 actions were
+admitted from 390 observations, p95 latency was 60.736 ms, and the logged Unreal command echoes
+matched. It does not prove that the controller is good. The sampled pawn approached the target,
+overshot, and continued oscillating; three observation identities had no admitted action; no gate or
+collision objective and no residual comparator were active; and the text log contains no pixels.
+The defensible claim is therefore a live nominal-MPC integration prototype, not stable convergence,
+robustness, residual superiority, or a population-level control win.
+
+Examiner assessment: Not passed. Require an unaided distinction between loop validity, task success,
+visualization evidence, and comparative evaluation.
+
 ## 7. Day 1 closeout answers to practise
 
 These are study answers, not passed candidate teach-backs yet.

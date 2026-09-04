@@ -69,6 +69,15 @@ Optional residual status labels are `RESIDUAL VERIFIED` and `RESIDUAL UNAVAILABL
 The former requires the expected checkpoint schema, feature order, normalization, and hash checks.
 Never relabel an offline or stepped sequence as live in narration, captions, or packaging.
 
+### D5 evidence status
+
+`LIVE MPC — deadline-validated; nominal only` is authorized for preserved session
+`3D16FF3BC647`, episode 7504: 387 of 390 observation identities produced admitted actions, identities
+0, 194, and 253 did not, and p95 Unreal end-to-end latency was 60.736 ms. The run approached the
+target but overshot and oscillated. Do not label it `goal reached`, `stable`, `collision-aware`, or
+`residual improved`. The log is non-pixel evidence, so HUD and visible-path acceptance still require
+human confirmation.
+
 ## Operator controls
 
 The interview operator needs a small, deterministic control surface. Keyboard bindings may change

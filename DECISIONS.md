@@ -2613,3 +2613,31 @@ so this is not reused as a consecutive-round-trip claim. The live summary is
 `artifacts/demo/d4_branch_preview_live/summary.json`. Because the log does not serialize the visual
 payload or pixels, on-screen colored-path confirmation remains separate. Episodes 5301/5302 remain
 sealed.
+
+## D-074 - Accept live nominal MPC as an integration proof, not a control-quality result
+
+Status: accepted at the code and runtime-admission boundary; visual and control-quality claims open
+
+Decision: Credit episode 7504 only as a deadline-admitted nominal MPC integration. Keep episodes
+7501 and 7502 as rejected attempts and 7503 as partial evidence; never pool their isolated responses
+with the accepted run. Use the deadline-first `c064_i2` counts and one live integration substep,
+while explicitly stating that the frozen sweep is only a count reference because the rollout setting
+differs. Disclose missing identities 0, 194, and 253 and the observed target overshoot. Keep this
+nominal-only result separate from residual, paired-study, convergence, and visible-rendering claims.
+
+Why: Correct identity and timing establish that the receding-horizon loop is integrated, but task
+success and comparative benefit are different estimands. The rejected runs exposed insufficient
+compute margin under simultaneous Unreal load. A fresh episode plus a measured runtime reduction
+fixed that operational failure without weakening the 100 ms deadline or stale-action rejection.
+
+Alternatives rejected: hide or reuse failed attempts; call any nonzero movement a control success;
+infer goal success from predicted cost; call a nominal run a nominal-versus-residual comparison; or
+infer colored pixels from a text log.
+
+How it is tested: strict config/hash validation, controller reconstruction, cancellation and
+latest-only service tests establish the implementation semantics. The independent live-log auditor
+requires the verified reset lifecycle, contiguous observations, unique increasing admitted
+identities, finite nonzero bounded commands, matching command echoes, authoritative displacement,
+literal current-identity/before-deadline flags, and latency below 100 ms. The accepted summary is
+`artifacts/demo/d5_nominal_mpc_live/summary.json`; the exact Blueprint apply readback is preserved
+alongside it. Episodes 5301/5302 remain sealed.

@@ -1,0 +1,63 @@
+{
+  "authoritative_motion": {
+    "final_planar_displacement_from_reset_cm": 1728.4260676696588,
+    "maximum_planar_displacement_from_reset_cm": 1741.4063675374568,
+    "pawn_displacement_observed": true,
+    "state_samples_logged": 23
+  },
+  "bounded_nonzero_control": {
+    "all_commands_finite_nonzero_and_within_logged_tolerance_of_165_cm_s": true,
+    "logged_magnitude_tolerance_cm_s": 1e-06,
+    "matching_command_echoes": 386,
+    "maximum_command_magnitude_cm_s": 165.00000045128976,
+    "minimum_command_magnitude_cm_s": 11.275085045908435,
+    "unmatched_final_action_at_shutdown": 1
+  },
+  "claim_boundary": {
+    "final_prediction_episodes_opened": 0,
+    "log_proves_selected_action_was_cem_first_action": false,
+    "reason": "controller/unit tests establish selection semantics; the Unreal text log contains accepted commands but not the complete CEM candidate tensors",
+    "visual_confirmation_required_separately": true,
+    "visual_paths_seen": false
+  },
+  "deadline": {
+    "all_accepted_actions_logged_current_identity_and_before_deadline": true,
+    "deadline_ms": 100.0
+  },
+  "identity": {
+    "episode_id": 7504,
+    "session_id": "3D16FF3BC647"
+  },
+  "identity_reconciliation": {
+    "accepted_actions_have_matching_observations": true,
+    "accepted_actions_logged": 387,
+    "accepted_identities_unique_strictly_increasing": true,
+    "first_observation_sequence": 0,
+    "last_observation_sequence": 389,
+    "missing_action_sequences": [
+      0,
+      194,
+      253
+    ],
+    "observations_logged": 390
+  },
+  "reset_gate": {
+    "lifecycle_order_verified": true,
+    "pass": true,
+    "reset_state_sequence": 60
+  },
+  "schema_name": "motionworld_d5_nominal_mpc_live_summary",
+  "schema_version": 1,
+  "source_log": {
+    "first_audited_line": 1950,
+    "last_audited_line": 3555,
+    "path": "/Users/mderaznasr/Documents/GitHub/Unreal-Engine-World-Model/evidence/unreal/d5_nominal_mpc_live.log",
+    "sha256": "aa0a42e6246c19107fcd4e0422ac2a2537c398f7cefc4ce1ba4227a72a8f5dda"
+  },
+  "unreal_end_to_end_latency_ms": {
+    "count": 387,
+    "maximum": 86.880624,
+    "median": 57.76475,
+    "p95": 60.736489399999996
+  }
+}

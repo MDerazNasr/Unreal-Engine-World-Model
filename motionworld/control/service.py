@@ -17,6 +17,7 @@ from typing import Any
 
 from motionworld.control.config import ControlServiceConfig, load_control_service_config
 from motionworld.control.controllers import build_controller
+from motionworld.control.live_mpc_config import load_live_nominal_mpc_config
 from motionworld.protocol import (
     decode_observation_json,
     encode_action_json,
@@ -386,12 +387,29 @@ def _parser() -> argparse.ArgumentParser:
         action="store_true",
         help="validate configuration in a clean process and exit without binding",
     )
+    parser.add_argument(
+        "--planner-config",
+        type=Path,
+        help="required prospective demo planner configuration for nominal_mpc",
+    )
     return parser
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     config = load_control_service_config(args.config)
+    if config.controller_mode == "nominal_mpc" and args.planner_config is None:
+        raise ValueError("nominal_mpc requires --planner-config")
+    if config.controller_mode != "nominal_mpc" and args.planner_config is not None:
+        raise ValueError("--planner-config is valid only for nominal_mpc")
+    live_mpc_config = (
+        load_live_nominal_mpc_config(
+            args.planner_config,
+            Path(__file__).resolve().parents[2],
+        )
+        if args.planner_config is not None
+        else None
+    )
     if args.check_config:
         print(
             json.dumps(
@@ -405,7 +423,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
         return 0
 
-    service = ControlService(config, build_controller(config.controller_mode, config.controller))
+    service = ControlService(
+        config,
+        build_controller(config.controller_mode, config.controller, live_mpc_config),
+    )
     stop = threading.Event()
 
     def request_stop(_signum: int, _frame: FrameType | None) -> None:

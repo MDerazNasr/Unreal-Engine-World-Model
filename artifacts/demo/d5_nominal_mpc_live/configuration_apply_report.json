@@ -1,0 +1,41 @@
+{
+  "actual": {
+    "bridge_settings": {
+      "begin_play_reset_episode_id": 7504,
+      "enable_external_perturbation_schedule": false,
+      "enable_timed_gate_scenario": false,
+      "enable_varied_action_schedule": false,
+      "max_planar_speed_cm_per_sec": 165.0,
+      "override_reset_anchor_yaw_for_live_test": false,
+      "request_reset_after_warmup_on_begin_play": true,
+      "reset_live_test_repeat_count": 1,
+      "reset_live_test_transitions_per_episode": 120,
+      "reset_warmup_finalized_samples": 60,
+      "start_episode_recording_on_begin_play": false
+    },
+    "network_settings": {
+      "controller_mode": "nominal_mpc",
+      "draw_world_model_visualization": true,
+      "has_reactive_target": true,
+      "local_port": 52580,
+      "log_network_evidence": true,
+      "max_network_evidence_lines": 2048,
+      "network_control_enabled": true,
+      "reactive_target_world_cm": [
+        800.0,
+        0.0,
+        90.0
+      ],
+      "reactive_terminal_velocity_local_cm_per_sec": [
+        0.0,
+        0.0
+      ],
+      "remote_port": 52581
+    }
+  },
+  "manifest_sha256": "d40f47722abcaa430e32331df11d4c1051b65513550b3aa800142e842ce5ea32",
+  "matches_d5_manifest": true,
+  "mode": "apply",
+  "planner_config": "configs/live_nominal_mpc_demo.yaml",
+  "service_config": "configs/control_service_demo_nominal_mpc.yaml"
+}

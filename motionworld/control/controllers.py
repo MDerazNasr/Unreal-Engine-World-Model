@@ -6,7 +6,7 @@ import math
 import threading
 import time
 from dataclasses import dataclass
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from motionworld.control.config import ControllerConfig
 from motionworld.control.demo_telemetry import generate_live_branch_visualization
@@ -14,6 +14,12 @@ from motionworld.control.live_planner_adapter import planner_snapshot_from_obser
 
 Observation = dict[str, Any]
 Action = dict[str, Any] | None
+
+if TYPE_CHECKING:
+    from motionworld.control.live_nominal_mpc import (
+        LiveNominalMPCConfig,
+        LiveNominalMPCController,
+    )
 
 
 def _clamp_planar(vector: tuple[float, float], maximum: float) -> tuple[float, float]:
@@ -193,14 +199,24 @@ class BranchPreviewController:
 
 
 def build_controller(
-    mode: str, config: ControllerConfig
-) -> EchoController | ReactiveController | BranchPreviewController:
+    mode: str,
+    config: ControllerConfig,
+    live_mpc_config: LiveNominalMPCConfig | None = None,
+) -> EchoController | ReactiveController | BranchPreviewController | LiveNominalMPCController:
     """Construct bounded live controllers; MPC modes require their later session state."""
 
+    if live_mpc_config is not None and mode != "nominal_mpc":
+        raise ValueError("live planner config is valid only for nominal_mpc")
     if mode == "echo":
         return EchoController(config)
     if mode == "reactive":
         return ReactiveController(config)
     if mode == "branch_preview":
         return BranchPreviewController(config)
+    if mode == "nominal_mpc":
+        if live_mpc_config is None:
+            raise ValueError("nominal_mpc requires an explicit live planner config")
+        from motionworld.control.live_nominal_mpc import LiveNominalMPCController
+
+        return LiveNominalMPCController(live_mpc_config)
     raise ValueError(f"controller mode {mode!r} is not implemented by the R2 service")

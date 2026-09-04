@@ -14,6 +14,8 @@ from motionworld.control.controllers import (
     ReactiveController,
     build_controller,
 )
+from motionworld.control.live_mpc_config import load_live_nominal_mpc_config
+from motionworld.control.live_nominal_mpc import LiveNominalMPCController
 from motionworld.protocol import (
     MAX_ACTION_BYTES,
     decode_observation_json,
@@ -166,12 +168,26 @@ def test_controllers_are_stateless_across_episode_reset() -> None:
     assert after["command"]["desired_velocity_local_cm_per_s"] == [-160.0, 0.0]
 
 
-def test_factory_rejects_mpc_modes_until_their_stateful_runtime_gate() -> None:
+def test_factory_requires_explicit_config_for_nominal_mpc() -> None:
     assert isinstance(build_controller("echo", _config()), EchoController)
     assert isinstance(build_controller("reactive", _config()), ReactiveController)
     assert isinstance(build_controller("branch_preview", _config()), BranchPreviewController)
-    with pytest.raises(ValueError, match="not implemented"):
+    with pytest.raises(ValueError, match="requires an explicit"):
         build_controller("nominal_mpc", _config())
+
+
+def test_factory_constructs_only_configured_nominal_mpc() -> None:
+    planner = load_live_nominal_mpc_config(
+        REPOSITORY_ROOT / "configs/live_nominal_mpc_demo.yaml",
+        REPOSITORY_ROOT,
+    )
+
+    assert isinstance(
+        build_controller("nominal_mpc", _config(), planner),
+        LiveNominalMPCController,
+    )
+    with pytest.raises(ValueError, match="valid only"):
+        build_controller("echo", _config(), planner)
 
 
 def test_branch_preview_holds_execution_and_emits_authentic_identity_bound_branches() -> None:

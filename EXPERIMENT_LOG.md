@@ -2346,3 +2346,37 @@ Python and Unreal schema-v1 vocabulary; it is not backward compatible with an ol
 not recognize `branch_preview` or visualization-only telemetry. It is a counterfactual preview, not
 MPC: it evaluates alternatives but chooses none and commands zero. Episodes 5301/5302 were not
 opened.
+
+## DEMO-D5-001 — deadline-admitted live nominal MPC
+
+**Question:** Can the bounded nominal CEM controller repeatedly plan from current authoritative
+Unreal observations, execute only the selected first action, and reobserve under the exclusive
+100 ms action deadline?
+
+**Method:** Use a 1.5-second, 15-step nominal rollout with five action knots, two CEM iterations,
+64 candidates, eight elites, and a 165 cm/s command bound. The live configuration uses one dynamics
+integration substep per plan step; the older frozen `c064_i2` sweep is retained only as a CEM-count
+reference and is not presented as evidence for this altered live rollout. Reset to `(-800,0,90)`,
+target `(800,0,90)` with zero terminal velocity, disable timed-gate, varied-action, and perturbation
+producers, and preserve every retry rather than silently reusing an episode identity.
+
+**Result:** Episode 7501 was rejected: 682 observations produced only one admitted response, at
+94.248 ms. Episode 7502 was rejected: 878 observations produced no admitted actions. Episode 7503
+was partial: only sources 34 and 49 were admitted, at 95.768 and 96.576 ms. Reducing only the live
+integration substeps created sufficient margin in fresh episode 7504. Session `3D16FF3BC647`
+contains 390 contiguous observations and 387 unique, strictly increasing admitted actions spanning
+sources 1-389; sources 0, 194, and 253 are missing. Every credited action is logged as current-
+identity and before-deadline. Latency was 57.765 ms median, 60.736 ms p95, and 86.881 ms maximum.
+Unreal's command echoes reconcile with 386 actions; the last action has no following echo because
+shutdown immediately followed. Authoritative samples moved from the reset anchor, passed near the
+target at `(780.72,26.51,88.27)`, then overshot and oscillated around roughly x=920-941 cm. The raw
+log SHA-256 is `aa0a42e6246c19107fcd4e0422ac2a2537c398f7cefc4ce1ba4227a72a8f5dda` and the machine audit is
+`artifacts/demo/d5_nominal_mpc_live/summary.json`.
+
+**Claim boundary:** This proves nominal-only live observe -> CEM select -> first-action execute ->
+reobserve integration and deadline-valid Unreal admission. Controller reconstruction tests, not the
+text log, establish that the transmitted command is the selected first action and that the gray and
+green trajectories are genuine CEM outputs. It does not prove stable target convergence, goal
+success, collision avoidance, residual benefit, statistical control improvement, or visible pixels.
+Collision and gate costs were inactive. The exact episode-7504 Blueprint apply readback is preserved
+separately, the Blueprint was restored, and episodes 5301/5302 remained sealed.

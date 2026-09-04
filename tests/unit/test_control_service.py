@@ -17,6 +17,8 @@ import yaml
 
 from motionworld.control.config import ControlServiceConfig, load_control_service_config
 from motionworld.control.controllers import BranchPreviewController
+from motionworld.control.live_mpc_config import load_live_nominal_mpc_config
+from motionworld.control.live_nominal_mpc import LiveNominalMPCController
 from motionworld.control.service import ControlService, safe_zero_planner
 from motionworld.protocol import (
     UdpEndpoint,
@@ -156,6 +158,49 @@ def test_demo_branch_preview_config_is_strict_and_zero_commanded() -> None:
         timeout=10.0,
     )
     assert json.loads(completed.stdout)["controller_mode"] == "branch_preview"
+
+
+def test_demo_nominal_mpc_cli_requires_and_loads_frozen_planner_config() -> None:
+    service_path = REPOSITORY_ROOT / "configs/control_service_demo_nominal_mpc.yaml"
+    planner_path = REPOSITORY_ROOT / "configs/live_nominal_mpc_demo.yaml"
+    config = load_control_service_config(service_path)
+    assert config.controller_mode == "nominal_mpc"
+
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "motionworld.control.service",
+            "--config",
+            str(service_path),
+            "--planner-config",
+            str(planner_path),
+            "--check-config",
+        ],
+        cwd=REPOSITORY_ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+        timeout=10.0,
+    )
+    assert json.loads(completed.stdout)["controller_mode"] == "nominal_mpc"
+
+    missing = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "motionworld.control.service",
+            "--config",
+            str(service_path),
+            "--check-config",
+        ],
+        cwd=REPOSITORY_ROOT,
+        capture_output=True,
+        text=True,
+        timeout=10.0,
+    )
+    assert missing.returncode != 0
+    assert "requires --planner-config" in missing.stderr
 
 
 @pytest.mark.parametrize(
@@ -394,6 +439,41 @@ def test_real_branch_preview_service_publishes_only_latest_zero_action() -> None
         assert action["command"]["desired_velocity_local_cm_per_s"] == [0.0, 0.0]
         assert action["controller"]["controller_id"] == "branch_preview"
         assert action["telemetry"]["is_present"] is True
+        with pytest.raises(BlockingIOError):
+            sender.recvfrom(config.transport.max_action_datagram_bytes)
+    finally:
+        service.close()
+        sender.close()
+
+
+def test_real_nominal_mpc_service_publishes_only_latest_first_action() -> None:
+    config = _config(mode="nominal_mpc")
+    planner_config = load_live_nominal_mpc_config(
+        REPOSITORY_ROOT / "configs/live_nominal_mpc_demo.yaml",
+        REPOSITORY_ROOT,
+    )
+    service = ControlService(config, LiveNominalMPCController(planner_config))
+    sender = _sender(config)
+    try:
+        service.start()
+        _send_observation(sender, config, _observation(sequence=1))
+        _send_observation(sender, config, _observation(sequence=2))
+        snapshot = _pump_until(service, lambda state: state.actions_sent == 1, timeout_s=3.0)
+        assert snapshot.superseded_plans >= 1
+        assert select.select([sender], [], [], 1.0)[0]
+        payload, _ = sender.recvfrom(config.transport.max_action_datagram_bytes)
+        action = decode_action_json(payload)
+        assert action["identity"] == {
+            "episode_id": 7101,
+            "source_observation_sequence": 2,
+        }
+        assert action["controller"]["controller_id"] == "nominal_mpc"
+        assert action["command"]["desired_velocity_local_cm_per_s"] != [0.0, 0.0]
+        assert [path["role"] for path in action["telemetry"]["visualization"]["paths"]] == [
+            "cem_candidate",
+            "cem_candidate",
+            "selected",
+        ]
         with pytest.raises(BlockingIOError):
             sender.recvfrom(config.transport.max_action_datagram_bytes)
     finally:

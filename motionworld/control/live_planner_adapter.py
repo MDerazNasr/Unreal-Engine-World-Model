@@ -13,7 +13,7 @@ from motionworld.dynamics.nominal_episode import (
     smooth_walking_parameters_from_record,
 )
 from motionworld.dynamics.smooth_walking_nominal import SmoothWalkingObservableState
-from motionworld.planning.mpc import PlannerQuery
+from motionworld.planning.mpc import PlannerProblem, PlannerQuery
 from motionworld.planning.planner_rollout import PlannerSnapshot
 from motionworld.protocol.observation import validate_observation_mapping
 
@@ -55,6 +55,34 @@ class LivePlannerSnapshot:
             scenario_time_s=self.scenario_time_s,
             previous_action_local_cm_s=self.previous_action_local_cm_s,
             previous_previous_action_local_cm_s=self.previous_previous_action_local_cm_s,
+        )
+
+    def to_stateless_mpc_query(self, problem: PlannerProblem) -> PlannerQuery:
+        """Build the restricted gate-free query that needs no prior-prior action.
+
+        A standalone mid-episode packet cannot recover the prior-prior action.
+        This is truthful only when every unavailable-history and absent-gate cost
+        has exactly zero weight.
+        """
+
+        if not isinstance(problem, PlannerProblem):
+            raise TypeError("problem must be a PlannerProblem")
+        if self.target_world_xy_cm is None:
+            raise ValueError("stateless live MPC requires an authoritative target")
+        if problem.goal_world_cm != self.target_world_xy_cm:
+            raise ValueError("stateless live MPC problem goal must equal the authoritative target")
+        weights = problem.weights
+        if weights.collision != 0.0:
+            raise ValueError("stateless live MPC requires zero collision weight")
+        if weights.clearance_per_cm2 != 0.0:
+            raise ValueError("stateless live MPC requires zero clearance weight")
+        if weights.action_second_difference_per_cm2_s2 != 0.0:
+            raise ValueError("stateless live MPC requires zero action-second-difference weight")
+        return PlannerQuery(
+            snapshot=self.snapshot,
+            scenario_time_s=self.scenario_time_s,
+            previous_action_local_cm_s=self.previous_action_local_cm_s,
+            previous_previous_action_local_cm_s=_ZERO_ACTION,
         )
 
 

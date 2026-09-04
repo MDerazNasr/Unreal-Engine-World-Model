@@ -1,0 +1,50 @@
+schema_name: motionworld_live_nominal_mpc_demo
+schema_version: 1
+status: prospective_live_demo_only_not_research_qualified
+claim_boundary: >-
+  live rollout uses one integration substep; frozen sweep metrics identify only the c064_i2
+  count reference and do not claim live latency or research quality
+seed: 20260904
+preview_iteration_winners: 2
+initial_mean_action_local_cm_s: [130.0, 0.0]
+optimizer:
+  num_candidates: 64
+  num_elites: 8
+  num_iterations: 2
+  num_knots: 5
+  num_plan_steps: 15
+  action_dim: 2
+  max_action_speed_cm_s: 165.0
+  initial_std_cm_s: 110.0
+  minimum_std_cm_s: 5.0
+  momentum: 0.1
+  include_mean_candidate: true
+rollout:
+  plan_step_s: 0.1
+  dynamics_substeps_per_plan_step: 1
+inactive_gate_geometry:
+  gate_x_cm: 0.0
+  gate_y_origin_cm: 0.0
+  gate_amplitude_cm: 200.0
+  gate_period_s: 4.0
+  gate_phase_offset_rad: 0.0
+  gate_half_extent_x_cm: 30.0
+  gate_half_extent_y_cm: 150.0
+  agent_radius_cm: 42.0
+  safety_margin_cm: 20.0
+weights:
+  terminal_goal_per_cm: 1.0
+  collision: 0.0
+  clearance_per_cm2: 0.0
+  action_change_per_cm2_s2: 0.0002
+  action_second_difference_per_cm2_s2: 0.0
+budget_reference:
+  budget_name: c064_i2
+  reference_scope: cem_counts_only_live_rollout_differs
+  source_path: artifacts/planning/budget_sweep_001/selection.json
+  source_sha256: 6a0da4bf1bed46a558b7bb6c1e55c4f5fc4db633d80082193371c2ea57fcfb14
+  reference_nominal_offline_p95_ms: 35.81699615
+  reference_nominal_mean_positive_relative_regret: 0.2243087143919738
+  reference_nominal_p95_positive_relative_regret: 0.4237719521033547
+  reference_nominal_new_predicted_collisions: 0
+  research_quality_gate_passed: false

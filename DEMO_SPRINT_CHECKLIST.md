@@ -9,13 +9,13 @@ evidence. The complete research study remains follow-up scope.
 
 ## Truth and safety guardrails
 
-- [ ] Describe the system as an action-conditioned movement world model, not a general visual
+- [x] Describe the system as an action-conditioned movement world model, not a general visual
       foundation model.
-- [ ] Draw only trajectories produced by the actual nominal or residual rollout code.
-- [ ] Keep final prediction episodes `5301` and `5302` sealed unless Recovery Gate R7 passes.
-- [ ] Do not claim that residual control is statistically superior without the locked paired study.
-- [ ] Preserve Unreal as the authority for realized movement and collision outcomes.
-- [ ] Preserve episode/sequence validation, deadline rejection, reset clearing, and safe stop.
+- [x] Draw only trajectories produced by the actual nominal or residual rollout code.
+- [x] Keep final prediction episodes `5301` and `5302` sealed unless Recovery Gate R7 passes.
+- [x] Do not claim that residual control is statistically superior without the locked paired study.
+- [x] Preserve Unreal as the authority for realized movement and collision outcomes.
+- [x] Preserve episode/sequence validation, deadline rejection, reset clearing, and safe stop.
 - [ ] Label prerecorded, offline, paused-state, and live evidence accurately.
 
 ## Sprint 1 — Close the runtime foundation
@@ -65,11 +65,22 @@ the run, and episodes 5301/5302 remained sealed.
 ## Sprint 3 — Show planning and reality
 
 - [ ] Render faint CEM candidates and one prominent selected trajectory.
-- [ ] Execute only the first selected action, then reobserve and replan.
+- [x] Execute only the first selected action, then reobserve and replan.
 - [ ] Render the authoritative realized trail separately from predictions.
 - [ ] Display planning/end-to-end latency and fallback status.
-- [ ] If live MPC cannot safely meet its deadline, use an accurately labelled stepped or offline
-      planning demonstration rather than applying stale actions.
+- [x] Enforce current-identity deadline admission for live MPC; retain accurately labelled stepped
+      or offline fallback rather than applying stale actions if a later run misses the deadline.
+
+D5 checkpoint: after preserving two rejected runs and one partial run, nominal-only episode 7504
+sustained the real observe -> CEM select -> first-action execute -> reobserve loop. Session
+`3D16FF3BC647` logged 390 contiguous observations and 387 unique, increasing, before-deadline
+actions; identities 0, 194, and 253 had no admitted action. End-to-end latency was 57.765 ms median /
+60.736 ms p95 / 86.881 ms maximum. Unreal moved from the verified `(-800,0,90)` reset, passed near
+the `(800,0,90)` target, then overshot and oscillated, so this is a live integration result rather
+than a stable-convergence or control-win result. The text log cannot prove rendered pixels; the
+candidate, realized-trail, and HUD checkboxes stay open pending human confirmation. The exact apply
+readback, live audit, raw log, and disclosed failed attempts are preserved; the Blueprint was
+restored and episodes 5301/5302 remained sealed.
 
 ## Sprint 4 — Add the learned-model comparison if defensible
 

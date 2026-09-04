@@ -6,10 +6,11 @@ model-predictive control can evaluate many candidate futures without cloning the
 
 **Evidence achieved:** the UE 5.8.2 movement/reset/logger bridge works; episode-safe train and
 validation data were captured; a residual MLP improves held-out recursive prediction; and a fair
-offline CEM comparison proves that the model changes selected actions. **Not achieved:** no live
-nominal-versus-residual MPC execution has been run, the residual planner misses its 100 ms p95
-deadline, and no final-test episode has been opened. The project therefore makes no control-win
-claim.
+offline CEM comparison proves that the model changes selected actions. A nominal-only live MPC loop
+has now executed in Unreal under the deadline gate. **Not achieved:** no live nominal-versus-
+residual comparison has run, the accepted nominal trial did not establish stable target convergence,
+the residual planner misses its 100 ms p95 deadline, and no final-test episode has been opened. The
+project therefore makes no control-win claim.
 
 The project is being built as a reproducible applied-ML research demonstration. Its central claim is deliberately causal:
 
