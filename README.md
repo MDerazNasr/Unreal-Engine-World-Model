@@ -1,123 +1,152 @@
-# MotionWorld
+# MotionWorld — real-time world-model control in Unreal Engine
 
-MotionWorld is an action-conditioned residual state-space world model for character control in
-Unreal Engine. A learned model corrects a faithful, inexpensive character predictor so that
-model-predictive control can evaluate many candidate futures without cloning the full engine.
+MotionWorld lets an Unreal character **imagine possible movement futures before acting**. A
+lightweight state-space model rolls candidate actions forward, predicts two moving physical
+obstacles on Unreal's authoritative clock, chooses a collision-aware route, executes only the first
+action, and replans from what actually happened.
 
-**Evidence achieved:** the UE 5.8.2 movement/reset/logger bridge works; episode-safe train and
-validation data were captured; a residual MLP improves held-out recursive prediction; and a fair
-offline CEM comparison proves that the model changes selected actions. A nominal-only live MPC loop
-has now executed in Unreal under the deadline gate. **Not achieved:** no live nominal-versus-
-residual comparison has run, the accepted nominal trial did not establish stable target convergence,
-the residual planner misses its 100 ms p95 deadline, and no final-test episode has been opened. The
-project therefore makes no control-win claim.
+**Unreal Engine 5.8.2 · Python 3.12 · CEM model-predictive control · learned residual dynamics**
 
-The project is being built as a reproducible applied-ML research demonstration. Its central claim is deliberately causal:
+[![MotionWorld two-obstacle demo](media/motionworld-two-obstacle-demo.gif)](media/motionworld-two-obstacle-demo.mp4)
 
-> Nominal prediction is wrong -> the residual predicts that error -> the planner selects a different action -> same-seed Unreal execution improves.
+*The preview plays automatically. Click it for the full 720p recording.*
 
-The first three links have bounded evidence. The last link remains unproven. See
-[INTERVIEW_PACKAGE.md](INTERVIEW_PACKAGE.md) for the concise evidence map and fallback demo.
+## What the demo shows
 
-## Living documents
+The character is not following a prerecorded path. At every control step it receives the latest
+collision-finalized character state and both obstacles' synchronized motion state, evaluates 64
+candidate action sequences, and selects a safe first move. It then observes Unreal again and repeats
+the process.
 
-- [PROJECT_SPEC.md](PROJECT_SPEC.md) - exact system contract and acceptance criteria
-- [PROJECT_PLAN.md](PROJECT_PLAN.md) - deadline-adjusted execution plan, gates, branches, and deliverables
-- [RECOVERY_CHECKLIST.md](RECOVERY_CHECKLIST.md) - active dependency-ordered plan for completing the live causal-control target
-- [CHECKLIST.md](CHECKLIST.md) - historical original-plan checklist retained for audit and traceability
-- [THEORY.md](THEORY.md) - equations, hand calculations, assumptions, and teaching notes
-- [DECISIONS.md](DECISIONS.md) - design decisions and rejected alternatives
-- [EXPERIMENT_LOG.md](EXPERIMENT_LOG.md) - hypotheses, configurations, results, and interpretations
-- [INTERVIEW_DEFENSE.md](INTERVIEW_DEFENSE.md) - difficult questions and evidence-backed answers
+| On screen | Meaning |
+| --- | --- |
+| Large red and smaller orange blocks | Two independently moving, physically collidable obstacles |
+| Blue path | Nominal world-model forecast |
+| Orange path | Learned residual forecast under the same selected actions |
+| Yellow path | What Unreal actually executed after collision resolution |
+| Green globe | Target and arrival zone |
 
-## Active runbook
+The recording uses a synchronized retiming variant for the two obstacles. The accepted experiment
+uses a frozen configuration so its result is reproducible.
 
-- [Sunday 30 August - Unreal feasibility](runbooks/2026-08-30-sunday.md)
-- [Interview fallback demo](runbooks/interview_fallback.md)
+## Accepted live result
 
-## Python environment
+In the canonical V3 run, the controller changed lateral direction around both obstacles, reported
+`collision_count=0`, entered the 100 cm target zone, and stopped 85.06 cm from the target center.
 
-MotionWorld uses the project-local Python 3.12 environment resolved by `uv`. Install `uv`, then
-recreate the exact locked environment with:
+| Evidence | Result |
+| --- | ---: |
+| Authoritative Unreal observations | 442 |
+| Current, before-deadline actions admitted | 340 |
+| Stale actions rejected | 83 |
+| Missed responses | 101 |
+| Safe-stop commands | 31 |
+| Malformed packets / evidence drops | 0 / 0 |
+| Python tests | 798 / 798 |
+| Unreal `MotionWorld.*` automation tests | 20 / 20 |
+
+The stale and missed responses are part of the result rather than hidden noise: obsolete actions are
+never relabelled or applied. After bounded holds, the runtime commands zero velocity until a fresh
+action is admitted.
+
+## How it works
+
+```mermaid
+flowchart LR
+    UE[Unreal: finalized state<br/>and obstacle clock] -->|episode + sequence + deadline| PY[Python world model]
+    PY --> NOM[Nominal Smooth Walking dynamics]
+    PY --> RES[Learned residual forecast]
+    NOM --> CEM[CEM: score candidate futures]
+    RES --> VIEW[Matched visual comparison]
+    CEM -->|first action only| GATE[Identity and deadline gate]
+    GATE --> UE
+    UE --> TRUTH[Collision-finalized truth trail]
+```
+
+1. **Observe:** Unreal publishes the finalized character state, hidden Smooth Walking context,
+   target, and two obstacle descriptions.
+2. **Imagine:** the state-space model rolls candidate local-velocity actions 1.5 seconds into the
+   future.
+3. **Score:** swept collision and clearance costs evaluate both moving obstacle futures.
+4. **Act:** CEM sends only the first action from the best sequence through a strict identity and
+   100 ms deadline gate.
+5. **Correct:** Unreal resolves movement and collision; the controller replans from that truth.
+
+## Why this is a world model
+
+This is a deliberately scoped **action-conditioned state-space world model**, not a pixel or video
+generator. It predicts how the controllable character state will evolve under hypothetical actions
+and combines that prediction with known obstacle dynamics. That makes thousands of counterfactual
+future steps cheap enough to evaluate without cloning or pausing the Unreal world.
+
+The hybrid model contains:
+
+- a faithful analytic predictor for Unreal's Smooth Walking movement;
+- a 106,886-parameter residual MLP trained on causal Unreal transitions;
+- episode-safe feature history and train/validation separation;
+- recursive rollout evaluation rather than teacher-forced-only reporting.
+
+For the live V3 demo, **nominal MPC owns the actions**. The learned residual draws the orange
+same-state, same-action forecast; it does not control the character. Offline evidence shows that the
+residual changes predicted futures and planner choices, but the project does not claim a live
+learned-controller victory.
+
+## Engineering behind the demo
+
+- A C++ Unreal plugin samples Mover state after simulation finalization instead of trusting requested
+  input or rendered animation.
+- Verified resets clear hidden movement state, episode identity, pending actions, visualization, and
+  history before a new run.
+- Every UDP action is bounded, finite, episode-matched, sequence-current, and received before an
+  exclusive monotonic deadline.
+- Physical collision is adjudicated by Unreal, not by the Python prediction.
+- JSONL evidence, strict schemas, hashes, frozen configs, rejected attempts, and reversible Blueprint
+  manifests make the result auditable.
+
+The accepted and failed V3 runs are documented in
+[DEMO-V3-001](EXPERIMENT_LOG.md#demo-v3-001--two-obstacle-sequential-world-model-avoidance).
+
+## Run the controller
+
+Create the locked Python environment and run the test suite:
 
 ```bash
 uv sync --frozen --python 3.12
-uv run python scripts/verify_environment.py
 uv run pytest
 uv run ruff check .
-uv run python scripts/verify_interview_package.py
 ```
 
-Unit-test oracles run on CPU by default for deterministic comparison. MPS availability is reported
-separately and may be used for measured training experiments once numerical behavior is validated.
-
-Validate the standalone control-service configuration from a clean process with:
+After installing Epic's Game Animation Sample and deploying the source-controlled MotionWorld
+plugin, start the canonical two-obstacle controller from this repository:
 
 ```bash
-uv run motionworld-control-service --config configs/control_service.yaml --check-config
+.venv/bin/python -m motionworld.control.service \
+  --config configs/control_service_demo_nominal_mpc.yaml \
+  --two-obstacle-config configs/live_two_obstacle_demo.yaml
 ```
 
-Omit `--check-config` to run the bounded localhost service. The selected `echo` or `reactive`
-controller and its bounded parameters come from the same strict config. Echo defaults to zero for a
-safe start; reactive requires an explicit planner target from Unreal. Neither mode makes an MPC
-claim.
+Wait for `"health": "running"` and `"ready": true`, then press Play in Unreal. The complete
+apply/record/restore workflow is in [V3_DEMO_RUNBOOK.md](V3_DEMO_RUNBOOK.md). The optional
+[retiming script](scripts/retime_v3_two_obstacle_demo_unreal.py) keeps Unreal and the randomized
+planner configuration synchronized when demonstrating different obstacle speeds.
 
-R2.3 live echo trials use named configs rather than editing the safe-zero default:
-`control_service_echo_forward.yaml`, `control_service_echo_right.yaml`,
-`control_service_echo_diagonal.yaml`, `control_service_echo_reverse.yaml`, and
-`control_service_echo_speed_bound.yaml`. The first four request explicit character-local axes. The
-speed-bound case deliberately requests `(1000, 1000)` cm/s so the controller must L2-clamp it to the
-lower of its configured ceiling and Unreal's observed effective movement limit.
+## Code map
 
-## Candidate study material
+- [`motionworld/planning/`](motionworld/planning/) — CEM, rollouts, and collision-aware costs
+- [`motionworld/control/`](motionworld/control/) — live planning adapter and bounded UDP service
+- [`motionworld/models/`](motionworld/models/) — residual features, training, and recursive rollout
+- [`motionworld/protocol/`](motionworld/protocol/) — strict observations, actions, and transport
+- [`unreal/Plugins/MotionWorld/`](unreal/Plugins/MotionWorld/) — Unreal authority, reset, networking,
+  visualization, obstacle actors, and evidence capture
+- [`artifacts/`](artifacts/) and [`evidence/`](evidence/) — frozen evaluations and live-run evidence
+- [`INTERVIEW_DEFENSE.md`](INTERVIEW_DEFENSE.md) — design questions, equations, limitations, and answers
 
-- [D-011 Unreal bridge theory](output/pdf/D011_UNREAL_BRIDGE_THEORY.pdf) - compiled five-page
-  handout covering the integration boundary, equations, assumptions, failure modes, memory-warning
-  classification, acceptance tests, and required interview teach-back.
-- [D-011 LaTeX source](theory/D011_UNREAL_BRIDGE_THEORY.tex)
+## Scope and licensing
 
-## Unreal plugin
+The live result establishes collision-aware world-model MPC around **exactly two reproducible
+analytic moving obstacles**. It does not establish visual perception, arbitrary-scene navigation,
+learned obstacle dynamics, reinforcement learning, or learned-control superiority.
 
-The source-controlled [MotionWorld plugin](unreal/Plugins/MotionWorld/README.md) is kept separate
-from the licensed Game Animation Sample. Its opt-in command bridge, finalized-state sampler,
-fail-closed causal-transition contract, and bounded in-memory episode recorder have passed strict
-UE 5.8.2 builds for universal Mac Editor Development, Game Development, and Game Shipping targets.
-The recorder's live chronology gate captured 922 consecutive action-state transitions with no
-rejected pair or capacity loss.
-A Mover-owned deterministic character reset and fail-closed finalized-state verifier pass strict
-builds, actual-sample automation, and two live same-session resets with identical verified seed
-states and no transition crossing either reset boundary.
-An opt-in atomic JSON Lines exporter and strict Python validator pass isolated, actual-sample, and
-live-file gates. Episode 1801 exported 458 accepted transitions with zero rejection/capacity loss;
-the independent loader validated every row and the completeness footer.
-Schema version 2 remains backward-compatible with that version-1 evidence and adds optional timed-
-gate configuration, per-transition analytic obstacle state/event labels, and a reconciled terminal
-summary. Both Unreal and Python independently reject schedule, crossing, timeout, or count drift.
-
-Recovery R2.2 adds a default-off Unreal network controller around the isolated protocol. It samples
-only finalized state with aligned hidden Smooth Walking context, schedules one observation per fixed
-100 ms simulation-time slot, polls actions without blocking, admits only the current episode and
-sequence before an exclusive monotonic 100 ms deadline, holds after misses one and two, and commands
-zero on miss three. Strict universal plugin builds and the actual Game Animation Sample's two focused
-`MotionWorld.Network` automation tests pass. This is lifecycle/safety evidence only: no live
-MPC result is claimed yet; the later R2.3 slice now includes a bounded live echo proof.
-
-R2.3's code layer adds a stateless fixed-command echo controller and a goal-directed reactive
-controller. Both clamp against the lower of the configured ceiling and Unreal's observed effective
-max speed; reactive also obeys its cruise speed and rotates the world-target direction into the
-character frame using authoritative facing. The Unreal component can now publish an explicit
-planner-only target, which remains absent by default and never enters dynamics features. Controller
-unit tests, strict universal builds, and actual-sample automation pass. Network enablement now
-rejects the bridge's competing varied-action schedule so one producer unambiguously owns the
-command. Live PIE direction and nonzero-yaw evidence is still required before R2.3 is complete. A
-live safe-zero session has already proven current observation/action identity and clean
-action/history clearing across two verified resets.
-
-No positive result is assumed. A reproducible negative result with a clear diagnosis is a valid research outcome.
-
-## Provenance and licensing
-
-The repository contains only project-specific source, small derived evidence, configurations, and
-documentation. Epic's licensed Game Animation Sample, Unreal generated directories, and raw local
-episode captures are excluded. Reproducing Unreal evidence requires acquiring the Game Animation
-Sample separately through Epic and copying the source-controlled plugin into that local project.
+This repository contains project-specific source, configurations, derived artifacts, and evidence.
+Epic's licensed Unreal Engine and Game Animation Sample assets are intentionally excluded and must
+be obtained separately through Epic.
