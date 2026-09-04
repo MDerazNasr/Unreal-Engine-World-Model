@@ -27,12 +27,19 @@ evidence. The complete research study remains follow-up scope.
 
 ## Sprint 2 — Build the visual world-model moment
 
-- [ ] Load one authoritative current Unreal state into a planner snapshot.
-- [ ] Generate forward, left, right, and stop futures from that identical state.
+- [x] Load one authoritative current Unreal state into a planner snapshot.
+- [x] Generate forward, left, right, and stop futures from that identical state.
 - [ ] Render genuine futures in distinct colors with a clear legend.
 - [ ] Render the target and any timed-gate geometry.
 - [ ] Support a frozen/paused comparison view suitable for explanation.
 - [ ] Show model name, horizon, timestep, source observation, and prediction status.
+
+Checkpoint evidence: the strict live adapter, authentic production-rollout branches, and atomic
+identity-bound visualization/action protocol pass 661/661 Python tests, Ruff, lock verification,
+diff integrity, the strict universal Unreal build, and the actual-sample cross-language fixture.
+The default four-branch visualization is 2,252 bytes; its representative complete action is about
+3,721 bytes, within the independent 6,500-byte visualization and 8,192-byte action ceilings.
+Unreal drawing, the HUD, the actual trail, and live MPC remain open.
 
 ## Sprint 3 — Show planning and reality
 

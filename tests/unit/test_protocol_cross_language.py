@@ -42,11 +42,53 @@ def test_unreal_observation_fixture_is_canonical_and_python_valid() -> None:
     assert encode_observation_json(decoded) == payload
 
 
-@pytest.mark.parametrize("name", ["action.json", "action_zero_no_telemetry.json"])
+@pytest.mark.parametrize(
+    "name",
+    [
+        "action.json",
+        "action_zero_no_telemetry.json",
+        "action_visualization_four_branches.json",
+    ],
+)
 def test_python_action_fixtures_are_canonical_and_round_trip(name: str) -> None:
     payload = _fixture(name)
     decoded = decode_action_json(payload)
     assert encode_action_json(decoded) == payload
+
+
+def test_four_branch_visualization_fixture_preserves_legacy_action_contract() -> None:
+    payload = _fixture("action_visualization_four_branches.json")
+    decoded = decode_action_json(payload)
+
+    assert len(payload) < 8_192
+    assert decoded["identity"] == {
+        "episode_id": 7101,
+        "source_observation_sequence": 12,
+    }
+    telemetry = decoded["telemetry"]
+    assert telemetry["is_present"] is True
+    assert telemetry["selected_desired_velocity_trajectory_local_cm_per_s"] == [
+        [120.0, -30.0],
+        [100.0, 0.0],
+    ]
+    assert set(telemetry["cost_breakdown"]) == {
+        "terminal_goal_distance_cm",
+        "collision_indicator",
+        "clearance_deficit_squared_cm2",
+        "action_change_squared_cm2_s2",
+        "action_second_difference_squared_cm2_s2",
+        "total",
+    }
+    visualization = telemetry["visualization"]
+    assert visualization["identity"] == decoded["identity"]
+    assert visualization["frame"] == "unreal_world_xy_cm"
+    assert [path["role"] for path in visualization["paths"]] == [
+        "branch_forward",
+        "branch_left",
+        "branch_right",
+        "branch_stop",
+    ]
+    assert all(len(path["points_world_xy_cm"]) == 3 for path in visualization["paths"])
 
 
 def test_zero_boundary_fixture_has_explicit_optional_telemetry_absence() -> None:

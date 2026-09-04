@@ -93,27 +93,32 @@ def _vector2(value: object, context: str) -> tuple[float, float]:
     )
 
 
-def _validate_telemetry(value: object) -> None:
+def _validate_telemetry(
+    value: object,
+    *,
+    action_episode_id: int,
+    action_source_observation_sequence: int,
+) -> None:
     telemetry = _mapping(value, "telemetry")
     present = _bool(telemetry.get("is_present"), "telemetry.is_present")
     if not present:
         _keys(telemetry, {"is_present"}, "telemetry")
         return
 
-    _keys(
-        telemetry,
-        {
-            "is_present",
-            "selected_desired_velocity_trajectory_local_cm_per_s",
-            "cost_breakdown",
-        },
-        "telemetry",
-    )
+    legacy_keys = {
+        "is_present",
+        "selected_desired_velocity_trajectory_local_cm_per_s",
+        "cost_breakdown",
+    }
+    visualization_keys = legacy_keys | {"visualization"}
+    if set(telemetry) not in (legacy_keys, visualization_keys):
+        raise ValueError(
+            f"telemetry keys must be exactly {sorted(legacy_keys)} or {sorted(visualization_keys)}"
+        )
     trajectory = telemetry["selected_desired_velocity_trajectory_local_cm_per_s"]
     if not isinstance(trajectory, list) or not 1 <= len(trajectory) <= MAX_TRAJECTORY_STEPS:
         raise ValueError(
-            "telemetry selected trajectory must contain between 1 and "
-            f"{MAX_TRAJECTORY_STEPS} steps"
+            f"telemetry selected trajectory must contain between 1 and {MAX_TRAJECTORY_STEPS} steps"
         )
     for index, action in enumerate(trajectory):
         _vector2(action, f"telemetry.selected_trajectory[{index}]")
@@ -124,6 +129,22 @@ def _validate_telemetry(value: object) -> None:
         value_number = _number(component, f"telemetry.cost_breakdown.{key}", minimum=0.0)
         if key == "collision_indicator" and value_number not in (0.0, 1.0):
             raise ValueError("telemetry cost collision_indicator must be zero or one")
+
+    if "visualization" in telemetry:
+        # Imported lazily because visualization imports the outer action
+        # transport budget when defining its reserved-envelope invariant.
+        from motionworld.protocol.visualization import visualization_from_json_object
+
+        visualization = visualization_from_json_object(telemetry["visualization"])
+        # Parsing enforces the logical schema; canonical encoding additionally
+        # enforces the visualization bundle's stricter nested byte ceiling.
+        visualization.encode_json()
+        if visualization.episode_id != action_episode_id:
+            raise ValueError("visualization episode does not match action identity")
+        if visualization.source_observation_sequence != action_source_observation_sequence:
+            raise ValueError(
+                "visualization source observation sequence does not match action identity"
+            )
 
 
 def validate_action_mapping(value: object) -> dict[str, Any]:
@@ -189,7 +210,11 @@ def validate_action_mapping(value: object) -> dict[str, Any]:
     if is_fallback and desired_velocity != (0.0, 0.0):
         raise ValueError("safe fallback action must command zero local velocity")
 
-    _validate_telemetry(raw["telemetry"])
+    _validate_telemetry(
+        raw["telemetry"],
+        action_episode_id=identity["episode_id"],
+        action_source_observation_sequence=identity["source_observation_sequence"],
+    )
     return copy.deepcopy(raw)
 
 

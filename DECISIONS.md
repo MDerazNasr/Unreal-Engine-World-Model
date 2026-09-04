@@ -2523,3 +2523,37 @@ disclosed and excluded from performance claims; session 7221 retains that role. 
 Blueprint settings were restored after capture by a commandlet that exited zero at 2026-09-04 05:52
 local time. Restore readback recovered episode 7300, repeat count two, 60 transitions, and evidence
 cap eight, and the one-use backup was consumed. Sealed episodes 5301/5302 were not opened.
+
+## D-071 - Bind visualization atomically to its action identity and keep reality Unreal-local
+
+Status: accepted at the code and actual-sample cross-language boundary
+
+Decision: Carry optional visualization telemetry inside the same action envelope as the command,
+controller/model ownership, planner timing, and source observation identity. Require the nested
+visualization identity to match the outer action identity exactly, use a strict bounded schema in
+`unreal_world_xy_cm`, and admit or reject the complete action atomically. Generate the forward,
+left, right, and stop branches together from one immutable authoritative planner snapshot through
+the production rollout implementation. Unreal will construct and retain the yellow actual-motion
+trail locally from authoritative finalized states; Python must not send an "actual" path as
+predicted telemetry.
+
+Why: A trajectory without its originating episode and observation can look plausible after a reset
+or replan while describing the wrong state. An independently delivered visualization could also be
+mixed with a newer command. Atomic identity binding makes that mismatch fail closed. Keeping the
+actual trail Unreal-local preserves the central distinction between imagined futures and realized
+collision-finalized movement and prevents Python from grading or visually validating itself.
+
+How it is tested: The live adapter accepts only a contiguous, increasing observation stream,
+clears action history at a new episode-zero boundary, checks local/world velocity consistency, and
+constructs the production planner snapshot. The demo generator produces four genuine 1.5-second,
+0.1-second-step branches in one batched production rollout, with bit-exact shared authoritative
+start points and no interpolation. Python and Unreal both enforce 12-path/16-point structural
+bounds, a 6,500-byte nested visualization ceiling, an 8,192-byte outer action ceiling, exact schema,
+frame, roles, finite values, and identity. The default visualization measures 2,252 bytes and a
+representative complete action is approximately 3,721 bytes. The suite passes 661/661 Python tests,
+Ruff, `uv lock --check`, and diff integrity. The strict arm64+x86_64
+`GameAnimationSampleEditor` build succeeds, and the actual-sample cross-language automation admits
+the four genuine roles while proving the nested and outer byte limits separately. Evidence:
+`evidence/unreal/d2_visualization_protocol_automation.log`. Unreal rendering, HUD work, the local
+actual-trail renderer, and live MPC are not claimed complete. Prediction episodes 5301/5302 remain
+sealed.

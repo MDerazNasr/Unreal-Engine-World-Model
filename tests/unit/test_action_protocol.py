@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import json
 
 import pytest
 
@@ -11,6 +12,13 @@ from motionworld.protocol import (
     encode_action_json,
     validate_action_for_observation,
     validate_action_mapping,
+)
+from motionworld.protocol.visualization import (
+    MAX_VISUALIZATION_BYTES,
+    TrajectoryRole,
+    VisualizationPath,
+    VisualizationPoint,
+    VisualizationTelemetry,
 )
 
 
@@ -60,6 +68,23 @@ def _mutated(path: tuple[str, ...], value: object) -> dict[str, object]:
     return result
 
 
+def _visualization(
+    *, episode_id: int = 7101, source_observation_sequence: int = 12
+) -> dict[str, object]:
+    return VisualizationTelemetry(
+        episode_id=episode_id,
+        source_observation_sequence=source_observation_sequence,
+        horizon_s=0.1,
+        timestep_s=0.1,
+        paths=(
+            VisualizationPath(
+                role=TrajectoryRole.SELECTED,
+                points=(VisualizationPoint(0.0, 0.0), VisualizationPoint(12.0, -3.0)),
+            ),
+        ),
+    ).to_json_object()
+
+
 def test_valid_action_has_deterministic_round_trip() -> None:
     source = _action()
     first = encode_action_json(source)
@@ -72,6 +97,83 @@ def test_diagnostic_telemetry_can_be_explicitly_absent() -> None:
     source = _action()
     source["telemetry"] = {"is_present": False}
     assert validate_action_mapping(source)["telemetry"] == {"is_present": False}
+
+
+def test_present_diagnostic_telemetry_remains_valid_without_visualization() -> None:
+    source = _action()
+    assert "visualization" not in validate_action_mapping(source)["telemetry"]
+
+
+def test_present_telemetry_can_carry_matching_visualization() -> None:
+    source = _action()
+    source["telemetry"]["visualization"] = _visualization()
+    payload = encode_action_json(source)
+    decoded = decode_action_json(payload)
+    assert decoded["telemetry"]["visualization"] == _visualization()
+
+
+@pytest.mark.parametrize(
+    ("visualization", "message"),
+    [
+        (_visualization(episode_id=7102), "visualization episode"),
+        (
+            _visualization(source_observation_sequence=11),
+            "visualization source observation sequence",
+        ),
+        ({"schema": {}}, "visualization keys must be exactly"),
+    ],
+)
+def test_visualization_must_be_well_formed_and_match_action_identity(
+    visualization: dict[str, object], message: str
+) -> None:
+    source = _action()
+    source["telemetry"]["visualization"] = visualization
+    with pytest.raises(ValueError, match=message):
+        validate_action_mapping(source)
+
+
+def test_absent_telemetry_cannot_smuggle_visualization() -> None:
+    source = _action()
+    source["telemetry"] = {"is_present": False, "visualization": _visualization()}
+    with pytest.raises(ValueError, match="telemetry keys must be exactly"):
+        validate_action_mapping(source)
+
+
+def test_nested_visualization_obeys_its_own_stricter_datagram_limit() -> None:
+    source = _action()
+    coordinate = 1_234_567.12345
+    points = tuple(VisualizationPoint(coordinate, -coordinate) for _ in range(16))
+    source["telemetry"]["visualization"] = VisualizationTelemetry(
+        episode_id=7101,
+        source_observation_sequence=12,
+        horizon_s=1.5,
+        timestep_s=0.1,
+        paths=tuple(
+            VisualizationPath(role=TrajectoryRole.CEM_CANDIDATE, points=points) for _ in range(12)
+        ),
+    ).to_json_object()
+
+    visualization_payload = json.dumps(
+        source["telemetry"]["visualization"],
+        allow_nan=False,
+        ensure_ascii=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    ).encode("utf-8")
+    action_payload = json.dumps(
+        source,
+        allow_nan=False,
+        ensure_ascii=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    ).encode("utf-8")
+    assert len(visualization_payload) > MAX_VISUALIZATION_BYTES
+    assert len(action_payload) <= MAX_ACTION_BYTES
+
+    with pytest.raises(ValueError, match="visualization payload exceeds the 6500-byte limit"):
+        validate_action_mapping(source)
+    with pytest.raises(ValueError, match="visualization payload exceeds the 6500-byte limit"):
+        encode_action_json(source)
 
 
 def test_safe_fallback_is_explicit_and_zero() -> None:
@@ -149,9 +251,9 @@ def test_nonzero_safe_fallback_is_rejected() -> None:
 
 def test_trajectory_has_a_strict_step_bound() -> None:
     source = _action()
-    source["telemetry"]["selected_desired_velocity_trajectory_local_cm_per_s"] = [
-        [0.0, 0.0]
-    ] * (MAX_TRAJECTORY_STEPS + 1)
+    source["telemetry"]["selected_desired_velocity_trajectory_local_cm_per_s"] = [[0.0, 0.0]] * (
+        MAX_TRAJECTORY_STEPS + 1
+    )
     with pytest.raises(ValueError, match="between 1 and"):
         validate_action_mapping(source)
 
@@ -168,9 +270,7 @@ def test_unknown_and_missing_fields_are_rejected() -> None:
 
 
 def test_duplicate_invalid_utf8_and_oversized_json_are_rejected() -> None:
-    duplicate = encode_action_json(_action()).replace(
-        b'"version":1', b'"version":1,"version":1', 1
-    )
+    duplicate = encode_action_json(_action()).replace(b'"version":1', b'"version":1,"version":1', 1)
     with pytest.raises(ValueError, match="duplicate JSON key"):
         decode_action_json(duplicate)
     with pytest.raises(ValueError, match="UTF-8 JSON"):

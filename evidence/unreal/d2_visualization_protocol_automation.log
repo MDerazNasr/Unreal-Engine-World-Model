@@ -1,0 +1,62 @@
+D2 visualization protocol — actual GameAnimationSample validation
+Date: 2026-09-04 (Europe/Copenhagen)
+Scope: calibrate the nested-size negative fixture only, deploy that corrected test source,
+rebuild the actual universal sample, and rerun MotionWorld.Protocol.CrossLanguageFixtures.
+Final prediction data: NOT OPENED OR USED. Episodes 5301/5302 were not accessed.
+
+PRIOR ATTEMPT (SUPERSEDED, PRESERVED AS DIAGNOSTIC HISTORY)
+The preceding actual-sample run fixed the TArray alias assertion but failed because the
+12-path x 16-point nested fixture exceeded the 8192-byte outer action cap before it could
+exercise the intended 6500-byte nested visualization rejection. That run was not accepted.
+
+TEST-ONLY CORRECTION
+File:
+  unreal/Plugins/MotionWorld/Source/MotionWorld/Private/Tests/MotionWorldProtocolCrossLanguageTests.cpp
+
+The nested-size negative fixture now contains 11 paths (MaxControlVisualizationPaths - 1),
+with 16 points per path. Every path remains structurally valid and uses the only repeatable
+role, cem_candidate. Parser bounds and production code were not changed. The assertions now
+include both computed byte counts in their failure diagnostics and prove these two distinct
+conditions in the actual Unreal serializer:
+  compact visualization bytes > 6500
+  complete action bytes <= 8192
+The parser then rejects the action as InvalidSchema, exercising the nested byte cap rather
+than the outer action cap.
+
+DEPLOYMENT PARITY
+Only the corrected test source was redeployed to the closed GameAnimationSample project.
+Repository/sample cmp passed. Both copies had SHA-256:
+  88db08668af928d425bc32756ee80d1dbad64f23e04ae3c11c7acf4c5582dccd
+
+BUILD
+Command:
+  '/Users/Shared/Epic Games/UE_5.8/Engine/Build/BatchFiles/Mac/Build.sh' GameAnimationSampleEditor Mac Development '/Users/mderaznasr/Documents/Unreal Projects/GameAnimationSample/GameAnimationSample.uproject' -architecture=arm64+x86_64 -WaitMutex
+
+Result: SUCCEEDED (exit 0)
+UnrealBuildTool compiled MotionWorldProtocolCrossLanguageTests.cpp for Apple and Intel,
+linked both architectures, produced the universal plugin library, and completed 6 actions.
+Reported build time: 13.14 seconds total; 9.18 seconds in the local executor.
+Deployed dylib type:
+  Mach-O universal binary with x86_64 and arm64 architectures
+Deployed dylib SHA-256:
+  47ab32ff262e71685f24a12a01aacef2a8063dab2934d9fb11a1cbb2951a517a
+
+ACTUAL-SAMPLE AUTOMATION
+Command:
+  '/Users/Shared/Epic Games/UE_5.8/Engine/Binaries/Mac/UnrealEditor-Cmd' '/Users/mderaznasr/Documents/Unreal Projects/GameAnimationSample/GameAnimationSample.uproject' -unattended -nop4 -nosplash -nullrhi -stdout -FullStdOutLogOutput -abslog='/tmp/motionworld_d2_protocol_automation_nested_size.log' -ExecCmds='Automation RunTests MotionWorld.Protocol.CrossLanguageFixtures;Quit' -TestExit='Automation Test Queue Empty'
+
+Result: PASSED (process exit 0)
+The actual sample discovered exactly one matching test. CrossLanguageFixtures completed with
+Result={Success}, and Unreal reported:
+  **** TEST COMPLETE. EXIT CODE: 0 ****
+
+Raw headless log:
+  /tmp/motionworld_d2_protocol_automation_nested_size.log
+  Lines: 2593
+  Bytes: 353603
+  SHA-256: e764eb4ff936ec11f9fe58c9bc354c2dbfd73c5634e81b1314556296d440a0cb
+
+ACCEPTANCE
+Accepted. The test now distinguishes the nested 6500-byte visualization bound from the
+8192-byte outer action bound using valid telemetry shape, and the actual universal
+GameAnimationSample build passes the complete cross-language protocol fixture.

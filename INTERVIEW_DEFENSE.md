@@ -752,6 +752,32 @@ Examiner assessment: Not passed. The reference answer was supplied before an una
 teach-back. Require the candidate to distinguish reset-boundary correctness from within-episode
 timing/continuity evidence and explain why rejected stale work cannot be renamed as current work.
 
+### Q29 - Why do branching futures qualify as a world-model demonstration?
+
+Question: Why do forward, left, right, and stop futures generated from one authoritative Unreal
+state demonstrate an action-conditioned world model, and what prevents the display from being only
+decorative trajectories?
+
+Candidate answer: Not yet attempted.
+
+Teacher reference answer: The four branches begin from the same collision-finalized Unreal state and
+differ only in the proposed future action sequence. A learned or analytical transition model then
+rolls each sequence forward, so the display answers the action-conditioned counterfactual question,
+"What state trajectory does the model predict if I take these actions?" Every displayed point must
+declare its units and frame—for example, centimetres in Unreal world space after converting any
+character-local action—and carry the source episode and observation identity. The selected branch's
+first action is sent with that same identity; stale results are rejected, and the predicted path is
+compared with the later collision-finalized Unreal states. That identity chain and prediction-versus-
+actual comparison make the visualization auditable rather than decorative. A stop action means zero
+requested input and may predict physical braking over several steps, not an instantaneous frozen
+pose. The demonstration proves that the implemented model can generate distinct, causally aligned
+futures and participate in closed-loop planning. By itself it does not prove that the model is
+generally accurate, that the learned residual is better than the nominal model, or that the selected
+controller improves outcomes statistically; those require held-out errors and controlled trials.
+
+Examiner assessment: Not passed. Require an unaided explanation of the fixed-start counterfactual,
+units/frame conversion, episode-observation identity chain, braking semantics, and claim boundary.
+
 ## 7. Day 1 closeout answers to practise
 
 These are study answers, not passed candidate teach-backs yet.

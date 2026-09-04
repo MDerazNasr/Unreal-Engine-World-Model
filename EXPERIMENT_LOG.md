@@ -2252,3 +2252,34 @@ episodes 5301 and 5302 remained uncollected and unopened.
 Decision/next action: Gate R2 passes 7/7 and Section 3 closes 38/38. Proceeding to a world-model demo
 may now build on the safe live round trip, while continuing to use the clean 7221 run for performance
 claims and the 7310-7312 run only for reset isolation and visible evidence.
+
+## DEMO-D2-001 — identity-safe visualization seam and authentic four-branch futures
+
+**Question:** Can one authoritative Unreal observation produce genuine, bounded world-model
+branches that survive the Python/Unreal protocol boundary without allowing stale or decorative
+telemetry to masquerade as the current prediction?
+
+**Method:** Convert the strict schema-v1 observation into a production `PlannerSnapshot` while
+retaining episode, observation, state-sample, timing, target, and causal action-history context.
+From that single immutable snapshot, send the fixed forward, left, right, and stop action sequences
+through one shared call to the production rollout implementation. Package their exact world-XY
+plan-boundary outputs, including the common source point, inside the corresponding action. Require
+nested and outer identities to match and enforce independent 6,500-byte visualization and
+8,192-byte complete-action ceilings in Python and Unreal. Keep the future Unreal actual trail out
+of predicted telemetry so it can be derived locally from authoritative finalized state.
+
+**Result:** The adapter rejects gaps, duplicates, episode regressions, invalid movement context,
+inconsistent local/world velocity, and action-history regressions without advancing its state. Four
+branches share a bit-exact start and are direct production-rollout outputs with no smoothing or
+interpolation. The default 1.5-second view contains 16 points per branch and encodes to 2,252 bytes;
+a representative full action is approximately 3,721 bytes. Python passes 661/661 tests, Ruff,
+`uv lock --check`, and `git diff --check`. The strict universal arm64+x86_64 Unreal Editor build
+succeeds. In the actual Game Animation Sample, the cross-language test admits the Python four-role
+fixture and verifies exact identity/roles/points; its calibrated negative case is structurally valid,
+larger than 6,500 bytes as nested telemetry, no larger than 8,192 bytes as a full action, and is
+rejected for the intended nested-size reason. Evidence:
+`evidence/unreal/d2_visualization_protocol_automation.log`.
+
+**Claim boundary:** The data seam and authentic branch generation are accepted. Unreal has not yet
+drawn the paths, recorded its local actual trail, shown a HUD, or executed live MPC from them, so no
+visual-demo or live-control claim is made. Prediction episodes 5301 and 5302 were not opened or used.

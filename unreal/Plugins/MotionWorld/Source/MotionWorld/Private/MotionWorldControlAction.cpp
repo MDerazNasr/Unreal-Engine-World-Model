@@ -14,7 +14,35 @@ using MotionWorld::EControlActionRejection;
 using MotionWorld::FControlAction;
 using MotionWorld::MaxControlActionBytes;
 using MotionWorld::MaxControlTrajectorySteps;
+using MotionWorld::MaxControlVisualizationBytes;
+using MotionWorld::MaxControlVisualizationPaths;
+using MotionWorld::MaxControlVisualizationPointsPerPath;
 using MotionWorld::MaxSafeJsonInteger;
+
+constexpr double MaxVisualizationAbsCoordinateCm = 10000000.0;
+constexpr double MinVisualizationHorizonSeconds = 0.001;
+constexpr double MaxVisualizationHorizonSeconds = 10.0;
+constexpr double MinVisualizationTimestepSeconds = 0.001;
+constexpr double MaxVisualizationTimestepSeconds = 1.0;
+
+bool IsCompactJsonWithinByteLimit(
+	const TSharedPtr<FJsonObject>& Object,
+	const int32 MaxBytes)
+{
+	if (!Object.IsValid())
+	{
+		return false;
+	}
+	FString CompactJson;
+	const TSharedRef<TJsonWriter<TCHAR, TCondensedJsonPrintPolicy<TCHAR>>> Writer =
+		TJsonWriterFactory<TCHAR, TCondensedJsonPrintPolicy<TCHAR>>::Create(&CompactJson);
+	if (!FJsonSerializer::Serialize(Object.ToSharedRef(), Writer))
+	{
+		return false;
+	}
+	const FTCHARToUTF8 Utf8(*CompactJson);
+	return Utf8.Length() <= MaxBytes;
+}
 
 bool IsContinuationByte(const uint8 Byte)
 {
@@ -232,6 +260,155 @@ bool GetVector2(const TSharedPtr<FJsonObject>& Object, const TCHAR* Key, FVector
 	return true;
 }
 
+bool ParseVisualization(
+	const TSharedPtr<FJsonObject>& Object,
+	const int64 OuterEpisodeId,
+	const int64 OuterSourceObservationSequence,
+	FControlAction& OutAction)
+{
+	if (!HasExactKeys(Object, {
+		TEXT("schema"), TEXT("identity"), TEXT("frame"), TEXT("sampling"), TEXT("paths")}))
+	{
+		return false;
+	}
+
+	TSharedPtr<FJsonObject> Schema;
+	FString SchemaName;
+	int64 SchemaVersion = 0;
+	if (!GetObject(Object, TEXT("schema"), Schema)
+		|| !HasExactKeys(Schema, {TEXT("name"), TEXT("version")})
+		|| !GetBoundedString(Schema, TEXT("name"), SchemaName)
+		|| SchemaName != TEXT("motionworld_visualization")
+		|| !GetSafeInteger(Schema, TEXT("version"), SchemaVersion)
+		|| SchemaVersion != 1)
+	{
+		return false;
+	}
+
+	TSharedPtr<FJsonObject> Identity;
+	auto& Result = OutAction.Visualization;
+	if (!GetObject(Object, TEXT("identity"), Identity)
+		|| !HasExactKeys(Identity, {TEXT("episode_id"), TEXT("source_observation_sequence")})
+		|| !GetSafeInteger(Identity, TEXT("episode_id"), Result.EpisodeId)
+		|| !GetSafeInteger(
+			Identity,
+			TEXT("source_observation_sequence"),
+			Result.SourceObservationSequence)
+		|| Result.EpisodeId != OuterEpisodeId
+		|| Result.SourceObservationSequence != OuterSourceObservationSequence)
+	{
+		return false;
+	}
+
+	FString Frame;
+	if (!GetBoundedString(Object, TEXT("frame"), Frame)
+		|| Frame != TEXT("unreal_world_xy_cm"))
+	{
+		return false;
+	}
+
+	TSharedPtr<FJsonObject> Sampling;
+	if (!GetObject(Object, TEXT("sampling"), Sampling)
+		|| !HasExactKeys(Sampling, {TEXT("horizon_s"), TEXT("timestep_s")})
+		|| !GetFiniteNumber(
+			Sampling,
+			TEXT("horizon_s"),
+			Result.HorizonSeconds,
+			MinVisualizationHorizonSeconds)
+		|| Result.HorizonSeconds > MaxVisualizationHorizonSeconds
+		|| !GetFiniteNumber(
+			Sampling,
+			TEXT("timestep_s"),
+			Result.TimestepSeconds,
+			MinVisualizationTimestepSeconds)
+		|| Result.TimestepSeconds > MaxVisualizationTimestepSeconds
+		|| Result.TimestepSeconds > Result.HorizonSeconds)
+	{
+		return false;
+	}
+	const double StepRatio = Result.HorizonSeconds / Result.TimestepSeconds;
+	const int32 RolloutSteps = FMath::RoundToInt(StepRatio);
+	if (RolloutSteps < 1
+		|| RolloutSteps > MaxControlVisualizationPointsPerPath - 1
+		|| !FMath::IsNearlyEqual(StepRatio, static_cast<double>(RolloutSteps), 1.e-9))
+	{
+		return false;
+	}
+
+	const TArray<TSharedPtr<FJsonValue>>* Paths = nullptr;
+	if (!Object->TryGetArrayField(TEXT("paths"), Paths)
+		|| !Paths
+		|| Paths->IsEmpty()
+		|| Paths->Num() > MaxControlVisualizationPaths)
+	{
+		return false;
+	}
+
+	TSet<FString> UniqueRoles;
+	const int32 ExpectedPointCount = RolloutSteps + 1;
+	for (const TSharedPtr<FJsonValue>& PathValue : *Paths)
+	{
+		const TSharedPtr<FJsonObject>* Path = nullptr;
+		FString Role;
+		if (!PathValue.IsValid()
+			|| !PathValue->TryGetObject(Path)
+			|| !Path
+			|| !Path->IsValid()
+			|| !HasExactKeys(*Path, {TEXT("role"), TEXT("points_world_xy_cm")})
+			|| !GetBoundedString(*Path, TEXT("role"), Role))
+		{
+			return false;
+		}
+		const bool bKnownRole = Role == TEXT("cem_candidate")
+			|| Role == TEXT("selected")
+			|| Role == TEXT("branch_forward")
+			|| Role == TEXT("branch_left")
+			|| Role == TEXT("branch_right")
+			|| Role == TEXT("branch_stop")
+			|| Role == TEXT("nominal")
+			|| Role == TEXT("residual");
+		if (!bKnownRole || (Role != TEXT("cem_candidate") && UniqueRoles.Contains(Role)))
+		{
+			return false;
+		}
+		UniqueRoles.Add(Role);
+
+		const TArray<TSharedPtr<FJsonValue>>* Points = nullptr;
+		if (!(*Path)->TryGetArrayField(TEXT("points_world_xy_cm"), Points)
+			|| !Points
+			|| Points->Num() != ExpectedPointCount)
+		{
+			return false;
+		}
+
+		auto& OutputPath = Result.Paths.AddDefaulted_GetRef();
+		OutputPath.Role = Role;
+		for (const TSharedPtr<FJsonValue>& Point : *Points)
+		{
+			const TArray<TSharedPtr<FJsonValue>>* Components = nullptr;
+			double X = 0.0;
+			double Y = 0.0;
+			if (!Point.IsValid()
+				|| !Point->TryGetArray(Components)
+				|| !Components
+				|| Components->Num() != 2
+				|| !(*Components)[0].IsValid()
+				|| !(*Components)[1].IsValid()
+				|| !(*Components)[0]->TryGetNumber(X)
+				|| !(*Components)[1]->TryGetNumber(Y)
+				|| !FMath::IsFinite(X)
+				|| !FMath::IsFinite(Y)
+				|| FMath::Abs(X) > MaxVisualizationAbsCoordinateCm
+				|| FMath::Abs(Y) > MaxVisualizationAbsCoordinateCm)
+			{
+				return false;
+			}
+			OutputPath.PointsWorldXYCm.Emplace(X, Y);
+		}
+	}
+	return true;
+}
+
 bool ParseTelemetry(const TSharedPtr<FJsonObject>& Object, FControlAction& OutAction)
 {
 	bool bPresent = false;
@@ -244,10 +421,16 @@ bool ParseTelemetry(const TSharedPtr<FJsonObject>& Object, FControlAction& OutAc
 	{
 		return HasExactKeys(Object, {TEXT("is_present")});
 	}
-	if (!HasExactKeys(Object, {
+	const bool bHasVisualization = Object->HasField(TEXT("visualization"));
+	if (!(HasExactKeys(Object, {
 		TEXT("is_present"),
 		TEXT("selected_desired_velocity_trajectory_local_cm_per_s"),
-		TEXT("cost_breakdown")}))
+		TEXT("cost_breakdown")})
+		|| HasExactKeys(Object, {
+			TEXT("is_present"),
+			TEXT("selected_desired_velocity_trajectory_local_cm_per_s"),
+			TEXT("cost_breakdown"),
+			TEXT("visualization")})))
 	{
 		return false;
 	}
@@ -291,13 +474,30 @@ bool ParseTelemetry(const TSharedPtr<FJsonObject>& Object, FControlAction& OutAc
 		return false;
 	}
 	auto& Result = OutAction.CostBreakdown;
-	return GetFiniteNumber(Costs, TEXT("terminal_goal_distance_cm"), Result.TerminalGoalDistanceCm, 0.0)
+	const bool bCostsValid = GetFiniteNumber(Costs, TEXT("terminal_goal_distance_cm"), Result.TerminalGoalDistanceCm, 0.0)
 		&& GetFiniteNumber(Costs, TEXT("collision_indicator"), Result.CollisionIndicator, 0.0)
 		&& (Result.CollisionIndicator == 0.0 || Result.CollisionIndicator == 1.0)
 		&& GetFiniteNumber(Costs, TEXT("clearance_deficit_squared_cm2"), Result.ClearanceDeficitSquaredCm2, 0.0)
 		&& GetFiniteNumber(Costs, TEXT("action_change_squared_cm2_s2"), Result.ActionChangeSquaredCm2PerS2, 0.0)
 		&& GetFiniteNumber(Costs, TEXT("action_second_difference_squared_cm2_s2"), Result.ActionSecondDifferenceSquaredCm2PerS2, 0.0)
 		&& GetFiniteNumber(Costs, TEXT("total"), Result.Total, 0.0);
+	if (!bCostsValid || !bHasVisualization)
+	{
+		return bCostsValid;
+	}
+	TSharedPtr<FJsonObject> Visualization;
+	if (!GetObject(Object, TEXT("visualization"), Visualization)
+		|| !IsCompactJsonWithinByteLimit(Visualization, MaxControlVisualizationBytes)
+		|| !ParseVisualization(
+			Visualization,
+			OutAction.EpisodeId,
+			OutAction.SourceObservationSequence,
+			OutAction))
+	{
+		return false;
+	}
+	OutAction.bHasVisualization = true;
+	return true;
 }
 
 bool ParseSchema(const TSharedPtr<FJsonObject>& Root, FControlAction& OutAction)
@@ -469,7 +669,8 @@ bool ParseAndValidateControlAction(
 		OutRejection = EControlActionRejection::InvalidJson;
 		return false;
 	}
-	if (!ParseSchema(Root, OutAction)
+	FControlAction Candidate;
+	if (!ParseSchema(Root, Candidate)
 		|| ExpectedEpisodeId < 0
 		|| ExpectedEpisodeId > MaxSafeJsonInteger
 		|| ExpectedObservationSequence < 0
@@ -478,17 +679,17 @@ bool ParseAndValidateControlAction(
 		OutRejection = EControlActionRejection::InvalidSchema;
 		return false;
 	}
-	if (OutAction.EpisodeId != ExpectedEpisodeId)
+	if (Candidate.EpisodeId != ExpectedEpisodeId)
 	{
 		OutRejection = EControlActionRejection::WrongEpisode;
 		return false;
 	}
-	if (OutAction.SourceObservationSequence > ExpectedObservationSequence)
+	if (Candidate.SourceObservationSequence > ExpectedObservationSequence)
 	{
 		OutRejection = EControlActionRejection::FutureObservation;
 		return false;
 	}
-	if (OutAction.SourceObservationSequence < ExpectedObservationSequence)
+	if (Candidate.SourceObservationSequence < ExpectedObservationSequence)
 	{
 		OutRejection = EControlActionRejection::StaleObservation;
 		return false;
@@ -498,6 +699,7 @@ bool ParseAndValidateControlAction(
 		OutRejection = EControlActionRejection::DuplicateObservation;
 		return false;
 	}
+	OutAction = MoveTemp(Candidate);
 	OutRejection = EControlActionRejection::None;
 	return true;
 }
