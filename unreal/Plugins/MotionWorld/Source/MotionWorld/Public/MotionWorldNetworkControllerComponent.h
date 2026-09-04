@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Components/ActorComponent.h"
+#include "MotionWorldControlVisualizationState.h"
 #include "MotionWorldNetworkRuntime.h"
 #include "MotionWorldUdpTransport.h"
 #include "MotionWorldNetworkControllerComponent.generated.h"
@@ -8,6 +9,18 @@
 class UMotionWorldBridgeComponent;
 struct FMotionWorldNominalContextSample;
 struct FMotionWorldStateSample;
+
+namespace MotionWorld
+{
+/** Compare canonical planner-target contexts without reacting to float noise. */
+MOTIONWORLD_API bool HasReactiveTargetContextChanged(
+	bool bOldTargetPresent,
+	const FVector& OldTargetWorldCm,
+	const FVector2D& OldTerminalVelocityLocalCmPerSec,
+	bool bNewTargetPresent,
+	const FVector& NewTargetWorldCm,
+	const FVector2D& NewTerminalVelocityLocalCmPerSec);
+}
 
 USTRUCT(BlueprintType)
 struct MOTIONWORLD_API FMotionWorldNetworkControllerStats
@@ -129,6 +142,16 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Network|Reactive")
 	FVector2D ReactiveTerminalVelocityLocalCmPerSec = FVector2D::ZeroVector;
 
+	/** Draw only visualization data admitted for the current control identity. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Network|Visualization")
+	bool bDrawWorldModelVisualization = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Network|Visualization", meta = (ClampMin = "0.0", ClampMax = "1000.0"))
+	float VisualizationHeightOffsetCm = 12.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Network|Visualization", meta = (ClampMin = "0.0", ClampMax = "50.0"))
+	float VisualizationLineThickness = 3.0f;
+
 	/** Default-off bounded evidence for live episode/sequence/yaw reconciliation. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Network|Evidence")
 	bool bLogNetworkEvidence = false;
@@ -143,6 +166,7 @@ private:
 	bool OpenTransport();
 	void ClearControlState();
 	void ApplyCommand(const MotionWorld::FNetworkCommandUpdate& Update);
+	void DrawWorldModelVisualization() const;
 	void RefreshRuntimeStats();
 	void PollActions(double MonotonicNowSeconds);
 	bool ReserveEvidenceLine();
@@ -153,6 +177,7 @@ private:
 
 	MotionWorld::FMotionWorldUdpTransport Transport;
 	MotionWorld::FNetworkRuntime Runtime;
+	MotionWorld::FControlVisualizationState VisualizationState;
 	double OutstandingObservationSentMonotonicSeconds = 0.0;
 	FString EvidenceSessionId;
 };

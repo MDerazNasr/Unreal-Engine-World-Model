@@ -2557,3 +2557,28 @@ the four genuine roles while proving the nested and outer byte limits separately
 `evidence/unreal/d2_visualization_protocol_automation.log`. Unreal rendering, HUD work, the local
 actual-trail renderer, and live MPC are not claimed complete. Prediction episodes 5301/5302 remain
 sealed.
+
+## D-072 - Expire imagined futures at the observation boundary and derive reality only in Unreal
+
+Status: accepted at code, exact-source build, and automation boundary
+
+Decision: Unreal may install a prediction only after its containing action is structurally valid and
+admitted for the currently outstanding episode and observation. Emitting a newer authoritative
+observation immediately expires the older prediction. The yellow actual trail is constructed only
+from Unreal's valid, non-resimulated, collision-finalized states and is never accepted from Python.
+Reset-like identity boundaries clear both prediction and actual trail; a same-episode deadline safe
+stop clears prediction but retains actual history for recovery. A meaningful target-context change
+during an active episode commands zero, invalidates the episode, and requires a new verified reset.
+
+Why: A path can be numerically genuine yet visually false if it belongs to an earlier observation,
+target, or episode. The display must obey the same causal boundary as command admission. Separating
+Unreal-owned realized state from Python-owned counterfactual prediction also prevents the predictor
+from visually grading itself.
+
+How it is tested: the lifecycle automation checks current installation, newer-observation expiry,
+wrong-identity rejection, finite episode-bound actual points, the 256-point cap, reset clearing,
+safe-stop preservation, and boundary invalidation. Target comparison automation checks stable and
+changed contexts. The final eight deployed source files match the repository by SHA-256; the
+universal Editor build succeeds; and the full actual-sample `MotionWorld.` suite exits zero. Evidence
+is `evidence/unreal/d3_visualization_state_automation.log`. Live on-screen alignment remains a D4
+claim, not a D3 claim, and episodes 5301/5302 remain sealed.

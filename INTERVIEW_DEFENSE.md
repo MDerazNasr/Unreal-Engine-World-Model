@@ -778,6 +778,27 @@ controller improves outcomes statistically; those require held-out errors and co
 Examiner assessment: Not passed. Require an unaided explanation of the fixed-start counterfactual,
 units/frame conversion, episode-observation identity chain, braking semantics, and claim boundary.
 
+### Q30 - Why does a new observation remove the prediction but a deadline stop keep the actual trail?
+
+Question: Why must an older predicted path disappear as soon as Unreal emits a newer observation,
+and why is the realized trail allowed to survive a same-episode deadline safe stop?
+
+Candidate answer: Not yet attempted.
+
+Teacher reference answer: A prediction is conditional on one exact source state, target context, and
+observation identity. As soon as Unreal emits a newer collision-finalized observation, that older
+future is no longer the current forecast, even if no replacement action has arrived, so leaving it
+visible would present stale imagination as current. The actual trail has different semantics: it is
+historical evidence already measured by Unreal. A missed deadline clears the untrusted prediction
+and commands the bounded fallback, but it does not erase what physically happened in the same
+episode; retaining that trail lets the display show recovery honestly. Reset, reconnect, controller
+switch, target-context change, and end play are true identity boundaries, so they clear both. In
+short, predictions expire with their conditioning information, while observations remain evidence
+until the episode itself changes.
+
+Examiner assessment: Not passed. Require an unaided explanation that distinguishes conditional
+future state from immutable realized evidence and identifies same-episode versus episode boundaries.
+
 ## 7. Day 1 closeout answers to practise
 
 These are study answers, not passed candidate teach-backs yet.

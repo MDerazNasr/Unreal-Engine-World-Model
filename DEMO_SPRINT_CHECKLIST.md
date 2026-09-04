@@ -20,10 +20,10 @@ evidence. The complete research study remains follow-up scope.
 
 ## Sprint 1 — Close the runtime foundation
 
-- [ ] Audit the accepted three-reset Gate-R2 session and unedited recording.
-- [ ] Preserve the exact raw log range, configuration, hashes, and machine-readable summary.
-- [ ] Restore temporary Unreal Blueprint settings and stop leftover services.
-- [ ] Run focused and full tests, update project records, and commit Section 3.
+- [x] Audit the accepted three-reset Gate-R2 session and unedited recording.
+- [x] Preserve the exact raw log range, configuration, hashes, and machine-readable summary.
+- [x] Restore temporary Unreal Blueprint settings and stop leftover services.
+- [x] Run focused and full tests, update project records, and commit Section 3.
 
 ## Sprint 2 — Build the visual world-model moment
 
@@ -40,6 +40,14 @@ diff integrity, the strict universal Unreal build, and the actual-sample cross-l
 The default four-branch visualization is 2,252 bytes; its representative complete action is about
 3,721 bytes, within the independent 6,500-byte visualization and 8,192-byte action ceilings.
 Unreal drawing, the HUD, the actual trail, and live MPC remain open.
+
+D3 checkpoint: Unreal now stores and draws only visualization attached to an admitted current
+action, expires prediction when a newer authoritative observation is emitted, and maintains a
+separate bounded yellow trail from collision-finalized Unreal states. Reset, reconnect, controller
+switch, end play, and a meaningful live target change invalidate the full visualization identity;
+a deadline safe stop clears prediction while preserving the same-episode actual trail. Exact-source
+actual-sample deployment, the universal Editor build, and the full `MotionWorld.` automation suite
+pass. On-screen path alignment remains deliberately open until D4 emits live branch telemetry.
 
 ## Sprint 3 — Show planning and reality
 

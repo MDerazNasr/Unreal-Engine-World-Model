@@ -2,6 +2,7 @@
 
 #include "Containers/StringConv.h"
 #include "Dom/JsonObject.h"
+#include "Policies/CondensedJsonPrintPolicy.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
 

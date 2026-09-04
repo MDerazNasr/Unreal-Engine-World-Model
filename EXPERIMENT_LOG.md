@@ -2283,3 +2283,30 @@ rejected for the intended nested-size reason. Evidence:
 **Claim boundary:** The data seam and authentic branch generation are accepted. Unreal has not yet
 drawn the paths, recorded its local actual trail, shown a HUD, or executed live MPC from them, so no
 visual-demo or live-control claim is made. Prediction episodes 5301 and 5302 were not opened or used.
+
+## DEMO-D3-001 — identity-safe Unreal prediction and actual-trail renderer
+
+**Question:** Can Unreal retain and render model futures without ever showing a stale prediction as
+current or allowing Python to manufacture the realized path?
+
+**Method:** Install visualization only after the complete action passes structural validation and
+the runtime admits its current episode/observation identity. Expire the prediction before emitting a
+new observation. Build the actual trail locally from valid, non-resimulated, collision-finalized
+Unreal states and cap it at 256 points. Clear all identity and paths on reset, reconnect, controller
+switch, end play, or a meaningful live target-context change; command exact zero and require a new
+verified episode after an active target change. On deadline safe stop, clear only the prediction so
+the same episode can recover while retaining its realized trail. Render planar Unreal world XY in
+centimetres with role-specific colors and a fixed painter order.
+
+**Result:** Eight scoped source files matched the actual Game Animation Sample deployment by
+SHA-256. The exact-source universal `GameAnimationSampleEditor` Development build succeeded in
+58/58 actions and produced an x86_64+arm64 MotionWorld dylib. The full `MotionWorld.` automation
+suite exited zero, including `VisualizationStateLifecycle`, `ReactiveTargetContext`, and
+`CrossLanguageFixtures`. Evidence: `evidence/unreal/d3_visualization_state_automation.log`.
+
+**Claim boundary:** The rendering and lifecycle seam is accepted at code, build, and automation
+level. D3 does not claim that live paths have yet appeared or aligned on screen because the Python
+service does not emit visualization-only telemetry until D4. The target test directly covers the
+context comparator; full component behavior is additionally reviewed from the active-runtime code
+path but is not asserted by a component integration test. Episode IDs remain required to be unique.
+Final prediction episodes 5301 and 5302 remained sealed.

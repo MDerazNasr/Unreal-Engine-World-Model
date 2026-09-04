@@ -1,5 +1,6 @@
 #include "MotionWorldNetworkControllerComponent.h"
 
+#include "DrawDebugHelpers.h"
 #include "GameFramework/Actor.h"
 #include "HAL/PlatformTime.h"
 #include "Misc/Guid.h"
@@ -11,10 +12,30 @@
 
 DEFINE_LOG_CATEGORY_STATIC(LogMotionWorldNetwork, Log, All);
 
+namespace MotionWorld
+{
+bool HasReactiveTargetContextChanged(
+	const bool bOldTargetPresent,
+	const FVector& OldTargetWorldCm,
+	const FVector2D& OldTerminalVelocityLocalCmPerSec,
+	const bool bNewTargetPresent,
+	const FVector& NewTargetWorldCm,
+	const FVector2D& NewTerminalVelocityLocalCmPerSec)
+{
+	constexpr float ContextTolerance = 0.01f;
+	return bOldTargetPresent != bNewTargetPresent
+		|| !OldTargetWorldCm.Equals(NewTargetWorldCm, ContextTolerance)
+		|| !OldTerminalVelocityLocalCmPerSec.Equals(
+			NewTerminalVelocityLocalCmPerSec,
+			ContextTolerance);
+}
+} // namespace MotionWorld
+
 UMotionWorldNetworkControllerComponent::UMotionWorldNetworkControllerComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
 	PrimaryComponentTick.bStartWithTickEnabled = false;
+	PrimaryComponentTick.bTickEvenWhenPaused = true;
 }
 
 void UMotionWorldNetworkControllerComponent::BeginPlay()
@@ -97,6 +118,7 @@ void UMotionWorldNetworkControllerComponent::TickComponent(
 	PollActions(Now);
 	ApplyCommand(Runtime.AdvanceDeadline(Now));
 	RefreshRuntimeStats();
+	DrawWorldModelVisualization();
 }
 
 bool UMotionWorldNetworkControllerComponent::SetNetworkControlEnabled(
@@ -165,6 +187,7 @@ bool UMotionWorldNetworkControllerComponent::SetControllerMode(
 		return true;
 	}
 	ControllerMode = NewControllerMode;
+	VisualizationState.InvalidateEpisodeBoundary();
 	if (bNetworkControlEnabled)
 	{
 		return ReconnectService();
@@ -198,13 +221,38 @@ bool UMotionWorldNetworkControllerComponent::SetReactiveTarget(
 	{
 		return false;
 	}
-	bHasReactiveTarget = bTargetPresent;
-	ReactiveTargetWorldCm = bTargetPresent
+	const FVector NewTargetWorldCm = bTargetPresent
 		? TargetWorldCm
 		: FVector::ZeroVector;
-	ReactiveTerminalVelocityLocalCmPerSec = bTargetPresent
+	const FVector2D NewTerminalVelocityLocalCmPerSec = bTargetPresent
 		? DesiredTerminalVelocityLocalCmPerSec
 		: FVector2D::ZeroVector;
+	const bool bContextChanged = MotionWorld::HasReactiveTargetContextChanged(
+		bHasReactiveTarget,
+		ReactiveTargetWorldCm,
+		ReactiveTerminalVelocityLocalCmPerSec,
+		bTargetPresent,
+		NewTargetWorldCm,
+		NewTerminalVelocityLocalCmPerSec);
+	const bool bHadActiveEpisode = Runtime.GetStats().bEnabled;
+	if (bContextChanged && bHadActiveEpisode)
+	{
+		const int64 InvalidatedEpisodeId = Runtime.GetExpectedEpisodeId();
+		ClearControlState();
+		UE_LOG(LogMotionWorldNetwork, Warning,
+			TEXT("MotionWorld reactive target changed during active episode=%lld; control state invalidated and safe zero commanded. A new verified BeginNetworkEpisode is required."),
+			InvalidatedEpisodeId);
+	}
+	bHasReactiveTarget = bTargetPresent;
+	ReactiveTargetWorldCm = NewTargetWorldCm;
+	ReactiveTerminalVelocityLocalCmPerSec =
+		NewTerminalVelocityLocalCmPerSec;
+	if (bContextChanged && !bHadActiveEpisode)
+	{
+		// No episode is active, but any cached prediction still describes the
+		// old planner context and must not be drawn.
+		VisualizationState.ClearPredictionForSafeStop();
+	}
 	return true;
 }
 
@@ -232,6 +280,11 @@ bool UMotionWorldNetworkControllerComponent::BeginNetworkEpisode(
 	{
 		return false;
 	}
+	if (!VisualizationState.BeginEpisode(EpisodeId))
+	{
+		Runtime.Stop();
+		return false;
+	}
 	if (BridgeComponent)
 	{
 		BridgeComponent->SetVelocityCommandFrame(
@@ -256,6 +309,13 @@ void UMotionWorldNetworkControllerComponent::ObserveFinalizedState(
 	{
 		return;
 	}
+	const int64 ActiveEpisodeId = Runtime.GetExpectedEpisodeId();
+	if (ActiveEpisodeId >= 0 && State.bIsValid && !State.bIsResimulation)
+	{
+		VisualizationState.AppendAuthoritativeFinalizedPosition(
+			ActiveEpisodeId,
+			FVector2D(State.PositionWorldCm.X, State.PositionWorldCm.Y));
+	}
 	const double MonotonicNowSeconds = FPlatformTime::Seconds();
 	const MotionWorld::FNetworkObservationDecision Decision =
 		Runtime.ObserveFinalizedState(
@@ -267,6 +327,17 @@ void UMotionWorldNetworkControllerComponent::ObserveFinalizedState(
 	RefreshRuntimeStats();
 	if (!Decision.bShouldEmit)
 	{
+		return;
+	}
+	if (!VisualizationState.OnAuthoritativeObservationEmitted(
+		Decision.EpisodeId,
+		Decision.ObservationSequence))
+	{
+		VisualizationState.ClearPredictionForSafeStop();
+		UE_LOG(LogMotionWorldNetwork, Error,
+			TEXT("MotionWorld visualization identity rejected an emitted observation: episode=%lld observation=%lld; prediction cleared."),
+			Decision.EpisodeId,
+			Decision.ObservationSequence);
 		return;
 	}
 
@@ -334,6 +405,7 @@ bool UMotionWorldNetworkControllerComponent::OpenTransport()
 void UMotionWorldNetworkControllerComponent::ClearControlState()
 {
 	Runtime.Stop();
+	VisualizationState.InvalidateEpisodeBoundary();
 	OutstandingObservationSentMonotonicSeconds = 0.0;
 	if (BridgeComponent)
 	{
@@ -346,6 +418,10 @@ void UMotionWorldNetworkControllerComponent::ClearControlState()
 void UMotionWorldNetworkControllerComponent::ApplyCommand(
 	const MotionWorld::FNetworkCommandUpdate& Update)
 {
+	if (Update.Cause == MotionWorld::ENetworkCommandCause::DeadlineSafeStop)
+	{
+		VisualizationState.ClearPredictionForSafeStop();
+	}
 	if (!Update.bShouldApply || !BridgeComponent)
 	{
 		return;
@@ -372,15 +448,20 @@ void UMotionWorldNetworkControllerComponent::PollActions(
 		Poll.RejectedUnknownSender + Poll.RejectedOversizedOrEmpty;
 	for (const TArray<uint8>& Payload : Poll.Payloads)
 	{
+		const int64 ExpectedEpisodeId = Runtime.GetExpectedEpisodeId();
+		const int64 ExpectedObservationSequence =
+			Runtime.GetExpectedObservationSequence();
+		const bool bExpectedObservationAlreadyAnswered =
+			!Runtime.HasOutstandingObservation()
+				|| Runtime.WasOutstandingObservationAnswered();
 		MotionWorld::FControlAction Action;
 		MotionWorld::EControlActionRejection Rejection =
 			MotionWorld::EControlActionRejection::None;
 		const bool bParsed = MotionWorld::ParseAndValidateControlAction(
 			Payload,
-			Runtime.GetExpectedEpisodeId(),
-			Runtime.GetExpectedObservationSequence(),
-			!Runtime.HasOutstandingObservation()
-				|| Runtime.WasOutstandingObservationAnswered(),
+			ExpectedEpisodeId,
+			ExpectedObservationSequence,
+			bExpectedObservationAlreadyAnswered,
 			Action,
 			Rejection);
 		if (!bParsed)
@@ -412,6 +493,18 @@ void UMotionWorldNetworkControllerComponent::PollActions(
 			continue;
 		}
 		++ControllerStats.ActionsAccepted;
+		if (Action.bHasVisualization
+			&& !VisualizationState.InstallFromAdmittedAction(
+				Action,
+				ExpectedEpisodeId,
+				ExpectedObservationSequence))
+		{
+			VisualizationState.ClearPredictionForSafeStop();
+			UE_LOG(LogMotionWorldNetwork, Error,
+				TEXT("MotionWorld admitted action visualization failed the final identity check: episode=%lld observation=%lld; prediction cleared."),
+				ExpectedEpisodeId,
+				ExpectedObservationSequence);
+		}
 		if (ReserveEvidenceLine())
 		{
 			const double EndToEndLatencyMs =
@@ -432,6 +525,71 @@ void UMotionWorldNetworkControllerComponent::PollActions(
 		ApplyCommand(Update);
 		RefreshRuntimeStats();
 	}
+}
+
+void UMotionWorldNetworkControllerComponent::DrawWorldModelVisualization() const
+{
+	if (!bDrawWorldModelVisualization || !GetWorld() || !GetOwner())
+	{
+		return;
+	}
+
+	const float DrawZ = GetOwner()->GetActorLocation().Z
+		+ FMath::Max(0.0f, VisualizationHeightOffsetCm);
+	const float Thickness = FMath::Max(0.0f, VisualizationLineThickness);
+	// Visualization packets contain planar Unreal world XY coordinates in cm.
+	const auto DrawPath = [this, DrawZ, Thickness](
+		const TArray<FVector2D>& Points,
+		const FColor& Color,
+		const float ThicknessScale)
+	{
+		for (int32 Index = 1; Index < Points.Num(); ++Index)
+		{
+			DrawDebugLine(
+				GetWorld(),
+				FVector(Points[Index - 1].X, Points[Index - 1].Y, DrawZ),
+				FVector(Points[Index].X, Points[Index].Y, DrawZ),
+				Color,
+				false,
+				0.0f,
+				0,
+				Thickness * ThicknessScale);
+		}
+	};
+
+	if (VisualizationState.HasPrediction())
+	{
+		const auto DrawRole = [this, &DrawPath](
+			const TCHAR* Role,
+			const FColor& Color,
+			const float ThicknessScale)
+		{
+			for (const MotionWorld::FControlVisualizationPath& Path
+				: VisualizationState.GetPrediction().Paths)
+			{
+				if (Path.Role == Role)
+				{
+					DrawPath(Path.PointsWorldXYCm, Color, ThicknessScale);
+				}
+			}
+		};
+
+		// Fixed painter's order keeps the high-signal paths visible regardless
+		// of the order supplied by the controller packet.
+		DrawRole(TEXT("cem_candidate"), FColor(110, 110, 110), 0.5f);
+		DrawRole(TEXT("branch_forward"), FColor::Cyan, 1.0f);
+		DrawRole(TEXT("branch_left"), FColor::Magenta, 1.0f);
+		DrawRole(TEXT("branch_right"), FColor::Red, 1.0f);
+		DrawRole(TEXT("branch_stop"), FColor::White, 1.0f);
+		DrawRole(TEXT("nominal"), FColor::Blue, 1.0f);
+		DrawRole(TEXT("residual"), FColor(255, 128, 0), 1.0f);
+		DrawRole(TEXT("selected"), FColor::Green, 1.5f);
+	}
+
+	DrawPath(
+		VisualizationState.GetActualTrailWorldXYCm(),
+		FColor::Yellow,
+		1.25f);
 }
 
 bool UMotionWorldNetworkControllerComponent::ReserveEvidenceLine()
