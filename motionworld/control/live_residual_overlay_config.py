@@ -47,7 +47,7 @@ def load_live_residual_overlay_config(path: Path, repository_root: Path):
     expected_keys = {
         "schema_name", "schema_version", "status", "claim_boundary",
         "nominal_planner", "checkpoint", "normalization", "training_config",
-        "dataset_manifest", "expected_checkpoint", "overlay_rollout",
+        "dataset_manifest", "expected_checkpoint", "overlay_rollout", "overlay_steps",
     }
     if not isinstance(raw, dict) or set(raw) != expected_keys:
         raise ValueError("residual overlay config has unexpected keys")
@@ -104,10 +104,14 @@ def load_live_residual_overlay_config(path: Path, repository_root: Path):
     overlay_rollout = PlannerRolloutConfig(**rollout_raw)
     if overlay_rollout.dynamics_substeps_per_plan_step != 3:
         raise ValueError("learned overlay requires three integration substeps")
+    overlay_steps = raw["overlay_steps"]
+    if type(overlay_steps) is not int or overlay_steps != 5:
+        raise ValueError("live learned overlay must use the frozen five-step display")
     nominal = load_live_nominal_mpc_config(nominal_path, repository_root)
     return replace(
         nominal,
         residual_overlay_model=checkpoint.model,
         residual_overlay_normalization=checkpoint.normalization,
         residual_overlay_rollout=overlay_rollout,
+        residual_overlay_steps=overlay_steps,
     )

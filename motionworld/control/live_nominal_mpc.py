@@ -38,6 +38,7 @@ class LiveNominalMPCConfig:
     residual_overlay_model: ResidualMLP | None = None
     residual_overlay_normalization: ResidualNormalization | None = None
     residual_overlay_rollout: PlannerRolloutConfig | None = None
+    residual_overlay_steps: int | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.problem_template, PlannerProblem):
@@ -77,6 +78,7 @@ class LiveNominalMPCConfig:
             self.residual_overlay_model,
             self.residual_overlay_normalization,
             self.residual_overlay_rollout,
+            self.residual_overlay_steps,
         )
         if any(value is None for value in overlay_values) != all(
             value is None for value in overlay_values
@@ -98,6 +100,13 @@ class LiveNominalMPCConfig:
                 != self.problem_template.rollout.plan_step_s
             ):
                 raise ValueError("overlay and planner sampling timesteps must match")
+            if (
+                type(self.residual_overlay_steps) is not int
+                or not 1
+                <= self.residual_overlay_steps
+                <= self.problem_template.cem.num_plan_steps
+            ):
+                raise ValueError("residual overlay step count is out of range")
 
 
 @dataclass(frozen=True, slots=True)
@@ -159,6 +168,7 @@ class LiveNominalMPCController:
                 residual_model=self.config.residual_overlay_model,
                 residual_normalization=self.config.residual_overlay_normalization,
                 overlay_rollout=self.config.residual_overlay_rollout,
+                overlay_steps=self.config.residual_overlay_steps,
                 cancelled=cancelled,
             )
         except Exception:
@@ -200,22 +210,9 @@ def _visualization(
     residual_model: ResidualMLP | None = None,
     residual_normalization: ResidualNormalization | None = None,
     overlay_rollout: PlannerRolloutConfig | None = None,
+    overlay_steps: int | None = None,
     cancelled: threading.Event | None = None,
 ) -> VisualizationTelemetry:
-    iteration_actions = np.stack(
-        [
-            expand_action_knots(
-                iteration.best_knots_cm_s,
-                num_plan_steps=problem.cem.num_plan_steps,
-            )
-            for iteration in plan.cem.iterations[:winner_count]
-        ]
-    )
-    candidates = rollout_action_candidates_vectorized(
-        live.snapshot,
-        iteration_actions,
-        config=problem.rollout,
-    )
     start = np.asarray(live.snapshot.observable.position_world_cm[:2], dtype=np.float64)
 
     def path(role: TrajectoryRole, predicted: np.ndarray) -> VisualizationPath:
@@ -225,16 +222,36 @@ def _visualization(
             points=tuple(VisualizationPoint(float(point[0]), float(point[1])) for point in points),
         )
 
-    paths = tuple(
-        path(TrajectoryRole.CEM_CANDIDATE, candidates.positions_world_cm[index])
-        for index in range(winner_count)
-    )
     if residual_model is None:
+        iteration_actions = np.stack(
+            [
+                expand_action_knots(
+                    iteration.best_knots_cm_s,
+                    num_plan_steps=problem.cem.num_plan_steps,
+                )
+                for iteration in plan.cem.iterations[:winner_count]
+            ]
+        )
+        candidates = rollout_action_candidates_vectorized(
+            live.snapshot,
+            iteration_actions,
+            config=problem.rollout,
+        )
+        paths = tuple(
+            path(TrajectoryRole.CEM_CANDIDATE, candidates.positions_world_cm[index])
+            for index in range(winner_count)
+        )
         paths += (path(TrajectoryRole.SELECTED, plan.best_rollout.positions_world_cm[0]),)
     else:
-        if residual_normalization is None or overlay_rollout is None:
+        if (
+            residual_normalization is None
+            or overlay_rollout is None
+            or overlay_steps is None
+        ):
             raise ValueError("residual overlay inputs must be supplied atomically")
-        selected_actions = np.asarray(plan.cem.best_actions_cm_s, dtype=np.float64)
+        selected_actions = np.asarray(
+            plan.cem.best_actions_cm_s[:overlay_steps], dtype=np.float64
+        )
         matched = np.broadcast_to(selected_actions, (2, *selected_actions.shape)).copy()
         nominal_overlay = rollout_action_candidates_vectorized(
             live.snapshot,
@@ -252,15 +269,21 @@ def _visualization(
         )
         if cancelled is not None and cancelled.is_set():
             raise _CancelledOverlay
-        paths += (
+        # D6 is a dedicated matched-model view. Avoid computing or transmitting
+        # D5 candidate previews: they have a different point count and consume
+        # deadline margin without contributing to this comparison.
+        paths = (
             path(TrajectoryRole.NOMINAL, nominal_overlay.positions_world_cm[0]),
             path(TrajectoryRole.RESIDUAL, residual_overlay.positions_world_cm[0]),
         )
+        horizon_s = overlay_steps * overlay_rollout.plan_step_s
+    if residual_model is None:
+        horizon_s = problem.cem.num_plan_steps * problem.rollout.plan_step_s
     telemetry = VisualizationTelemetry(
         episode_id=live.episode_id,
         source_observation_sequence=live.observation_sequence,
-        horizon_s=problem.cem.num_plan_steps * problem.rollout.plan_step_s,
-        timestep_s=problem.rollout.plan_step_s,
+        horizon_s=horizon_s,
+        timestep_s=(overlay_rollout or problem.rollout).plan_step_s,
         paths=paths,
     )
     telemetry.encode_json()

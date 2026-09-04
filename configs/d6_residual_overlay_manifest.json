@@ -6,7 +6,7 @@
     "config_path": "configs/control_service_demo_nominal_mpc.yaml",
     "sha256": "826cbb309b3df27bcd7ff460cffe2e177c187f3ab77b87a2f307fd411983d865",
     "planner_config_path": "configs/live_residual_overlay_demo.yaml",
-    "planner_sha256": "e0281cc65de235e2ee3500d4ccdd19ce2c6344243402dbb39ac792a74b1622d1",
+    "planner_sha256": "c621653fb67b1d73b4b5a3c289d0ff1271fba6904457102a4d093db42fb117ec",
     "runtime_config_sha256": "33fd7bc309b63dc355f313aed6e9ebb3ec2c6426ab3af25f9408383a17189525",
     "transport_config_sha256": "c4b14c609e78301a446310b04795ab4fb8ca44aae8cb44c065ffefb987ad9ee1"
   },
@@ -19,7 +19,7 @@
     "start_episode_recording_on_begin_play": false,
     "request_reset_after_warmup_on_begin_play": true,
     "reset_warmup_finalized_samples": 60,
-    "begin_play_reset_episode_id": 7601,
+    "begin_play_reset_episode_id": 7603,
     "reset_live_test_repeat_count": 1,
     "reset_live_test_transitions_per_episode": 120,
     "override_reset_anchor_yaw_for_live_test": false,
@@ -41,7 +41,7 @@
     "max_network_evidence_lines": 2048
   },
   "acceptance": {
-    "expected_episode_id": 7601,
+    "expected_episode_id": 7603,
     "visual_inspection_transitions": 120,
     "require_network_evidence": true,
     "controller_owns_actions": "nominal_mpc",

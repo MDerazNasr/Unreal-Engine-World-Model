@@ -183,6 +183,7 @@ def test_matched_residual_overlay_uses_same_state_actions_and_keeps_nominal_comm
             base.problem_template.rollout,
             dynamics_substeps_per_plan_step=3,
         ),
+        residual_overlay_steps=5,
     )
     observation = _observation(9)
     observation["source"]["controller_mode"] = "nominal_mpc"
@@ -203,16 +204,13 @@ def test_matched_residual_overlay_uses_same_state_actions_and_keeps_nominal_comm
     assert result["controller"]["controller_id"] == "nominal_mpc"
     assert result["controller"]["model_id"] == "nominal_mpc_matched_residual_overlay_v1"
     visualization = validate_action_mapping(result)["telemetry"]["visualization"]
-    assert [path["role"] for path in visualization["paths"]] == [
-        "cem_candidate",
-        "cem_candidate",
-        "nominal",
-        "residual",
-    ]
+    assert [path["role"] for path in visualization["paths"]] == ["nominal", "residual"]
+    assert visualization["sampling"] == {"horizon_s": 0.5, "timestep_s": 0.1}
     assert len(encode_action_json(result)) <= 8_192
-    # Call zero is the gray CEM preview. Calls one and two are the blue/orange
-    # matched comparison and must differ only by model selection.
-    nominal_call, residual_call = calls[-2:]
+    # D6 computes only the blue/orange matched comparison; the gray CEM preview
+    # belongs to D5 and must not consume live deadline margin here.
+    assert len(calls) == 2
+    nominal_call, residual_call = calls
     assert nominal_call[0] is residual_call[0]
     np.testing.assert_array_equal(nominal_call[1], residual_call[1])
     assert "residual_model" not in nominal_call[2]
@@ -235,6 +233,7 @@ def test_matched_residual_overlay_cancellation_suppresses_stale_action(monkeypat
             base.problem_template.rollout,
             dynamics_substeps_per_plan_step=3,
         ),
+        residual_overlay_steps=5,
     )
     real_rollout = live_nominal_mpc.rollout_action_candidates_vectorized
     calls = 0
@@ -243,7 +242,7 @@ def test_matched_residual_overlay_cancellation_suppresses_stale_action(monkeypat
         nonlocal calls
         calls += 1
         result = real_rollout(*args, **kwargs)
-        if calls == 2:
+        if calls == 1:
             cancelled.set()
         return result
 

@@ -110,14 +110,64 @@ def audit_nominal_mpc_live(
     maximum_command_speed_cm_s: float = 165.0,
     deadline_ms: float = 100.0,
 ) -> NominalMPCAudit:
+    """Audit the prospectively frozen D5 nominal-MPC session."""
+
+    return _audit_nominal_control_live(
+        raw,
+        session_id,
+        episode_id,
+        required_episode_id=7504,
+        evidence_label="D5",
+        maximum_command_speed_cm_s=maximum_command_speed_cm_s,
+        deadline_ms=deadline_ms,
+    )
+
+
+def audit_d6_residual_overlay_live(
+    raw: bytes,
+    session_id: str,
+    episode_id: int,
+    *,
+    maximum_command_speed_cm_s: float = 165.0,
+    deadline_ms: float = 100.0,
+) -> NominalMPCAudit:
+    """Audit D6's nominal-controlled run without inferring unlogged pixels."""
+
+    return _audit_nominal_control_live(
+        raw,
+        session_id,
+        episode_id,
+        required_episode_id=7603,
+        evidence_label="D6",
+        maximum_command_speed_cm_s=maximum_command_speed_cm_s,
+        deadline_ms=deadline_ms,
+    )
+
+
+def _audit_nominal_control_live(
+    raw: bytes,
+    session_id: str,
+    episode_id: int,
+    *,
+    required_episode_id: int,
+    evidence_label: str,
+    maximum_command_speed_cm_s: float = 165.0,
+    deadline_ms: float = 100.0,
+) -> NominalMPCAudit:
     """Audit the declared live session without inferring unlogged visualization state."""
 
     if not re.fullmatch(r"[A-F0-9]{12}", session_id):
         raise ValueError("session_id must contain exactly 12 uppercase hex characters")
-    if episode_id != 7504:
-        raise ValueError("D5 audit requires prospective demo episode 7504")
+    if episode_id != required_episode_id:
+        raise ValueError(
+            f"{evidence_label} audit requires prospective demo episode "
+            f"{required_episode_id}"
+        )
     if maximum_command_speed_cm_s != 165.0 or deadline_ms != 100.0:
-        raise ValueError("D5 command and deadline bounds are frozen at 165 cm/s and 100 ms")
+        raise ValueError(
+            f"{evidence_label} command and deadline bounds are frozen at "
+            "165 cm/s and 100 ms"
+        )
     lines = raw.decode("utf-8-sig").splitlines()
 
     start_index, start = _one(

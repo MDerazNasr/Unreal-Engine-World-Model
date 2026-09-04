@@ -46,6 +46,8 @@ public:
 
 	bool HasPrediction() const { return bHasPrediction; }
 	const FControlVisualizationData& GetPrediction() const { return Prediction; }
+	/** Exact admitted action that owns the current prediction and its telemetry. */
+	const FControlAction& GetPredictionSourceAction() const { return PredictionSourceAction; }
 	const TArray<FVector2D>& GetActualTrailWorldXYCm() const { return ActualTrailWorldXYCm; }
 	int64 GetActiveEpisodeId() const { return ActiveEpisodeId; }
 	int64 GetLatestObservationSequence() const { return LatestObservationSequence; }
@@ -57,6 +59,7 @@ private:
 	int64 LatestObservationSequence = -1;
 	bool bHasPrediction = false;
 	FControlVisualizationData Prediction;
+	FControlAction PredictionSourceAction;
 	TArray<FVector2D> ActualTrailWorldXYCm;
 };
 } // namespace MotionWorld

@@ -2,7 +2,10 @@ from __future__ import annotations
 
 import pytest
 
-from motionworld.control.nominal_mpc_evidence import audit_nominal_mpc_live
+from motionworld.control.nominal_mpc_evidence import (
+    audit_d6_residual_overlay_live,
+    audit_nominal_mpc_live,
+)
 
 SESSION = "ABCDEF123456"
 
@@ -57,6 +60,16 @@ def test_audit_accepts_bounded_identity_bound_motion() -> None:
     assert audit.matched_action_echo_count == 2
     assert audit.maximum_planar_displacement_cm > 19.0
     assert audit.latency_summary()["p95"] == pytest.approx(59.5)
+
+
+def test_d6_audit_accepts_only_frozen_clean_retry_identity() -> None:
+    raw = _raw().replace(b"episode=7504", b"episode=7603")
+
+    audit = audit_d6_residual_overlay_live(raw, SESSION, 7603)
+
+    assert audit.episode_id == 7603
+    with pytest.raises(ValueError, match="episode 7603"):
+        audit_d6_residual_overlay_live(raw, SESSION, 7602)
 
 
 @pytest.mark.parametrize(

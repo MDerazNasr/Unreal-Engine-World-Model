@@ -16,7 +16,7 @@ evidence. The complete research study remains follow-up scope.
 - [x] Do not claim that residual control is statistically superior without the locked paired study.
 - [x] Preserve Unreal as the authority for realized movement and collision outcomes.
 - [x] Preserve episode/sequence validation, deadline rejection, reset clearing, and safe stop.
-- [ ] Label prerecorded, offline, paused-state, and live evidence accurately.
+- [x] Label prerecorded, offline, paused-state, and live evidence accurately.
 
 ## Sprint 1 — Close the runtime foundation
 
@@ -29,10 +29,10 @@ evidence. The complete research study remains follow-up scope.
 
 - [x] Load one authoritative current Unreal state into a planner snapshot.
 - [x] Generate forward, left, right, and stop futures from that identical state.
-- [ ] Render genuine futures in distinct colors with a clear legend.
+- [x] Render genuine futures in distinct colors with a clear legend.
 - [ ] Render the target and any timed-gate geometry.
-- [ ] Support a frozen/paused comparison view suitable for explanation.
-- [ ] Show model name, horizon, timestep, source observation, and prediction status.
+- [x] Support a frozen/paused comparison view suitable for explanation.
+- [x] Show model name, horizon, timestep, source observation, and prediction status.
 
 Checkpoint evidence: the strict live adapter, authentic production-rollout branches, and atomic
 identity-bound visualization/action protocol pass 661/661 Python tests, Ruff, lock verification,
@@ -64,10 +64,10 @@ the run, and episodes 5301/5302 remained sealed.
 
 ## Sprint 3 — Show planning and reality
 
-- [ ] Render faint CEM candidates and one prominent selected trajectory.
+- [x] Render faint CEM candidates and one prominent selected trajectory.
 - [x] Execute only the first selected action, then reobserve and replan.
-- [ ] Render the authoritative realized trail separately from predictions.
-- [ ] Display planning/end-to-end latency and fallback status.
+- [x] Render the authoritative realized trail separately from predictions.
+- [x] Display planning/end-to-end latency and fallback status.
 - [x] Enforce current-identity deadline admission for live MPC; retain accurately labelled stepped
       or offline fallback rather than applying stale actions if a later run misses the deadline.
 
@@ -84,11 +84,23 @@ restored and episodes 5301/5302 remained sealed.
 
 ## Sprint 4 — Add the learned-model comparison if defensible
 
-- [ ] Load the already selected no-history residual checkpoint with strict schema/hash checks.
-- [ ] Display nominal prediction in blue and residual-corrected prediction in orange.
-- [ ] Keep the same state, action futures, horizon, and cost context for both models.
-- [ ] Execute at least one selected action in Unreal and compare both predictions with reality.
-- [ ] Present improvement, degradation, or disagreement honestly; do not require a residual win.
+- [x] Load the already selected no-history residual checkpoint with strict schema/hash checks.
+- [x] Display nominal prediction in blue and residual-corrected prediction in orange.
+- [x] Keep the same state, selected action sequence, horizon, and rollout context for both models.
+- [x] Execute selected nominal actions in Unreal while both matched forecasts and Unreal's actual
+      trail share the same current-state origin.
+- [x] Present improvement, degradation, or disagreement honestly; do not require a residual win.
+
+D6 checkpoint: clean single-process session `DD64FEF0C742`, episode 7603, logged 266 contiguous
+observations and 254 unique, increasing, current/before-deadline nominal actions. End-to-end latency
+was 36.048 ms median / 70.162 ms p95 / 81.513 ms maximum and authoritative displacement reached
+17.289 m. The selected no-history checkpoint is verified before deserialization by its exact
+checkpoint, normalization, training-config, and dataset-manifest hashes. It predicts only the
+orange matched trajectory for the same five nominal-selected actions used by the blue trajectory;
+nominal MPC remains the sole action owner. The first run missed all deadlines and a second run was
+rejected after two Unreal processes were detected; both are preserved rather than pooled. Text logs
+do not prove pixels or learned-model superiority. The Blueprint was restored and episodes
+5301/5302 remained sealed.
 
 ## Sprint 5 — Polish one interviewer-focused scenario
 
@@ -96,27 +108,35 @@ restored and episodes 5301/5302 remained sealed.
 - [ ] Add a controlled sideways push only if it is reliable and visible.
 - [ ] Explain that an undisclosed future push is not predictable before observation.
 - [ ] Replan after the pushed state becomes authoritative.
-- [ ] Demonstrate or preserve reset clearing and service-loss safe stop.
+- [x] Demonstrate or preserve reset clearing and service-loss safe stop.
 - [ ] Keep the HUD compact and readable at presentation resolution.
 
 ## Sprint 6 — Package and rehearse
 
 - [ ] Capture one clean 60–90 second presentation video.
 - [ ] Preserve one unedited technical evidence recording.
-- [ ] Prepare a fresh-launch runbook and an offline fallback.
-- [ ] Run all relevant Python tests, Ruff, lockfile, diff, and available Unreal automation checks.
-- [ ] Prepare the 30-second explanation and 90-second narration.
-- [ ] Prepare one movement/runtime explanation and one causal/ML explanation.
-- [ ] State completed work, limitations, and deferred full-study items explicitly.
+- [x] Prepare a fresh-launch runbook and an offline fallback.
+- [x] Run all relevant Python tests, Ruff, lockfile, diff, and available Unreal automation checks.
+- [x] Prepare the 30-second explanation and 90-second narration.
+- [x] Prepare one movement/runtime explanation and one causal/ML explanation.
+- [x] State completed work, limitations, and deferred full-study items explicitly.
+
+D7/D8 checkpoint: the actual Game Animation Sample universal Editor target builds with the compact
+truthful HUD and target beacon, and all 20 `MotionWorld.` Unreal automation tests pass. The HUD is
+derived from the admitted action and labels action ownership, model ID, source episode/observation,
+horizon/dt, planner versus Unreal latency, safety state, and the path colors. A read-only preflight,
+safe apply/run/restore runbook, three-tier fallback, and 30/90-second narration are ready. Python is
+762/762 with Ruff, environment, interview-package, service-config, and diff checks passing. Human
+pixel/readability confirmation and the final recording remain deliberately open.
 
 ## Demo acceptance criteria
 
 - [ ] A viewer can identify the current state, alternative futures, selected future, and actual path
       without reading source code.
-- [ ] At least one displayed future can be traced to the real rollout implementation and source
+- [x] At least one displayed future can be traced to the real rollout implementation and source
       observation identity.
 - [ ] The demo visibly communicates observe -> imagine -> choose -> execute -> compare -> replan.
-- [ ] Runtime safety remains active and no stale action is knowingly applied.
+- [x] Runtime safety remains active and no stale action is knowingly applied.
 - [ ] The candidate can explain why this qualifies as a world model and what it cannot claim.
 
 ## Deferred after the interview demo

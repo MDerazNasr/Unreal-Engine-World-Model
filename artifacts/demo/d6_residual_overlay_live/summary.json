@@ -1,0 +1,59 @@
+{
+  "claim_boundary": {
+    "comparison": "matched nominal and selected learned-residual forecasts from the same authoritative state and nominal-selected action sequence",
+    "final_prediction_episodes_opened": 0,
+    "human_visual_confirmation_required": true,
+    "pixels_proved_by_text_log": false,
+    "residual_controls_character": false,
+    "residual_is_better": false
+  },
+  "configuration": {
+    "checkpoint_sha256": "d979549b30bd01b3a304697074c295caf6c7fa16a4a8e25a08c15eec1da7a4f6",
+    "manifest_sha256": "190d8daf5b65761fbedfa238b19e71ceb27f501aa12081baf80298e9b7be9c20",
+    "nominal_mpc_is_only_action_owner": true,
+    "overlay_config_sha256": "c621653fb67b1d73b4b5a3c289d0ff1271fba6904457102a4d093db42fb117ec",
+    "overlay_horizon_s": 0.5,
+    "overlay_steps": 5
+  },
+  "identity": {
+    "episode_id": 7603,
+    "session_id": "DD64FEF0C742"
+  },
+  "live_runtime": {
+    "accepted_actions_current_and_before_100_ms_deadline": true,
+    "accepted_actions_logged": 254,
+    "accepted_identities_unique_strictly_increasing": true,
+    "latency_ms": {
+      "count": 254,
+      "maximum": 81.513461,
+      "median": 36.0481665,
+      "p95": 70.1619537
+    },
+    "matching_command_echoes": 253,
+    "maximum_planar_displacement_from_reset_cm": 1728.8928612843538,
+    "missing_action_sequences": [
+      0,
+      15,
+      20,
+      60,
+      73,
+      77,
+      89,
+      119,
+      127,
+      140,
+      192,
+      223
+    ],
+    "observations_logged": 266,
+    "unmatched_final_action_at_shutdown": 1
+  },
+  "schema_name": "motionworld_d6_residual_overlay_live_summary",
+  "schema_version": 1,
+  "source_log": {
+    "first_audited_line": 1950,
+    "last_audited_line": 3153,
+    "path": "/Users/mderaznasr/Documents/GitHub/Unreal-Engine-World-Model/evidence/unreal/d6_residual_overlay_live.log",
+    "sha256": "cbb71bd1ebabd99e0b5e1d261d0bba23db2292660c70a083bb209c040428e74f"
+  }
+}

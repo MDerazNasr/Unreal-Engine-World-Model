@@ -2641,3 +2641,42 @@ identities, finite nonzero bounded commands, matching command echoes, authoritat
 literal current-identity/before-deadline flags, and latency below 100 ms. The accepted summary is
 `artifacts/demo/d5_nominal_mpc_live/summary.json`; the exact Blueprint apply readback is preserved
 alongside it. Episodes 5301/5302 remain sealed.
+
+## D-075 - Use the learned residual as a matched live forecast, not as the action owner
+
+Status: accepted at verified-artifact, controller, and clean live deadline boundary
+
+Decision: Nominal CEM remains the sole live controller. D6 applies the selected no-history residual
+only after nominal action selection, producing an orange forecast from the same authoritative state
+and the same first five selected actions as the blue nominal forecast. The display horizon is 0.5
+seconds while the controller retains its 1.5-second planning horizon. D5 owns the separate gray
+candidate/green selected planning view.
+
+Why: Full residual MPC measured 169.401 ms p95 offline before transport/rendering and is not eligible
+for a 100 ms loop. The shorter matched display preserves a truthful learned-model contribution while
+keeping action ownership, deadline admission, and comparison variables explicit. It also avoids
+spending deadline margin on D5 candidate previews that do not belong in the two-model view.
+
+How it is tested: checkpoint and provenance hashes are verified before trusted deserialization;
+tests prove identical initial state/actions and nominal command invariance. Clean session
+`DD64FEF0C742`/episode 7603 admitted 254 current, before-deadline actions from 266 observations at
+70.162 ms p95 and 81.513 ms maximum. Earlier deadline-miss and duplicate-process attempts are
+rejected and preserved. No visual-superiority or residual-control claim is made.
+
+## D-076 - Make demo labels derive from admitted state and retain an offline fallback
+
+Status: accepted at actual-sample build, automation, and package-preflight boundary
+
+Decision: Build HUD text and status only from the current admitted action/visualization state and
+Unreal runtime counters. Show nominal action ownership, learned prediction labels, exact source
+identity, timing, and safety; suppress the panel outside target-driven demo contexts. Keep final
+recording and pixel/readability confirmation human-owned. Ship a read-only preflight and preserved
+evidence fallback rather than attempting live repair during an interview.
+
+Why: Decorative or stale labels would undermine the same causal identity discipline as a stale
+action. A rehearsed fallback is more credible than presenting an unhealthy live process as a result.
+
+How it is tested: the exact sample builds universally and all 20 MotionWorld Unreal tests pass. The
+presentation test covers role detection, ownership wording, source identity, timing, expiry, and
+fallback display. The Python preflight verifies D5 acceptance, D6 lineage, launch prerequisites,
+and fallback assets without binding ports or opening raw episodes.

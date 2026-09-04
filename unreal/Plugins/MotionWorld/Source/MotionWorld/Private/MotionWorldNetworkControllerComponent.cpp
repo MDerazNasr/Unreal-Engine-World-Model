@@ -1,12 +1,14 @@
 #include "MotionWorldNetworkControllerComponent.h"
 
 #include "DrawDebugHelpers.h"
+#include "Engine/Engine.h"
 #include "GameFramework/Actor.h"
 #include "HAL/PlatformTime.h"
 #include "Misc/Guid.h"
 #include "MotionWorldBridgeComponent.h"
 #include "MotionWorldControlAction.h"
 #include "MotionWorldControlObservation.h"
+#include "MotionWorldDemoPresentation.h"
 #include "MotionWorldNominalContext.h"
 #include "MotionWorldStateSample.h"
 
@@ -119,6 +121,7 @@ void UMotionWorldNetworkControllerComponent::TickComponent(
 	ApplyCommand(Runtime.AdvanceDeadline(Now));
 	RefreshRuntimeStats();
 	DrawWorldModelVisualization();
+	DrawWorldModelHud();
 }
 
 bool UMotionWorldNetworkControllerComponent::SetNetworkControlEnabled(
@@ -407,6 +410,7 @@ void UMotionWorldNetworkControllerComponent::ClearControlState()
 	Runtime.Stop();
 	VisualizationState.InvalidateEpisodeBoundary();
 	OutstandingObservationSentMonotonicSeconds = 0.0;
+	LastAcceptedEndToEndLatencyMs = -1.0;
 	if (BridgeComponent)
 	{
 		BridgeComponent->SetVelocityCommandFrame(
@@ -501,6 +505,12 @@ void UMotionWorldNetworkControllerComponent::PollActions(
 			continue;
 		}
 		++ControllerStats.ActionsAccepted;
+		LastAcceptedEndToEndLatencyMs =
+			OutstandingObservationSentMonotonicSeconds > 0.0
+				? FMath::Max(0.0,
+					MonotonicNowSeconds
+						- OutstandingObservationSentMonotonicSeconds) * 1000.0
+				: -1.0;
 		if (Action.bHasVisualization
 			&& !VisualizationState.InstallFromAdmittedAction(
 				Action,
@@ -515,12 +525,6 @@ void UMotionWorldNetworkControllerComponent::PollActions(
 		}
 		if (ReserveEvidenceLine())
 		{
-			const double EndToEndLatencyMs =
-				OutstandingObservationSentMonotonicSeconds > 0.0
-					? FMath::Max(0.0,
-						MonotonicNowSeconds
-							- OutstandingObservationSentMonotonicSeconds) * 1000.0
-					: -1.0;
 			UE_LOG(LogMotionWorldNetwork, Display,
 				TEXT("MotionWorld network action accepted: session=%s episode=%lld source_observation=%lld desired_local_cm_per_sec=(%.6f, %.6f) unreal_end_to_end_latency_ms=%.6f current_identity_match=true before_deadline=true."),
 				*EvidenceSessionId,
@@ -528,7 +532,7 @@ void UMotionWorldNetworkControllerComponent::PollActions(
 				Action.SourceObservationSequence,
 				Action.DesiredVelocityLocalCmPerSec.X,
 				Action.DesiredVelocityLocalCmPerSec.Y,
-				EndToEndLatencyMs);
+				LastAcceptedEndToEndLatencyMs);
 		}
 		ApplyCommand(Update);
 		RefreshRuntimeStats();
@@ -598,6 +602,51 @@ void UMotionWorldNetworkControllerComponent::DrawWorldModelVisualization() const
 		VisualizationState.GetActualTrailWorldXYCm(),
 		FColor::Yellow,
 		1.25f);
+
+	if (bHasReactiveTarget)
+	{
+		const FColor TargetColor(150, 255, 20);
+		const FVector TargetBase = ReactiveTargetWorldCm
+			+ FVector(0.0, 0.0, FMath::Max(0.0f, VisualizationHeightOffsetCm));
+		DrawDebugSphere(
+			GetWorld(), TargetBase, 35.0f, 16, TargetColor, false, 0.0f, 0, Thickness);
+		DrawDebugLine(
+			GetWorld(),
+			TargetBase,
+			TargetBase + FVector(0.0, 0.0, 180.0),
+			TargetColor,
+			false,
+			0.0f,
+			0,
+			Thickness);
+	}
+}
+
+void UMotionWorldNetworkControllerComponent::DrawWorldModelHud() const
+{
+	if (!bDrawWorldModelHud || !bHasReactiveTarget || !GEngine)
+	{
+		return;
+	}
+	MotionWorld::FDemoPresentationContext Context;
+	Context.bNetworkEnabled = bNetworkControlEnabled;
+	Context.bWorldPaused = GetWorld() && GetWorld()->IsPaused();
+	Context.bHasTarget = bHasReactiveTarget;
+	Context.ConfiguredControllerMode = ControllerMode;
+	Context.LastEndToEndLatencyMs = LastAcceptedEndToEndLatencyMs;
+	Context.ActionsAccepted = ControllerStats.ActionsAccepted;
+	Context.SafeStops = ControllerStats.SafeStops;
+	const MotionWorld::FDemoPresentation Presentation =
+		MotionWorld::BuildDemoPresentation(VisualizationState, Context);
+
+	constexpr uint64 MotionWorldHudMessageKey = 0x4D4F54494F4E574CULL;
+	GEngine->AddOnScreenDebugMessage(
+		MotionWorldHudMessageKey,
+		0.2f,
+		Presentation.StatusColor,
+		Presentation.HudText,
+		true,
+		FVector2D(1.15f, 1.15f));
 }
 
 bool UMotionWorldNetworkControllerComponent::ReserveEvidenceLine()

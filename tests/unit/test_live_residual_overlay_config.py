@@ -24,6 +24,7 @@ def test_selected_residual_overlay_loads_with_complete_provenance() -> None:
     assert config.residual_overlay_normalization.train_episode_ids == (5101, 5102, 5103, 5104, 5105)
     assert config.residual_overlay_rollout is not None
     assert config.residual_overlay_rollout.dynamics_substeps_per_plan_step == 3
+    assert config.residual_overlay_steps == 5
 
 
 def test_residual_overlay_hash_mismatch_fails_before_checkpoint_load(

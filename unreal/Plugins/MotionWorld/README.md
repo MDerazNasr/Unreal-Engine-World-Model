@@ -112,3 +112,13 @@ are competing action producers, and silent last-writer-wins behavior would inval
 Use `/private/tmp` rather than its `/tmp` alias on macOS. UE 5.8's local build accelerator can retain
 the spelling used by AutomationTool while Clang resolves the same path to `/private/tmp`, causing a
 false missing-object linker failure.
+
+The default-on interview visualization is presentation-only: it never selects or applies an action.
+It draws admitted CEM candidates in gray, the selected nominal future in green, matched nominal and
+learned-residual predictions in blue and orange, the collision-finalized Unreal trail in yellow,
+and the planner target as a lime sphere/beacon. A compact on-screen panel is rebuilt from the exact
+current admitted action. It names the controller that owns the action, model identifier, source
+episode/observation, horizon/timestep, planner latency, Unreal round-trip latency, and safety status.
+The learned-residual line is explicitly labelled as a prediction, not as the controller. When the
+source observation expires, the panel switches to "awaiting" instead of presenting the old paths as
+current. Pausing retains the latest admitted snapshot and labels the view `PAUSED VIEW`.

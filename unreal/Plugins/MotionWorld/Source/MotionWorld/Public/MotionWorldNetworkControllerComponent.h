@@ -157,6 +157,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Network|Visualization", meta = (ClampMin = "0.0", ClampMax = "50.0"))
 	float VisualizationLineThickness = 3.0f;
 
+	/** Compact truthful legend/status panel for the interview demo. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Network|Visualization")
+	bool bDrawWorldModelHud = true;
+
 	/** Default-off bounded evidence for live episode/sequence/yaw reconciliation. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Network|Evidence")
 	bool bLogNetworkEvidence = false;
@@ -172,6 +176,7 @@ private:
 	void ClearControlState();
 	void ApplyCommand(const MotionWorld::FNetworkCommandUpdate& Update);
 	void DrawWorldModelVisualization() const;
+	void DrawWorldModelHud() const;
 	void RefreshRuntimeStats();
 	void PollActions(double MonotonicNowSeconds);
 	bool ReserveEvidenceLine();
@@ -184,5 +189,6 @@ private:
 	MotionWorld::FNetworkRuntime Runtime;
 	MotionWorld::FControlVisualizationState VisualizationState;
 	double OutstandingObservationSentMonotonicSeconds = 0.0;
+	double LastAcceptedEndToEndLatencyMs = -1.0;
 	FString EvidenceSessionId;
 };

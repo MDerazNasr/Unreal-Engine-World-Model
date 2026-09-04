@@ -51,6 +51,7 @@ bool FControlVisualizationState::InstallFromAdmittedAction(
 	}
 
 	Prediction = AdmittedAction.Visualization;
+	PredictionSourceAction = AdmittedAction;
 	bHasPrediction = true;
 	return true;
 }
@@ -92,5 +93,6 @@ void FControlVisualizationState::ClearPrediction()
 {
 	bHasPrediction = false;
 	Prediction = FControlVisualizationData();
+	PredictionSourceAction = FControlAction();
 }
 } // namespace MotionWorld

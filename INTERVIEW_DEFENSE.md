@@ -842,6 +842,58 @@ robustness, residual superiority, or a population-level control win.
 Examiner assessment: Not passed. Require an unaided distinction between loop validity, task success,
 visualization evidence, and comparative evaluation.
 
+### Q33 - If the residual model is live, why does it not control the character?
+
+Question: You say you developed a learned world model. Why is nominal MPC still the action owner?
+
+Candidate answer: Not yet attempted.
+
+Teacher reference answer: The selected residual is genuinely live, but only as a matched forecast.
+For every current authoritative Unreal observation, nominal CEM selects an action sequence. The blue
+nominal and orange learned-residual paths then start from that exact same state and receive the exact
+same first five selected actions. Only the nominal-selected first action is eligible for Unreal
+admission. This is deliberate: full residual MPC measured 169.401 ms p95 offline, already over the
+100 ms deadline before transport and rendering. I refused to apply stale residual actions or call a
+faster but planner-unsafe compressed model deployable. The result demonstrates learned dynamics in
+the live causal loop while keeping the control claim honest.
+
+Examiner assessment: Not passed. Candidate should explain this unaided before the interview.
+
+### Q34 - What exactly does the clean D6 run prove?
+
+Question: Does seeing blue, orange, and yellow trajectories prove the learned model is better?
+
+Candidate answer: Not yet attempted.
+
+Teacher reference answer: No. Episode 7603 proves that a single Unreal session repeatedly sent
+authoritative observations, admitted 254 nominal actions with current identity before the 100 ms
+deadline, moved 17.289 metres from reset, and had 70.162 ms p95 end-to-end latency while the service
+constructed matched nominal/residual forecasts. Tests establish that both forecasts share the same
+state and actions. The text log does not prove pixels, and the run does not supply held-out ground
+truth statistics showing that orange is more accurate than blue. The defensible claim is a live
+learned-model comparison integrated with nominal MPC and Unreal reality—not learned-control
+superiority.
+
+Examiner assessment: Not passed. Candidate should separate runtime, visual, prediction, and control
+evidence unaided.
+
+### Q35 - Why does this qualify as a world model?
+
+Question: This predicts state trajectories, not video. Why call it a world model?
+
+Candidate answer: Not yet attempted.
+
+Teacher reference answer: A world model predicts how relevant environment state evolves under
+candidate actions. Here the state is collision-finalized character position, velocity, facing,
+angular velocity, and audited Smooth Walking controller context. The transition is action
+conditioned and recursive, so CEM can imagine counterfactual futures, score them, execute the first
+action, observe Unreal again, and replan. The learned residual corrects a causal nominal dynamics
+model. It is intentionally not a visual foundation model, does not synthesize pixels or animation,
+and cannot predict an undisclosed future push before that push appears in authoritative state.
+
+Examiner assessment: Not passed. Candidate should deliver the definition, loop, and limitations
+without prompts.
+
 ## 7. Day 1 closeout answers to practise
 
 These are study answers, not passed candidate teach-backs yet.

@@ -159,8 +159,8 @@ def load_d6_residual_overlay_manifest(
     network = _mapping(raw["network_settings"], "network_settings")
     _keys(bridge, _BRIDGE_KEYS, "bridge_settings")
     _keys(network, _NETWORK_KEYS, "network_settings")
-    if bridge["begin_play_reset_episode_id"] != 7601:
-        raise ValueError("D6 primary live identity is episode 7601")
+    if bridge["begin_play_reset_episode_id"] != 7603:
+        raise ValueError("D6 accepted retry identity is episode 7603")
     if bridge["reset_live_test_repeat_count"] != 1:
         raise ValueError("D6 must perform exactly one reset episode")
     if bridge["reset_live_test_transitions_per_episode"] != 120:
@@ -205,7 +205,7 @@ def load_d6_residual_overlay_manifest(
         "acceptance",
     )
     if acceptance != {
-        "expected_episode_id": 7601,
+        "expected_episode_id": 7603,
         "visual_inspection_transitions": 120,
         "require_network_evidence": True,
         "controller_owns_actions": "nominal_mpc",
@@ -224,7 +224,7 @@ def load_d6_residual_overlay_manifest(
         bridge_settings=MappingProxyType(dict(bridge)),
         network_settings=MappingProxyType(normalized_network),
         geometry=D6DemoGeometry(reset, target, terminal),
-        expected_episode_id=7601,
+        expected_episode_id=7603,
         visual_inspection_transitions=120,
         canonical_sha256=hashlib.sha256(canonical).hexdigest(),
     )

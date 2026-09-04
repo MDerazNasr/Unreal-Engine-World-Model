@@ -16,9 +16,9 @@ MANIFEST = ROOT / "configs/d6_residual_overlay_manifest.json"
 def test_d6_manifest_freezes_nominal_control_and_fresh_episode() -> None:
     manifest = load_d6_residual_overlay_manifest(MANIFEST, ROOT)
 
-    assert manifest.expected_episode_id == 7601
+    assert manifest.expected_episode_id == 7603
     assert manifest.network_settings["controller_mode"] == "nominal_mpc"
-    assert manifest.bridge_settings["begin_play_reset_episode_id"] == 7601
+    assert manifest.bridge_settings["begin_play_reset_episode_id"] == 7603
     assert manifest.network_settings["draw_world_model_visualization"]
     assert manifest.planner_config_path.name == "live_residual_overlay_demo.yaml"
 
@@ -26,7 +26,7 @@ def test_d6_manifest_freezes_nominal_control_and_fresh_episode() -> None:
 @pytest.mark.parametrize(
     ("section", "key", "value", "message"),
     [
-        ("bridge_settings", "begin_play_reset_episode_id", 7504, "episode 7601"),
+        ("bridge_settings", "begin_play_reset_episode_id", 7504, "episode 7603"),
         ("network_settings", "controller_mode", "residual_mpc", "must not claim"),
         ("acceptance", "overlay_is_prediction_only", False, "weakened"),
     ],

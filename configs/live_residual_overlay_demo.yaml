@@ -30,3 +30,4 @@ expected_checkpoint:
 overlay_rollout:
   plan_step_s: 0.1
   dynamics_substeps_per_plan_step: 3
+overlay_steps: 5

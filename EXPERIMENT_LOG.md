@@ -2380,3 +2380,53 @@ green trajectories are genuine CEM outputs. It does not prove stable target conv
 success, collision avoidance, residual benefit, statistical control improvement, or visible pixels.
 Collision and gate costs were inactive. The exact episode-7504 Blueprint apply readback is preserved
 separately, the Blueprint was restored, and episodes 5301/5302 remained sealed.
+
+## DEMO-D6-001 — deadline-admitted matched learned-model overlay
+
+**Question:** Can the selected learned residual participate in a live, identity-safe visual
+comparison without falsely claiming residual control or violating the 100 ms action deadline?
+
+**Method:** Keep nominal CEM as the only action owner. After nominal selection, roll the first five
+selected actions for 0.5 seconds from the exact same authoritative state through (1) the nominal
+model and (2) the verified selected no-history residual composition. Emit only the matched blue and
+orange paths; retain Unreal's yellow actual trail locally. Before deserialization, verify the
+checkpoint SHA-256 `d979549b30bd01b3a304697074c295caf6c7fa16a4a8e25a08c15eec1da7a4f6`
+and its architecture, normalization, training-config, and dataset-manifest provenance.
+
+**Result:** Attempt 1, episode 7601, admitted no action under simultaneous Unreal load and is
+rejected. Attempt 2, episode 7602, showed deadline-valid actions but is rejected because two Unreal
+processes were detected during capture. The clean run used exactly one Unreal process and session
+`DD64FEF0C742` in episode 7603. It logged 266 contiguous observations, 254 unique increasing
+accepted actions, 253 matched command echoes plus one shutdown-final action, and 17.289 m maximum
+authoritative displacement. Latency was 36.048 ms median, 70.162 ms p95, and 81.513 ms maximum; all
+accepted actions were explicitly current-identity and before-deadline. Machine evidence is
+`artifacts/demo/d6_residual_overlay_live/summary.json`. Full Python validation is 762/762.
+
+**Claim boundary:** The learned residual is a matched prediction overlay, not the controller. This
+does not prove that it is more accurate, visually distinguishable in every state, or superior for
+control. The text log proves runtime identity, commands, motion, and deadlines; controller/protocol
+tests prove matched state/action construction; only human inspection can prove pixels. Episodes
+5301/5302 remained sealed and the original Blueprint settings were restored.
+
+## DEMO-D7-001 — truthful demo presentation and packaging gate
+
+**Question:** Can an interviewer understand the live causal loop and claim boundary without reading
+the code, while retaining a safe fallback if the live environment fails?
+
+**Method:** Derive a compact HUD only from the current admitted visualization/action state. Label
+nominal action ownership, model identity, source episode/observation, horizon/dt, planner and Unreal
+round-trip timing, fallback state, and blue/orange/yellow path semantics. Draw a lime target marker.
+Add a read-only preflight that checks preserved D5 evidence plus every D6 model/config lineage hash,
+and provide a reversible operator runbook, fallback order, and narration.
+
+**Result:** The actual Game Animation Sample universal Editor target built successfully for arm64
+and x86_64. All 20 `MotionWorld.` tests passed in the actual project, including the new
+`MotionWorld.Control.DemoPresentation` automation; log SHA-256 is
+`39a81b7ec4783a2becc7d530df011919a3fa2620087cbe344d6698f3c4cd393b`.
+The read-only preflight reports `live_launch_ready=true` and `fallback_ready=true` on the development
+machine. Python 762/762, Ruff, environment, interview-package, service-config, and diff checks pass.
+
+**Claim boundary:** Automation proves HUD content/state logic, target drawing code, and preservation
+of runtime safety; it cannot prove physical pixel visibility, camera framing, or readability on the
+final recording. Those remain the final human visual check. The timed gate and live controlled push
+are not part of the accepted polished scenario.
