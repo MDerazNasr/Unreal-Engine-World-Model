@@ -7,9 +7,9 @@ action, and replans from what actually happened.
 
 **Unreal Engine 5.8.2 · Python 3.12 · CEM model-predictive control · learned residual dynamics**
 
-[![MotionWorld two-obstacle demo](media/motionworld-two-obstacle-demo.gif)](media/motionworld-two-obstacle-demo.mp4)
+https://github.com/user-attachments/assets/3562aab2-9ae3-4cd1-9e84-4d688305f585
 
-*The preview plays automatically. Click it for the full 720p recording.*
+*Use the player controls to play, pause, scrub, adjust volume, or enter fullscreen.*
 
 ## What the demo shows
 
