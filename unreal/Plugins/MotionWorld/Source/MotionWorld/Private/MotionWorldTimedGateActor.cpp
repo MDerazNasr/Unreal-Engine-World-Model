@@ -5,6 +5,7 @@
 #include "Engine/CollisionProfile.h"
 #include "Engine/StaticMesh.h"
 #include "Engine/World.h"
+#include "Materials/MaterialInterface.h"
 #include "UObject/ConstructorHelpers.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogMotionWorldTimedGate, Log, All);
@@ -35,11 +36,22 @@ AMotionWorldTimedGateActor::AMotionWorldTimedGateActor()
 	{
 		VisualMesh->SetStaticMesh(CubeMesh.Object);
 	}
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface> BasicShapeMaterial(
+		TEXT("/Engine/BasicShapes/BasicShapeMaterial.BasicShapeMaterial"));
+	if (BasicShapeMaterial.Succeeded())
+	{
+		VisualMesh->SetMaterial(0, BasicShapeMaterial.Object);
+	}
 }
 
 void AMotionWorldTimedGateActor::BeginPlay()
 {
 	Super::BeginPlay();
+	// The engine basic-shape material exposes Color. A saturated obstacle is
+	// much easier to read against the sample project's natural backgrounds.
+	VisualMesh->SetVectorParameterValueOnMaterials(
+		TEXT("Color"),
+		FVector(1.0, 0.025, 0.005));
 	if (!bScenarioActive)
 	{
 		SetActorTickEnabled(false);

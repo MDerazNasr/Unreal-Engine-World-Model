@@ -17,6 +17,7 @@ from typing import Any
 
 from motionworld.control.config import ControlServiceConfig, load_control_service_config
 from motionworld.control.controllers import build_controller
+from motionworld.control.live_moving_obstacle_config import load_live_moving_obstacle_config
 from motionworld.control.live_mpc_config import load_live_nominal_mpc_config
 from motionworld.control.live_residual_overlay_config import load_live_residual_overlay_config
 from motionworld.protocol import (
@@ -401,6 +402,11 @@ def _parser() -> argparse.ArgumentParser:
             "nominal MPC remains the controller"
         ),
     )
+    parser.add_argument(
+        "--moving-obstacle-config",
+        type=Path,
+        help="V2 synchronized moving-obstacle MPC plus learned comparison overlay",
+    )
     return parser
 
 
@@ -408,17 +414,30 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     config = load_control_service_config(args.config)
     supplied = sum(
-        value is not None for value in (args.planner_config, args.residual_overlay_config)
+        value is not None
+        for value in (
+            args.planner_config,
+            args.residual_overlay_config,
+            args.moving_obstacle_config,
+        )
     )
     if config.controller_mode == "nominal_mpc" and supplied != 1:
         raise ValueError(
-            "nominal_mpc requires --planner-config or --residual-overlay-config "
-            "(exactly one)"
+            "nominal_mpc requires --planner-config, --residual-overlay-config, or "
+            "--moving-obstacle-config (exactly one)"
         )
     if config.controller_mode != "nominal_mpc" and supplied:
-        raise ValueError("planner and residual-overlay configs are valid only for nominal_mpc")
+        raise ValueError(
+            "planner, residual-overlay, and moving-obstacle configs are valid only "
+            "for nominal_mpc"
+        )
     repository_root = Path(__file__).resolve().parents[2]
-    if args.residual_overlay_config is not None:
+    if args.moving_obstacle_config is not None:
+        live_mpc_config = load_live_moving_obstacle_config(
+            args.moving_obstacle_config,
+            repository_root,
+        )
+    elif args.residual_overlay_config is not None:
         live_mpc_config = load_live_residual_overlay_config(
             args.residual_overlay_config,
             repository_root,

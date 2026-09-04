@@ -45,7 +45,8 @@ public:
 	bool InitializeArena(
 		AActor* NewTrackedAgent,
 		const FMotionWorldTimedGateConfig& NewGateConfig,
-		double ScenarioStartWorldTimeSeconds);
+		double ScenarioStartWorldTimeSeconds,
+		bool bNewContinueAfterSuccessPlaneCrossing = false);
 
 	bool ResetArena(double ScenarioStartWorldTimeSeconds);
 
@@ -72,4 +73,5 @@ private:
 	FMotionWorldArenaStatus ArenaStatus;
 	FVector PreviousAgentPositionWorldCm = FVector::ZeroVector;
 	bool bHasPreviousAgentPosition = false;
+	bool bContinueAfterSuccessPlaneCrossing = false;
 };

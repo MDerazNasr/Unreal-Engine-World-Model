@@ -323,6 +323,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Arena")
 	bool bEnableTimedGateScenario = false;
 
+	/** Demo-only: keep the obstacle moving after a collision-free plane crossing. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Arena")
+	bool bTimedGateContinueAfterSuccessPlaneCrossing = false;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Arena", meta = (ClampMin = "0"))
 	int64 TimedGateScenarioSeed = 1901;
 

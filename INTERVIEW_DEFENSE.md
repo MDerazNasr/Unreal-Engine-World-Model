@@ -256,6 +256,43 @@ Record weak answers here and resolve them before the final rehearsal.
 
 ## 6. Candidate teach-back record
 
+### V2 moving-obstacle questions
+
+#### Why is the obstacle motion reproducible rather than random?
+
+The red obstacle follows a frozen sinusoid. Unreal owns the scenario clock and transmits the exact
+origin, axis, amplitude, period, phase, extents, current center, and velocity. The seed labels the
+scenario but does not generate the motion. Reproducibility lets me debug and compare runs without
+pretending the obstacle is unpredictable.
+
+#### Where is the obstacle represented in the world model?
+
+Character dynamics and obstacle dynamics are separated. The nominal-plus-residual character model
+predicts how candidate desired velocities move the character. An analytic obstacle model predicts
+the red gate's center at each future horizon step from Unreal's authoritative scenario time. The
+planner cost combines those predicted futures through swept collision and clearance terms.
+
+#### What makes the behavior model-predictive control rather than a scripted dodge?
+
+The controller does not contain a fixed “go left at the red box” rule. CEM samples bounded future
+action sequences, rolls them through the world model, scores progress, collision clearance, terminal
+goal error, and action smoothness, then executes only the first action. It observes the next
+collision-finalized Unreal state and solves again.
+
+#### Why does the character stop slightly before the center of the green target?
+
+The target has a 100 cm arrival zone. Once the character is inside it, the controller latches an
+exact zero command to avoid the V1 overshoot and twitching. In the accepted run it stopped 82.78 cm
+from the target center and remained stationary. The later arena timeout was just the validation
+clock continuing after successful arrival-zone entry.
+
+#### Did the learned model control the dodge?
+
+No. Nominal MPC owned every executed action. Orange is the learned residual model's matched
+prediction under the same selected action sequence, included so an interviewer can see how learned
+dynamics alter a forecast. This demo proves live world-model planning and obstacle avoidance, not
+that learned residual control is statistically superior.
+
 ### Q1 - Desired versus executed velocity (passed 2026-09-01)
 
 Candidate answer, lightly normalized for terminology: Desired velocity is a request, not the actual

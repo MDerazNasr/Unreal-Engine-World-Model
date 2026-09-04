@@ -108,13 +108,15 @@ namespace MotionWorld
 	/**
 	 * Evaluates terminal events for one finalized character step.
 	 * Collision has priority over crossing, which has priority over timeout.
+	 * Demo continuation reports a crossing but does not classify it as terminal.
 	 */
 	MOTIONWORLD_API FMotionWorldScenarioStepResult EvaluateTimedGateScenarioStep(
 		const FMotionWorldTimedGateConfig& Config,
 		const FVector& PreviousAgentPositionWorldCm,
 		const FVector& CurrentAgentPositionWorldCm,
 		double ScenarioTimeSeconds,
-		bool bGateCollisionThisStep);
+		bool bGateCollisionThisStep,
+		bool bContinueAfterSuccessPlaneCrossing = false);
 
 	MOTIONWORLD_API const TCHAR* LexToString(
 		EMotionWorldScenarioTerminationReason Reason);

@@ -39,6 +39,9 @@ class LiveNominalMPCConfig:
     residual_overlay_normalization: ResidualNormalization | None = None
     residual_overlay_rollout: PlannerRolloutConfig | None = None
     residual_overlay_steps: int | None = None
+    moving_obstacle_enabled: bool = False
+    arrival_radius_cm: float | None = None
+    show_cem_candidates_with_overlay: bool = False
 
     def __post_init__(self) -> None:
         if not isinstance(self.problem_template, PlannerProblem):
@@ -55,14 +58,29 @@ class LiveNominalMPCConfig:
         if self.problem_template.rollout_backend != "vectorized":
             raise ValueError("live nominal MPC requires the vectorized rollout backend")
         weights = self.problem_template.weights
-        if (
-            weights.collision != 0.0
-            or weights.clearance_per_cm2 != 0.0
-            or weights.action_second_difference_per_cm2_s2 != 0.0
+        if not isinstance(self.moving_obstacle_enabled, bool):
+            raise TypeError("moving_obstacle_enabled must be a boolean")
+        if not isinstance(self.show_cem_candidates_with_overlay, bool):
+            raise TypeError("show_cem_candidates_with_overlay must be a boolean")
+        if self.arrival_radius_cm is not None and (
+            isinstance(self.arrival_radius_cm, bool)
+            or not isinstance(self.arrival_radius_cm, (int, float))
+            or not np.isfinite(self.arrival_radius_cm)
+            or self.arrival_radius_cm <= 0.0
         ):
+            raise ValueError("arrival_radius_cm must be a positive finite number or null")
+        if weights.action_second_difference_per_cm2_s2 != 0.0:
             raise ValueError(
-                "live nominal MPC requires exact zero collision, clearance, "
-                "and action-second-difference weights"
+                "live nominal MPC requires exact zero action-second-difference weight"
+            )
+        if self.moving_obstacle_enabled:
+            if weights.collision <= 0.0 or weights.clearance_per_cm2 <= 0.0:
+                raise ValueError(
+                    "moving-obstacle MPC requires positive collision and clearance weights"
+                )
+        elif weights.collision != 0.0 or weights.clearance_per_cm2 != 0.0:
+            raise ValueError(
+                "gate-free live nominal MPC requires zero collision and clearance weights"
             )
         if not isinstance(self.initial_mean_action_local_cm_s, tuple) or any(
             isinstance(value, bool) or not isinstance(value, (int, float))
@@ -121,11 +139,34 @@ class LiveNominalMPCController:
         started_us = time.monotonic_ns() // 1_000
         try:
             live = planner_snapshot_from_observation(observation)
+            if (
+                self.config.arrival_radius_cm is not None
+                and live.target_world_xy_cm is not None
+                and np.linalg.norm(
+                    live.snapshot.observable.position_world_cm[:2]
+                    - np.asarray(live.target_world_xy_cm, dtype=np.float64)
+                )
+                <= self.config.arrival_radius_cm
+            ):
+                return _action(
+                    observation,
+                    (0.0, 0.0),
+                    started_us=started_us,
+                    model_id=(
+                        "nominal_mpc_moving_obstacle_arrival_stop_v2"
+                        if self.config.moving_obstacle_enabled
+                        else "nominal_mpc_arrival_stop_v1"
+                    ),
+                )
             problem = replace(
                 self.config.problem_template,
                 goal_world_cm=live.target_world_xy_cm,
             )
-            query = live.to_stateless_mpc_query(problem)
+            query = (
+                live.to_stateless_obstacle_mpc_query(problem)
+                if self.config.moving_obstacle_enabled
+                else live.to_stateless_mpc_query(problem)
+            )
             query = replace(
                 query,
                 initial_mean_knots_local_cm_s=np.tile(
@@ -169,6 +210,9 @@ class LiveNominalMPCController:
                 residual_normalization=self.config.residual_overlay_normalization,
                 overlay_rollout=self.config.residual_overlay_rollout,
                 overlay_steps=self.config.residual_overlay_steps,
+                show_candidates_with_overlay=(
+                    self.config.show_cem_candidates_with_overlay
+                ),
                 cancelled=cancelled,
             )
         except Exception:
@@ -189,9 +233,18 @@ class LiveNominalMPCController:
             selected,
             started_us=started_us,
             model_id=(
-                "nominal_mpc_matched_residual_overlay_v1"
-                if self.config.residual_overlay_model is not None
-                else "smooth_walking_nominal_mpc_v1"
+                "nominal_mpc_moving_obstacle_residual_overlay_v2"
+                if self.config.moving_obstacle_enabled
+                and self.config.residual_overlay_model is not None
+                else (
+                    "nominal_mpc_moving_obstacle_v2"
+                    if self.config.moving_obstacle_enabled
+                    else (
+                        "nominal_mpc_matched_residual_overlay_v1"
+                        if self.config.residual_overlay_model is not None
+                        else "smooth_walking_nominal_mpc_v1"
+                    )
+                )
             ),
         )
         action["telemetry"] = {
@@ -211,6 +264,7 @@ def _visualization(
     residual_normalization: ResidualNormalization | None = None,
     overlay_rollout: PlannerRolloutConfig | None = None,
     overlay_steps: int | None = None,
+    show_candidates_with_overlay: bool = False,
     cancelled: threading.Event | None = None,
 ) -> VisualizationTelemetry:
     start = np.asarray(live.snapshot.observable.position_world_cm[:2], dtype=np.float64)
@@ -252,6 +306,29 @@ def _visualization(
         selected_actions = np.asarray(
             plan.cem.best_actions_cm_s[:overlay_steps], dtype=np.float64
         )
+        paths = ()
+        if show_candidates_with_overlay:
+            iteration_actions = np.stack(
+                [
+                    expand_action_knots(
+                        iteration.best_knots_cm_s,
+                        num_plan_steps=problem.cem.num_plan_steps,
+                    )[:overlay_steps]
+                    for iteration in plan.cem.iterations[:winner_count]
+                ]
+            )
+            candidate_rollouts = rollout_action_candidates_vectorized(
+                live.snapshot,
+                iteration_actions,
+                config=overlay_rollout,
+            )
+            paths = tuple(
+                path(
+                    TrajectoryRole.CEM_CANDIDATE,
+                    candidate_rollouts.positions_world_cm[index],
+                )
+                for index in range(winner_count)
+            )
         matched = np.broadcast_to(selected_actions, (2, *selected_actions.shape)).copy()
         nominal_overlay = rollout_action_candidates_vectorized(
             live.snapshot,
@@ -272,7 +349,7 @@ def _visualization(
         # D6 is a dedicated matched-model view. Avoid computing or transmitting
         # D5 candidate previews: they have a different point count and consume
         # deadline margin without contributing to this comparison.
-        paths = (
+        paths += (
             path(TrajectoryRole.NOMINAL, nominal_overlay.positions_world_cm[0]),
             path(TrajectoryRole.RESIDUAL, residual_overlay.positions_world_cm[0]),
         )

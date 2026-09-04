@@ -13,6 +13,7 @@
 #include "MoverTypes.h"
 #include "MotionWorldArenaManager.h"
 #include "MotionWorldCoordinateFrames.h"
+#include "MotionWorldControlObservation.h"
 #include "MotionWorldEpisodeExporter.h"
 #include "MotionWorldNominalContext.h"
 #include "MotionWorldNetworkControllerComponent.h"
@@ -898,7 +899,8 @@ void UMotionWorldBridgeComponent::InitializeTimedArenaIfEligible()
 		|| !ArenaManager->InitializeArena(
 			Owner,
 			Config,
-			static_cast<double>(World->GetTimeSeconds())))
+			static_cast<double>(World->GetTimeSeconds()),
+			bTimedGateContinueAfterSuccessPlaneCrossing))
 	{
 		UE_LOG(LogMotionWorldBridge, Error, TEXT("MotionWorld timed arena initialization failed; scenario recording is unavailable."));
 		if (IsValid(ArenaManager))
@@ -1685,9 +1687,28 @@ void UMotionWorldBridgeComponent::HandlePostFinalize(
 	RequestConfiguredWarmupResetIfDue();
 	if (NetworkControllerComponent)
 	{
+		MotionWorld::FControlTimedGateContext TimedGate;
+		if (bCurrentEpisodeHasTimedGateScenario && IsValid(ArenaManager))
+		{
+			const FMotionWorldArenaStatus ArenaStatus =
+				ArenaManager->GetArenaStatus();
+			if (ArenaStatus.bIsInitialized && ArenaStatus.bIsActive)
+			{
+				TimedGate.Config = ArenaManager->GetGateConfig();
+				const double ScenarioTimeSeconds = FMath::Max(
+					0.0,
+					LastAuthoritativeState.SimulationTimeSeconds
+						- CurrentEpisodeScenarioStartSimulationTimeSeconds);
+				TimedGate.State = MotionWorld::EvaluateTimedGateSchedule(
+					TimedGate.Config,
+					ScenarioTimeSeconds);
+				TimedGate.bIsPresent = TimedGate.State.bIsValid;
+			}
+		}
 		NetworkControllerComponent->ObserveFinalizedState(
 			LastAuthoritativeState,
-			LastNominalContext);
+			LastNominalContext,
+			TimedGate);
 	}
 
 	const FCharacterDefaultInputs* EchoedInputs = nullptr;

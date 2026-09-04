@@ -77,7 +77,8 @@ FMotionWorldScenarioStepResult MotionWorld::EvaluateTimedGateScenarioStep(
 	const FVector& PreviousAgentPositionWorldCm,
 	const FVector& CurrentAgentPositionWorldCm,
 	const double ScenarioTimeSeconds,
-	const bool bGateCollisionThisStep)
+	const bool bGateCollisionThisStep,
+	const bool bContinueAfterSuccessPlaneCrossing)
 {
 	FMotionWorldScenarioStepResult Result;
 	if (!IsTimedGateConfigValid(Config)
@@ -108,7 +109,8 @@ FMotionWorldScenarioStepResult MotionWorld::EvaluateTimedGateScenarioStep(
 		CrossingNormal);
 	Result.bCrossedSuccessPlaneThisStep =
 		PreviousSignedDistance <= 0.0 && CurrentSignedDistance > 0.0;
-	if (Result.bCrossedSuccessPlaneThisStep)
+	if (Result.bCrossedSuccessPlaneThisStep
+		&& !bContinueAfterSuccessPlaneCrossing)
 	{
 		Result.TerminationReason =
 			EMotionWorldScenarioTerminationReason::Success;

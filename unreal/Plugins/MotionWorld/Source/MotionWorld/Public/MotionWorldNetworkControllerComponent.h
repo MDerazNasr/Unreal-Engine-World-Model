@@ -9,6 +9,10 @@
 class UMotionWorldBridgeComponent;
 struct FMotionWorldNominalContextSample;
 struct FMotionWorldStateSample;
+namespace MotionWorld
+{
+struct FControlTimedGateContext;
+}
 
 namespace MotionWorld
 {
@@ -123,7 +127,8 @@ public:
 	/** Called by the bridge after state and hidden nominal context are finalized. */
 	void ObserveFinalizedState(
 		const FMotionWorldStateSample& State,
-		const FMotionWorldNominalContextSample& NominalContext);
+		const FMotionWorldNominalContextSample& NominalContext,
+		const MotionWorld::FControlTimedGateContext& TimedGate);
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Network")

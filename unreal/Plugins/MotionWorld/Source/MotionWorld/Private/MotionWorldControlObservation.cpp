@@ -45,6 +45,37 @@ bool IsSupportedController(const FString& Value)
 		|| Value == TEXT("residual_mpc");
 }
 
+bool IsTimedGateContextValid(
+	const MotionWorld::FControlTimedGateContext& Context)
+{
+	if (!Context.bIsPresent)
+	{
+		return true;
+	}
+	if (!MotionWorld::IsTimedGateConfigValid(Context.Config)
+		|| !Context.State.bIsValid
+		|| !FMath::IsFinite(Context.State.ScenarioTimeSeconds)
+		|| Context.State.ScenarioTimeSeconds < 0.0
+		|| !FMath::IsFinite(Context.State.PhaseRadians)
+		|| !IsFiniteVector(Context.State.CenterWorldCm)
+		|| !IsFiniteVector(Context.State.VelocityWorldCmPerSec))
+	{
+		return false;
+	}
+
+	// Fail closed if the mutable actor snapshot cannot be reproduced from the
+	// immutable schedule and its authoritative scenario time.
+	const FMotionWorldTimedGateState Expected =
+		MotionWorld::EvaluateTimedGateSchedule(
+			Context.Config,
+			Context.State.ScenarioTimeSeconds);
+	return Expected.bIsValid
+		&& Expected.CenterWorldCm.Equals(Context.State.CenterWorldCm, 0.01)
+		&& Expected.VelocityWorldCmPerSec.Equals(
+			Context.State.VelocityWorldCmPerSec,
+			0.01);
+}
+
 const TCHAR* MaxSpeedSourceToProtocolString(
 	const EMotionWorldMaxSpeedSource Source)
 {
@@ -145,6 +176,7 @@ bool SerializeControlObservation(
 		|| !IsBoundedText(State.MovementMode.ToString())
 		|| !IsBoundedText(Context.MovementModeClass.ToString())
 		|| !IsBoundedText(Observation.ScenarioId)
+		|| !IsTimedGateContextValid(Observation.TimedGate)
 		|| Observation.ScenarioSeed < 0
 		|| Observation.ScenarioSeed > MaxSafeJsonInteger
 		|| !IsBoundedText(Observation.ResetId))
@@ -182,7 +214,9 @@ bool SerializeControlObservation(
 	Writer->WriteValue(TEXT("reset_verified"), true);
 	Writer->WriteValue(TEXT("is_resimulation"), false);
 	Writer->WriteValue(TEXT("target_present"), Observation.bHasTarget);
-	Writer->WriteValue(TEXT("timed_gate_present"), false);
+	Writer->WriteValue(
+		TEXT("timed_gate_present"),
+		Observation.TimedGate.bIsPresent);
 	Writer->WriteObjectEnd();
 	Writer->WriteObjectStart(TEXT("state"));
 	WriteVector(*Writer, TEXT("position_world_cm"), State.PositionWorldCm);
@@ -247,7 +281,41 @@ bool SerializeControlObservation(
 	}
 	Writer->WriteObjectEnd();
 	Writer->WriteObjectStart(TEXT("timed_gate"));
-	Writer->WriteValue(TEXT("is_present"), false);
+	Writer->WriteValue(TEXT("is_present"), Observation.TimedGate.bIsPresent);
+	if (Observation.TimedGate.bIsPresent)
+	{
+		const FMotionWorldTimedGateConfig& GateConfig =
+			Observation.TimedGate.Config;
+		const FMotionWorldTimedGateState& GateState =
+			Observation.TimedGate.State;
+		Writer->WriteValue(
+			TEXT("scenario_time_s"),
+			GateState.ScenarioTimeSeconds);
+		Writer->WriteValue(
+			TEXT("motion_type"),
+			TEXT("sinusoidal_translation"));
+		WriteVector(*Writer, TEXT("origin_world_cm"), GateConfig.OriginWorldCm);
+		WriteVector(
+			*Writer,
+			TEXT("motion_axis_world"),
+			GateConfig.MotionAxisWorld.GetSafeNormal());
+		Writer->WriteValue(TEXT("amplitude_cm"), GateConfig.AmplitudeCm);
+		Writer->WriteValue(TEXT("period_s"), GateConfig.PeriodSeconds);
+		Writer->WriteValue(
+			TEXT("phase_offset_rad"),
+			GateConfig.PhaseOffsetRadians);
+		Writer->WriteValue(TEXT("timeout_s"), GateConfig.TimeoutSeconds);
+		WriteVector(*Writer, TEXT("center_world_cm"), GateState.CenterWorldCm);
+		WriteVector(
+			*Writer,
+			TEXT("velocity_world_cm_per_s"),
+			GateState.VelocityWorldCmPerSec);
+		WriteVector(*Writer, TEXT("half_extents_cm"), GateConfig.HalfExtentsCm);
+		WriteVector(
+			*Writer,
+			TEXT("crossing_plane_normal_world"),
+			GateConfig.CrossingPlaneNormalWorld.GetSafeNormal());
+	}
 	Writer->WriteObjectEnd();
 	Writer->WriteObjectEnd();
 	Writer->WriteObjectStart(TEXT("scenario"));

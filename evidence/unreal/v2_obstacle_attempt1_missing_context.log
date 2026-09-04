@@ -1,0 +1,24 @@
+V2 MOVING-OBSTACLE LIVE ATTEMPT 1 — REJECTED
+Date: 2026-09-04
+Unreal network session: B25EA3C9A441
+Episode: 7701
+
+Observed result:
+- The bright red physical obstacle spawned and moved on the configured schedule.
+- Unreal reset exactly to (-800, 0, 90).
+- 393 timely actions were accepted, but every accepted command was exactly (0, 0).
+- The character remained at (-800, 0, 90).
+- The arena timed out at scenario time 14.020733 s with collision_count=0.
+
+Root cause:
+- A direct UDP capture of the actual live observation showed
+  validity.timed_gate_present=false and planner_context.timed_gate.is_present=false.
+- FControlObservation/SerializeControlObservation had hard-coded the live network
+  timed-gate context as absent even while the bridge's physical arena was active.
+- The new V2 controller therefore failed closed to zero exactly as designed.
+
+Disposition:
+- This run is not demo success evidence.
+- Preserve it as a failure-closed integration finding.
+- Add the authoritative bridge/arena gate context to the live network observation,
+  compile/test it, then repeat with a fresh network session.

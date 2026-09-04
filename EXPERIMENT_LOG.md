@@ -2430,3 +2430,39 @@ machine. Python 762/762, Ruff, environment, interview-package, service-config, a
 of runtime safety; it cannot prove physical pixel visibility, camera framing, or readability on the
 final recording. Those remain the final human visual check. The timed gate and live controlled push
 are not part of the accepted polished scenario.
+
+## DEMO-V2-001 — live world-model moving-obstacle avoidance
+
+**Question:** Can the live nominal world-model MPC use Unreal's authoritative moving-obstacle clock
+to pass a physical sideways-moving obstacle, continue to the target, and stop without collision?
+
+**Method:** Add one runtime-spawned red `BlockAllDynamic` gate at x=-450 cm. Unreal advances its
+frozen sinusoidal y motion and transmits scenario time, origin, axis, amplitude, period, phase,
+half-extents, current center, and velocity. Python rejects absent or inconsistent context, predicts
+the gate throughout each candidate horizon, and scores swept collision, clearance, goal, and action
+smoothness. Nominal CEM remains the only action owner. Blue is its selected prediction, orange is
+the selected no-history residual model's prediction under the same actions, gray paths are genuine
+CEM candidates, and yellow is Unreal's collision-finalized trail.
+
+**Result:** Attempt 1 (`B25EA3C9A441`) is rejected because the serializer reported the timed-gate
+context absent; Python correctly failed closed to zero. After adding and testing the authoritative
+context bridge, session `C5ACFEE1AA4C` passed the obstacle with zero collisions but reached only
+`(267.28,111.92,88.27)` before the original 14-second cutoff. This established correct avoidance
+and exposed insufficient demo time rather than a collision/planning failure. The reversible V2
+manifest was safely restored, changed only to 20 seconds, and reapplied with exact readback.
+
+Accepted session `80F4B74AFD4E`, episode 7701, started at `(-800,0,90)`, crossed the obstacle with
+`collision_count=0`, entered the 100 cm target-arrival zone, and stopped stably at
+`(724.77,34.56,88.27)`, 82.78 cm from target center `(800,0,90)`. It remained at exact zero velocity
+through later logged samples. The network recorded 480 observations, 407 accepted actions, 58 stale
+rejections, 73 missed responses, 26 safe stops, zero malformed packets, and zero evidence drops.
+Late/missed results failed safe rather than becoming current commands. Python regression is 782/782;
+Ruff and diff checks pass. The current source previously passed the actual universal Editor build
+and all 20 `MotionWorld.` automation tests; the subsequent timeout change was Blueprint
+configuration only.
+
+**Claim boundary:** This proves a reproducible live nominal world-model MPC demonstration with one
+analytic moving physical obstacle, collision-free passage, and stable target-zone arrival. It is not
+random-obstacle generalization, pixel perception, multi-obstacle navigation, or learned-controller
+superiority. The learned residual remains a prediction-only comparison. The final recording is a
+human presentation step and episodes 5301/5302 remain sealed.

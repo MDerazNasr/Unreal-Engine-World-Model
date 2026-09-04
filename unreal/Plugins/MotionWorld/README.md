@@ -51,6 +51,19 @@ gate collision, and same-seed episode 1902 reproduced the schedule and initial s
 schema-v5 episode 4301 captured one source-aligned controlled velocity perturbation and its
 recovery interval.
 
+For the V2 interview demo, the same runtime-spawned gate is rendered saturated red and may opt in to
+`Timed Gate Continue After Success Plane Crossing`. This keeps the obstacle moving after a clean
+pass so target pursuit can continue; a physical collision remains terminal and invokes the existing
+safe-stop path. The default is false, preserving recorded timed-gate semantics. Python can mirror
+the obstacle without prediction drift using
+`origin + normalize(axis) * amplitude * sin(phase_offset + 2*pi*scenario_time/period)`; the seed is
+provenance metadata and does not alter this formula.
+The frozen single-obstacle V2 presentation settings are: origin 350 cm forward from the verified
+reset anchor, motion axis equal to reset-right, amplitude 185 cm, period 3.7 s, phase offset 0.83
+radians, and collision half-extents `(35, 55, 90)` cm. These values are instance configuration only;
+the plugin defaults remain unchanged. Planning should inflate the obstacle's 35 cm forward and 55
+cm lateral half-extents by the measured 30 cm capsule radius plus a 25 cm safety margin.
+
 A separate default-off Smooth Walking diagnostic reads the active public movement-mode object and
 the finalized public Mover sync collection through a narrow UE 5.8 reflection contract. It captures
 the 14 audited float parameters, double-facing flag, and five known spring-state fields without

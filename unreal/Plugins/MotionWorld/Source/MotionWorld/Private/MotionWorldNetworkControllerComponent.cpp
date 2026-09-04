@@ -306,7 +306,8 @@ bool UMotionWorldNetworkControllerComponent::BeginNetworkEpisode(
 
 void UMotionWorldNetworkControllerComponent::ObserveFinalizedState(
 	const FMotionWorldStateSample& State,
-	const FMotionWorldNominalContextSample& NominalContext)
+	const FMotionWorldNominalContextSample& NominalContext,
+	const MotionWorld::FControlTimedGateContext& TimedGate)
 {
 	if (!bNetworkControlEnabled)
 	{
@@ -359,9 +360,22 @@ void UMotionWorldNetworkControllerComponent::ObserveFinalizedState(
 	Observation.TargetPositionWorldCm = ReactiveTargetWorldCm;
 	Observation.DesiredTerminalVelocityLocalCmPerSec =
 		ReactiveTerminalVelocityLocalCmPerSec;
-	Observation.ScenarioSeed = Decision.EpisodeId;
-	Observation.ResetId = FString::Printf(
-		TEXT("network_vertical_slice:%lld"), Decision.EpisodeId);
+	Observation.TimedGate = TimedGate;
+	if (TimedGate.bIsPresent)
+	{
+		Observation.ScenarioId = TEXT("timed_gate");
+		Observation.ScenarioSeed = TimedGate.Config.ScenarioSeed;
+		Observation.ResetId = FString::Printf(
+			TEXT("timed_gate:%lld:episode%lld"),
+			TimedGate.Config.ScenarioSeed,
+			Decision.EpisodeId);
+	}
+	else
+	{
+		Observation.ScenarioSeed = Decision.EpisodeId;
+		Observation.ResetId = FString::Printf(
+			TEXT("network_vertical_slice:%lld"), Decision.EpisodeId);
+	}
 	TArray<uint8> Payload;
 	FString Failure;
 	if (!MotionWorld::SerializeControlObservation(Observation, Payload, Failure)

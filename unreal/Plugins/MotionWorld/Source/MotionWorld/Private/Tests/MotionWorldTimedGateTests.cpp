@@ -90,6 +90,35 @@ bool FMotionWorldTimedGateTest::RunTest(const FString& Parameters)
 		Crossing.TerminationReason,
 		EMotionWorldScenarioTerminationReason::Success);
 
+	const FMotionWorldScenarioStepResult DemoCrossing =
+		MotionWorld::EvaluateTimedGateScenarioStep(
+			Config,
+			FVector(99.0, 200.0, 50.0),
+			FVector(101.0, 200.0, 50.0),
+			1.0,
+			false,
+			true);
+	TestTrue(
+		TEXT("Demo continuation still reports the crossing event"),
+		DemoCrossing.bCrossedSuccessPlaneThisStep);
+	TestEqual(
+		TEXT("Demo continuation keeps the scenario active after crossing"),
+		DemoCrossing.TerminationReason,
+		EMotionWorldScenarioTerminationReason::None);
+
+	const FMotionWorldScenarioStepResult DemoCollisionStillWins =
+		MotionWorld::EvaluateTimedGateScenarioStep(
+			Config,
+			FVector(99.0, 200.0, 50.0),
+			FVector(101.0, 200.0, 50.0),
+			1.0,
+			true,
+			true);
+	TestEqual(
+		TEXT("Demo continuation never suppresses a real collision"),
+		DemoCollisionStillWins.TerminationReason,
+		EMotionWorldScenarioTerminationReason::GateCollision);
+
 	const FMotionWorldScenarioStepResult CollisionWins =
 		MotionWorld::EvaluateTimedGateScenarioStep(
 			Config,

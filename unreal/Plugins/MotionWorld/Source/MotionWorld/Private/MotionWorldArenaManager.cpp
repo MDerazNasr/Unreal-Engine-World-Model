@@ -23,7 +23,8 @@ void AMotionWorldArenaManager::EndPlay(const EEndPlayReason::Type EndPlayReason)
 bool AMotionWorldArenaManager::InitializeArena(
 	AActor* NewTrackedAgent,
 	const FMotionWorldTimedGateConfig& NewGateConfig,
-	const double ScenarioStartWorldTimeSeconds)
+	const double ScenarioStartWorldTimeSeconds,
+	const bool bNewContinueAfterSuccessPlaneCrossing)
 {
 	UWorld* World = GetWorld();
 	if (!World
@@ -57,6 +58,8 @@ bool AMotionWorldArenaManager::InitializeArena(
 
 	TrackedAgent = NewTrackedAgent;
 	GateConfig = NewGateConfig;
+	bContinueAfterSuccessPlaneCrossing =
+		bNewContinueAfterSuccessPlaneCrossing;
 	ArenaStatus = FMotionWorldArenaStatus();
 	ArenaStatus.bIsInitialized = true;
 	ArenaStatus.bIsActive = true;
@@ -116,7 +119,8 @@ FMotionWorldScenarioStepResult AMotionWorldArenaManager::ObserveFinalizedAgentPo
 				PreviousAgentPositionWorldCm,
 				AgentPositionWorldCm,
 				ArenaStatus.ScenarioTimeSeconds,
-				bCollisionThisStep);
+				bCollisionThisStep,
+				bContinueAfterSuccessPlaneCrossing);
 		}
 		else if (bCollisionThisStep)
 		{

@@ -37,6 +37,8 @@ class LivePlannerSnapshot:
     previous_previous_action_local_cm_s: tuple[float, float]
     target_world_xy_cm: tuple[float, float] | None
     scenario_time_s: float
+    timed_gate_is_present: bool = False
+    timed_gate_contract: tuple[float, ...] | None = None
     has_contiguous_action_history: bool = False
 
     def to_planner_query(self) -> PlannerQuery:
@@ -78,6 +80,90 @@ class LivePlannerSnapshot:
             raise ValueError("stateless live MPC requires zero clearance weight")
         if weights.action_second_difference_per_cm2_s2 != 0.0:
             raise ValueError("stateless live MPC requires zero action-second-difference weight")
+        return PlannerQuery(
+            snapshot=self.snapshot,
+            scenario_time_s=self.scenario_time_s,
+            previous_action_local_cm_s=self.previous_action_local_cm_s,
+            previous_previous_action_local_cm_s=_ZERO_ACTION,
+        )
+
+    def to_stateless_obstacle_mpc_query(self, problem: PlannerProblem) -> PlannerQuery:
+        """Build a mid-episode query using the authoritative moving-obstacle clock.
+
+        Collision and clearance do not consume the unavailable prior-prior action.
+        The second-action-difference term must remain disabled so this stateless
+        live path never invents history.
+        """
+
+        if not isinstance(problem, PlannerProblem):
+            raise TypeError("problem must be a PlannerProblem")
+        if self.target_world_xy_cm is None:
+            raise ValueError("moving-obstacle MPC requires an authoritative target")
+        if problem.goal_world_cm != self.target_world_xy_cm:
+            raise ValueError("moving-obstacle MPC goal must equal the authoritative target")
+        if not self.timed_gate_is_present:
+            raise ValueError("moving-obstacle MPC requires authoritative obstacle timing")
+        if self.timed_gate_contract is None:
+            raise ValueError("moving-obstacle MPC requires authoritative obstacle geometry")
+        (
+            origin_x,
+            origin_y,
+            axis_x,
+            axis_y,
+            amplitude,
+            period,
+            phase,
+            half_x,
+            half_y,
+            center_x,
+            center_y,
+            velocity_x,
+            velocity_y,
+        ) = self.timed_gate_contract
+        geometry = problem.geometry
+        frozen = np.asarray(
+            [
+                geometry.gate_x_cm,
+                geometry.gate_y_origin_cm,
+                0.0,
+                1.0,
+                geometry.gate_amplitude_cm,
+                geometry.gate_period_s,
+                geometry.gate_phase_offset_rad,
+                geometry.gate_half_extent_x_cm,
+                geometry.gate_half_extent_y_cm,
+            ],
+            dtype=np.float64,
+        )
+        observed = np.asarray(
+            [origin_x, origin_y, axis_x, axis_y, amplitude, period, phase, half_x, half_y],
+            dtype=np.float64,
+        )
+        if not np.allclose(observed, frozen, rtol=0.0, atol=1.0e-6):
+            raise ValueError("authoritative obstacle geometry differs from planner geometry")
+        omega = 2.0 * np.pi / period
+        angle = phase + omega * self.scenario_time_s
+        expected_state = np.asarray(
+            [
+                origin_x,
+                origin_y + amplitude * np.sin(angle),
+                0.0,
+                amplitude * omega * np.cos(angle),
+            ],
+            dtype=np.float64,
+        )
+        observed_state = np.asarray(
+            [center_x, center_y, velocity_x, velocity_y], dtype=np.float64
+        )
+        if not np.allclose(observed_state, expected_state, rtol=0.0, atol=1.0e-3):
+            raise ValueError("authoritative obstacle state differs from its analytic schedule")
+        weights = problem.weights
+        if weights.collision <= 0.0 or weights.clearance_per_cm2 <= 0.0:
+            raise ValueError("moving-obstacle MPC requires positive obstacle costs")
+        if weights.action_second_difference_per_cm2_s2 != 0.0:
+            raise ValueError(
+                "stateless moving-obstacle MPC requires zero action-second-difference weight"
+            )
         return PlannerQuery(
             snapshot=self.snapshot,
             scenario_time_s=self.scenario_time_s,
@@ -249,6 +335,23 @@ def _snapshot_from_validated(
     scenario_time_s = (
         float(timed_gate["scenario_time_s"]) if timed_gate["is_present"] else 0.0
     )
+    timed_gate_contract = None
+    if timed_gate["is_present"]:
+        timed_gate_contract = (
+            float(timed_gate["origin_world_cm"][0]),
+            float(timed_gate["origin_world_cm"][1]),
+            float(timed_gate["motion_axis_world"][0]),
+            float(timed_gate["motion_axis_world"][1]),
+            float(timed_gate["amplitude_cm"]),
+            float(timed_gate["period_s"]),
+            float(timed_gate["phase_offset_rad"]),
+            float(timed_gate["half_extents_cm"][0]),
+            float(timed_gate["half_extents_cm"][1]),
+            float(timed_gate["center_world_cm"][0]),
+            float(timed_gate["center_world_cm"][1]),
+            float(timed_gate["velocity_world_cm_per_s"][0]),
+            float(timed_gate["velocity_world_cm_per_s"][1]),
+        )
     parameters = dict(nominal["parameters"])
     parameters["turning_strength"] = parameters.pop("turning_strength_per_s")
     preparation = nominal["input_preparation"]
@@ -273,5 +376,7 @@ def _snapshot_from_validated(
         previous_previous_action_local_cm_s=previous_previous_action,
         target_world_xy_cm=target_world_xy_cm,
         scenario_time_s=scenario_time_s,
+        timed_gate_is_present=bool(timed_gate["is_present"]),
+        timed_gate_contract=timed_gate_contract,
         has_contiguous_action_history=has_contiguous_action_history,
     )

@@ -3,9 +3,18 @@
 #include "CoreMinimal.h"
 #include "MotionWorldNominalContext.h"
 #include "MotionWorldStateSample.h"
+#include "MotionWorldTimedGate.h"
 
 namespace MotionWorld
 {
+/** Optional planner-facing snapshot of the active analytic moving obstacle. */
+struct FControlTimedGateContext
+{
+	bool bIsPresent = false;
+	FMotionWorldTimedGateConfig Config;
+	FMotionWorldTimedGateState State;
+};
+
 struct FControlObservation
 {
 	int64 EpisodeId = INDEX_NONE;
@@ -19,6 +28,7 @@ struct FControlObservation
 	bool bHasTarget = false;
 	FVector TargetPositionWorldCm = FVector::ZeroVector;
 	FVector2D DesiredTerminalVelocityLocalCmPerSec = FVector2D::ZeroVector;
+	FControlTimedGateContext TimedGate;
 	FString ScenarioId = TEXT("network_vertical_slice");
 	int64 ScenarioSeed = 0;
 	FString ResetId;

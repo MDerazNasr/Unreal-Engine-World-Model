@@ -124,11 +124,18 @@ bool FMotionWorldControlObservationTest::RunTest(const FString& Parameters)
 		if (Planner && Planner->IsValid())
 		{
 			const TSharedPtr<FJsonObject>* Target = nullptr;
+			const TSharedPtr<FJsonObject>* TimedGate = nullptr;
 			TestTrue(TEXT("Target object exists"), (*Planner)->TryGetObjectField(TEXT("target"), Target));
+			TestTrue(TEXT("Timed gate object exists"), (*Planner)->TryGetObjectField(TEXT("timed_gate"), TimedGate));
 			if (Target && Target->IsValid())
 			{
 				TestFalse(TEXT("Target defaults absent"), (*Target)->GetBoolField(TEXT("is_present")));
 				TestEqual(TEXT("Absent target has one exact key"), (*Target)->Values.Num(), 1);
+			}
+			if (TimedGate && TimedGate->IsValid())
+			{
+				TestFalse(TEXT("Timed gate defaults absent"), (*TimedGate)->GetBoolField(TEXT("is_present")));
+				TestEqual(TEXT("Absent timed gate has one exact key"), (*TimedGate)->Values.Num(), 1);
 			}
 		}
 	}
@@ -148,6 +155,86 @@ bool FMotionWorldControlObservationTest::RunTest(const FString& Parameters)
 	TestFalse(TEXT("Non-finite reactive target fails closed"),
 		MotionWorld::SerializeControlObservation(Observation, Payload, Failure));
 	Observation.TargetPositionWorldCm.X = 700.0;
+	Observation.TimedGate.bIsPresent = true;
+	Observation.TimedGate.Config.ScenarioSeed = 20260904;
+	Observation.TimedGate.Config.OriginWorldCm = FVector(350.0, 0.0, 86.0);
+	Observation.TimedGate.Config.MotionAxisWorld = FVector(0.0, 2.0, 0.0);
+	Observation.TimedGate.Config.AmplitudeCm = 185.0;
+	Observation.TimedGate.Config.PeriodSeconds = 3.7;
+	Observation.TimedGate.Config.PhaseOffsetRadians = 0.83;
+	Observation.TimedGate.Config.HalfExtentsCm = FVector(35.0, 55.0, 90.0);
+	Observation.TimedGate.Config.CrossingPlaneNormalWorld = FVector(2.0, 0.0, 0.0);
+	Observation.TimedGate.Config.TimeoutSeconds = 14.0;
+	Observation.TimedGate.State = MotionWorld::EvaluateTimedGateSchedule(
+		Observation.TimedGate.Config,
+		1.25);
+	Observation.ScenarioId = TEXT("timed_gate");
+	Observation.ScenarioSeed = Observation.TimedGate.Config.ScenarioSeed;
+	Observation.ResetId = TEXT("timed_gate:20260904:episode7101");
+	TestTrue(TEXT("Aligned timed-gate planner context serializes"),
+		MotionWorld::SerializeControlObservation(Observation, Payload, Failure));
+	FUTF8ToTCHAR GateDecoded(
+		reinterpret_cast<const ANSICHAR*>(Payload.GetData()),
+		Payload.Num());
+	const FString GateJson(GateDecoded.Length(), GateDecoded.Get());
+	TSharedPtr<FJsonObject> GateRoot;
+	const TSharedRef<TJsonReader<>> GateReader =
+		TJsonReaderFactory<>::Create(GateJson);
+	TestTrue(TEXT("Timed-gate output is JSON"),
+		FJsonSerializer::Deserialize(GateReader, GateRoot));
+	if (GateRoot.IsValid())
+	{
+		const TSharedPtr<FJsonObject>* Validity = nullptr;
+		const TSharedPtr<FJsonObject>* Planner = nullptr;
+		const TSharedPtr<FJsonObject>* Scenario = nullptr;
+		TestTrue(TEXT("Timed-gate validity exists"),
+			GateRoot->TryGetObjectField(TEXT("validity"), Validity));
+		TestTrue(TEXT("Timed-gate planner exists"),
+			GateRoot->TryGetObjectField(TEXT("planner_context"), Planner));
+		TestTrue(TEXT("Timed-gate scenario exists"),
+			GateRoot->TryGetObjectField(TEXT("scenario"), Scenario));
+		if (Validity && Validity->IsValid())
+		{
+			TestTrue(TEXT("Validity reports timed gate present"),
+				(*Validity)->GetBoolField(TEXT("timed_gate_present")));
+		}
+		if (Planner && Planner->IsValid())
+		{
+			const TSharedPtr<FJsonObject>* Gate = nullptr;
+			TestTrue(TEXT("Present timed gate object exists"),
+				(*Planner)->TryGetObjectField(TEXT("timed_gate"), Gate));
+			if (Gate && Gate->IsValid())
+			{
+				TestTrue(TEXT("Timed gate reports present"),
+					(*Gate)->GetBoolField(TEXT("is_present")));
+				TestEqual(TEXT("Timed gate has exact protocol field count"),
+					(*Gate)->Values.Num(), 13);
+				TestEqual(TEXT("Timed gate motion type is exact"),
+					(*Gate)->GetStringField(TEXT("motion_type")),
+					FString(TEXT("sinusoidal_translation")));
+				TestEqual(TEXT("Timed gate scenario time survives serialization"),
+					(*Gate)->GetNumberField(TEXT("scenario_time_s")),
+					1.25);
+				const TArray<TSharedPtr<FJsonValue>>& Axis =
+					(*Gate)->GetArrayField(TEXT("motion_axis_world"));
+				TestEqual(TEXT("Timed gate motion axis is normalized"),
+					Axis[1]->AsNumber(), 1.0);
+			}
+		}
+		if (Scenario && Scenario->IsValid())
+		{
+			TestEqual(TEXT("Timed-gate scenario id is truthful"),
+				(*Scenario)->GetStringField(TEXT("scenario_id")),
+				FString(TEXT("timed_gate")));
+			TestEqual(TEXT("Timed-gate scenario seed is truthful"),
+				static_cast<int64>((*Scenario)->GetNumberField(TEXT("scenario_seed"))),
+				static_cast<int64>(20260904));
+		}
+	}
+	Observation.TimedGate.State.CenterWorldCm.X += 1.0;
+	TestFalse(TEXT("Misaligned timed-gate state fails closed"),
+		MotionWorld::SerializeControlObservation(Observation, Payload, Failure));
+	Observation.TimedGate.bIsPresent = false;
 	Observation.NominalContext.AuthoritativeStateSampleSequence += 1;
 	TestFalse(TEXT("Misaligned hidden context fails closed"),
 		MotionWorld::SerializeControlObservation(Observation, Payload, Failure));
