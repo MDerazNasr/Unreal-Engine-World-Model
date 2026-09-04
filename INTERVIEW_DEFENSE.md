@@ -728,6 +728,30 @@ evidence still come from Unreal, not from the configuration script.
 
 Examiner assessment: Not yet attempted. Require an unaided explanation after the live apply/readback.
 
+### Q28 - Why do nonzero rejection counters not invalidate the three-reset claim?
+
+Question: Session `8D77D263F54B` ended with nonzero rejected, stale, malformed, missed, and held
+response counters. Why can it still support reset isolation, and why is episode 7221 still the
+evidence for timing and continuous control?
+
+Candidate answer: Not yet attempted.
+
+Teacher reference answer: The claim assigned to session `8D77D263F54B` is lifecycle isolation, not
+stable 10 Hz performance. At each of its three verified resets, the runtime installed the new
+episode identity, reported `prior_state_cleared=true`, emitted observation zero with
+`previous_action_present=false` and `previous_action_source=-1`, and accepted a newly matched action
+zero for that episode. Late or invalid packets were counted and rejected rather than relabelled or
+allowed across a reset, so those counters expose load and timing faults without demonstrating state
+leakage. This run must not be used to claim zero gaps or Gate-R2 latency. Those separate claims come
+from the untouched episode-7221 session, whose 224 observations and actions reconcile consecutively
+with zero gaps or failure counters and whose Unreal-clock latency satisfies the declared bound.
+Using separate, claim-scoped runs is stronger than hiding the failures or stretching either run
+beyond what it measured. Final prediction episodes 5301 and 5302 remain sealed.
+
+Examiner assessment: Not passed. The reference answer was supplied before an unaided candidate
+teach-back. Require the candidate to distinguish reset-boundary correctness from within-episode
+timing/continuity evidence and explain why rejected stale work cannot be renamed as current work.
+
 ## 7. Day 1 closeout answers to practise
 
 These are study answers, not passed candidate teach-backs yet.

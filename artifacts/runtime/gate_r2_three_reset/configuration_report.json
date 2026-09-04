@@ -1,0 +1,28 @@
+{
+  "actual": {
+    "bridge_settings": {
+      "begin_play_reset_episode_id": 7310,
+      "enable_external_perturbation_schedule": false,
+      "enable_timed_gate_scenario": false,
+      "enable_varied_action_schedule": false,
+      "override_reset_anchor_yaw_for_live_test": false,
+      "request_reset_after_warmup_on_begin_play": true,
+      "reset_live_test_repeat_count": 3,
+      "reset_live_test_transitions_per_episode": 90,
+      "reset_warmup_finalized_samples": 60,
+      "start_episode_recording_on_begin_play": false
+    },
+    "network_settings": {
+      "controller_mode": "echo",
+      "has_reactive_target": false,
+      "local_port": 52580,
+      "log_network_evidence": true,
+      "max_network_evidence_lines": 2048,
+      "network_control_enabled": true,
+      "remote_port": 52581
+    }
+  },
+  "manifest_sha256": "06b16688788628b271b0fc11352dc3a8c176d67f9c366afbb8a5c73e5a1d8c3b",
+  "matches_gate_r2_manifest": true,
+  "mode": "apply"
+}

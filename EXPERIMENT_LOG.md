@@ -2216,3 +2216,39 @@ backs up prior component-template values, applies or verifies the manifest, comp
 exact readback, and restores from the recoverable backup. It is default-inactive unless explicitly
 run and does not issue gameplay commands or choose settings from outcomes. Actual Blueprint
 apply/readback remains required before the final reset/video run.
+
+Gate-R2 three-reset and recording result: accepted session `8D77D263F54B`, episodes 7310-7312.
+The frozen configuration was applied and read back exactly before PIE
+(`matches_gate_r2_manifest=true`, manifest SHA-256
+`06b16688788628b271b0fc11352dc3a8c176d67f9c366afbb8a5c73e5a1d8c3b`). At each of the three
+episode starts, the reset completed in one attempt at the exact stationary anchor, the network
+reported `prior_state_cleared=true`, observation zero reported no previous action and source `-1`,
+and the new episode's action zero passed both current-identity and deadline checks. The strict audit
+therefore accepts three consecutive reset boundaries without action/history leakage. The preserved
+source is the exact inclusive Unreal log range 32773-35034 with SHA-256
+`f8674445465a0be120df2d70bc80762a25f51f486f4050eb2490c1635d11e058`; its machine summary is
+`artifacts/runtime/gate_r2_three_reset/summary.json`.
+
+This claim is deliberately limited to reset isolation. Capture/editor scheduling load produced 159
+observations, 130 accepted actions, 28 rejected responses (27 stale and one malformed), eight misses,
+and eight one-miss holds; no safe stop or evidence drop occurred. Those counters are not presented as
+an uninterrupted or steady-latency run. The separate clean session `31E1BBC5684B`, episode 7221,
+remains the evidence for 224 consecutive matched intervals, zero unexplained gaps/failures, and
+27.872 ms p95 end-to-end latency. Stale responses in the reset run were rejected and therefore did
+not cross an episode boundary.
+
+The final 24.972-second window-only, unedited H.264 recording is preserved as
+`artifacts/runtime/gate_r2_unedited.mov` (SHA-256
+`b13e69420a87b40494a77f77b19ba3abfa24f0d9a043e6b01daf935806741df9`). Visual audit shows three
+forward-motion runs with two visible snap-back boundaries; the recording demonstrates visible
+behavior while the identity-bound raw log establishes all three resets and state clearing. Earlier
+capture attempts affected by editor state, focus, screen-capture color, permission UI, or a stale
+long-lived service were rejected and are not credited. After the editor closed, the restore
+commandlet exited zero at 2026-09-04 05:52 local time. Its readback restored episode 7300, repeat
+count two, 60 transitions, and evidence cap eight; `matches_gate_r2_manifest=false` is expected for
+the restored non-gate settings, and the one-use backup was consumed/deleted. Prediction-test
+episodes 5301 and 5302 remained uncollected and unopened.
+
+Decision/next action: Gate R2 passes 7/7 and Section 3 closes 38/38. Proceeding to a world-model demo
+may now build on the safe live round trip, while continuing to use the clean 7221 run for performance
+claims and the 7310-7312 run only for reset isolation and visible evidence.

@@ -1,0 +1,64 @@
+{
+  "episodes": [
+    {
+      "action_zero_identity_and_deadline_valid": true,
+      "episode_id": 7310,
+      "observation_zero_has_no_previous_action": true,
+      "old_episode_id": -1,
+      "prior_state_cleared": true,
+      "reset_attempts": 1,
+      "reset_exact_and_stationary": true
+    },
+    {
+      "action_zero_identity_and_deadline_valid": true,
+      "episode_id": 7311,
+      "observation_zero_has_no_previous_action": true,
+      "old_episode_id": 7310,
+      "prior_state_cleared": true,
+      "reset_attempts": 1,
+      "reset_exact_and_stationary": true
+    },
+    {
+      "action_zero_identity_and_deadline_valid": true,
+      "episode_id": 7312,
+      "observation_zero_has_no_previous_action": true,
+      "old_episode_id": 7311,
+      "prior_state_cleared": true,
+      "reset_attempts": 1,
+      "reset_exact_and_stationary": true
+    }
+  ],
+  "final_stats": {
+    "accepted": 130,
+    "dropped": 0,
+    "held": 8,
+    "malformed": 1,
+    "missed": 8,
+    "observations": 159,
+    "rejected": 28,
+    "safe_stops": 0,
+    "stale": 27,
+    "written": 295
+  },
+  "gate_r2_reset_isolation": {
+    "claim_boundary": "reset lifecycle isolation only; latency and uninterrupted round-trip quality are established by separate evidence",
+    "pass": true,
+    "permitted_nonzero_counters": [
+      "rejected",
+      "stale",
+      "malformed",
+      "missed",
+      "held"
+    ]
+  },
+  "schema_name": "motionworld_gate_r2_reset_summary",
+  "schema_version": 1,
+  "session_id": "8D77D263F54B",
+  "source_log": {
+    "extraction": "inclusive byte-preserving line range",
+    "first_line_number": 32773,
+    "last_line_number": 35034,
+    "preserved_range_sha256": "4e3b0814463ac84e25771e302511521a1f597339d5eabf0c0fa5c33687903272",
+    "sha256": "f8674445465a0be120df2d70bc80762a25f51f486f4050eb2490c1635d11e058"
+  }
+}

@@ -2472,7 +2472,7 @@ against the 100 ms exclusive deadline. Artifacts: `evidence/unreal/runtime_round
 
 ## D-069 - Automate Gate-R2 setup through frozen apply/readback/restore
 
-Status: accepted at the code layer; actual Blueprint apply/readback remains required
+Status: accepted through apply/readback/live/restore execution
 
 Decision: Freeze the three-reset live setup in a strict JSON manifest and apply it through an Unreal
 Editor Python script. Before changing the Blueprint component templates, save their exact prior
@@ -2487,5 +2487,39 @@ protocol admission, reset implementation, or evaluation rules.
 How it is tested: Seven manifest tests cover the accepted three-episode contract, frozen service and
 dependency hashes, and rejection of weakened reset/control/latency/video requirements. The Unreal
 script has apply, verify, and restore modes and refuses to overwrite its recoverable backup. The
-actual sample must still prove that the editor property names resolve, the compiled Blueprint reads
-back identically, and episodes 7310-7312 execute.
+actual sample resolved the editor property names, compiled/saved the Blueprint, and read the frozen
+settings back exactly before episodes 7310-7312 executed. After capture, the restore commandlet
+exited zero, read back the prior episode 7300/repeat-two/60-transition/evidence-cap-eight settings,
+and consumed the one-use backup.
+
+## D-070 - Close Gate R2 with claim-bounded reset and video evidence
+
+Status: accepted through live PIE evidence
+
+Decision: Credit session `8D77D263F54B`, episodes 7310-7312, only for three-reset lifecycle
+isolation and the unedited visual record. Require each episode to begin at an exact stationary reset,
+report cleared prior state, emit observation zero without a previous action, and accept a fresh
+identity/deadline-valid action zero. Preserve the exact inclusive raw log range, a machine audit, the
+applied/read-back configuration, and a hashed window-only recording. Continue to credit clean
+session `31E1BBC5684B`, episode 7221, exclusively for uninterrupted round trip, zero-gap identity
+reconciliation, and steady-state latency.
+
+Why: The final reset run genuinely proves that state and actions do not leak across three episode
+boundaries, but capture load introduced same-episode stale/rejected packets and misses. Combining its
+counters with the clean timing session would inflate the evidence. Conversely, rerunning the already
+clean 224-interval result solely to obtain reset footage would add risk without strengthening that
+claim. Separate artifacts make both conclusions auditable.
+
+How it is tested: The strict reset auditor accepts exactly one ordered session range and episodes
+7310, 7311, and 7312. All three resets complete in one attempt at the exact stationary anchor; all
+three episode starts report `prior_state_cleared=true`; all three observation-zero records report no
+previous action/source; and all three fresh action-zero records are current and before deadline. The
+source is Unreal log lines 32773-35034, preserved as
+`evidence/unreal/gate_r2_three_reset.log`, with summary under
+`artifacts/runtime/gate_r2_three_reset/`. The 24.972-second unedited recording has SHA-256
+`b13e69420a87b40494a77f77b19ba3abfa24f0d9a043e6b01daf935806741df9` and visibly contains three
+motion runs and two snap-back boundaries. The reset run's nonzero rejection/miss counters are
+disclosed and excluded from performance claims; session 7221 retains that role. The original
+Blueprint settings were restored after capture by a commandlet that exited zero at 2026-09-04 05:52
+local time. Restore readback recovered episode 7300, repeat count two, 60 transitions, and evidence
+cap eight, and the one-use backup was consumed. Sealed episodes 5301/5302 were not opened.

@@ -278,11 +278,11 @@ Objective: prove the complete round trip before integrating CEM or retraining mo
 
 - [x] Observation → Python → action → Unreal works for at least 100 consecutive control intervals.
 - [x] Sequence and episode identity reconcile with zero unexplained gaps.
-- [ ] Reset works three consecutive times without stale action/state leakage.
+- [x] Reset works three consecutive times without stale action/state leakage.
 - [x] Service-loss and stale-action tests pass in the actual sample.
 - [x] Steady-state echo/reactive end-to-end p95 is recorded and comfortably below 100 ms.
-- [ ] A short unedited evidence recording and raw log are preserved.
-- [ ] Do not proceed to live MPC until R2 passes.
+- [x] A short unedited evidence recording and raw log are preserved.
+- [x] Do not proceed to live MPC until R2 passes.
 
 Required artifacts:
 

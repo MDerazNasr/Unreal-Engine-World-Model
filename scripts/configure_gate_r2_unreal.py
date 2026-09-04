@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import importlib.util
 import json
 import os
 import sys
@@ -10,15 +11,30 @@ from pathlib import Path
 import unreal
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(REPOSITORY_ROOT))
-
-from motionworld.control.gate_r2_manifest import load_gate_r2_manifest  # noqa: E402
-
 MANIFEST_PATH = REPOSITORY_ROOT / "configs" / "gate_r2_live_manifest.json"
 
 
-def _single_component(cdo, component_class, label: str):
-    components = cdo.get_components_by_class(component_class)
+def _load_manifest_function():
+    module_path = REPOSITORY_ROOT / "motionworld/control/gate_r2_manifest.py"
+    spec = importlib.util.spec_from_file_location("motionworld_gate_r2_manifest", module_path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"could not load manifest module from {module_path}")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module.load_gate_r2_manifest
+
+
+def _single_component(blueprint, component_class, label: str):
+    subsystem = unreal.get_engine_subsystem(unreal.SubobjectDataSubsystem)
+    handles = subsystem.k2_gather_subobject_data_for_blueprint(blueprint)
+    library = unreal.SubobjectDataBlueprintFunctionLibrary
+    components = []
+    for handle in handles:
+        data = library.get_data(handle)
+        component = library.get_object_for_blueprint(data, blueprint)
+        if isinstance(component, component_class):
+            components.append(component)
     if len(components) != 1:
         raise RuntimeError(f"expected exactly one {label}; found {len(components)}")
     return components[0]
@@ -34,17 +50,16 @@ def _write(component, settings):
 
 
 def main() -> None:
-    manifest = load_gate_r2_manifest(MANIFEST_PATH, REPOSITORY_ROOT)
+    manifest = _load_manifest_function()(MANIFEST_PATH, REPOSITORY_ROOT)
     mode = os.environ.get("MOTIONWORLD_GATE_R2_MODE", "verify")
     if mode not in {"apply", "verify", "restore"}:
         raise RuntimeError("MOTIONWORLD_GATE_R2_MODE must be apply, verify, or restore")
     asset = unreal.EditorAssetLibrary.load_asset(manifest.blueprint_asset)
     if asset is None:
         raise RuntimeError(f"could not load {manifest.blueprint_asset}")
-    cdo = unreal.get_default_object(asset.generated_class())
-    bridge = _single_component(cdo, unreal.MotionWorldBridgeComponent, "MotionWorld bridge")
+    bridge = _single_component(asset, unreal.MotionWorldBridgeComponent, "MotionWorld bridge")
     network = _single_component(
-        cdo, unreal.MotionWorldNetworkControllerComponent, "MotionWorld network controller"
+        asset, unreal.MotionWorldNetworkControllerComponent, "MotionWorld network controller"
     )
     saved_dir = Path(unreal.Paths.project_saved_dir()) / "MotionWorld" / "GateR2"
     saved_dir.mkdir(parents=True, exist_ok=True)
@@ -63,7 +78,8 @@ def main() -> None:
         )
         _write(bridge, manifest.bridge_settings)
         _write(network, manifest.network_settings)
-        unreal.KismetEditorUtilities.compile_blueprint(asset)
+        if not unreal.BlueprintEditorLibrary.compile_blueprint(asset):
+            raise RuntimeError("configured Blueprint did not compile cleanly")
         if not unreal.EditorAssetLibrary.save_loaded_asset(asset, only_if_is_dirty=False):
             raise RuntimeError("failed to save configured Blueprint")
     elif mode == "restore":
@@ -74,7 +90,8 @@ def main() -> None:
             raise RuntimeError("backup Blueprint identity mismatch")
         _write(bridge, backup["bridge_settings"])
         _write(network, backup["network_settings"])
-        unreal.KismetEditorUtilities.compile_blueprint(asset)
+        if not unreal.BlueprintEditorLibrary.compile_blueprint(asset):
+            raise RuntimeError("restored Blueprint did not compile cleanly")
         if not unreal.EditorAssetLibrary.save_loaded_asset(asset, only_if_is_dirty=False):
             raise RuntimeError("failed to save restored Blueprint")
         backup_path.unlink()

@@ -1,0 +1,20 @@
+{
+  "artifact": "artifacts/runtime/gate_r2_unedited.mov",
+  "sha256": "b13e69420a87b40494a77f77b19ba3abfa24f0d9a043e6b01daf935806741df9",
+  "size_bytes": 89675050,
+  "duration_seconds": 24.971667,
+  "video": {
+    "codec": "h264",
+    "width": 3248,
+    "height": 2124,
+    "pixel_format": "yuv420p",
+    "nominal_frame_rate": "120/1",
+    "average_frame_rate": "711/25"
+  },
+  "audio_present": false,
+  "visual_audit": {
+    "pass": true,
+    "observed": "Three forward-motion runs with two visible inter-episode snap-back resets.",
+    "claim_boundary": "The video demonstrates visible motion and reset repetition; the identity-bound raw log proves all three reset boundaries and state clearing."
+  }
+}
