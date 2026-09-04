@@ -17,6 +17,10 @@ void AMotionWorldArenaManager::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	{
 		TimedGate->Destroy();
 	}
+	if (IsValid(SecondaryTimedGate))
+	{
+		SecondaryTimedGate->Destroy();
+	}
 	Super::EndPlay(EndPlayReason);
 }
 
@@ -24,12 +28,15 @@ bool AMotionWorldArenaManager::InitializeArena(
 	AActor* NewTrackedAgent,
 	const FMotionWorldTimedGateConfig& NewGateConfig,
 	const double ScenarioStartWorldTimeSeconds,
-	const bool bNewContinueAfterSuccessPlaneCrossing)
+	const bool bNewContinueAfterSuccessPlaneCrossing,
+	const FMotionWorldTimedGateConfig* NewSecondaryGateConfig)
 {
 	UWorld* World = GetWorld();
 	if (!World
 		|| !IsValid(NewTrackedAgent)
-		|| !MotionWorld::IsTimedGateConfigValid(NewGateConfig))
+		|| !MotionWorld::IsTimedGateConfigValid(NewGateConfig)
+		|| (NewSecondaryGateConfig
+			&& !MotionWorld::IsTimedGateConfigValid(*NewSecondaryGateConfig)))
 	{
 		return false;
 	}
@@ -55,6 +62,34 @@ bool AMotionWorldArenaManager::InitializeArena(
 	{
 		return false;
 	}
+	TimedGate->SetObstacleColor(FLinearColor(1.0f, 0.025f, 0.005f, 1.0f));
+
+	if (NewSecondaryGateConfig)
+	{
+		if (!IsValid(SecondaryTimedGate))
+		{
+			FActorSpawnParameters SpawnParameters;
+			SpawnParameters.Owner = this;
+			SpawnParameters.SpawnCollisionHandlingOverride =
+				ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+			SecondaryTimedGate = World->SpawnActor<AMotionWorldTimedGateActor>(
+				AMotionWorldTimedGateActor::StaticClass(),
+				NewSecondaryGateConfig->OriginWorldCm,
+				FRotator::ZeroRotator,
+				SpawnParameters);
+		}
+		if (!IsValid(SecondaryTimedGate)
+			|| !SecondaryTimedGate->InitializeTimedGate(
+				*NewSecondaryGateConfig,
+				NewTrackedAgent,
+				ScenarioStartWorldTimeSeconds))
+		{
+			return false;
+		}
+		SecondaryTimedGate->SetObstacleColor(
+			FLinearColor(1.0f, 0.22f, 0.01f, 1.0f));
+		SecondaryGateConfig = *NewSecondaryGateConfig;
+	}
 
 	TrackedAgent = NewTrackedAgent;
 	GateConfig = NewGateConfig;
@@ -73,7 +108,10 @@ bool AMotionWorldArenaManager::ResetArena(
 {
 	if (!ArenaStatus.bIsInitialized
 		|| !IsValid(TimedGate)
-		|| !TimedGate->ResetTimedGate(ScenarioStartWorldTimeSeconds))
+		|| !TimedGate->ResetTimedGate(ScenarioStartWorldTimeSeconds)
+		|| (IsValid(SecondaryTimedGate)
+			&& !SecondaryTimedGate->ResetTimedGate(
+				ScenarioStartWorldTimeSeconds)))
 	{
 		return false;
 	}
@@ -100,7 +138,12 @@ FMotionWorldScenarioStepResult AMotionWorldArenaManager::ObserveFinalizedAgentPo
 	}
 
 	const FMotionWorldTimedGateState GateState = TimedGate->GetGateState();
-	if (!GateState.bIsValid)
+	const FMotionWorldTimedGateState SecondaryGateState =
+		IsValid(SecondaryTimedGate)
+			? SecondaryTimedGate->GetGateState()
+			: FMotionWorldTimedGateState();
+	if (!GateState.bIsValid
+		|| (IsValid(SecondaryTimedGate) && !SecondaryGateState.bIsValid))
 	{
 		Result.TerminationReason =
 			EMotionWorldScenarioTerminationReason::InvalidConfiguration;
@@ -109,9 +152,14 @@ FMotionWorldScenarioStepResult AMotionWorldArenaManager::ObserveFinalizedAgentPo
 	{
 		ArenaStatus.ScenarioTimeSeconds = GateState.ScenarioTimeSeconds;
 		const bool bCollisionThisStep =
-			TimedGate->ConsumeTrackedAgentCollision();
+			TimedGate->ConsumeTrackedAgentCollision()
+			|| (IsValid(SecondaryTimedGate)
+				&& SecondaryTimedGate->ConsumeTrackedAgentCollision());
 		ArenaStatus.CollisionCount =
-			TimedGate->GetTrackedAgentCollisionCount();
+			TimedGate->GetTrackedAgentCollisionCount()
+			+ (IsValid(SecondaryTimedGate)
+				? SecondaryTimedGate->GetTrackedAgentCollisionCount()
+				: 0);
 		if (bHasPreviousAgentPosition)
 		{
 			Result = MotionWorld::EvaluateTimedGateScenarioStep(
@@ -136,6 +184,10 @@ FMotionWorldScenarioStepResult AMotionWorldArenaManager::ObserveFinalizedAgentPo
 		ArenaStatus.bIsActive = false;
 		ArenaStatus.TerminationReason = Result.TerminationReason;
 		TimedGate->FreezeTimedGateAtTerminal();
+		if (IsValid(SecondaryTimedGate))
+		{
+			SecondaryTimedGate->FreezeTimedGateAtTerminal();
+		}
 		UE_LOG(
 			LogMotionWorldArena,
 			Display,
@@ -156,4 +208,16 @@ FMotionWorldTimedGateState AMotionWorldArenaManager::GetGateState() const
 	return IsValid(TimedGate)
 		? TimedGate->GetGateState()
 		: FMotionWorldTimedGateState();
+}
+
+FMotionWorldTimedGateState AMotionWorldArenaManager::GetSecondaryGateState() const
+{
+	return IsValid(SecondaryTimedGate)
+		? SecondaryTimedGate->GetGateState()
+		: FMotionWorldTimedGateState();
+}
+
+bool AMotionWorldArenaManager::HasSecondaryGate() const
+{
+	return IsValid(SecondaryTimedGate);
 }

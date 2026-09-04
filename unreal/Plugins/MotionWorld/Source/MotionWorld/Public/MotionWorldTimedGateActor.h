@@ -32,6 +32,9 @@ public:
 		AActor* NewTrackedAgent,
 		double ScenarioStartWorldTimeSeconds);
 
+	/** Apply the demo identity color without changing collision or schedule state. */
+	void SetObstacleColor(const FLinearColor& NewColor);
+
 	/** Restarts schedule time and clears all collision evidence. */
 	UFUNCTION(BlueprintCallable, Category = "MotionWorld|Gate")
 	bool ResetTimedGate(double ScenarioStartWorldTimeSeconds);
@@ -90,6 +93,7 @@ private:
 	TObjectPtr<AActor> TrackedAgent;
 
 	double ScenarioStartWorldTimeSeconds = 0.0;
+	FLinearColor ObstacleColor = FLinearColor(1.0f, 0.025f, 0.005f, 1.0f);
 	bool bScenarioActive = false;
 	bool bTrackedAgentCollisionPending = false;
 };

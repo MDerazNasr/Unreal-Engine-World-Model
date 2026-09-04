@@ -231,6 +231,55 @@ bool FMotionWorldControlObservationTest::RunTest(const FString& Parameters)
 				static_cast<int64>(20260904));
 		}
 	}
+	Observation.TimedGate.ObstacleId = TEXT("gate_primary");
+	MotionWorld::FControlTimedGateContext Secondary = Observation.TimedGate;
+	Secondary.ObstacleId = TEXT("gate_secondary");
+	Secondary.Config.ScenarioSeed += 1;
+	Secondary.Config.OriginWorldCm += FVector(700.0, 80.0, 0.0);
+	Secondary.Config.AmplitudeCm = 45.0;
+	Secondary.Config.PeriodSeconds = 8.0;
+	Secondary.Config.PhaseOffsetRadians = 5.497787143782138;
+	Secondary.Config.HalfExtentsCm = FVector(35.0, 80.0, 90.0);
+	Secondary.State = MotionWorld::EvaluateTimedGateSchedule(
+		Secondary.Config,
+		Observation.TimedGate.State.ScenarioTimeSeconds);
+	Observation.Obstacles = {Observation.TimedGate, Secondary};
+	TestTrue(TEXT("Exactly two identified obstacles serialize"),
+		MotionWorld::SerializeControlObservation(Observation, Payload, Failure));
+	FUTF8ToTCHAR ObstaclesDecoded(
+		reinterpret_cast<const ANSICHAR*>(Payload.GetData()),
+		Payload.Num());
+	const FString ObstaclesJson(
+		ObstaclesDecoded.Length(),
+		ObstaclesDecoded.Get());
+	TSharedPtr<FJsonObject> ObstaclesRoot;
+	const TSharedRef<TJsonReader<>> ObstaclesReader =
+		TJsonReaderFactory<>::Create(ObstaclesJson);
+	TestTrue(TEXT("Two-obstacle output is JSON"),
+		FJsonSerializer::Deserialize(ObstaclesReader, ObstaclesRoot));
+	if (ObstaclesRoot.IsValid())
+	{
+		const TSharedPtr<FJsonObject>* Planner = nullptr;
+		if (ObstaclesRoot->TryGetObjectField(TEXT("planner_context"), Planner)
+			&& Planner && Planner->IsValid())
+		{
+			const TArray<TSharedPtr<FJsonValue>>& Obstacles =
+				(*Planner)->GetArrayField(TEXT("obstacles"));
+			TestEqual(TEXT("V3 emits exactly two obstacles"), Obstacles.Num(), 2);
+			TestEqual(TEXT("First obstacle identity is stable"),
+				Obstacles[0]->AsObject()->GetStringField(TEXT("obstacle_id")),
+				FString(TEXT("gate_primary")));
+			TestEqual(TEXT("Second obstacle identity is stable"),
+				Obstacles[1]->AsObject()->GetStringField(TEXT("obstacle_id")),
+				FString(TEXT("gate_secondary")));
+			TestEqual(TEXT("Obstacle records add only identity to legacy fields"),
+				Obstacles[0]->AsObject()->Values.Num(), 14);
+		}
+	}
+	Observation.Obstacles[1].ObstacleId = TEXT("wrong");
+	TestFalse(TEXT("Wrong secondary identity fails closed"),
+		MotionWorld::SerializeControlObservation(Observation, Payload, Failure));
+	Observation.Obstacles.Reset();
 	Observation.TimedGate.State.CenterWorldCm.X += 1.0;
 	TestFalse(TEXT("Misaligned timed-gate state fails closed"),
 		MotionWorld::SerializeControlObservation(Observation, Payload, Failure));

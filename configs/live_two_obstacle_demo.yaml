@@ -1,0 +1,20 @@
+schema_name: motionworld_live_two_obstacle_demo
+schema_version: 1
+status: visual_demo_nominal_control_two_learned_forecast_obstacles
+claim_boundary: >-
+  nominal MPC controls around exactly two synchronized analytic obstacles;
+  the learned residual remains a matched prediction overlay, not the action owner
+show_cem_candidates_with_overlay: false
+base_moving_obstacle:
+  path: configs/live_moving_obstacle_demo.yaml
+  sha256: c71cd517814e466c4a31e18ee893fcb1cc6f54f3d29278413d1d21882531122a
+secondary_geometry:
+  gate_x_cm: 250.0
+  gate_y_origin_cm: 80.0
+  gate_amplitude_cm: 45.0
+  gate_period_s: 8.0
+  gate_phase_offset_rad: 5.497787144
+  gate_half_extent_x_cm: 35.0
+  gate_half_extent_y_cm: 80.0
+  agent_radius_cm: 30.0
+  safety_margin_cm: 25.0

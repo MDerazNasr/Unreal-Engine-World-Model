@@ -122,31 +122,38 @@ def _validate_optional_target(value: object) -> bool:
     return True
 
 
-def _validate_optional_gate(value: object) -> bool:
-    gate = _mapping(value, "planner_context.timed_gate")
+_PRESENT_GATE_KEYS = {
+    "is_present",
+    "scenario_time_s",
+    "center_world_cm",
+    "velocity_world_cm_per_s",
+    "half_extents_cm",
+    "crossing_plane_normal_world",
+    "motion_type",
+    "origin_world_cm",
+    "motion_axis_world",
+    "amplitude_cm",
+    "period_s",
+    "phase_offset_rad",
+    "timeout_s",
+}
+
+
+def _validate_optional_gate(
+    value: object,
+    *,
+    context: str = "planner_context.timed_gate",
+    obstacle_id: str | None = None,
+) -> bool:
+    gate = _mapping(value, context)
     present = _bool(gate.get("is_present"), "timed_gate.is_present")
     if not present:
-        _keys(gate, {"is_present"}, "planner_context.timed_gate")
+        _keys(gate, {"is_present"}, context)
         return False
-    _keys(
-        gate,
-        {
-            "is_present",
-            "scenario_time_s",
-            "center_world_cm",
-            "velocity_world_cm_per_s",
-            "half_extents_cm",
-            "crossing_plane_normal_world",
-            "motion_type",
-            "origin_world_cm",
-            "motion_axis_world",
-            "amplitude_cm",
-            "period_s",
-            "phase_offset_rad",
-            "timeout_s",
-        },
-        "planner_context.timed_gate",
-    )
+    expected = _PRESENT_GATE_KEYS | ({"obstacle_id"} if obstacle_id is not None else set())
+    _keys(gate, expected, context)
+    if obstacle_id is not None:
+        _literal(gate["obstacle_id"], obstacle_id, f"{context}.obstacle_id")
     _number(gate["scenario_time_s"], "timed_gate.scenario_time_s", minimum=0.0)
     _literal(gate["motion_type"], "sinusoidal_translation", "timed_gate.motion_type")
     _vector(gate["origin_world_cm"], 3, "timed_gate.origin_world_cm")
@@ -166,6 +173,27 @@ def _validate_optional_gate(value: object) -> bool:
         "timed_gate.crossing_plane_normal_world",
     )
     return True
+
+
+def _validate_two_obstacles(value: object, legacy_gate: dict[str, Any]) -> None:
+    if not isinstance(value, list) or len(value) != 2:
+        raise ValueError("planner_context.obstacles must contain exactly two obstacles")
+    identifiers = ("gate_primary", "gate_secondary")
+    for index, identifier in enumerate(identifiers):
+        if not _validate_optional_gate(
+            value[index],
+            context=f"planner_context.obstacles[{index}]",
+            obstacle_id=identifier,
+        ):
+            raise ValueError("V3 obstacle records must be present")
+    primary = dict(value[0])
+    primary.pop("obstacle_id")
+    if primary != legacy_gate:
+        raise ValueError("legacy timed_gate must equal obstacles[0]")
+    first_time = float(value[0]["scenario_time_s"])
+    second_time = float(value[1]["scenario_time_s"])
+    if not math.isclose(first_time, second_time, rel_tol=0.0, abs_tol=1.0e-6):
+        raise ValueError("V3 obstacles must share authoritative scenario time")
 
 
 def _validate_previous_action(value: object, observation_sequence: int) -> bool:
@@ -366,9 +394,17 @@ def validate_observation_mapping(value: object) -> dict[str, Any]:
     _validate_previous_action(raw["previous_action"], observation_sequence)
 
     planner = _mapping(raw["planner_context"], "planner_context")
-    _keys(planner, {"target", "timed_gate"}, "planner_context")
+    if set(planner) not in (
+        {"target", "timed_gate"},
+        {"target", "timed_gate", "obstacles"},
+    ):
+        raise ValueError("planner_context keys are invalid")
     target_present = _validate_optional_target(planner["target"])
     gate_present = _validate_optional_gate(planner["timed_gate"])
+    if "obstacles" in planner:
+        if not gate_present:
+            raise ValueError("V3 obstacles require the legacy primary timed_gate")
+        _validate_two_obstacles(planner["obstacles"], planner["timed_gate"])
     if _bool(validity["target_present"], "validity.target_present") != target_present:
         raise ValueError("target validity flag disagrees with target payload")
     if _bool(validity["timed_gate_present"], "validity.timed_gate_present") != gate_present:

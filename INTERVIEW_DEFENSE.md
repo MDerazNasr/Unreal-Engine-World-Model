@@ -293,6 +293,28 @@ prediction under the same selected action sequence, included so an interviewer c
 dynamics alter a forecast. This demo proves live world-model planning and obstacle avoidance, not
 that learned residual control is statistically superior.
 
+#### How does the planner handle two obstacles without learning one combined script?
+
+Each obstacle has its own identity, geometry, and analytic future on the same authoritative Unreal
+scenario clock. For every candidate action sequence, the planner predicts the character once and
+evaluates swept collision and clearance against both obstacle futures. Goal and action-smoothness
+costs are counted once. CEM therefore chooses one sequence that balances both encounters; there is
+no obstacle-specific left/right rule.
+
+#### Why are the two obstacles far apart?
+
+The controller predicts 1.5 seconds ahead, at most about 247.5 cm at the 165 cm/s speed limit. The
+obstacle crossing planes are 700 cm apart, so each becomes decision-relevant in sequence. This
+produces two understandable steering decisions instead of an artificially impossible simultaneous
+pinch.
+
+#### Why were the gray candidate paths removed in V3?
+
+They were optional presentation telemetry generated after CEM. Live evidence showed that rendering
+them consumed deadline margin under system load. Removing them did not change the optimizer, the
+selected action, collision cost, blue nominal forecast, orange learned forecast, or yellow Unreal
+trail. It reduced safe stops and made the important comparison easier to read.
+
 ### Q1 - Desired versus executed velocity (passed 2026-09-01)
 
 Candidate answer, lightly normalized for terminology: Desired velocity is a request, not the actual

@@ -128,7 +128,8 @@ public:
 	void ObserveFinalizedState(
 		const FMotionWorldStateSample& State,
 		const FMotionWorldNominalContextSample& NominalContext,
-		const MotionWorld::FControlTimedGateContext& TimedGate);
+		const MotionWorld::FControlTimedGateContext& TimedGate,
+		const TArray<MotionWorld::FControlTimedGateContext>& Obstacles);
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Network")

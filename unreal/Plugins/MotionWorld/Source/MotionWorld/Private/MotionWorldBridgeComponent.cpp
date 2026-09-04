@@ -885,6 +885,23 @@ void UMotionWorldBridgeComponent::InitializeTimedArenaIfEligible()
 	Config.HalfExtentsCm = TimedGateHalfExtentsCm;
 	Config.CrossingPlaneNormalWorld = ForwardWorld;
 	Config.TimeoutSeconds = TimedGateTimeoutSeconds;
+	FMotionWorldTimedGateConfig SecondaryConfig;
+	const FMotionWorldTimedGateConfig* SecondaryConfigPtr = nullptr;
+	if (bEnableSecondTimedGateObstacle)
+	{
+		SecondaryConfig = Config;
+		SecondaryConfig.ScenarioSeed = Config.ScenarioSeed + 1;
+		SecondaryConfig.OriginWorldCm =
+			ResetAnchor.PositionWorldCm
+			+ ForwardWorld * SecondTimedGateForwardDistanceCm
+			+ RightWorld * SecondTimedGateLateralOffsetCm;
+		SecondaryConfig.AmplitudeCm = SecondTimedGateAmplitudeCm;
+		SecondaryConfig.PeriodSeconds = SecondTimedGatePeriodSeconds;
+		SecondaryConfig.PhaseOffsetRadians =
+			SecondTimedGatePhaseOffsetRadians;
+		SecondaryConfig.HalfExtentsCm = SecondTimedGateHalfExtentsCm;
+		SecondaryConfigPtr = &SecondaryConfig;
+	}
 
 	FActorSpawnParameters SpawnParameters;
 	SpawnParameters.Owner = Owner;
@@ -900,7 +917,8 @@ void UMotionWorldBridgeComponent::InitializeTimedArenaIfEligible()
 			Owner,
 			Config,
 			static_cast<double>(World->GetTimeSeconds()),
-			bTimedGateContinueAfterSuccessPlaneCrossing))
+			bTimedGateContinueAfterSuccessPlaneCrossing,
+			SecondaryConfigPtr))
 	{
 		UE_LOG(LogMotionWorldBridge, Error, TEXT("MotionWorld timed arena initialization failed; scenario recording is unavailable."));
 		if (IsValid(ArenaManager))
@@ -914,12 +932,13 @@ void UMotionWorldBridgeComponent::InitializeTimedArenaIfEligible()
 	UE_LOG(
 		LogMotionWorldBridge,
 		Display,
-		TEXT("MotionWorld timed arena initialized: seed=%lld gate_origin_world_cm=(%.2f, %.2f, %.2f) forward_distance_cm=%.2f."),
+		TEXT("MotionWorld timed arena initialized: seed=%lld gate_origin_world_cm=(%.2f, %.2f, %.2f) forward_distance_cm=%.2f obstacle_count=%d."),
 		Config.ScenarioSeed,
 		Config.OriginWorldCm.X,
 		Config.OriginWorldCm.Y,
 		Config.OriginWorldCm.Z,
-		TimedGateForwardDistanceCm);
+		TimedGateForwardDistanceCm,
+		bEnableSecondTimedGateObstacle ? 2 : 1);
 	bArenaTerminalSafeStopIssued = false;
 }
 
@@ -1688,6 +1707,7 @@ void UMotionWorldBridgeComponent::HandlePostFinalize(
 	if (NetworkControllerComponent)
 	{
 		MotionWorld::FControlTimedGateContext TimedGate;
+		TArray<MotionWorld::FControlTimedGateContext> Obstacles;
 		if (bCurrentEpisodeHasTimedGateScenario && IsValid(ArenaManager))
 		{
 			const FMotionWorldArenaStatus ArenaStatus =
@@ -1695,6 +1715,7 @@ void UMotionWorldBridgeComponent::HandlePostFinalize(
 			if (ArenaStatus.bIsInitialized && ArenaStatus.bIsActive)
 			{
 				TimedGate.Config = ArenaManager->GetGateConfig();
+				TimedGate.ObstacleId = TEXT("gate_primary");
 				const double ScenarioTimeSeconds = FMath::Max(
 					0.0,
 					LastAuthoritativeState.SimulationTimeSeconds
@@ -1703,12 +1724,28 @@ void UMotionWorldBridgeComponent::HandlePostFinalize(
 					TimedGate.Config,
 					ScenarioTimeSeconds);
 				TimedGate.bIsPresent = TimedGate.State.bIsValid;
+				if (TimedGate.bIsPresent && ArenaManager->HasSecondaryGate())
+				{
+					MotionWorld::FControlTimedGateContext Secondary;
+					Secondary.ObstacleId = TEXT("gate_secondary");
+					Secondary.Config = ArenaManager->GetSecondaryGateConfig();
+					Secondary.State = MotionWorld::EvaluateTimedGateSchedule(
+						Secondary.Config,
+						ScenarioTimeSeconds);
+					Secondary.bIsPresent = Secondary.State.bIsValid;
+					if (Secondary.bIsPresent)
+					{
+						Obstacles.Add(TimedGate);
+						Obstacles.Add(Secondary);
+					}
+				}
 			}
 		}
 		NetworkControllerComponent->ObserveFinalizedState(
 			LastAuthoritativeState,
 			LastNominalContext,
-			TimedGate);
+			TimedGate,
+			Obstacles);
 	}
 
 	const FCharacterDefaultInputs* EchoedInputs = nullptr;

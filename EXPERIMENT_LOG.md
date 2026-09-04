@@ -2466,3 +2466,38 @@ analytic moving physical obstacle, collision-free passage, and stable target-zon
 random-obstacle generalization, pixel perception, multi-obstacle navigation, or learned-controller
 superiority. The learned residual remains a prediction-only comparison. The final recording is a
 human presentation step and episodes 5301/5302 remain sealed.
+
+## DEMO-V3-001 — two-obstacle sequential world-model avoidance
+
+**Question:** Can the accepted one-obstacle controller be extended to reason about two separately
+moving physical obstacles and produce two distinct live steering responses without breaking V1/V2?
+
+**Method:** Preserve the V2 primary gate. Add `gate_secondary` at `(250,80,90)` with y-axis
+sinusoidal translation, amplitude 45 cm, period 8 seconds, phase 7π/4, and half-extents
+`(35,80,90)`. Both share Unreal's authoritative scenario clock but retain separate identities and
+states. The wire protocol includes an exact two-item obstacle array while retaining the primary in
+the legacy timed-gate field. Python validates the mirror/count/identities/clock and analytic states,
+then sums swept collision and clearance risk over both obstacle futures. Nominal CEM owns control;
+the learned residual remains an orange matched forecast.
+
+**Result:** The first V3 run, session `E81F81FFD94C`, passed both obstacles with zero collisions,
+entered the target zone, and exposed visible route changes, but accumulated 100 safe stops and was
+treated as tuning evidence rather than the presentation result. Replay `A0AF978F0C49` collided with
+the primary at scenario time 10.500024 while the machine was under simultaneous browser-video
+load. It is retained as a failed outcome and proves the physical collision path froze both actors
+and issued a terminal zero command. Only optional gray CEM-candidate rendering was then disabled;
+planning, costs, actions, blue/orange forecasts, yellow reality, and safety were unchanged.
+
+Accepted optimized session `149FAA6F1546`, episode 7801, moved from y=+59.87 approaching the first
+gate to y=-16.06 after crossing it, reached the second obstacle near `(227.44,-32.87)`, then curved
+back and latched zero at `(737.58,57.78,88.27)`, 85.06 cm from target center. Unreal reported zero
+collisions. The 442 observations yielded 340 admitted actions, 83 stale rejections, 101 misses, 31
+safe stops, zero malformed packets, and zero evidence drops. The later 30-second timeout occurred
+after the stable arrival latch. Full Python regression is 798/798; the actual universal Unreal
+Editor build and all 20 `MotionWorld.` tests pass.
+
+**Claim boundary:** This proves sequential collision-aware planning around exactly two reproducible
+analytic moving obstacles. It does not prove arbitrary random-obstacle generalization, learned
+obstacle dynamics, visual perception, or learned-controller superiority. The accepted run is valid
+despite disclosed stale/missed replies because those replies failed safe and never became current
+movement commands. Episodes 5301/5302 remain sealed.

@@ -327,6 +327,28 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Arena")
 	bool bTimedGateContinueAfterSuccessPlaneCrossing = false;
 
+	/** V3-only: add a second deterministic blocker with its own frozen geometry. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Arena")
+	bool bEnableSecondTimedGateObstacle = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Arena", meta = (ClampMin = "100.0"))
+	double SecondTimedGateForwardDistanceCm = 1050.0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Arena")
+	double SecondTimedGateLateralOffsetCm = 80.0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Arena", meta = (ClampMin = "0.0"))
+	double SecondTimedGateAmplitudeCm = 45.0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Arena", meta = (ClampMin = "0.1"))
+	double SecondTimedGatePeriodSeconds = 8.0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Arena")
+	double SecondTimedGatePhaseOffsetRadians = 5.497787143782138;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Arena")
+	FVector SecondTimedGateHalfExtentsCm = FVector(35.0, 80.0, 90.0);
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MotionWorld|Arena", meta = (ClampMin = "0"))
 	int64 TimedGateScenarioSeed = 1901;
 

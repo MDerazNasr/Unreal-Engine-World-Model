@@ -153,7 +153,9 @@ class LiveNominalMPCController:
                     (0.0, 0.0),
                     started_us=started_us,
                     model_id=(
-                        "nominal_mpc_moving_obstacle_arrival_stop_v2"
+                        "nominal_mpc_two_obstacle_arrival_stop_v3"
+                        if self.config.problem_template.additional_geometries
+                        else "nominal_mpc_moving_obstacle_arrival_stop_v2"
                         if self.config.moving_obstacle_enabled
                         else "nominal_mpc_arrival_stop_v1"
                     ),
@@ -233,7 +235,10 @@ class LiveNominalMPCController:
             selected,
             started_us=started_us,
             model_id=(
-                "nominal_mpc_moving_obstacle_residual_overlay_v2"
+                "nominal_mpc_two_obstacle_residual_overlay_v3"
+                if self.config.problem_template.additional_geometries
+                and self.config.residual_overlay_model is not None
+                else "nominal_mpc_moving_obstacle_residual_overlay_v2"
                 if self.config.moving_obstacle_enabled
                 and self.config.residual_overlay_model is not None
                 else (

@@ -307,7 +307,8 @@ bool UMotionWorldNetworkControllerComponent::BeginNetworkEpisode(
 void UMotionWorldNetworkControllerComponent::ObserveFinalizedState(
 	const FMotionWorldStateSample& State,
 	const FMotionWorldNominalContextSample& NominalContext,
-	const MotionWorld::FControlTimedGateContext& TimedGate)
+	const MotionWorld::FControlTimedGateContext& TimedGate,
+	const TArray<MotionWorld::FControlTimedGateContext>& Obstacles)
 {
 	if (!bNetworkControlEnabled)
 	{
@@ -361,6 +362,7 @@ void UMotionWorldNetworkControllerComponent::ObserveFinalizedState(
 	Observation.DesiredTerminalVelocityLocalCmPerSec =
 		ReactiveTerminalVelocityLocalCmPerSec;
 	Observation.TimedGate = TimedGate;
+	Observation.Obstacles = Obstacles;
 	if (TimedGate.bIsPresent)
 	{
 		Observation.ScenarioId = TEXT("timed_gate");

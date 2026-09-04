@@ -51,10 +51,22 @@ void AMotionWorldTimedGateActor::BeginPlay()
 	// much easier to read against the sample project's natural backgrounds.
 	VisualMesh->SetVectorParameterValueOnMaterials(
 		TEXT("Color"),
-		FVector(1.0, 0.025, 0.005));
+		FVector(ObstacleColor.R, ObstacleColor.G, ObstacleColor.B));
 	if (!bScenarioActive)
 	{
 		SetActorTickEnabled(false);
+	}
+}
+
+void AMotionWorldTimedGateActor::SetObstacleColor(
+	const FLinearColor& NewColor)
+{
+	ObstacleColor = NewColor;
+	if (VisualMesh)
+	{
+		VisualMesh->SetVectorParameterValueOnMaterials(
+			TEXT("Color"),
+			FVector(ObstacleColor.R, ObstacleColor.G, ObstacleColor.B));
 	}
 }
 

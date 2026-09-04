@@ -353,3 +353,62 @@ def evaluate_planning_cost(
         + weights.action_second_difference_per_cm2_s2 * second
     )
     return PlanningCostBreakdown(terminal, collision, clearance, change, second, total)
+
+
+def evaluate_multi_obstacle_planning_cost(
+    predicted_positions_world_cm: FloatArray,
+    actions_cm_s: FloatArray,
+    *,
+    initial_position_world_cm: FloatArray,
+    previous_action_cm_s: FloatArray,
+    previous_previous_action_cm_s: FloatArray,
+    goal_world_cm: FloatArray,
+    initial_scenario_time_s: float,
+    scenario_times_s: FloatArray,
+    geometries: tuple[TimedGateGeometry, ...],
+    weights: PlanningCostWeights,
+) -> PlanningCostBreakdown:
+    """Evaluate shared goal/action terms once and sum every obstacle's risk."""
+
+    if not geometries or any(not isinstance(item, TimedGateGeometry) for item in geometries):
+        raise ValueError("geometries must contain at least one TimedGateGeometry")
+    result = evaluate_planning_cost(
+        predicted_positions_world_cm,
+        actions_cm_s,
+        initial_position_world_cm=initial_position_world_cm,
+        previous_action_cm_s=previous_action_cm_s,
+        previous_previous_action_cm_s=previous_previous_action_cm_s,
+        goal_world_cm=goal_world_cm,
+        initial_scenario_time_s=initial_scenario_time_s,
+        scenario_times_s=scenario_times_s,
+        geometry=geometries[0],
+        weights=weights,
+    )
+    collision = result.collision_indicator.copy()
+    clearance = result.clearance_deficit_squared_cm2.copy()
+    total = result.total.copy()
+    for geometry in geometries[1:]:
+        extra_collision = swept_gate_collision_indicator(
+            initial_position_world_cm,
+            predicted_positions_world_cm,
+            initial_scenario_time_s=initial_scenario_time_s,
+            scenario_times_s=scenario_times_s,
+            geometry=geometry,
+        )
+        extra_clearance = clearance_deficit_squared(
+            predicted_positions_world_cm,
+            scenario_times_s=scenario_times_s,
+            geometry=geometry,
+        )
+        collision += extra_collision
+        clearance += extra_clearance
+        total += weights.collision * extra_collision
+        total += weights.clearance_per_cm2 * extra_clearance
+    return PlanningCostBreakdown(
+        result.terminal_goal_distance_cm,
+        collision,
+        clearance,
+        result.action_change_squared_cm2_s2,
+        result.action_second_difference_squared_cm2_s2,
+        total,
+    )

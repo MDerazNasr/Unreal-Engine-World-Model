@@ -76,6 +76,50 @@ bool IsTimedGateContextValid(
 			0.01);
 }
 
+bool AreTimedGateContextsEquivalent(
+	const MotionWorld::FControlTimedGateContext& Left,
+	const MotionWorld::FControlTimedGateContext& Right)
+{
+	return Left.bIsPresent == Right.bIsPresent
+		&& Left.Config.MotionType == Right.Config.MotionType
+		&& Left.Config.OriginWorldCm.Equals(Right.Config.OriginWorldCm, 0.0)
+		&& Left.Config.MotionAxisWorld.Equals(Right.Config.MotionAxisWorld, 0.0)
+		&& Left.Config.AmplitudeCm == Right.Config.AmplitudeCm
+		&& Left.Config.PeriodSeconds == Right.Config.PeriodSeconds
+		&& Left.Config.PhaseOffsetRadians == Right.Config.PhaseOffsetRadians
+		&& Left.Config.HalfExtentsCm.Equals(Right.Config.HalfExtentsCm, 0.0)
+		&& Left.Config.CrossingPlaneNormalWorld.Equals(
+			Right.Config.CrossingPlaneNormalWorld,
+			0.0)
+		&& Left.Config.TimeoutSeconds == Right.Config.TimeoutSeconds
+		&& Left.State.ScenarioTimeSeconds == Right.State.ScenarioTimeSeconds
+		&& Left.State.CenterWorldCm.Equals(Right.State.CenterWorldCm, 0.0)
+		&& Left.State.VelocityWorldCmPerSec.Equals(
+			Right.State.VelocityWorldCmPerSec,
+			0.0);
+}
+
+bool IsObstacleSetValid(const MotionWorld::FControlObservation& Observation)
+{
+	if (Observation.Obstacles.IsEmpty())
+	{
+		return true;
+	}
+	return Observation.Obstacles.Num() == 2
+		&& Observation.TimedGate.bIsPresent
+		&& Observation.Obstacles[0].ObstacleId == TEXT("gate_primary")
+		&& Observation.Obstacles[1].ObstacleId == TEXT("gate_secondary")
+		&& Observation.Obstacles[0].bIsPresent
+		&& Observation.Obstacles[1].bIsPresent
+		&& IsTimedGateContextValid(Observation.Obstacles[0])
+		&& IsTimedGateContextValid(Observation.Obstacles[1])
+		&& AreTimedGateContextsEquivalent(
+			Observation.TimedGate,
+			Observation.Obstacles[0])
+		&& Observation.Obstacles[0].State.ScenarioTimeSeconds
+			== Observation.Obstacles[1].State.ScenarioTimeSeconds;
+}
+
 const TCHAR* MaxSpeedSourceToProtocolString(
 	const EMotionWorldMaxSpeedSource Source)
 {
@@ -115,6 +159,35 @@ void WriteQuaternion(FCondensedWriter& Writer, const TCHAR* Name, const FQuat& V
 	Writer.WriteValue(Value.Z);
 	Writer.WriteValue(Value.W);
 	Writer.WriteArrayEnd();
+}
+
+void WriteTimedGateFields(
+	FCondensedWriter& Writer,
+	const MotionWorld::FControlTimedGateContext& TimedGate,
+	const bool bIncludeObstacleId)
+{
+	if (bIncludeObstacleId)
+	{
+		Writer.WriteValue(TEXT("obstacle_id"), TimedGate.ObstacleId);
+	}
+	Writer.WriteValue(TEXT("is_present"), TimedGate.bIsPresent);
+	const FMotionWorldTimedGateConfig& Config = TimedGate.Config;
+	const FMotionWorldTimedGateState& State = TimedGate.State;
+	Writer.WriteValue(TEXT("scenario_time_s"), State.ScenarioTimeSeconds);
+	Writer.WriteValue(TEXT("motion_type"), TEXT("sinusoidal_translation"));
+	WriteVector(Writer, TEXT("origin_world_cm"), Config.OriginWorldCm);
+	WriteVector(Writer, TEXT("motion_axis_world"), Config.MotionAxisWorld.GetSafeNormal());
+	Writer.WriteValue(TEXT("amplitude_cm"), Config.AmplitudeCm);
+	Writer.WriteValue(TEXT("period_s"), Config.PeriodSeconds);
+	Writer.WriteValue(TEXT("phase_offset_rad"), Config.PhaseOffsetRadians);
+	Writer.WriteValue(TEXT("timeout_s"), Config.TimeoutSeconds);
+	WriteVector(Writer, TEXT("center_world_cm"), State.CenterWorldCm);
+	WriteVector(Writer, TEXT("velocity_world_cm_per_s"), State.VelocityWorldCmPerSec);
+	WriteVector(Writer, TEXT("half_extents_cm"), Config.HalfExtentsCm);
+	WriteVector(
+		Writer,
+		TEXT("crossing_plane_normal_world"),
+		Config.CrossingPlaneNormalWorld.GetSafeNormal());
 }
 } // namespace
 
@@ -177,6 +250,7 @@ bool SerializeControlObservation(
 		|| !IsBoundedText(Context.MovementModeClass.ToString())
 		|| !IsBoundedText(Observation.ScenarioId)
 		|| !IsTimedGateContextValid(Observation.TimedGate)
+		|| !IsObstacleSetValid(Observation)
 		|| Observation.ScenarioSeed < 0
 		|| Observation.ScenarioSeed > MaxSafeJsonInteger
 		|| !IsBoundedText(Observation.ResetId))
@@ -284,39 +358,36 @@ bool SerializeControlObservation(
 	Writer->WriteValue(TEXT("is_present"), Observation.TimedGate.bIsPresent);
 	if (Observation.TimedGate.bIsPresent)
 	{
-		const FMotionWorldTimedGateConfig& GateConfig =
-			Observation.TimedGate.Config;
-		const FMotionWorldTimedGateState& GateState =
-			Observation.TimedGate.State;
-		Writer->WriteValue(
-			TEXT("scenario_time_s"),
-			GateState.ScenarioTimeSeconds);
-		Writer->WriteValue(
-			TEXT("motion_type"),
-			TEXT("sinusoidal_translation"));
+		// is_present was emitted above to preserve the exact V2 object.
+		const MotionWorld::FControlTimedGateContext Copy =
+			Observation.TimedGate;
+		const FMotionWorldTimedGateConfig& GateConfig = Copy.Config;
+		const FMotionWorldTimedGateState& GateState = Copy.State;
+		Writer->WriteValue(TEXT("scenario_time_s"), GateState.ScenarioTimeSeconds);
+		Writer->WriteValue(TEXT("motion_type"), TEXT("sinusoidal_translation"));
 		WriteVector(*Writer, TEXT("origin_world_cm"), GateConfig.OriginWorldCm);
-		WriteVector(
-			*Writer,
-			TEXT("motion_axis_world"),
-			GateConfig.MotionAxisWorld.GetSafeNormal());
+		WriteVector(*Writer, TEXT("motion_axis_world"), GateConfig.MotionAxisWorld.GetSafeNormal());
 		Writer->WriteValue(TEXT("amplitude_cm"), GateConfig.AmplitudeCm);
 		Writer->WriteValue(TEXT("period_s"), GateConfig.PeriodSeconds);
-		Writer->WriteValue(
-			TEXT("phase_offset_rad"),
-			GateConfig.PhaseOffsetRadians);
+		Writer->WriteValue(TEXT("phase_offset_rad"), GateConfig.PhaseOffsetRadians);
 		Writer->WriteValue(TEXT("timeout_s"), GateConfig.TimeoutSeconds);
 		WriteVector(*Writer, TEXT("center_world_cm"), GateState.CenterWorldCm);
-		WriteVector(
-			*Writer,
-			TEXT("velocity_world_cm_per_s"),
-			GateState.VelocityWorldCmPerSec);
+		WriteVector(*Writer, TEXT("velocity_world_cm_per_s"), GateState.VelocityWorldCmPerSec);
 		WriteVector(*Writer, TEXT("half_extents_cm"), GateConfig.HalfExtentsCm);
-		WriteVector(
-			*Writer,
-			TEXT("crossing_plane_normal_world"),
-			GateConfig.CrossingPlaneNormalWorld.GetSafeNormal());
+		WriteVector(*Writer, TEXT("crossing_plane_normal_world"), GateConfig.CrossingPlaneNormalWorld.GetSafeNormal());
 	}
 	Writer->WriteObjectEnd();
+	if (Observation.Obstacles.Num() == 2)
+	{
+		Writer->WriteArrayStart(TEXT("obstacles"));
+		for (const MotionWorld::FControlTimedGateContext& Obstacle : Observation.Obstacles)
+		{
+			Writer->WriteObjectStart();
+			WriteTimedGateFields(*Writer, Obstacle, true);
+			Writer->WriteObjectEnd();
+		}
+		Writer->WriteArrayEnd();
+	}
 	Writer->WriteObjectEnd();
 	Writer->WriteObjectStart(TEXT("scenario"));
 	Writer->WriteValue(TEXT("scenario_id"), Observation.ScenarioId);

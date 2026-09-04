@@ -20,6 +20,7 @@ from motionworld.control.controllers import build_controller
 from motionworld.control.live_moving_obstacle_config import load_live_moving_obstacle_config
 from motionworld.control.live_mpc_config import load_live_nominal_mpc_config
 from motionworld.control.live_residual_overlay_config import load_live_residual_overlay_config
+from motionworld.control.live_two_obstacle_config import load_live_two_obstacle_config
 from motionworld.protocol import (
     decode_observation_json,
     encode_action_json,
@@ -407,6 +408,11 @@ def _parser() -> argparse.ArgumentParser:
         type=Path,
         help="V2 synchronized moving-obstacle MPC plus learned comparison overlay",
     )
+    parser.add_argument(
+        "--two-obstacle-config",
+        type=Path,
+        help="V3 exactly-two-obstacle MPC plus learned comparison overlay",
+    )
     return parser
 
 
@@ -419,12 +425,13 @@ def main(argv: Sequence[str] | None = None) -> int:
             args.planner_config,
             args.residual_overlay_config,
             args.moving_obstacle_config,
+            args.two_obstacle_config,
         )
     )
     if config.controller_mode == "nominal_mpc" and supplied != 1:
         raise ValueError(
             "nominal_mpc requires --planner-config, --residual-overlay-config, or "
-            "--moving-obstacle-config (exactly one)"
+            "--moving-obstacle-config, or --two-obstacle-config (exactly one)"
         )
     if config.controller_mode != "nominal_mpc" and supplied:
         raise ValueError(
@@ -432,7 +439,12 @@ def main(argv: Sequence[str] | None = None) -> int:
             "for nominal_mpc"
         )
     repository_root = Path(__file__).resolve().parents[2]
-    if args.moving_obstacle_config is not None:
+    if args.two_obstacle_config is not None:
+        live_mpc_config = load_live_two_obstacle_config(
+            args.two_obstacle_config,
+            repository_root,
+        )
+    elif args.moving_obstacle_config is not None:
         live_mpc_config = load_live_moving_obstacle_config(
             args.moving_obstacle_config,
             repository_root,

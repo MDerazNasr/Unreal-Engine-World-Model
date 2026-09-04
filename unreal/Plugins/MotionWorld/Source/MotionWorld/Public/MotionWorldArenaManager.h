@@ -46,7 +46,8 @@ public:
 		AActor* NewTrackedAgent,
 		const FMotionWorldTimedGateConfig& NewGateConfig,
 		double ScenarioStartWorldTimeSeconds,
-		bool bNewContinueAfterSuccessPlaneCrossing = false);
+		bool bNewContinueAfterSuccessPlaneCrossing = false,
+		const FMotionWorldTimedGateConfig* NewSecondaryGateConfig = nullptr);
 
 	bool ResetArena(double ScenarioStartWorldTimeSeconds);
 
@@ -61,6 +62,12 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "MotionWorld|Arena")
 	FMotionWorldTimedGateState GetGateState() const;
+	bool HasSecondaryGate() const;
+	FMotionWorldTimedGateConfig GetSecondaryGateConfig() const
+	{
+		return SecondaryGateConfig;
+	}
+	FMotionWorldTimedGateState GetSecondaryGateState() const;
 
 private:
 	UPROPERTY(Transient)
@@ -69,7 +76,11 @@ private:
 	UPROPERTY(Transient)
 	TObjectPtr<AMotionWorldTimedGateActor> TimedGate;
 
+	UPROPERTY(Transient)
+	TObjectPtr<AMotionWorldTimedGateActor> SecondaryTimedGate;
+
 	FMotionWorldTimedGateConfig GateConfig;
+	FMotionWorldTimedGateConfig SecondaryGateConfig;
 	FMotionWorldArenaStatus ArenaStatus;
 	FVector PreviousAgentPositionWorldCm = FVector::ZeroVector;
 	bool bHasPreviousAgentPosition = false;

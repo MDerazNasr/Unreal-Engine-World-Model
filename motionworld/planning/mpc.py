@@ -21,7 +21,7 @@ from motionworld.planning.cost import (
     PlanningCostBreakdown,
     PlanningCostWeights,
     TimedGateGeometry,
-    evaluate_planning_cost,
+    evaluate_multi_obstacle_planning_cost,
 )
 from motionworld.planning.planner_rollout import (
     PlannerRollout,
@@ -44,6 +44,7 @@ class PlannerProblem:
     weights: PlanningCostWeights
     goal_world_cm: tuple[float, float]
     rollout_backend: str = "vectorized"
+    additional_geometries: tuple[TimedGateGeometry, ...] = ()
 
     def __post_init__(self) -> None:
         goal = np.asarray(self.goal_world_cm, dtype=np.float64)
@@ -58,6 +59,10 @@ class PlannerProblem:
             raise ValueError("P0 planner horizon must be exactly 1.5 seconds")
         if self.rollout_backend not in {"scalar_reference", "vectorized"}:
             raise ValueError("rollout_backend must be scalar_reference or vectorized")
+        if not isinstance(self.additional_geometries, tuple) or any(
+            not isinstance(item, TimedGateGeometry) for item in self.additional_geometries
+        ):
+            raise TypeError("additional_geometries must be a tuple of TimedGateGeometry")
 
 
 @dataclass(frozen=True, slots=True)
@@ -190,7 +195,7 @@ def plan_model(
             residual_model=residual_model,
             residual_normalization=residual_normalization,
         )
-        return evaluate_planning_cost(
+        return evaluate_multi_obstacle_planning_cost(
             rollout.positions_world_cm,
             actions_local_cm_s,
             initial_position_world_cm=initial_position,
@@ -199,7 +204,7 @@ def plan_model(
             goal_world_cm=goal,
             initial_scenario_time_s=query.scenario_time_s,
             scenario_times_s=times,
-            geometry=problem.geometry,
+            geometries=(problem.geometry, *problem.additional_geometries),
             weights=problem.weights,
         ).total
 
@@ -217,7 +222,7 @@ def plan_model(
         residual_model=residual_model,
         residual_normalization=residual_normalization,
     )
-    best_cost = evaluate_planning_cost(
+    best_cost = evaluate_multi_obstacle_planning_cost(
         best_rollout.positions_world_cm,
         best_actions,
         initial_position_world_cm=initial_position,
@@ -226,7 +231,7 @@ def plan_model(
         goal_world_cm=goal,
         initial_scenario_time_s=query.scenario_time_s,
         scenario_times_s=times,
-        geometry=problem.geometry,
+        geometries=(problem.geometry, *problem.additional_geometries),
         weights=problem.weights,
     )
     cost_reproduction_error = float(best_cost.total[0]) - cem.best_cost
