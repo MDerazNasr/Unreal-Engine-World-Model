@@ -14,7 +14,9 @@ MAX_OBSERVATION_BYTES = 16_384
 CONTROL_INTERVAL_MS = 100
 MAX_SAFE_JSON_INTEGER = 2**53 - 1
 
-CONTROLLER_MODES = frozenset({"echo", "reactive", "nominal_mpc", "residual_mpc"})
+CONTROLLER_MODES = frozenset(
+    {"echo", "reactive", "branch_preview", "nominal_mpc", "residual_mpc"}
+)
 TERMINATION_REASONS = frozenset(
     {"none", "success", "gate_collision", "timeout", "invalid_configuration"}
 )

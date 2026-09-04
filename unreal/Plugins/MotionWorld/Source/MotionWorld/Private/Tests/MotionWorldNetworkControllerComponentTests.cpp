@@ -34,6 +34,10 @@ bool FMotionWorldReactiveTargetContextTest::RunTest(const FString& Parameters)
 		HasReactiveTargetContextChanged(
 			true, Target, TerminalVelocity,
 			true, Target, TerminalVelocity + FVector2D(0.0, 1.0)));
+	TestTrue(TEXT("Configured branch-preview action is compatible"),
+		IsControlActionControllerCompatible(TEXT("branch_preview"), TEXT("branch_preview")));
+	TestFalse(TEXT("Echo action cannot enter a branch-preview episode"),
+		IsControlActionControllerCompatible(TEXT("branch_preview"), TEXT("echo")));
 
 	(void)Parameters;
 	return true;

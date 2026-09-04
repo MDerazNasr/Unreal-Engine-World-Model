@@ -1,0 +1,56 @@
+{
+  "claim_boundary": {
+    "final_prediction_episodes_opened": 0,
+    "live_telemetry_presence": "established separately by controller/protocol tests; this old Unreal log does not serialize visualization fields",
+    "visual_confirmation_required_separately": true,
+    "visual_paths_seen": false
+  },
+  "identity": {
+    "episode_id": 7401,
+    "session_id": "5CBAA02AF440"
+  },
+  "identity_reconciliation": {
+    "accepted_actions_logged": 691,
+    "accepted_identities_unique_strictly_increasing": true,
+    "contiguous_prefix_count": 260,
+    "first_contiguous_accepted_sequence": 0,
+    "last_contiguous_accepted_sequence": 259,
+    "later_missing_action_sequences": [
+      260,
+      549,
+      566,
+      569,
+      577,
+      580,
+      582,
+      605,
+      611,
+      613
+    ],
+    "observations_logged": 702
+  },
+  "reset_gate": {
+    "ordering_note": "stationary authoritative reset state precedes BeginNetworkEpisode; the reset-verified confirmation is emitted immediately after that call",
+    "pass": true,
+    "reset_state_sequence": 60
+  },
+  "schema_name": "motionworld_d4_branch_preview_live_summary",
+  "schema_version": 1,
+  "source_log": {
+    "first_audited_line": 1954,
+    "last_audited_line": 4563,
+    "path": "evidence/unreal/d4_branch_preview_live.log",
+    "sha256": "850213b8bd0d48e7c477f085ae97ba306fc3dc95fe34f5a8d166bca874e127df"
+  },
+  "unreal_end_to_end_latency_ms": {
+    "count": 691,
+    "maximum": 87.479707,
+    "median": 72.614372,
+    "p95": 76.3719365
+  },
+  "zero_hold": {
+    "all_accepted_desired_commands_exactly_zero": true,
+    "logged_authoritative_state_samples_stationary": 48,
+    "zero_matching_command_echoes": 702
+  }
+}

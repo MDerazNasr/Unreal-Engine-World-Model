@@ -16,6 +16,7 @@ import pytest
 import yaml
 
 from motionworld.control.config import ControlServiceConfig, load_control_service_config
+from motionworld.control.controllers import BranchPreviewController
 from motionworld.control.service import ControlService, safe_zero_planner
 from motionworld.protocol import (
     UdpEndpoint,
@@ -130,6 +131,31 @@ def test_service_config_loads_relative_frozen_contracts() -> None:
     assert config.controller.reactive_arrival_radius_cm == 25.0
     assert config.poll_interval_ms == 5
     assert config.max_tracked_episodes == 16
+
+
+def test_demo_branch_preview_config_is_strict_and_zero_commanded() -> None:
+    config = load_control_service_config(
+        REPOSITORY_ROOT / "configs" / "control_service_demo_branches.yaml"
+    )
+    assert config.controller_mode == "branch_preview"
+    assert config.controller.echo_velocity_local_cm_per_s == (0.0, 0.0)
+
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "motionworld.control.service",
+            "--config",
+            str(REPOSITORY_ROOT / "configs" / "control_service_demo_branches.yaml"),
+            "--check-config",
+        ],
+        cwd=REPOSITORY_ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+        timeout=10.0,
+    )
+    assert json.loads(completed.stdout)["controller_mode"] == "branch_preview"
 
 
 @pytest.mark.parametrize(
@@ -341,6 +367,57 @@ def test_newer_observation_cancels_old_plan_and_only_new_action_is_sent() -> Non
             "episode_id": 7101,
             "source_observation_sequence": 2,
         }
+        with pytest.raises(BlockingIOError):
+            sender.recvfrom(config.transport.max_action_datagram_bytes)
+    finally:
+        service.close()
+        sender.close()
+
+
+def test_real_branch_preview_service_publishes_only_latest_zero_action() -> None:
+    config = _config(mode="branch_preview")
+    service = ControlService(config, BranchPreviewController(config.controller))
+    sender = _sender(config)
+    try:
+        service.start()
+        _send_observation(sender, config, _observation(sequence=1, mode="branch_preview"))
+        _send_observation(sender, config, _observation(sequence=2, mode="branch_preview"))
+        snapshot = _pump_until(service, lambda state: state.actions_sent == 1)
+        assert snapshot.superseded_plans >= 1
+        assert select.select([sender], [], [], 1.0)[0]
+        payload, _ = sender.recvfrom(config.transport.max_action_datagram_bytes)
+        action = decode_action_json(payload)
+        assert action["identity"] == {
+            "episode_id": 7101,
+            "source_observation_sequence": 2,
+        }
+        assert action["command"]["desired_velocity_local_cm_per_s"] == [0.0, 0.0]
+        assert action["controller"]["controller_id"] == "branch_preview"
+        assert action["telemetry"]["is_present"] is True
+        with pytest.raises(BlockingIOError):
+            sender.recvfrom(config.transport.max_action_datagram_bytes)
+    finally:
+        service.close()
+        sender.close()
+
+
+def test_service_rejects_planner_action_from_wrong_controller() -> None:
+    config = _config(mode="branch_preview")
+
+    def wrong_controller(observation, cancelled):
+        action = safe_zero_planner(observation, cancelled)
+        assert action is not None
+        action["controller"]["controller_id"] = "echo"
+        return action
+
+    service = ControlService(config, wrong_controller)
+    sender = _sender(config)
+    try:
+        service.start()
+        _send_observation(sender, config, _observation(mode="branch_preview"))
+        snapshot = _pump_until(service, lambda state: state.send_errors == 1)
+        assert snapshot.actions_sent == 0
+        assert snapshot.recent_rejections == ("action_rejected:ValueError",)
         with pytest.raises(BlockingIOError):
             sender.recvfrom(config.transport.max_action_datagram_bytes)
     finally:

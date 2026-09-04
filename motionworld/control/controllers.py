@@ -9,6 +9,8 @@ from dataclasses import dataclass
 from typing import Any
 
 from motionworld.control.config import ControllerConfig
+from motionworld.control.demo_telemetry import generate_live_branch_visualization
+from motionworld.control.live_planner_adapter import planner_snapshot_from_observation
 
 Observation = dict[str, Any]
 Action = dict[str, Any] | None
@@ -161,11 +163,44 @@ class ReactiveController:
         )
 
 
-def build_controller(mode: str, config: ControllerConfig) -> EchoController | ReactiveController:
-    """Construct only the R2 proof controllers; MPC modes require their later session state."""
+@dataclass(frozen=True, slots=True)
+class BranchPreviewController:
+    """Visualize genuine nominal futures while commanding zero desired velocity."""
+
+    config: ControllerConfig
+
+    def __call__(self, observation: Observation, cancelled: threading.Event) -> Action:
+        if cancelled.is_set():
+            return None
+        started_us = time.monotonic_ns() // 1_000
+        live_snapshot = planner_snapshot_from_observation(observation)
+        if cancelled.is_set():
+            return None
+        visualization = generate_live_branch_visualization(live_snapshot)
+        if cancelled.is_set():
+            return None
+        action = _action(
+            observation,
+            (0.0, 0.0),
+            model_id="nominal_branch_preview_v1",
+            started_us=started_us,
+        )
+        action["telemetry"] = {
+            "is_present": True,
+            "visualization": visualization.to_json_object(),
+        }
+        return action
+
+
+def build_controller(
+    mode: str, config: ControllerConfig
+) -> EchoController | ReactiveController | BranchPreviewController:
+    """Construct bounded live controllers; MPC modes require their later session state."""
 
     if mode == "echo":
         return EchoController(config)
     if mode == "reactive":
         return ReactiveController(config)
+    if mode == "branch_preview":
+        return BranchPreviewController(config)
     raise ValueError(f"controller mode {mode!r} is not implemented by the R2 service")

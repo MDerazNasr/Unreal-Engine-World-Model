@@ -320,6 +320,7 @@ class ControlService:
                 completion.result,
                 expected_episode_id=episode,
                 expected_observation_sequence=sequence,
+                expected_controller_id=self._config.controller_mode,
             )
             payload = encode_action_json(action)
             assert self._socket is not None

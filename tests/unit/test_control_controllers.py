@@ -8,8 +8,18 @@ from pathlib import Path
 import pytest
 
 from motionworld.control.config import ControllerConfig, load_control_service_config
-from motionworld.control.controllers import EchoController, ReactiveController, build_controller
-from motionworld.protocol import decode_observation_json, validate_action_mapping
+from motionworld.control.controllers import (
+    BranchPreviewController,
+    EchoController,
+    ReactiveController,
+    build_controller,
+)
+from motionworld.protocol import (
+    MAX_ACTION_BYTES,
+    decode_observation_json,
+    encode_action_json,
+    validate_action_mapping,
+)
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 SERVICE_CONFIG_PATH = REPOSITORY_ROOT / "configs" / "control_service.yaml"
@@ -159,8 +169,83 @@ def test_controllers_are_stateless_across_episode_reset() -> None:
 def test_factory_rejects_mpc_modes_until_their_stateful_runtime_gate() -> None:
     assert isinstance(build_controller("echo", _config()), EchoController)
     assert isinstance(build_controller("reactive", _config()), ReactiveController)
+    assert isinstance(build_controller("branch_preview", _config()), BranchPreviewController)
     with pytest.raises(ValueError, match="not implemented"):
         build_controller("nominal_mpc", _config())
+
+
+def test_branch_preview_holds_execution_and_emits_authentic_identity_bound_branches() -> None:
+    observation = _observation(mode="branch_preview")
+    action = BranchPreviewController(_config())(observation, threading.Event())
+    assert action is not None
+    validated = validate_action_mapping(action)
+    assert validated["command"]["desired_velocity_local_cm_per_s"] == [0.0, 0.0]
+    assert validated["controller"] == {
+        "controller_id": "branch_preview",
+        "model_id": "nominal_branch_preview_v1",
+    }
+    visualization = validated["telemetry"]["visualization"]
+    assert visualization["identity"] == validated["identity"]
+    assert [path["role"] for path in visualization["paths"]] == [
+        "branch_forward",
+        "branch_left",
+        "branch_right",
+        "branch_stop",
+    ]
+    starts = [path["points_world_xy_cm"][0] for path in visualization["paths"]]
+    assert starts == [observation["state"]["position_world_cm"][:2]] * 4
+    endpoints = [path["points_world_xy_cm"][-1] for path in visualization["paths"]]
+    assert len({tuple(point) for point in endpoints}) == 4
+    assert len(encode_action_json(validated)) <= MAX_ACTION_BYTES
+
+
+def test_branch_preview_honors_cancellation_before_rollout() -> None:
+    cancelled = threading.Event()
+    cancelled.set()
+    assert BranchPreviewController(_config())(
+        _observation(mode="branch_preview"), cancelled
+    ) is None
+
+
+def test_branch_preview_honors_cancellation_after_snapshot_conversion(monkeypatch) -> None:
+    cancelled = threading.Event()
+    from motionworld.control import controllers
+
+    real_convert = controllers.planner_snapshot_from_observation
+
+    def convert_then_cancel(observation):
+        result = real_convert(observation)
+        cancelled.set()
+        return result
+
+    monkeypatch.setattr(controllers, "planner_snapshot_from_observation", convert_then_cancel)
+    assert BranchPreviewController(_config())(
+        _observation(mode="branch_preview"), cancelled
+    ) is None
+
+
+def test_branch_preview_honors_cancellation_after_rollout(monkeypatch) -> None:
+    cancelled = threading.Event()
+    from motionworld.control import controllers
+
+    real_generate = controllers.generate_live_branch_visualization
+
+    def generate_then_cancel(snapshot):
+        result = real_generate(snapshot)
+        cancelled.set()
+        return result
+
+    monkeypatch.setattr(controllers, "generate_live_branch_visualization", generate_then_cancel)
+    assert BranchPreviewController(_config())(
+        _observation(mode="branch_preview"), cancelled
+    ) is None
+
+
+def test_branch_preview_fails_closed_on_malformed_observation() -> None:
+    observation = _observation(mode="branch_preview")
+    observation["state"]["position_world_cm"][0] = float("nan")
+    with pytest.raises(ValueError):
+        BranchPreviewController(_config())(observation, threading.Event())
 
 
 @pytest.mark.parametrize(

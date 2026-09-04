@@ -49,6 +49,19 @@ a deadline safe stop clears prediction while preserving the same-episode actual 
 actual-sample deployment, the universal Editor build, and the full `MotionWorld.` automation suite
 pass. On-screen path alignment remains deliberately open until D4 emits live branch telemetry.
 
+D4 checkpoint: the live `branch_preview` controller now emits four authentic nominal-model futures
+from each current authoritative observation while deliberately commanding exact zero desired
+velocity. Python and Unreal bind the controller identity and accept only the synchronized strict
+telemetry variants. In session `5CBAA02AF440`, episode 7401, Unreal logged 702 contiguous
+observations and 691 unique, increasing admitted actions; every admitted command and all 702 command
+echoes were exactly zero, 48 authoritative samples remained stationary, and end-to-end latency was
+72.614 ms median / 76.372 ms p95 / 87.480 ms maximum. The initial admitted prefix is contiguous
+through action 259; ten later action identities are absent and are disclosed rather than presented
+as a zero-gap run. Code, cross-language automation, and live admission establish the telemetry path,
+but the preserved log does not contain pixels; the distinct-color rendering checkbox stays open
+until a person confirms the paths on screen. The reversible demo configuration was restored after
+the run, and episodes 5301/5302 remained sealed.
+
 ## Sprint 3 — Show planning and reality
 
 - [ ] Render faint CEM candidates and one prominent selected trajectory.

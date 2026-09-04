@@ -2582,3 +2582,34 @@ changed contexts. The final eight deployed source files match the repository by 
 universal Editor build succeeds; and the full actual-sample `MotionWorld.` suite exits zero. Evidence
 is `evidence/unreal/d3_visualization_state_automation.log`. Live on-screen alignment remains a D4
 claim, not a D3 claim, and episodes 5301/5302 remain sealed.
+
+## D-073 - Separate live counterfactual preview from control selection
+
+Status: accepted through synchronized code, actual-sample automation, and bounded live evidence
+
+Decision: Introduce `branch_preview` as an explicitly non-controlling demo mode. For every current
+authoritative observation it uses the nominal production rollout to generate fixed forward, left,
+right, and stop futures, but publishes exact zero desired velocity. Bind the action's controller ID
+to the configured service and Unreal mode before runtime admission. Permit exactly the legacy-only,
+visualization-only, or combined strict telemetry forms, plus the exact absent form. Treat this as a
+synchronized current-peer extension of schema-v1 vocabulary: Python and Unreal must be deployed
+together, and compatibility with an older peer is not claimed.
+
+Why: The first visual checkpoint needs to prove genuine action-conditioned imagination before CEM
+selection and physical execution are introduced. Keeping the command at zero makes that boundary
+observable and auditable: alternatives can be generated without implying that the preview chose or
+executed one. Explicit controller ownership prevents a structurally valid action from the wrong mode
+from crossing the admission seam.
+
+How it is tested: Unit and service tests cover stateless observation conversion, authentic common-
+start/distinct-endpoint rollouts, exact-zero commands, cancellation and latest-only supersession,
+strict telemetry variants, malformed inputs, and wrong-controller rejection. Python and Unreal
+cross-language fixtures agree, the exact-source universal Editor build succeeds, and all 19
+`MotionWorld.` automation tests pass. In live session `5CBAA02AF440`, episode 7401, 691 unique
+increasing actions were admitted from 702 contiguous observations; all admitted commands and 702
+echoes were exact zero, 48 authoritative samples stayed stationary, and p95 end-to-end latency was
+76.372 ms. The initial accepted prefix is zero-gap through 259 and ten later identities are missing,
+so this is not reused as a consecutive-round-trip claim. The live summary is
+`artifacts/demo/d4_branch_preview_live/summary.json`. Because the log does not serialize the visual
+payload or pixels, on-screen colored-path confirmation remains separate. Episodes 5301/5302 remain
+sealed.

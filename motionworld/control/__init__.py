@@ -5,11 +5,17 @@ from motionworld.control.config import (
     ControlServiceConfig,
     load_control_service_config,
 )
-from motionworld.control.controllers import EchoController, ReactiveController, build_controller
+from motionworld.control.controllers import (
+    BranchPreviewController,
+    EchoController,
+    ReactiveController,
+    build_controller,
+)
 
 __all__ = [
     "ControllerConfig",
     "ControlServiceConfig",
+    "BranchPreviewController",
     "EchoController",
     "ReactiveController",
     "build_controller",

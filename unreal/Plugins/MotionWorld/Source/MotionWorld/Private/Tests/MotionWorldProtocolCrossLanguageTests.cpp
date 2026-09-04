@@ -109,6 +109,47 @@ TArray<uint8> AttachVisualization(
 	return Utf8Bytes(Text);
 }
 
+TArray<uint8> RewriteTelemetry(
+	const TArray<uint8>& ActionBytes,
+	const TSharedPtr<FJsonObject>& Visualization,
+	const bool bKeepTrajectory,
+	const bool bKeepCosts,
+	const bool bAddUnknownField = false)
+{
+	TSharedPtr<FJsonObject> Action;
+	const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Utf8Text(ActionBytes));
+	if (!FJsonSerializer::Deserialize(Reader, Action) || !Action.IsValid())
+	{
+		return {};
+	}
+	const TSharedPtr<FJsonObject>* Telemetry = nullptr;
+	if (!Action->TryGetObjectField(TEXT("telemetry"), Telemetry) || !Telemetry || !Telemetry->IsValid())
+	{
+		return {};
+	}
+	if (!bKeepTrajectory)
+	{
+		(*Telemetry)->RemoveField(TEXT("selected_desired_velocity_trajectory_local_cm_per_s"));
+	}
+	if (!bKeepCosts)
+	{
+		(*Telemetry)->RemoveField(TEXT("cost_breakdown"));
+	}
+	(*Telemetry)->SetObjectField(TEXT("visualization"), Visualization);
+	if (bAddUnknownField)
+	{
+		(*Telemetry)->SetStringField(TEXT("unknown"), TEXT("rejected"));
+	}
+	FString Text;
+	const TSharedRef<TJsonWriter<TCHAR, TCondensedJsonPrintPolicy<TCHAR>>> Writer =
+		TJsonWriterFactory<TCHAR, TCondensedJsonPrintPolicy<TCHAR>>::Create(&Text);
+	if (!FJsonSerializer::Serialize(Action.ToSharedRef(), Writer))
+	{
+		return {};
+	}
+	return Utf8Bytes(Text);
+}
+
 int32 CompactJsonUtf8Size(const TSharedPtr<FJsonObject>& Object)
 {
 	FString Text;
@@ -222,6 +263,37 @@ bool FMotionWorldProtocolCrossLanguageTest::RunTest(const FString& Parameters)
 			3);
 	}
 
+	TArray<uint8> VisualizationOnlyActionBytes = RewriteTelemetry(
+		ActionBytes,
+		MakeVisualizationFixture(),
+		false,
+		false);
+	FString VisualizationOnlyActionText = Utf8Text(VisualizationOnlyActionBytes);
+	VisualizationOnlyActionText.ReplaceInline(
+		TEXT("\"controller_id\":\"nominal_mpc\""),
+		TEXT("\"controller_id\":\"branch_preview\""));
+	VisualizationOnlyActionBytes = Utf8Bytes(VisualizationOnlyActionText);
+	FControlAction VisualizationOnlyAction;
+	TestTrue(
+		TEXT("Visualization-only present telemetry is admitted"),
+		ParseAndValidateControlAction(
+			VisualizationOnlyActionBytes,
+			7101,
+			12,
+			false,
+			VisualizationOnlyAction,
+			Rejection));
+	TestTrue(TEXT("Visualization-only telemetry remains present"), VisualizationOnlyAction.bHasTelemetry);
+	TestTrue(TEXT("Visualization-only payload carries visualization"), VisualizationOnlyAction.bHasVisualization);
+	TestEqual(
+		TEXT("Branch-preview controller identity is admitted"),
+		VisualizationOnlyAction.ControllerId,
+		FString(TEXT("branch_preview")));
+	TestEqual(
+		TEXT("Visualization-only payload has no legacy trajectory"),
+		VisualizationOnlyAction.SelectedTrajectoryLocalCmPerSec.Num(),
+		0);
+
 	FControlAction ZeroAction;
 	TestTrue(
 		TEXT("Zero/boundary action is admitted"),
@@ -282,6 +354,15 @@ bool FMotionWorldProtocolCrossLanguageTest::RunTest(const FString& Parameters)
 			*FString::Printf(TEXT("%s diagnostic is bounded"), What),
 			FCString::Strlen(LexToString(Actual)) <= 32);
 	};
+
+	ExpectRejection(
+		TEXT("Partial present telemetry"),
+		RewriteTelemetry(ActionBytes, MakeVisualizationFixture(), true, false),
+		EControlActionRejection::InvalidSchema);
+	ExpectRejection(
+		TEXT("Unknown present telemetry field"),
+		RewriteTelemetry(ActionBytes, MakeVisualizationFixture(), false, false, true),
+		EControlActionRejection::InvalidSchema);
 
 	TArray<uint8> InvalidUtf8 = {0xff};
 	ExpectRejection(TEXT("Invalid UTF-8"), InvalidUtf8, EControlActionRejection::InvalidUtf8);

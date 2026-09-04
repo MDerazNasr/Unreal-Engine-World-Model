@@ -422,69 +422,78 @@ bool ParseTelemetry(const TSharedPtr<FJsonObject>& Object, FControlAction& OutAc
 	{
 		return HasExactKeys(Object, {TEXT("is_present")});
 	}
-	const bool bHasVisualization = Object->HasField(TEXT("visualization"));
-	if (!(HasExactKeys(Object, {
+	const bool bLegacyOnly = HasExactKeys(Object, {
 		TEXT("is_present"),
 		TEXT("selected_desired_velocity_trajectory_local_cm_per_s"),
-		TEXT("cost_breakdown")})
-		|| HasExactKeys(Object, {
+		TEXT("cost_breakdown")});
+	const bool bVisualizationOnly = HasExactKeys(Object, {
+		TEXT("is_present"),
+		TEXT("visualization")});
+	const bool bCombined = HasExactKeys(Object, {
 			TEXT("is_present"),
 			TEXT("selected_desired_velocity_trajectory_local_cm_per_s"),
 			TEXT("cost_breakdown"),
-			TEXT("visualization")})))
+			TEXT("visualization")});
+	if (!bLegacyOnly && !bVisualizationOnly && !bCombined)
 	{
 		return false;
 	}
-	const TArray<TSharedPtr<FJsonValue>>* Trajectory = nullptr;
-	if (!Object->TryGetArrayField(
-		TEXT("selected_desired_velocity_trajectory_local_cm_per_s"),
-		Trajectory)
-		|| !Trajectory
-		|| Trajectory->IsEmpty()
-		|| Trajectory->Num() > MaxControlTrajectorySteps)
+	if (bLegacyOnly || bCombined)
 	{
-		return false;
-	}
-	for (const TSharedPtr<FJsonValue>& Step : *Trajectory)
-	{
-		const TArray<TSharedPtr<FJsonValue>>* Components = nullptr;
-		if (!Step.IsValid() || !Step->TryGetArray(Components) || !Components || Components->Num() != 2)
+		const TArray<TSharedPtr<FJsonValue>>* Trajectory = nullptr;
+		if (!Object->TryGetArrayField(
+			TEXT("selected_desired_velocity_trajectory_local_cm_per_s"),
+			Trajectory)
+			|| !Trajectory
+			|| Trajectory->IsEmpty()
+			|| Trajectory->Num() > MaxControlTrajectorySteps)
 		{
 			return false;
 		}
-		double X = 0.0;
-		double Y = 0.0;
-		if (!(*Components)[0]->TryGetNumber(X) || !(*Components)[1]->TryGetNumber(Y)
-			|| !FMath::IsFinite(X) || !FMath::IsFinite(Y))
+		for (const TSharedPtr<FJsonValue>& Step : *Trajectory)
 		{
-			return false;
+			const TArray<TSharedPtr<FJsonValue>>* Components = nullptr;
+			if (!Step.IsValid() || !Step->TryGetArray(Components) || !Components || Components->Num() != 2)
+			{
+				return false;
+			}
+			double X = 0.0;
+			double Y = 0.0;
+			if (!(*Components)[0]->TryGetNumber(X) || !(*Components)[1]->TryGetNumber(Y)
+				|| !FMath::IsFinite(X) || !FMath::IsFinite(Y))
+			{
+				return false;
+			}
+			OutAction.SelectedTrajectoryLocalCmPerSec.Emplace(X, Y);
 		}
-		OutAction.SelectedTrajectoryLocalCmPerSec.Emplace(X, Y);
-	}
 
-	TSharedPtr<FJsonObject> Costs;
-	if (!GetObject(Object, TEXT("cost_breakdown"), Costs)
-		|| !HasExactKeys(Costs, {
-			TEXT("terminal_goal_distance_cm"),
-			TEXT("collision_indicator"),
-			TEXT("clearance_deficit_squared_cm2"),
-			TEXT("action_change_squared_cm2_s2"),
-			TEXT("action_second_difference_squared_cm2_s2"),
-			TEXT("total")}))
-	{
-		return false;
+		TSharedPtr<FJsonObject> Costs;
+		if (!GetObject(Object, TEXT("cost_breakdown"), Costs)
+			|| !HasExactKeys(Costs, {
+				TEXT("terminal_goal_distance_cm"),
+				TEXT("collision_indicator"),
+				TEXT("clearance_deficit_squared_cm2"),
+				TEXT("action_change_squared_cm2_s2"),
+				TEXT("action_second_difference_squared_cm2_s2"),
+				TEXT("total")}))
+		{
+			return false;
+		}
+		auto& Result = OutAction.CostBreakdown;
+		if (!GetFiniteNumber(Costs, TEXT("terminal_goal_distance_cm"), Result.TerminalGoalDistanceCm, 0.0)
+			|| !GetFiniteNumber(Costs, TEXT("collision_indicator"), Result.CollisionIndicator, 0.0)
+			|| (Result.CollisionIndicator != 0.0 && Result.CollisionIndicator != 1.0)
+			|| !GetFiniteNumber(Costs, TEXT("clearance_deficit_squared_cm2"), Result.ClearanceDeficitSquaredCm2, 0.0)
+			|| !GetFiniteNumber(Costs, TEXT("action_change_squared_cm2_s2"), Result.ActionChangeSquaredCm2PerS2, 0.0)
+			|| !GetFiniteNumber(Costs, TEXT("action_second_difference_squared_cm2_s2"), Result.ActionSecondDifferenceSquaredCm2PerS2, 0.0)
+			|| !GetFiniteNumber(Costs, TEXT("total"), Result.Total, 0.0))
+		{
+			return false;
+		}
 	}
-	auto& Result = OutAction.CostBreakdown;
-	const bool bCostsValid = GetFiniteNumber(Costs, TEXT("terminal_goal_distance_cm"), Result.TerminalGoalDistanceCm, 0.0)
-		&& GetFiniteNumber(Costs, TEXT("collision_indicator"), Result.CollisionIndicator, 0.0)
-		&& (Result.CollisionIndicator == 0.0 || Result.CollisionIndicator == 1.0)
-		&& GetFiniteNumber(Costs, TEXT("clearance_deficit_squared_cm2"), Result.ClearanceDeficitSquaredCm2, 0.0)
-		&& GetFiniteNumber(Costs, TEXT("action_change_squared_cm2_s2"), Result.ActionChangeSquaredCm2PerS2, 0.0)
-		&& GetFiniteNumber(Costs, TEXT("action_second_difference_squared_cm2_s2"), Result.ActionSecondDifferenceSquaredCm2PerS2, 0.0)
-		&& GetFiniteNumber(Costs, TEXT("total"), Result.Total, 0.0);
-	if (!bCostsValid || !bHasVisualization)
+	if (bLegacyOnly)
 	{
-		return bCostsValid;
+		return true;
 	}
 	TSharedPtr<FJsonObject> Visualization;
 	if (!GetObject(Object, TEXT("visualization"), Visualization)
@@ -556,6 +565,7 @@ bool ParseSchema(const TSharedPtr<FJsonObject>& Root, FControlAction& OutAction)
 		|| !GetBoundedString(Controller, TEXT("model_id"), OutAction.ModelId)
 		|| !(OutAction.ControllerId == TEXT("echo")
 			|| OutAction.ControllerId == TEXT("reactive")
+			|| OutAction.ControllerId == TEXT("branch_preview")
 			|| OutAction.ControllerId == TEXT("nominal_mpc")
 			|| OutAction.ControllerId == TEXT("residual_mpc")))
 	{

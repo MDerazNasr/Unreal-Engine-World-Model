@@ -799,6 +799,28 @@ until the episode itself changes.
 Examiner assessment: Not passed. Require an unaided explanation that distinguishes conditional
 future state from immutable realized evidence and identifies same-episode versus episode boundaries.
 
+### Q31 - Is the four-branch preview MPC, and why does it command zero?
+
+Question: If the system evaluates forward, left, right, and stop futures, why is that not already
+model-predictive control, and what does exact-zero desired velocity prove?
+
+Candidate answer: Not yet attempted.
+
+Teacher reference answer: The preview performs the imagination half of model-predictive control but
+not the optimization-and-execution half. It takes one collision-finalized Unreal state, applies four
+predefined counterfactual action sequences to the same nominal transition model, and displays the
+resulting futures. It does not score those paths with the task cost, select the best one, or execute
+its first action; the outer action deliberately carries exact-zero desired velocity. The live run
+therefore proves that current identity-bound model futures can traverse the real service and Unreal
+admission path while the authoritative pawn remains stationary. Zero desired velocity means zero
+requested control, not an instantaneous physical freeze: a moving character could still decelerate
+according to the dynamics. This run began from a verified settled reset, so all sampled state stayed
+stationary. The next MPC checkpoint must add candidates, costs, a selected trajectory, first-action-
+only execution, reobservation, and replanning before I can call the closed loop MPC.
+
+Examiner assessment: Not passed. Require an unaided distinction between counterfactual rollout,
+optimization, first-action execution, and replanning, including zero-input braking semantics.
+
 ## 7. Day 1 closeout answers to practise
 
 These are study answers, not passed candidate teach-backs yet.

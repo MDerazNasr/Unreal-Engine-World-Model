@@ -7,7 +7,10 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from motionworld.control.live_planner_adapter import LivePlannerSnapshotAdapter
+from motionworld.control.live_planner_adapter import (
+    LivePlannerSnapshotAdapter,
+    planner_snapshot_from_observation,
+)
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 OBSERVATION_FIXTURE = (
@@ -244,3 +247,29 @@ def test_input_is_detached_from_planner_arrays() -> None:
     result = LivePlannerSnapshotAdapter().adapt(value)
     value["state"]["position_world_cm"][0] = 999.0
     assert result.snapshot.observable.position_world_cm[0] == 10.0
+
+
+def test_stateless_conversion_can_join_mid_episode_for_branch_preview() -> None:
+    result = planner_snapshot_from_observation(_observation(17))
+
+    assert (result.episode_id, result.observation_sequence) == (7101, 17)
+    assert result.previous_action_local_cm_s == (117.0, -17.0)
+    assert result.has_contiguous_action_history is False
+    with pytest.raises(ValueError, match="requires contiguous action history"):
+        result.to_planner_query()
+
+
+def test_stateless_conversion_has_no_cross_packet_contiguity_dependency() -> None:
+    later = planner_snapshot_from_observation(_observation(8))
+    earlier = planner_snapshot_from_observation(_observation(3, episode_id=7000))
+
+    assert later.observation_sequence == 8
+    assert (earlier.episode_id, earlier.observation_sequence) == (7000, 3)
+
+
+def test_stateless_conversion_retains_strict_observation_and_planner_validation() -> None:
+    malformed = _observation(4)
+    malformed["state"]["velocity_local_planar_cm_per_s"] = [0.0, 100.0]
+
+    with pytest.raises(ValueError, match="velocities disagree"):
+        planner_snapshot_from_observation(malformed)

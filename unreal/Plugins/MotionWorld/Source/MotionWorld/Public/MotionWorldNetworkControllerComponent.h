@@ -20,6 +20,11 @@ MOTIONWORLD_API bool HasReactiveTargetContextChanged(
 	bool bNewTargetPresent,
 	const FVector& NewTargetWorldCm,
 	const FVector2D& NewTerminalVelocityLocalCmPerSec);
+
+/** Actions are admitted only from the controller configured for this episode. */
+MOTIONWORLD_API bool IsControlActionControllerCompatible(
+	const FString& ConfiguredControllerMode,
+	const FString& ActionControllerId);
 }
 
 USTRUCT(BlueprintType)

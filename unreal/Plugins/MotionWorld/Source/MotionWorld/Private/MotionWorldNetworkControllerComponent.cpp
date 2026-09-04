@@ -481,6 +481,14 @@ void UMotionWorldNetworkControllerComponent::PollActions(
 			}
 			continue;
 		}
+		if (!MotionWorld::IsControlActionControllerCompatible(
+			ControllerMode,
+			Action.ControllerId))
+		{
+			++ControllerStats.RejectedActions;
+			++ControllerStats.MalformedActions;
+			continue;
+		}
 		const MotionWorld::FNetworkCommandUpdate Update = Runtime.AcceptAction(
 			Action.EpisodeId,
 			Action.SourceObservationSequence,
@@ -613,6 +621,17 @@ bool UMotionWorldNetworkControllerComponent::IsSupportedControllerMode(
 {
 	return Value == TEXT("echo")
 		|| Value == TEXT("reactive")
+		|| Value == TEXT("branch_preview")
 		|| Value == TEXT("nominal_mpc")
 		|| Value == TEXT("residual_mpc");
 }
+
+namespace MotionWorld
+{
+bool IsControlActionControllerCompatible(
+	const FString& ConfiguredControllerMode,
+	const FString& ActionControllerId)
+{
+	return ConfiguredControllerMode == ActionControllerId;
+}
+} // namespace MotionWorld

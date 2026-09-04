@@ -2310,3 +2310,39 @@ service does not emit visualization-only telemetry until D4. The target test dir
 context comparator; full component behavior is additionally reviewed from the active-runtime code
 path but is not asserted by a component integration test. Episode IDs remain required to be unique.
 Final prediction episodes 5301 and 5302 remained sealed.
+
+## DEMO-D4-001 — live identity-safe branch preview with zero control
+
+**Question:** Can the real Unreal/Python round trip continuously transport authentic
+action-conditioned futures without moving the pawn or weakening stale-action and deadline safety?
+
+**Method:** Add a dedicated `branch_preview` controller that converts each current authoritative
+observation into an independent stateless planner snapshot, rolls fixed forward, left, right, and
+stop sequences through the nominal production model, attaches those futures to the corresponding
+identity-bound action, and requests exact zero desired velocity. Bind the configured controller name
+on both Python and Unreal so an action from another controller fails before runtime admission. Apply
+a frozen, hashed, reversible Blueprint configuration for nonsealed episode 7401, run the service and
+actual Game Animation Sample, preserve the complete log, restore the original Blueprint settings,
+and audit only the declared session and episode.
+
+**Result:** Session `5CBAA02AF440`, episode 7401 contains 702 contiguous observations and 691
+accepted actions with unique, strictly increasing source identities. Actions 0-259 form a contiguous
+accepted prefix; later accepted identities omit 260, 549, 566, 569, 577, 580, 582, 605, 611, and
+613. Every accepted desired command was exactly `(0,0)`, all 702 logged command echoes were exact
+zero and matching, and all 48 logged authoritative state samples retained the same position with
+zero linear and angular velocity. Unreal end-to-end latency was 72.614 ms median, 76.372 ms p95,
+and 87.480 ms maximum over 691 admitted actions. The exact preserved log has SHA-256
+`850213b8bd0d48e7c477f085ae97ba306fc3dc95fe34f5a8d166bca874e127df`; the machine audit is
+`artifacts/demo/d4_branch_preview_live/summary.json`. Full Python, protocol, exact-source build, and
+Unreal automation gates are recorded separately in
+`evidence/unreal/d4_branch_preview_protocol_automation.log`.
+
+**Claim boundary:** This proves live current-identity admission, safe zero hold, and bounded runtime
+latency for the `branch_preview` path. Controller and cross-language tests prove that the emitted
+actions contain the authentic four-branch visualization, while the live Unreal log predates explicit
+visualization-field logging and therefore cannot itself prove what pixels appeared. No on-screen
+rendering claim is made until a human confirms it. This is a synchronized extension to the current
+Python and Unreal schema-v1 vocabulary; it is not backward compatible with an older peer that does
+not recognize `branch_preview` or visualization-only telemetry. It is a counterfactual preview, not
+MPC: it evaluates alternatives but chooses none and commands zero. Episodes 5301/5302 were not
+opened.

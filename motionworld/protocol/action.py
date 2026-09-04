@@ -110,25 +110,31 @@ def _validate_telemetry(
         "selected_desired_velocity_trajectory_local_cm_per_s",
         "cost_breakdown",
     }
-    visualization_keys = legacy_keys | {"visualization"}
-    if set(telemetry) not in (legacy_keys, visualization_keys):
+    visualization_only_keys = {"is_present", "visualization"}
+    combined_keys = legacy_keys | {"visualization"}
+    telemetry_keys = set(telemetry)
+    if telemetry_keys not in (legacy_keys, visualization_only_keys, combined_keys):
         raise ValueError(
-            f"telemetry keys must be exactly {sorted(legacy_keys)} or {sorted(visualization_keys)}"
+            "telemetry keys must be exactly one of "
+            f"{sorted(legacy_keys)}, {sorted(visualization_only_keys)}, "
+            f"or {sorted(combined_keys)}"
         )
-    trajectory = telemetry["selected_desired_velocity_trajectory_local_cm_per_s"]
-    if not isinstance(trajectory, list) or not 1 <= len(trajectory) <= MAX_TRAJECTORY_STEPS:
-        raise ValueError(
-            f"telemetry selected trajectory must contain between 1 and {MAX_TRAJECTORY_STEPS} steps"
-        )
-    for index, action in enumerate(trajectory):
-        _vector2(action, f"telemetry.selected_trajectory[{index}]")
+    if telemetry_keys != visualization_only_keys:
+        trajectory = telemetry["selected_desired_velocity_trajectory_local_cm_per_s"]
+        if not isinstance(trajectory, list) or not 1 <= len(trajectory) <= MAX_TRAJECTORY_STEPS:
+            raise ValueError(
+                "telemetry selected trajectory must contain between "
+                f"1 and {MAX_TRAJECTORY_STEPS} steps"
+            )
+        for index, action in enumerate(trajectory):
+            _vector2(action, f"telemetry.selected_trajectory[{index}]")
 
-    costs = _mapping(telemetry["cost_breakdown"], "telemetry.cost_breakdown")
-    _keys(costs, COST_KEYS, "telemetry.cost_breakdown")
-    for key, component in costs.items():
-        value_number = _number(component, f"telemetry.cost_breakdown.{key}", minimum=0.0)
-        if key == "collision_indicator" and value_number not in (0.0, 1.0):
-            raise ValueError("telemetry cost collision_indicator must be zero or one")
+        costs = _mapping(telemetry["cost_breakdown"], "telemetry.cost_breakdown")
+        _keys(costs, COST_KEYS, "telemetry.cost_breakdown")
+        for key, component in costs.items():
+            value_number = _number(component, f"telemetry.cost_breakdown.{key}", minimum=0.0)
+            if key == "collision_indicator" and value_number not in (0.0, 1.0):
+                raise ValueError("telemetry cost collision_indicator must be zero or one")
 
     if "visualization" in telemetry:
         # Imported lazily because visualization imports the outer action
@@ -223,6 +229,7 @@ def validate_action_for_observation(
     *,
     expected_episode_id: int,
     expected_observation_sequence: int,
+    expected_controller_id: str | None = None,
     accepted_source_sequences: Collection[int] = (),
 ) -> dict[str, Any]:
     """Validate packet content and admit it only for the current unanswered observation."""
@@ -240,6 +247,11 @@ def validate_action_for_observation(
         raise ValueError("action source observation sequence is stale")
     if source_sequence in accepted_source_sequences:
         raise ValueError("action source observation sequence was already accepted")
+    if (
+        expected_controller_id is not None
+        and action["controller"]["controller_id"] != expected_controller_id
+    ):
+        raise ValueError("action controller does not match the current controller mode")
     return action
 
 

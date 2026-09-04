@@ -112,6 +112,37 @@ def test_present_telemetry_can_carry_matching_visualization() -> None:
     assert decoded["telemetry"]["visualization"] == _visualization()
 
 
+def test_present_telemetry_can_carry_visualization_without_legacy_planner_diagnostics() -> None:
+    source = _action()
+    source["telemetry"] = {"is_present": True, "visualization": _visualization()}
+
+    payload = encode_action_json(source)
+
+    assert decode_action_json(payload)["telemetry"] == source["telemetry"]
+
+
+@pytest.mark.parametrize(
+    "telemetry",
+    [
+        {"is_present": True},
+        {"is_present": True, "visualization": _visualization(), "unexpected": 1},
+        {
+            "is_present": True,
+            "visualization": _visualization(),
+            "selected_desired_velocity_trajectory_local_cm_per_s": [[0.0, 0.0]],
+        },
+    ],
+)
+def test_present_telemetry_rejects_partial_or_unknown_key_forms(
+    telemetry: dict[str, object],
+) -> None:
+    source = _action()
+    source["telemetry"] = telemetry
+
+    with pytest.raises(ValueError, match="telemetry keys must be exactly"):
+        validate_action_mapping(source)
+
+
 @pytest.mark.parametrize(
     ("visualization", "message"),
     [
@@ -216,6 +247,19 @@ def test_matching_current_action_is_admitted() -> None:
         expected_observation_sequence=12,
     )
     assert result["identity"]["source_observation_sequence"] == 12
+
+
+def test_runtime_identity_admission_rejects_wrong_controller_mode() -> None:
+    source = _action()
+    source["controller"]["controller_id"] = "reactive"
+
+    with pytest.raises(ValueError, match="current controller mode"):
+        validate_action_for_observation(
+            source,
+            expected_episode_id=7101,
+            expected_observation_sequence=12,
+            expected_controller_id="branch_preview",
+        )
 
 
 @pytest.mark.parametrize(

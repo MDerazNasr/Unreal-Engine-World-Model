@@ -73,6 +73,8 @@ bool FMotionWorldControlObservationTest::RunTest(const FString& Parameters)
 			true,
 			FVector(std::numeric_limits<double>::quiet_NaN(), 0.0, 0.0),
 			FVector2D::ZeroVector));
+	TestTrue(TEXT("Branch-preview controller mode is accepted"),
+		DefaultController && DefaultController->SetControllerMode(TEXT("branch_preview")));
 
 	MotionWorld::FControlObservation Observation = MakeObservation(0);
 	TArray<uint8> Payload;
@@ -81,6 +83,10 @@ bool FMotionWorldControlObservationTest::RunTest(const FString& Parameters)
 		MotionWorld::SerializeControlObservation(Observation, Payload, Failure));
 	TestTrue(TEXT("Payload is bounded"),
 		Payload.Num() > 0 && Payload.Num() <= MotionWorld::MaxObservationDatagramBytes);
+
+	Observation.ControllerMode = TEXT("branch_preview");
+	TestTrue(TEXT("Branch-preview observation serializes"),
+		MotionWorld::SerializeControlObservation(Observation, Payload, Failure));
 
 	FUTF8ToTCHAR Decoded(reinterpret_cast<const ANSICHAR*>(Payload.GetData()), Payload.Num());
 	const FString Json(Decoded.Length(), Decoded.Get());
@@ -91,11 +97,20 @@ bool FMotionWorldControlObservationTest::RunTest(const FString& Parameters)
 	if (Root.IsValid())
 	{
 		const TSharedPtr<FJsonObject>* Protocol = nullptr;
+		const TSharedPtr<FJsonObject>* Source = nullptr;
 		TestTrue(TEXT("Protocol object exists"), Root->TryGetObjectField(TEXT("protocol"), Protocol));
+		TestTrue(TEXT("Source object exists"), Root->TryGetObjectField(TEXT("source"), Source));
 		if (Protocol && Protocol->IsValid())
 		{
 			TestEqual(TEXT("Protocol name is exact"), (*Protocol)->GetStringField(TEXT("name")), FString(TEXT("motionworld_control")));
 			TestEqual(TEXT("Protocol type is observation"), (*Protocol)->GetStringField(TEXT("message_type")), FString(TEXT("observation")));
+		}
+		if (Source && Source->IsValid())
+		{
+			TestEqual(
+				TEXT("Branch-preview controller mode survives serialization"),
+				(*Source)->GetStringField(TEXT("controller_mode")),
+				FString(TEXT("branch_preview")));
 		}
 		const TSharedPtr<FJsonObject>* Previous = nullptr;
 		TestTrue(TEXT("Previous action object exists"), Root->TryGetObjectField(TEXT("previous_action"), Previous));

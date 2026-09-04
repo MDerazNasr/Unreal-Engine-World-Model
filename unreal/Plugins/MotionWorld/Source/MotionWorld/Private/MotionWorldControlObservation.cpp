@@ -40,6 +40,7 @@ bool IsSupportedController(const FString& Value)
 {
 	return Value == TEXT("echo")
 		|| Value == TEXT("reactive")
+		|| Value == TEXT("branch_preview")
 		|| Value == TEXT("nominal_mpc")
 		|| Value == TEXT("residual_mpc");
 }

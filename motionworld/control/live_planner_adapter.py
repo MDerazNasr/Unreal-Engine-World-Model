@@ -37,6 +37,7 @@ class LivePlannerSnapshot:
     previous_previous_action_local_cm_s: tuple[float, float]
     target_world_xy_cm: tuple[float, float] | None
     scenario_time_s: float
+    has_contiguous_action_history: bool = False
 
     def to_planner_query(self) -> PlannerQuery:
         """Build the causal MPC query, requiring a goal-bearing observation.
@@ -45,6 +46,8 @@ class LivePlannerSnapshot:
         requiring it here prevents a caller from accidentally launching goal-free MPC.
         """
 
+        if not self.has_contiguous_action_history:
+            raise ValueError("live MPC requires contiguous action history")
         if self.target_world_xy_cm is None:
             raise ValueError("live MPC requires an authoritative target")
         return PlannerQuery(
@@ -53,6 +56,26 @@ class LivePlannerSnapshot:
             previous_action_local_cm_s=self.previous_action_local_cm_s,
             previous_previous_action_local_cm_s=self.previous_previous_action_local_cm_s,
         )
+
+
+def planner_snapshot_from_observation(observation: object) -> LivePlannerSnapshot:
+    """Strictly convert one observation without requiring stream contiguity.
+
+    This stateless seam is intended for branch visualization, which consumes the
+    authoritative dynamics snapshot but not the MPC action-change history.  A
+    mid-episode result is explicitly barred from ``to_planner_query`` because its
+    second action-history slot cannot be recovered from one packet.
+    """
+
+    validated = validate_observation_mapping(observation)
+    observation_sequence = int(validated["identity"]["observation_sequence"])
+    previous_action, _ = _previous_action(validated, observation_sequence)
+    return _snapshot_from_validated(
+        validated,
+        previous_action=previous_action,
+        previous_previous_action=_ZERO_ACTION,
+        has_contiguous_action_history=observation_sequence == 0,
+    )
 
 
 class LivePlannerSnapshotAdapter:
@@ -102,33 +125,7 @@ class LivePlannerSnapshotAdapter:
                 raise ValueError("simulation time must strictly increase within an episode")
             previous_previous_action = self._last_previous_action or _ZERO_ACTION
 
-        source = validated["source"]
-        nominal = validated["nominal_context"]
-        if source["movement_mode"] != _SMOOTH_WALKING_MODE:
-            raise ValueError("live planner supports only the Walking movement mode")
-        if nominal["movement_mode_class"] != _SMOOTH_WALKING_CLASS:
-            raise ValueError("live planner requires the Smooth Walking movement-mode class")
-
-        state = validated["state"]
-        yaw = YawRadians.from_degrees(float(state["facing_yaw_deg"]))
-        derived_local_velocity = world_vector_to_local(
-            np.asarray(state["velocity_world_cm_per_s"], dtype=np.float64)[:2],
-            yaw=yaw,
-        )
-        transmitted_local_velocity = np.asarray(
-            state["velocity_local_planar_cm_per_s"], dtype=np.float64
-        )
-        if not np.allclose(
-            derived_local_velocity,
-            transmitted_local_velocity,
-            rtol=0.0,
-            atol=1.0e-4,
-        ):
-            raise ValueError("authoritative world and local velocities disagree")
-
-        previous_action, applied_action_source = self._previous_action(
-            validated, observation_sequence
-        )
+        previous_action, applied_action_source = _previous_action(validated, observation_sequence)
         if same_episode and applied_action_source is not None:
             if (
                 self._last_applied_action_source is not None
@@ -141,47 +138,11 @@ class LivePlannerSnapshotAdapter:
             ):
                 raise ValueError("a repeated applied action source must retain its value")
 
-        planner_context = validated["planner_context"]
-        target = planner_context["target"]
-        target_world_xy_cm = (
-            (float(target["position_world_cm"][0]), float(target["position_world_cm"][1]))
-            if target["is_present"]
-            else None
-        )
-        timed_gate = planner_context["timed_gate"]
-        # Gate-free planning has no shared scenario clock. Zero is the safe,
-        # deterministic value because no time-varying gate cost consumes it.
-        scenario_time_s = (
-            float(timed_gate["scenario_time_s"]) if timed_gate["is_present"] else 0.0
-        )
-        parameters = dict(nominal["parameters"])
-        parameters["turning_strength"] = parameters.pop("turning_strength_per_s")
-        preparation = nominal["input_preparation"]
-        snapshot = PlannerSnapshot(
-            observable=SmoothWalkingObservableState(
-                position_world_cm=np.asarray(state["position_world_cm"], dtype=np.float64),
-                velocity_world_cm_s=np.asarray(
-                    state["velocity_world_cm_per_s"], dtype=np.float64
-                ),
-                facing_yaw_rad=yaw.value,
-                angular_velocity_yaw_deg_s=float(
-                    state["angular_velocity_world_deg_per_s"][2]
-                ),
-                simulation_time_s=simulation_time_s,
-            ),
-            internal=internal_from_context_record(nominal),
-            parameters=smooth_walking_parameters_from_record(parameters),
-            effective_max_speed_cm_s=float(preparation["effective_max_speed_cm_per_s"]),
-        )
-        result = LivePlannerSnapshot(
-            snapshot=snapshot,
-            episode_id=episode_id,
-            observation_sequence=observation_sequence,
-            state_sample_sequence=state_sample_sequence,
-            previous_action_local_cm_s=previous_action,
-            previous_previous_action_local_cm_s=previous_previous_action,
-            target_world_xy_cm=target_world_xy_cm,
-            scenario_time_s=scenario_time_s,
+        result = _snapshot_from_validated(
+            validated,
+            previous_action=previous_action,
+            previous_previous_action=previous_previous_action,
+            has_contiguous_action_history=True,
         )
 
         self._last_episode_id = episode_id
@@ -204,15 +165,85 @@ class LivePlannerSnapshotAdapter:
         self._last_applied_action_source = None
         self._last_applied_action = None
 
-    @staticmethod
-    def _previous_action(
-        validated: dict[str, Any], observation_sequence: int
-    ) -> tuple[tuple[float, float], int | None]:
-        previous = validated["previous_action"]
-        if not previous["is_present"]:
-            return _ZERO_ACTION, None
-        source_sequence = int(previous["source_observation_sequence"])
-        if source_sequence > observation_sequence - 1:
-            raise ValueError("previous action source is newer than the preceding observation")
-        values = previous["applied_local_velocity_cm_per_s"]
-        return (float(values[0]), float(values[1])), source_sequence
+
+
+def _previous_action(
+    validated: dict[str, Any], observation_sequence: int
+) -> tuple[tuple[float, float], int | None]:
+    previous = validated["previous_action"]
+    if not previous["is_present"]:
+        return _ZERO_ACTION, None
+    source_sequence = int(previous["source_observation_sequence"])
+    if source_sequence > observation_sequence - 1:
+        raise ValueError("previous action source is newer than the preceding observation")
+    values = previous["applied_local_velocity_cm_per_s"]
+    return (float(values[0]), float(values[1])), source_sequence
+
+
+def _snapshot_from_validated(
+    validated: dict[str, Any],
+    *,
+    previous_action: tuple[float, float],
+    previous_previous_action: tuple[float, float],
+    has_contiguous_action_history: bool,
+) -> LivePlannerSnapshot:
+    source = validated["source"]
+    nominal = validated["nominal_context"]
+    if source["movement_mode"] != _SMOOTH_WALKING_MODE:
+        raise ValueError("live planner supports only the Walking movement mode")
+    if nominal["movement_mode_class"] != _SMOOTH_WALKING_CLASS:
+        raise ValueError("live planner requires the Smooth Walking movement-mode class")
+
+    state = validated["state"]
+    yaw = YawRadians.from_degrees(float(state["facing_yaw_deg"]))
+    derived_local_velocity = world_vector_to_local(
+        np.asarray(state["velocity_world_cm_per_s"], dtype=np.float64)[:2], yaw=yaw
+    )
+    transmitted_local_velocity = np.asarray(
+        state["velocity_local_planar_cm_per_s"], dtype=np.float64
+    )
+    if not np.allclose(
+        derived_local_velocity, transmitted_local_velocity, rtol=0.0, atol=1.0e-4
+    ):
+        raise ValueError("authoritative world and local velocities disagree")
+
+    identity = validated["identity"]
+    planner_context = validated["planner_context"]
+    target = planner_context["target"]
+    target_world_xy_cm = (
+        (float(target["position_world_cm"][0]), float(target["position_world_cm"][1]))
+        if target["is_present"]
+        else None
+    )
+    timed_gate = planner_context["timed_gate"]
+    # Gate-free planning has no shared scenario clock. Zero is deterministic because
+    # no time-varying gate cost consumes it in that case.
+    scenario_time_s = (
+        float(timed_gate["scenario_time_s"]) if timed_gate["is_present"] else 0.0
+    )
+    parameters = dict(nominal["parameters"])
+    parameters["turning_strength"] = parameters.pop("turning_strength_per_s")
+    preparation = nominal["input_preparation"]
+    snapshot = PlannerSnapshot(
+        observable=SmoothWalkingObservableState(
+            position_world_cm=np.asarray(state["position_world_cm"], dtype=np.float64),
+            velocity_world_cm_s=np.asarray(state["velocity_world_cm_per_s"], dtype=np.float64),
+            facing_yaw_rad=yaw.value,
+            angular_velocity_yaw_deg_s=float(state["angular_velocity_world_deg_per_s"][2]),
+            simulation_time_s=float(validated["timing"]["simulation_time_s"]),
+        ),
+        internal=internal_from_context_record(nominal),
+        parameters=smooth_walking_parameters_from_record(parameters),
+        effective_max_speed_cm_s=float(preparation["effective_max_speed_cm_per_s"]),
+    )
+    return LivePlannerSnapshot(
+        snapshot=snapshot,
+        episode_id=int(identity["episode_id"]),
+        observation_sequence=int(identity["observation_sequence"]),
+        state_sample_sequence=int(identity["state_sample_sequence"]),
+        previous_action_local_cm_s=previous_action,
+        previous_previous_action_local_cm_s=previous_previous_action,
+        target_world_xy_cm=target_world_xy_cm,
+        scenario_time_s=scenario_time_s,
+        has_contiguous_action_history=has_contiguous_action_history,
+    )
