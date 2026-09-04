@@ -141,6 +141,7 @@ pixel/readability confirmation and the final recording remain deliberately open.
 
 ## Deferred after the interview demo
 
+- V1 is frozen as the tested target-seeking learned-overlay fallback before obstacle-dodging work.
 - Full Recovery Sections 4–13 remain the authoritative research-completion checklist.
 - Multi-seed final prediction and paired-control evaluation remain incomplete until their gates pass.
 - Statistical superiority, complete reproducibility, and release-candidate claims remain deferred.
